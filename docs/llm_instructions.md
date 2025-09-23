@@ -2,23 +2,23 @@
 
 ## Project Identity
 
-This project is **RPAC - Resilience & Preparedness AI Companion**, focused on Swedish-first offline-ready crisis and preparedness tools.
+Detta projekt är **RPAC - Resilience & Preparedness AI Companion**, fokuserat på svenskspråkiga, offline-redo kris- och beredskapsverktyg.
 
 ## Scope
 
-Localised to Sweden. Supports **individual → local → regional** networks.
+Lokaliserat för Sverige. Stöder **individ → lokal → regional** nätverk.
 
-Offline-first, Swedish-first — see `/docs/charter.md` and `/docs/architecture.md`.
+Offline-först, svenska-först — se `/docs/charter.md` och `/docs/architecture.md`.
 
 ## Language
 
-Use Swedish for:
+Använd svenska för:
 
-- UI strings
-- AI communication
-- Documentation unless otherwise asked
+- UI-strängar
+- AI-kommunikation
+- Dokumentation om inte annat begärts
 
-English only for external connectors or fallback.
+Engelska bara för externa anslutningar eller som reservalternativ.
 
 ## Files to Always Load for Context
 
@@ -27,13 +27,13 @@ English only for external connectors or fallback.
 
 ## Development Rules
 
-- Offline-first design in all components.
-- Use simple, proven technology.
-- Respect privacy defaults.
-- Modular code for future integration.
+- Offline-först design i alla komponenter.
+- Använd enkel, beprövad teknologi.
+- Respektera integritetsstandarder.
+- Modulär kod för framtida integration.
 
 ## Output Preferences
 
-- Clear, commented code.
-- Use Swedish in variable names/UI where possible.
-- All new features documented in `/docs/dev_notes.md`.
+- Tydlig, kommenterad kod.
+- Använd svenska i variabelnamn/UI när möjligt.
+- Alla nya funktioner dokumenterade i `/docs/dev_notes.md`.
