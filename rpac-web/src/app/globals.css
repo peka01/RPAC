@@ -1,0 +1,486 @@
+@import "tailwindcss";
+
+/* RPAC Military-Crisis Design System - Forward-Leaning UX */
+:root {
+  /* Semi-military color palette - muted, professional, crisis-appropriate */
+  --color-primary: #3D4A2B;           /* Dark olive green from logo for primary actions */
+  --color-primary-dark: #2A331E;      /* Darker olive green for hover states */
+  --color-secondary: #2C4A5C;         /* Muted military blue for secondary actions */
+  --color-accent: #5C4A2C;            /* Muted military brown for accents */
+  --color-success: #2E5B2E;           /* Military green for success states */
+  --color-warning: #B85C2C;           /* Muted military orange for warnings */
+  --color-danger: #8B2C2C;            /* Muted military red for critical states */
+  --color-info: #2C4A5C;              /* Military blue for information */
+  --color-neutral: #4A4A4A;           /* Military gray for neutral states */
+  
+  /* Sophisticated text colors with perfect contrast */
+  --text-primary: #2D3436;
+  --text-secondary: #636E72;
+  --text-tertiary: #B2BEC3;
+  --text-inverse: #FFFFFF;
+  --text-accent: #3D4A2B;
+  
+  /* Military-crisis background system with subtle, professional gradients */
+  --bg-primary: linear-gradient(135deg, #F8F9FA 0%, #E9ECEF 100%);
+  --bg-secondary: linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 100%);
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --bg-glass: rgba(255, 255, 255, 0.1);
+  --bg-crisis: linear-gradient(135deg, #FFF8F0 0%, #FFE8D6 100%);
+  --bg-critical: linear-gradient(135deg, #FFF0F0 0%, #FFE0E0 100%);
+  --bg-military: linear-gradient(135deg, #F5F5F5 0%, #E8E8E8 100%);
+  --bg-authority: linear-gradient(135deg, #F0F2F5 0%, #E4E7EA 100%);
+  
+  /* Modern shadow system */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 16px 64px rgba(0, 0, 0, 0.16);
+  --shadow-glow: 0 0 32px rgba(61, 74, 43, 0.3);
+  
+  /* Modern border radius system */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+  
+  /* Legacy variables for compatibility */
+  --background: var(--bg-primary);
+  --foreground: var(--text-primary);
+}
+
+.dark {
+  /* Dark mode with sophisticated gradients */
+  --text-primary: #FFFFFF;
+  --text-secondary: #B2BEC3;
+  --text-tertiary: #636E72;
+  --text-inverse: #2D3436;
+  --text-accent: #2E5B2E;
+  
+  --bg-primary: linear-gradient(135deg, #1A1A1A 0%, #2D3436 100%);
+  --bg-secondary: linear-gradient(135deg, #2D3436 0%, #636E72 100%);
+  --bg-card: rgba(45, 52, 54, 0.95);
+  --bg-glass: rgba(255, 255, 255, 0.05);
+  --bg-crisis: linear-gradient(135deg, #2D2419 0%, #3D2F1F 100%);
+  --bg-critical: linear-gradient(135deg, #2D1919 0%, #3D2525 100%);
+  
+  /* Legacy variables for compatibility */
+  --background: var(--bg-primary);
+  --foreground: var(--text-primary);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* Modern typography with perfect readability */
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Modern glass morphism effects */
+.glass {
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Smooth animations and transitions */
+* {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Modern scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-neutral);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+/* Modern status indicators with beautiful gradients */
+.status-good {
+  color: var(--color-success);
+  background: linear-gradient(135deg, rgba(0, 184, 148, 0.1) 0%, rgba(0, 184, 148, 0.05) 100%);
+  border: 1px solid rgba(0, 184, 148, 0.2);
+}
+
+.status-warning {
+  color: var(--color-warning);
+  background: linear-gradient(135deg, rgba(253, 203, 110, 0.1) 0%, rgba(253, 203, 110, 0.05) 100%);
+  border: 1px solid rgba(253, 203, 110, 0.2);
+}
+
+.status-critical {
+  color: var(--color-danger);
+  background: linear-gradient(135deg, rgba(225, 112, 85, 0.1) 0%, rgba(225, 112, 85, 0.05) 100%);
+  border: 1px solid rgba(225, 112, 85, 0.2);
+}
+
+.status-unknown {
+  color: var(--color-neutral);
+  background: linear-gradient(135deg, rgba(99, 110, 114, 0.1) 0%, rgba(99, 110, 114, 0.05) 100%);
+  border: 1px solid rgba(99, 110, 114, 0.2);
+}
+
+/* Modern button system with stunning effects */
+.modern-button {
+  position: relative;
+  min-height: 48px;
+  min-width: 48px;
+  padding: 14px 24px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-md);
+  transform: translateY(0);
+}
+
+/* Override for specific button variants */
+.modern-button.bg-gradient-to-r {
+  background: inherit;
+}
+
+.modern-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.modern-button:hover::before {
+  left: 100%;
+}
+
+.modern-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.modern-button:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+.modern-button:focus {
+  outline: none;
+  box-shadow: var(--shadow-glow);
+}
+
+/* Secondary button variant */
+.modern-button-secondary {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 2px solid var(--color-primary);
+}
+
+.modern-button-secondary:hover {
+  background: var(--color-primary);
+  color: var(--text-inverse);
+}
+
+/* Modern card system with glass morphism */
+.modern-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.modern-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+}
+
+.modern-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+}
+
+/* Legacy crisis-card for backward compatibility */
+.crisis-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Modern navigation with glass morphism */
+.modern-nav {
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-md);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+/* Modern status indicators with animations */
+.modern-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.modern-status-indicator::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.6s;
+}
+
+.modern-status-indicator:hover::before {
+  left: 100%;
+}
+
+.modern-status-indicator::after {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.modern-status-indicator.good::after {
+  background: var(--color-success);
+  box-shadow: 0 0 8px rgba(0, 184, 148, 0.3);
+}
+
+.modern-status-indicator.warning::after {
+  background: var(--color-warning);
+  box-shadow: 0 0 8px rgba(253, 203, 110, 0.3);
+}
+
+.modern-status-indicator.critical::after {
+  background: var(--color-danger);
+  box-shadow: 0 0 8px rgba(225, 112, 85, 0.3);
+}
+
+.modern-status-indicator.unknown::after {
+  background: var(--color-neutral);
+  box-shadow: 0 0 8px rgba(99, 110, 114, 0.3);
+}
+
+/* Legacy status indicators for backward compatibility */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.status-indicator::before {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-indicator.good::before {
+  background-color: var(--color-success);
+}
+
+.status-indicator.warning::before {
+  background-color: var(--color-warning);
+}
+
+.status-indicator.critical::before {
+  background-color: var(--color-danger);
+}
+
+.status-indicator.unknown::before {
+  background-color: var(--color-neutral);
+}
+
+/* Modern responsive design with fluid typography */
+@media (max-width: 768px) {
+  .modern-card, .crisis-card {
+    padding: 20px;
+    margin: 8px;
+    border-radius: var(--radius-md);
+  }
+  
+  .modern-button {
+    min-height: 52px;
+    font-size: 16px;
+    padding: 16px 20px;
+  }
+  
+  .modern-status-indicator, .status-indicator {
+    font-size: 16px;
+    padding: 14px 18px;
+  }
+  
+  .modern-nav {
+    padding: 0 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modern-card, .crisis-card {
+    padding: 16px;
+    margin: 4px;
+  }
+  
+  .modern-button {
+    min-height: 56px;
+    font-size: 18px;
+    padding: 18px 24px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .modern-card, .crisis-card {
+    border-width: 2px;
+    border-color: var(--text-primary);
+  }
+  
+  .modern-button {
+    border: 2px solid var(--text-primary);
+  }
+  
+  .modern-status-indicator::after, .status-indicator::before {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .modern-button::before,
+  .modern-status-indicator::before {
+    display: none;
+  }
+}
+
+/* Military-crisis specific styling */
+.military-card {
+  background: var(--bg-military);
+  border: 2px solid var(--color-neutral);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.military-button {
+  background: var(--color-primary);
+  color: var(--text-inverse);
+  border: 2px solid var(--color-primary-dark);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.military-button:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.military-status {
+  border-left: 4px solid var(--color-primary);
+  background: rgba(46, 91, 46, 0.05);
+  padding: 12px 16px;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+/* Crisis-appropriate typography */
+.crisis-heading {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.crisis-text {
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* Dark mode specific adjustments */
+.dark .modern-card {
+  background: rgba(45, 52, 54, 0.95);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .modern-button-secondary {
+  background: rgba(45, 52, 54, 0.95);
+  border-color: var(--color-primary);
+}
+
+.dark .military-card {
+  background: rgba(45, 52, 54, 0.95);
+  border-color: var(--color-neutral);
+}

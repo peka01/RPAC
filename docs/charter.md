@@ -2,7 +2,7 @@
 
 ## 1. Vision Statement
 
-> Att ge individer, lokala samhällen och regionala nätverk smarta, människocentrerade verktyg som möjliggör självförsörjning, ömsesidig hjälp och snabb respons under kriser – byggt på beprövad, modern teknik som fungerar även när infrastrukturen störs.
+> Att ge individer, lokala samhällen och regionala nätverk smarta, människocentrerade verktyg som möjliggör självförsörjning, ömsesidig hjälp och snabb respons under kriser – byggt på modern, framtidssäker webbteknologi som garanterar global tillgänglighet och automatisk skalning.
 
 ---
 
@@ -10,14 +10,14 @@
 
 Vi ska:
 
-- Bygga en **modulär, plattformsoberoende** applikation med fokus på:
+- Bygga en **modern, web-först** applikation med fokus på:
   - **Individuell självförsörjning** inom mat, vatten, energi och hälsa.
   - **Lokalt samarbete** med resursinventering, optimering och kommunikation.
   - **Regional samordning** för ömsesidig hjälp och gemensam resiliensanalys.
 
-- Designa för **offline-först** drift med sömlös synkronisering när nätet är tillgängligt.
+- Designa för **web-först** drift med antagandet att internetanslutning kommer att vara tillgänglig även under kriser.
 
-- Utnyttja **stabil och beprövad teknologi** för att undvika systemfel.
+- Utnyttja **moderna, framtidssäkra webbteknologier** för optimal prestanda och tillgänglighet.
 
 - Integrera **människolik AI-kommunikation** som bygger tillit, empati och samarbete i stressade situationer.
 
@@ -88,25 +88,26 @@ Detta innebär:
 
 ## 6. Technical Foundations
 
-- **Frontend:** Flutter (mobil + webb).
-- **Backend:** Python (FastAPI/Django) eller Node.js, med modulära tjänster.
-- **Databas:** Lokal SQLite för offline, synkbar med Postgres när online.
-- **Nätverk:**  
-  - Bluetooth mesh (libp2p/Briar).  
-  - Wi-Fi Direct för lokal synk.
-  - LoRa som alternativ för landsbygd.
-- **Kartor:** Offline OpenStreetMap.
-- **AI:** TensorFlow Lite / PyTorch Mobile för växthälsa; svenska NLP för kommunikation.
-- **Säkerhet:** E2E-kryptering, hashade ID:n för integritet.
+- **Frontend:** Next.js 14 + React 18 + TypeScript (modern webbapplikation).
+- **Backend:** Next.js API Routes + Supabase (serverless och skalbar).
+- **Databas:** Supabase PostgreSQL med real-time funktionalitet.
+- **Infrastructure:**  
+  - Vercel för hosting och deployment.
+  - Cloudflare för global CDN och edge computing.
+  - Automatic scaling för hög belastning.
+- **Kartor:** Online-baserade kartor med offline PWA-cache.
+- **AI:** OpenAI GPT-4 för svenska NLP; Computer Vision för växtanalys.
+- **Säkerhet:** End-to-end kryptering, Row Level Security, GDPR compliance.
 
 ---
 
 ## 7. Crisis-Ready Technology Use
 
-- Arkitektur för **offline-först** för alla kärnfunktioner.
-- Använder beprövad och stabil teknologi.
-- Optimerad för låg strömförbrukning – kompatibel med sol- och batteridrift.
-- Fungerar på Android, iOS och små "community hub"-servrar.
+- Arkitektur för **web-först** med antagandet att internetanslutning är tillgänglig.
+- Använder moderna, framtidssäkra webbteknologier.
+- Global CDN och edge computing för snabb åtkomst världen över.
+- Automatic scaling för hög belastning under kriser.
+- Progressive Web App (PWA) för begränsad offline-funktionalitet.
 
 ---
 

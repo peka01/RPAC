@@ -1,0 +1,202 @@
+{
+  "app": {
+    "title": "Beredd",
+    "subtitle": "Ditt trygga stöd",
+    "description": "Krisverktyg för beredskap och ömsesidig hjälp"
+  },
+  "navigation": {
+    "home": "Hem",
+    "individual": "Min Beredskap",
+    "local": "Mitt närområde", 
+    "regional": "Regional",
+    "settings": "Inställningar"
+  },
+  "home": {
+    "welcome": "Välkommen till Beredd",
+    "subtitle": "Ditt trygga stöd",
+    "status": "Systemstatus",
+    "connection": "Anslutning",
+    "battery": "Batteri",
+    "mesh_network": "Mesh-nätverk",
+    "offline": "Frånkopplad",
+    "online": "Ansluten",
+    "crisis_mode": "Krisläge aktivt",
+    "quick_actions": "Snabbåtgärder",
+    "preparedness_overview": "Din beredskapsöversikt",
+    "well_prepared": "Du är väl förberedd! Fortsätt så.",
+    "crisis_active": "Krisläge aktivt",
+    "information": "Information"
+  },
+  "individual": {
+    "title": "Min personliga beredskap",
+    "grow_at_home": "Odla Hemma - AI-guide",
+    "plant_diagnosis": "Växtdiagnos & Hälsa",
+    "resource_inventory": "Min resursinventering",
+    "guides": "Steg-för-steg guider",
+    "personal_coach": "Min beredskapscoach"
+  },
+  "local": {
+    "title": "Mitt närområde",
+    "resource_sharing": "Resursdelning",
+    "communication": "Kommunikation",
+    "mesh_network": "Mesh-nätverk",
+    "resource_optimization": "Resursoptimering"
+  },
+  "regional": {
+    "title": "Regional hjälp & samordning",
+    "mutual_aid": "Ömsesidig hjälp",
+    "preparedness_exercises": "Beredskapsövningar",
+    "resource_mapping": "Resurskartläggning"
+  },
+  "resources": {
+    "food": "Mat & näring",
+    "water": "Vatten & hygien",
+    "energy": "Energi & el",
+    "medicine": "Medicin & hälsa",
+    "tools": "Verktyg & Utrustning"
+  },
+  "status": {
+    "online": "Ansluten",
+    "offline": "Frånkopplad",
+    "mesh_connected": "Mesh-ansluten",
+    "crisis_mode": "Krisläge",
+    "battery_low": "Lågt batteri",
+    "battery_ok": "Batteri OK"
+  },
+  "actions": {
+    "add_resource": "Lägg till resurs",
+    "share_resource": "Dela med grannar",
+    "request_help": "Be om hjälp",
+    "scan_plant": "Kontrollera växt",
+    "update_inventory": "Uppdatera inventering",
+    "send_message": "Skicka meddelande"
+  },
+  "messages": {
+    "welcome": "Välkommen till Beredd - Ditt trygga stöd",
+    "offline_ready": "Funkar även utan internet",
+    "crisis_detected": "Krisläge upptäckt - aktiverar beredskapsläge",
+    "help_available": "Hjälp är tillgänglig i ditt område",
+    "resources_shared": "Resurser delade med samhället"
+  },
+  "crisis_messages": {
+    "stay_calm": "Håll dig lugn - vi är här för att hjälpa",
+    "help_coming": "Hjälp är på väg",
+    "resources_available": "Resurser är tillgängliga",
+    "community_support": "Samhället stöder dig",
+    "stay_safe": "Håll dig säker"
+  },
+  "preparedness": {
+    "food_days": "dagar mat kvar",
+    "water_days": "dagar vatten kvar",
+    "energy_days": "dagar energi kvar",
+    "medicine_days": "dagar medicin kvar",
+    "overall_score": "Beredskapspoäng",
+    "excellent": "Du är väl förberedd för kriser",
+    "good": "Bra beredskap, men kan förbättras",
+    "needs_improvement": "Beredskapen behöver förbättras",
+    "important_warnings": "Viktiga varningar",
+    "quick_actions": "Snabbåtgärder",
+    "set_goals": "Sätt mål",
+    "plan": "Planera"
+  },
+  "ui": {
+    "systemstatus": "Systemstatus",
+    "anslutning": "Anslutning",
+    "batteri": "Batteri",
+    "mesh_network": "Mesh-nätverk",
+    "fromkopplad": "Frånkopplad",
+    "snabbatgarder": "Snabbåtgärder",
+    "beredskapsoversikt": "Din Beredskapsöversikt",
+    "du_ar_val_forberedd": "Du är väl förberedd! Fortsätt så.",
+    "krislage_aktivit": "Krisläge aktivt",
+    "information": "Information"
+  },
+  "settings": {
+    "title": "Inställningar",
+    "language": "Språk",
+    "theme": "Tema",
+    "notifications": "Notifieringar",
+    "privacy": "Integritet",
+    "account": "Konto",
+    "connection_status": "Anslutningsstatus",
+    "battery": "Batteri",
+    "location": "Plats",
+    "unknown": "Okänd"
+  },
+  "descriptions": {
+    "personliga_odlingsplaner": "AI-genererade odlingsplaner anpassade för din plats och klimat",
+    "delad_resursinventering": "Transparent resursinventering för hela samhället",
+    "matchning_overskott_brist": "Intelligent matchning av resursöverskott och -brist",
+    "regional_samordning": "Samordning av hjälpresurser på regional nivå"
+  },
+  "forms": {
+    "name": "Namn",
+    "email": "E-postadress",
+    "password": "Lösenord",
+    "category": "Kategori",
+    "quantity": "Antal",
+    "unit": "Enhet",
+    "days_remaining": "Dagar kvar",
+    "submit": "Skicka",
+    "cancel": "Avbryt",
+    "save": "Spara",
+    "update": "Uppdatera",
+    "delete": "Ta bort",
+    "add": "Lägg till",
+    "edit": "Redigera",
+    "close": "Stäng",
+    "back": "Tillbaka",
+    "next": "Nästa",
+    "previous": "Föregående",
+    "skip": "Hoppa över",
+    "continue": "Fortsätt",
+    "finish": "Slutför",
+    "loading": "Laddar...",
+    "processing": "Bearbetar...",
+    "upload": "Ladda upp",
+    "select_file": "Välj fil",
+    "remove": "Ta bort",
+    "confirm": "Bekräfta",
+    "yes": "Ja",
+    "no": "Nej"
+  },
+  "placeholders": {
+    "enter_name": "Ange ditt fullständiga namn",
+    "enter_email": "din@email.se",
+    "enter_password": "Ditt lösenord",
+    "enter_password_new": "Minst 6 tecken",
+    "enter_quantity": "Antal",
+    "enter_unit": "kg, liter, st",
+    "enter_days": "Dagar kvar",
+    "select_category": "Välj kategori"
+  },
+  "validation": {
+    "required": "Detta fält är obligatoriskt",
+    "email_invalid": "Ange en giltig e-postadress",
+    "password_min_length": "Lösenordet måste vara minst 6 tecken långt",
+    "name_required": "Namn är obligatoriskt",
+    "quantity_required": "Antal är obligatoriskt",
+    "unit_required": "Enhet är obligatoriskt",
+    "days_required": "Dagar kvar är obligatoriskt"
+  },
+  "alt_text": {
+    "selected_plant": "Vald växt",
+    "plant_image": "Växtbild",
+    "app_icon": "App-ikon",
+    "user_avatar": "Användaravatar",
+    "status_icon": "Statusikon"
+  },
+  "auth": {
+    "create_account": "Skapa konto",
+    "sign_in": "Logga in",
+    "sign_out": "Logga ut",
+    "welcome_back": "Välkommen tillbaka",
+    "start_journey": "Börja din beredskapsresa idag",
+    "continue": "Logga in för att fortsätta",
+    "already_have_account": "Har du redan ett konto?",
+    "need_account": "Behöver du ett konto?",
+    "sign_in_instead": "Logga in istället",
+    "create_account_instead": "Skapa konto",
+    "back_to_intro": "← Tillbaka till introduktion"
+  }
+}

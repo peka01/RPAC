@@ -1,113 +1,136 @@
-# RPAC – Arkitekturöversikt (Individ → Lokal → Regional nivå)
+# RPAC – Web-First Arkitektur
 
-RPAC (Resilience & Preparedness AI Companion) är utvecklad för att fungera **offline-först** och fungera som ett krisverktyg som fortsätter att vara fullt funktionellt även när internet och elnätet är nere. Systemet är byggt för att stödja tre olika nivåer:
+## Strategisk Omorientering
 
-1. **Individnivå** – Personlig beredskap och odlingsstöd anpassat för svenska förhållanden.
-2. **Lokalt nätverk** – Resursinventering, optimering och kommunikation inom samhället.
-3. **Regional nivå** – Sammanställd och anonymiserad data som kopplar ihop lokala nätverk för ömsesidig hjälp.
-
-All kommunikation och AI-interaktion sker på **svenska** och är kulturellt anpassad. Engelska används bara som reservalternativ vid regional interaktion.
-
----
+RPAC (Resilience & Preparedness AI Companion) har omorienterats till en **web-först** strategi med antagandet att internetanslutning kommer att vara tillgänglig även under kriser. Denna moderna arkitektur bygger på beprövad, framtidssäker teknologi som garanterar global tillgänglighet och automatisk skalning.
 
 ## Arkitekturdiagram
 
 ```
-┌───────────────────────────────────────────────────┐
-│                 REGIONAL HUB                      │
-│───────────────────────────────────────────────────│
-│ Sammanställd och anonymiserad data från lokala nätverk│
-│ Regional resurskarta med bristidentifiering         │
-│ AI-matchning av överskott och brist                  │
-│ Beredskapsövningar och koordinationspanel           │
-│ Säker dataöverföring endast vid internet             │
-└─────────────────────────▲─────────────────────────┘
-                          │
-              Säker online-synk (endast sammanställd data)
-            ┌───────────────────────────────────────────┼──────────────────────────────────────────────┐
-            │                    LOKALT SAMHÄLLSNÄTVERK (Offline-först)                                 │
-            │──────────────────────────────────────────────────────────────────────────────────────────│
-            │ GEMENSAM RESURSINVENTERING            KOMMUNIKATIONSMODUL                                 │
-            │ - Sammanställning av resurser ┌───────────────┐  - Text-/röstmeddelanden                      │
-            │ - Varningar för brist/överskott│  MÄNNISKOLIK  │  - AI-sammanfattning och realtidsöversättning │
-            │ - Offlinekarta (OSM cache)     │ KOMMUNIKATION │  - Tonmoderering med empati                   │
-            │ - AI för resursoptimering      │     AI        │  - Mesh/Wi-Fi Direct/LoRa offline-nät         │
-            │──────────────────────────────────────────────────────────────────────────────────────────│
-            │ Mesh via Bluetooth mellan enheter, LoRa som alternativ för landsbygd,                     │
-            │ integritetsskydd med konfigurerbar kartprecision                                            │
-            └────────▲──────────────────────────────────────────────────────────────────────────────────┘
-                     │ Offline P2P-synk mellan användare
-                     │
-┌─────────┴──────────────────────────────────────────────────────────────────────┐
-│                          INDIVIDNOD                                             │
-│────────────────────────────────────────────────────────────────────────────────│
-│ PERSONLIG BEREDSKAPSMODUL                                                       │
-│ - Grow-at-Home AI-guide med platsbaserade odlingsplaner och krisgrödor          │
-│ - Visuell växtdiagnos via AI                                                    │
-│ - Offline steg-för-steg guider                                                  │
-│ - Personlig resursinventering (mat, vatten, medicin, energi)                    │
-│                                                                                  │
-│ LOKAL KOMMUNIKATION                                                              │
-│ - Anslutning till lokalt mesh                                                    │
-│ - Inventarieuppdateringar skickas/mottas                                        │
-│                                                                                  │
-│ AI-ASSISTENTER                                                                   │
-│ - Kontextmedveten odlingshjälp                                                   │
-│ - Personlig beredskapscoach                                                      │
-│ - Krisinfosammanfattning + handlingsförslag                                      │
-└────────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                        WEB-FIRST RPAC                          │
+│                                                                 │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐            │
+│  │   FRONTEND  │  │   BACKEND   │  │   DATABASE  │            │
+│  │             │  │             │  │             │            │
+│  │ • Next.js   │◄─┤ • API Routes│◄─┤ • Supabase  │            │
+│  │ • React 18  │  │ • Edge Fns  │  │ • PostgreSQL│            │
+│  │ • TypeScript│  │ • Auth      │  │ • Real-time │            │
+│  │ • Tailwind  │  │ • Validation│  │ • Backups   │            │
+│  └─────────────┘  └─────────────┘  └─────────────┘            │
+│         │                 │                 │                 │
+│         ▼                 ▼                 ▼                 │
+│  ┌─────────────────────────────────────────────────────────────┤
+│  │                    GLOBAL INFRASTRUCTURE                    │
+│  │                                                             │
+│  │ • Vercel (Hosting)    • Cloudflare (CDN)   • Global Edge  │
+│  │ • PWA Support        • Offline Capability  • Auto-scaling │
+│  │ • Crisis Mode        • Swedish Localization • AI Integration│
+│  └─────────────────────────────────────────────────────────────┤
+└─────────────────────────────────────────────────────────────────┘
 ```
-
----
-
-## Dataflöde
-
-### Individnivå
-All personlig data (inventarier, odlingsstatus, guider) lagras lokalt i SQLite för att säkerställa funktion offline. AI-moduler körs direkt på enheten (offline) och rapporterar vid samtycke sammanställd data till det lokala nätverket.
-
-### Lokalt nätverk
-Mesh-baserad kommunikation (Bluetooth/Wi-Fi Direct, eventuellt LoRa) synkroniserar inventarier och meddelanden mellan deltagare. AI för resursoptimering analyserar den sammanställda inventeringen och ger realtidsförslag för omfördelning och prioritering. Offlinekartor visar resurser och infrastrukturläge med konfigurerbara integritetsnivåer.
-
-### Regional nivå
-När internet är tillgängligt skickas sammanställd, anonymiserad data till regional hub. Huben kan matcha överskott i en kommun med brist i en annan, hålla beredskapsövningar digitalt och visa beredskapspoäng på regional karta.
-
----
 
 ## Teknisk Stapel
 
-- **Frontend:** Flutter med `intl` för språkstöd (svenska som standard, engelska som reservalternativ).
-- **Backend:** Python (FastAPI/Django) eller Node.js med modulära API-tjänster.
-- **Databas:** SQLite för individ och lokalt nätverk; PostgreSQL i regional hub.
-- **Kartor:** Offline OpenStreetMap med tile-cache för låg datastorlek.
-- **AI:** TensorFlow Lite / PyTorch Mobile för växtdiagnos; svenska NLP-modeller (finetunad GPT eller KB-BERT) för kommunikation, sammanfattning, översättning och tonkontroll.
-- **Nätverk:** libp2p/Briar mesh via Bluetooth/Wi-Fi Direct; LoRa (som alternativ).
-- **Säkerhet:** End-to-end kryptering; hashade enhets-ID för anonymitet.
+### 🌐 **Frontend (Next.js 14 + React 18)**
+- **Server-Side Rendering (SSR)**: Snabba initiala laddningar
+- **Static Site Generation (SSG)**: Offline-kapabla sidor
+- **Progressive Web App (PWA)**: App-liknande upplevelse
+- **TypeScript**: Typsäkerhet och underhållbarhet
+- **Tailwind CSS**: Responsiv, krisanpassad design
 
----
+### ⚡ **Backend (Next.js API Routes + Supabase)**
+- **Real-time Database**: Live-uppdateringar av krisstatus
+- **Built-in Authentication**: Säker användarhantering
+- **Edge Functions**: Global prestanda
+- **PostgreSQL**: Robust datalagring
+- **Row Level Security**: Dataintegritet
+
+### 🚀 **Infrastructure (Vercel + Cloudflare)**
+- **Global CDN**: Snabb åtkomst världen över
+- **Edge Computing**: Låg latens
+- **Automatic Scaling**: Skalning under hög belastning
+- **99.9% Uptime**: Tillförlitlighet under kriser
+
+## Funktionella Nivåer
+
+### 🏠 **Individnivå**
+- **Personlig Dashboard**: Översikt av beredskap och resurser
+- **AI-odlingsguide**: Platsbaserade odlingsplaner
+- **Växtdiagnos**: AI-driven växtanalys
+- **Resursinventering**: Mat, vatten, medicin, energi
+- **Personlig Coach**: AI-driven beredskapsstöd
+
+### 🏘️ **Lokalt Samhälle**
+- **Resursdelning**: Transparent resursinventering
+- **Kommunikationshub**: Meddelanden och koordination
+- **Kriskarta**: Lokal översikt med resurser
+- **Ömsesidig Hjälp**: Matchning av behov och tillgångar
+- **Samhällsöversikt**: Beredskapspoäng och status
+
+### 🌍 **Regional Nivå**
+- **Kriskoordination**: Regional samordning
+- **Resursmatchning**: Överskott och brist mellan områden
+- **Beredskapsövningar**: Digitala träningsscenarier
+- **Dataanalys**: Trendanalys och förutsägelser
+- **Rapportering**: Automatiska statusrapporter
+
+## Dataflöde och Säkerhet
+
+### 🔄 **Real-time Synchronization**
+- **Live Updates**: Omedelbar synkronisering av krisdata
+- **Conflict Resolution**: Automatisk hantering av datakonflikter
+- **Offline Support**: PWA-funktionalitet för begränsad offline-användning
+- **Backup Systems**: Automatiska säkerhetskopior
+
+### 🔒 **Säkerhet och Integritet**
+- **End-to-End Encryption**: Krypterad kommunikation
+- **Row Level Security**: Användar-specifik dataåtkomst
+- **GDPR Compliance**: Fullständig integritetsskydd
+- **Audit Logs**: Spårbarhet av alla åtgärder
 
 ## Krisanpassning
 
-RPAC är byggt för att:
+### ⚡ **Hög Tillgänglighet**
+- **Global CDN**: Snabb åtkomst från hela världen
+- **Auto-scaling**: Automatisk skalning under hög belastning
+- **Redundancy**: Flera datacenter för tillförlitlighet
+- **Crisis Mode**: Optimerad prestanda under kriser
 
-- Alltid fungera utan internet, med full funktionalitet offline.
-- Kunna köras på lågeffektsenheter (sol- och batteridrivna enheter).
-- Vara robust vid strömavbrott och nätavbrott.
-- Inkludera lokalt lagrade guider och AI-funktioner på svenska.
-- Ge integritetskontroller på individ-, lokal- och regionalnivå.
+### 🌐 **Global Tillgänglighet**
+- **Multi-language Support**: Svenska som primärt språk
+- **Responsive Design**: Fungerar på alla enheter
+- **Progressive Web App**: App-liknande upplevelse
+- **Offline Capability**: Begränsad funktionalitet offline
 
----
+## AI och Automatisering
+
+### 🤖 **AI-integration**
+- **OpenAI GPT-4**: Naturlig språkbehandling på svenska
+- **Computer Vision**: Växtdiagnos och bildanalys
+- **Predictive Analytics**: Förutsägelse av krisbehov
+- **Automated Responses**: Intelligenta svar på kriser
+
+### 📊 **Dataanalys**
+- **Real-time Monitoring**: Live-övervakning av krisstatus
+- **Trend Analysis**: Analys av beredskapstrender
+- **Resource Optimization**: Optimerad resursfördelning
+- **Crisis Prediction**: Tidig varning för potentiella kriser
 
 ## Utbyggnadspotential
 
-Även med fokus på individ → lokal → regional kan följande läggas till senare:
+### 🔮 **Framtida Funktioner**
+- **IoT Integration**: Sensorer för miljöövervakning
+- **Blockchain**: Transparent resursspårning
+- **AR/VR**: Immersiva träningsscenarier
+- **Mobile Apps**: Native applikationer för specifika plattformar
 
-- Nationell/global integration via API-moduler.
-- Anslutning till humanitära databaser utan ombyggnation.
-- IoT-sensorer (vatten, energi, jordmätning) integreras i befintliga moduler.
-- Språkstöd utökas genom att lägga till nya JSON-filer och träna AI på fler språk.
-
----
+### 🌍 **Global Expansion**
+- **Multi-region Support**: Stöd för flera länder
+- **API Ecosystem**: Öppna API:er för tredjepartsintegration
+- **Plugin Architecture**: Modulär utbyggnad
+- **Community Features**: Användargenererat innehåll
 
 ## Slutsats
 
-RPAC:s arkitektur kombinerar **offline-funktionalitet**, **svenskspråkig och empatisk AI-kommunikation**, och **modulär skalbarhet** från individnivå till regional samordning. Systemet är krisoptimerat från grunden och kan byggas ut efter behov, utan att riskera kärnfunktionerna vid avbrott.
+RPAC:s nya web-först arkitektur kombinerar **moderna webbteknologier**, **global tillgänglighet**, och **automatisk skalning** för att skapa ett robust krisverktyg som fungerar när det behövs som mest. Systemet är byggt för framtiden med beprövad teknologi som garanterar tillförlitlighet och prestanda under kriser.

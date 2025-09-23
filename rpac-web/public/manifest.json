@@ -1,0 +1,26 @@
+{
+  "name": "RPAC - Beredskap & Krisverktyg",
+  "short_name": "RPAC",
+  "description": "Resilience & Preparedness AI Companion - Svenskspråkigt krisverktyg för beredskap och ömsesidig hjälp",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2E7D32",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16 32x32",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["utilities", "productivity", "lifestyle"],
+  "lang": "sv",
+  "dir": "ltr"
+}
