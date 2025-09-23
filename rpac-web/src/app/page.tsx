@@ -47,25 +47,6 @@ export default function HomePage() {
   // Show main content for authenticated users
   return (
     <div className="space-y-16">
-      {/* Welcome Card */}
-      <div className="text-center">
-        <div className="modern-card max-w-3xl mx-auto">
-          <div className="flex items-center justify-center space-x-4 mb-4">
-            <div className="w-16 h-16 rounded-full flex items-center justify-center bg-white p-2">
-              <RPACLogo size="md" className="text-green-700" />
-            </div>
-            <div className="text-left">
-              <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200">
-                Välkommen tillbaka, {user.user_metadata?.name || 'användare'}!
-              </h2>
-              <p className="text-slate-600 dark:text-slate-400 font-medium">
-                {t('messages.offline_ready')}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Modern Status and Actions Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         <div className="space-y-6">
