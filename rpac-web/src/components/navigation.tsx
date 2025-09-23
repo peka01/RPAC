@@ -7,7 +7,6 @@ import {
   User, 
   Users, 
   Globe, 
-  Settings,
   Wifi,
   WifiOff,
   AlertTriangle
@@ -33,7 +32,6 @@ export function Navigation() {
     { name: t('navigation.individual'), href: '/individual', icon: User },
     { name: t('navigation.local'), href: '/local', icon: Users },
     { name: t('navigation.regional'), href: '/regional', icon: Globe },
-    { name: t('navigation.settings'), href: '/settings', icon: Settings },
   ];
 
   useEffect(() => {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { localAuth } from '@/lib/local-auth';
 import { t } from '@/lib/locales';
 import { 
@@ -15,7 +16,8 @@ import {
   Users,
   Heart,
   AlertTriangle,
-  ChevronDown
+  ChevronDown,
+  Settings
 } from 'lucide-react';
 import { RPACLogo } from './rpac-logo';
 
@@ -59,6 +61,7 @@ const onboardingSteps: OnboardingStep[] = [
 ];
 
 export function SimpleAuth() {
+  const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(0);
@@ -174,6 +177,16 @@ export function SimpleAuth() {
         
         {showUserMenu && (
           <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 py-2 z-50">
+            <button
+              onClick={() => {
+                setShowUserMenu(false);
+                router.push('/settings');
+              }}
+              className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+            >
+              <Settings className="w-4 h-4" />
+              <span>Inställningar</span>
+            </button>
             <button
               onClick={handleSignOut}
               className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
