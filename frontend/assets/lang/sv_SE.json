@@ -1,0 +1,12 @@
+{
+  "app_title": "RPAC - Resiliens & Förberedelse",
+  "welcome": "Välkommen till din beredskapsassistent",
+  "inventory": "Resursinventering",
+  "add_item": "Lägg till resurs",
+  "edit_item": "Redigera",
+  "delete_item": "Ta bort",
+  "offline_mode": "Offline-läge aktivt",
+  "surplus_alert": "Överskott tillgängligt",
+  "shortage_alert": "Brist upptäckt",
+  "comm_board": "Kommunikationstavla"
+}
