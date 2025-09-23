@@ -21,6 +21,12 @@ export function Navigation() {
   const pathname = usePathname();
   const [isOnline, setIsOnline] = useState(true);
   const [isCrisisMode, setIsCrisisMode] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  // Ensure we're on the client side to prevent hydration mismatches
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const navigation = [
     { name: t('navigation.home'), href: '/', icon: Home },
@@ -103,7 +109,7 @@ export function Navigation() {
 
         {/* Modern Navigation Links */}
         <div className="flex flex-wrap gap-3 pb-6">
-          {navigation.map((item) => {
+          {isClient && navigation.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
