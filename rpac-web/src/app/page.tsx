@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { t } from '@/lib/locales';
+import { RPACLogo } from '@/components/rpac-logo';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -77,8 +78,8 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-start justify-center bg-gray-50 pt-20">
       <div className="max-w-md w-full space-y-8 p-8">
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-blue-600 rounded-full flex items-center justify-center mb-4">
-            <span className="text-white text-2xl font-bold">R</span>
+          <div className="mx-auto mb-4">
+            <RPACLogo size="xl" />
           </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">
             RPAC

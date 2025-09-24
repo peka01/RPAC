@@ -1,11 +1,23 @@
 {
   "navigation": {
-    "home": "Hem",
-    "individual": "Min Beredskap",
-    "local": "Mitt närområde", 
-    "regional": "Regional",
+    "overview": "Översikt",
+    "individual": "Personlig",
+    "local": "Lokal",
+    "regional": "Regionalt",
     "settings": "Inställningar",
-    "sign_out": "Logga ut"
+    "sign_out": "Logga ut",
+    "descriptions": {
+      "operational_status": "Status",
+      "individual_preparedness": "Individuell beredskap",
+      "community_resources": "Samhällsresurser",
+      "regional_coordination": "Regional koordination"
+    },
+    "categories": {
+      "command": "DASHBOARD",
+      "individual": "INDIVIDUELLT",
+      "local": "LOKALT", 
+      "regional": "REGIONALT"
+    }
   },
   "individual": {
     "title": "Min personliga beredskap",
@@ -21,23 +33,6 @@
     "set_preparedness_goals": "🎯 Sätt beredskapsmål",
     "personal_dashboard": "Personlig Dashboard"
   },
-  "status": {
-    "online": "Ansluten",
-    "offline": "Frånkopplad",
-    "mesh_connected": "Mesh-ansluten",
-    "crisis_mode": "Krisläge"
-  },
-  "actions": {
-    "add_resource": "Lägg till resurs",
-    "share_resource": "Dela med grannar",
-    "request_help": "Be om hjälp",
-    "scan_plant": "Kontrollera växt",
-    "update_inventory": "Uppdatera inventering",
-    "send_message": "Skicka meddelande"
-  },
-  "crisis_messages": {
-    "stay_calm": "Håll dig lugn - vi är här för att hjälpa"
-  },
   "preparedness": {
     "overall_score": "Beredskapspoäng",
     "excellent": "Du är väl förberedd för kriser",
@@ -47,15 +42,6 @@
     "quick_actions": "Snabbåtgärder",
     "set_goals": "Sätt mål",
     "plan": "Planera"
-  },
-  "ui": {
-    "systemstatus": "Systemstatus",
-    "anslutning": "Anslutning",
-    "batteri": "Batteri",
-    "mesh_network": "Mesh-nätverk",
-    "fromkopplad": "Frånkopplad",
-    "snabbatgarder": "Snabbåtgärder",
-    "krislage_aktivit": "Krisläge aktivt"
   },
   "forms": {
     "name": "Namn",
@@ -75,7 +61,6 @@
   "auth": {
     "create_account": "Skapa konto",
     "sign_in": "Logga in",
-    "sign_out": "Logga ut",
     "welcome_back": "Välkommen tillbaka",
     "start_journey": "Börja din beredskapsresa idag",
     "continue": "Logga in för att fortsätta",
@@ -92,7 +77,6 @@
   },
   "loading": {
     "loading": "Laddar...",
-    "loading_dashboard": "Laddar dashboard...",
     "initializing": "Initialiserar..."
   },
   "local_community": {
@@ -100,7 +84,7 @@
     "subtitle": "Samarbeta med ditt lokala samhälle för ömsesidig hjälp och resursdelning"
   },
   "dashboard": {
-    "welcome_to_rpac": "Välkommen till Beredd"
+    "subtitle": "Din trygga grund när allt annat fallerar"
   },
   "onboarding": {
     "welcome_to_ready": "Välkommen till Beredd",
@@ -112,5 +96,48 @@
   },
   "errors": {
     "generic_error": "Ett fel uppstod. Försök igen."
+  },
+  "professional": {
+    "tactical_communication": "Kommunikation",
+    "external_communications": "Externa kommunikationslänkar",
+    "tactical_operations": "Taktiska operationer",
+    "secure_messaging": "Säker meddelandehantering",
+    "radio_frequencies": "Radiofrekvenser",
+    "government_info": "Myndighetsinformation",
+    "web_sources": "Webkällor"
+  },
+  "military_terms": {
+    "network": "NÄTVERK",
+    "direct": "DIREKT",
+    "crisis_mode": "KRISLÄGE", 
+    "radio": "RADIO",
+    "emergency_system": "LARMSYSTEM",
+    "radio_frequencies": "RADIOFREKVENSER",
+    "web_sources": "WEBKÄLLOR",
+    "emrg": "EMRG",
+    "rf": "RF",
+    "web": "WEB",
+    "local": "LOKALT"
+  },
+  "status_indicators": {
+    "online": "ONLINE",
+    "offline": "OFFLINE", 
+    "operational": "OPERATIV",
+    "active": "AKTIV",
+    "standby": "STANDBY"
+  },
+  "buttons": {
+    "register_resource": "Registrera resurs",
+    "update": "Uppdatera",
+    "add": "Lägg till",
+    "establish_community": "Etablera samhällsgrupp",
+    "request_assistance": "Begär assistans",
+    "update_sources": "Uppdatera informationskällor"
+  },
+  "descriptions": {
+    "strengthen_resources": "Uppdatera och förstärk resurslager",
+    "coordinate_resources": "Koordinera resurser med nätverk",
+    "organize_preparedness": "Organisera lokal beredskapskoordination",
+    "activate_support": "Aktivera professionell stödstruktur"
   }
 }

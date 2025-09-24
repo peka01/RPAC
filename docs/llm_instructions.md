@@ -24,6 +24,7 @@ Engelska bara för externa anslutningar eller som reservalternativ.
 
 1. `/docs/charter.md` (#RPAC-charter)
 2. `/docs/architecture.md` (#RPAC-architecture)
+3. `/docs/roadmap.md` (#RPAC-roadmap)
 
 ## Development Rules
 
@@ -31,6 +32,15 @@ Engelska bara för externa anslutningar eller som reservalternativ.
 - Använd enkel, beprövad teknologi.
 - Respektera integritetsstandarder.
 - Modulär kod för framtida integration.
+- Följ prioriteringar och milstolpar från roadmap.md.
+
+## Current Development Focus
+
+Se `/docs/roadmap.md` för:
+- Aktuella prioriteringar och Sprint-fokus
+- Implementerade funktioner vs planerade
+- Tekniska milstolpar och leveranser
+- Nuvarande fokus: Odlingskalender & kommunikation
 
 ## Output Preferences
 

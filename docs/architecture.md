@@ -32,7 +32,7 @@ RPAC (Resilience & Preparedness AI Companion) har omorienterats till en **web-f�
 
 ## Teknisk Stapel
 
-### 🌐 **Frontend (Next.js 15 + React 18)**
+### 🌐 **Frontend (Next.js 14 + React 18)**
 - **Server-Side Rendering (SSR)**: Snabba initiala laddningar med browser environment checks
 - **Static Site Generation (SSG)**: Offline-kapabla sidor
 - **Progressive Web App (PWA)**: App-liknande upplevelse

@@ -9,7 +9,11 @@ import {
   Globe, 
   Wifi,
   WifiOff,
-  AlertTriangle
+  AlertTriangle,
+  Heart,
+  Leaf,
+  Shield,
+  MessageCircle
 } from 'lucide-react';
 import { RPACLogo } from './rpac-logo';
 import { t } from '@/lib/locales';
@@ -24,6 +28,7 @@ export function Navigation() {
   const [isOnline, setIsOnline] = useState(true);
   const [isCrisisMode] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [communityPulse, setCommunityPulse] = useState(true);
   const [user, setUser] = useState<{
     id: string;
     email?: string;
@@ -31,7 +36,6 @@ export function Navigation() {
   } | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
-  // Ensure we're on the client side to prevent hydration mismatches
   useEffect(() => {
     setIsClient(true);
     
@@ -47,10 +51,17 @@ export function Navigation() {
       setUser(session?.user || null);
     });
 
-    return () => subscription.unsubscribe();
+    // Community heartbeat pulse
+    const pulseInterval = setInterval(() => {
+      setCommunityPulse(prev => !prev);
+    }, 2000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearInterval(pulseInterval);
+    };
   }, []);
 
-  // Close user menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (showUserMenu) {
@@ -77,15 +88,39 @@ export function Navigation() {
     }
   };
 
+  // Professional Crisis Intelligence Navigation
   const navigation = [
-    { name: t('navigation.home'), href: '/dashboard', icon: Home },
-    { name: t('navigation.individual'), href: '/individual', icon: User },
-    { name: t('navigation.local'), href: '/local', icon: Users },
-    { name: t('navigation.regional'), href: '/regional', icon: Globe },
+    { 
+      name: t('navigation.overview'), 
+      href: '/dashboard', 
+      icon: Home,
+      description: t('navigation.descriptions.operational_status'),
+      category: t('navigation.categories.command')
+    },
+    { 
+      name: t('navigation.individual'), 
+      href: '/individual', 
+      icon: Shield,
+      description: t('navigation.descriptions.individual_preparedness'),
+      category: t('navigation.categories.individual')
+    },
+    { 
+      name: t('navigation.local'), 
+      href: '/local', 
+      icon: Users,
+      description: t('navigation.descriptions.community_resources'),
+      category: t('navigation.categories.local')
+    },
+    { 
+      name: t('navigation.regional'), 
+      href: '/regional', 
+      icon: Globe,
+      description: t('navigation.descriptions.regional_coordination'),
+      category: t('navigation.categories.regional')
+    },
   ];
 
   useEffect(() => {
-    // Only run on client side to prevent hydration issues
     if (typeof window !== 'undefined') {
       setIsOnline(navigator.onLine);
       
@@ -103,126 +138,196 @@ export function Navigation() {
   }, []);
 
   return (
-    <nav className="modern-nav">
-      <div className="container mx-auto px-6">
-        <div className="flex items-center justify-between h-20">
-          {/* Modern Logo and Title */}
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <div className="flex items-center justify-center w-14 h-14 rounded-2xl shadow-lg bg-white p-2">
-                <RPACLogo size="md" className="text-green-700" />
+    <nav className="relative">
+      {/* Professional Military Background */}
+      <div className="absolute inset-0 backdrop-blur-sm border-b" style={{ 
+        backgroundColor: 'var(--bg-card)',
+        borderColor: 'var(--color-secondary)'
+      }}></div>
+      
+      <div className="relative z-10">
+        <div className="container mx-auto px-6">
+          {/* Professional Header */}
+          <div className="flex items-center justify-between h-16">
+            
+            {/* Authority Logo */}
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <div className="flex items-center justify-center w-12 h-12 rounded-lg shadow-md p-2" style={{ 
+                  background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)' 
+                }}>
+                  <RPACLogo size="md" className="text-white" />
+                </div>
+                {/* Professional status indicator */}
+                <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full transition-all duration-500 ${
+                  communityPulse ? 'scale-110' : 'scale-100'
+                }`} style={{ backgroundColor: 'var(--color-success)' }}>
+                  <div className="absolute inset-0 rounded-full animate-pulse opacity-75" style={{ backgroundColor: 'var(--color-success)' }}></div>
+                </div>
               </div>
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full animate-pulse"></div>
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold"
-                  style={{ 
-                    color: '#3D4A2B'
-                  }}>
-                BEREDD
-              </h1>
-            </div>
-          </div>
-
-          {/* Modern Status Indicators */}
-          <div className="flex items-center space-x-6">
-            {/* Connection Status */}
-            <div className={`modern-status-indicator ${isOnline ? 'good' : 'critical'}`}>
-              {isOnline ? (
-                <Wifi className="w-5 h-5" />
-              ) : (
-                <WifiOff className="w-5 h-5" />
-              )}
-              <span className="text-sm font-semibold">
-                {isOnline ? t('status.online') : t('status.offline')}
-              </span>
-            </div>
-
-            {/* Crisis Mode Indicator */}
-            {isCrisisMode && (
-              <div className="modern-status-indicator critical">
-                <AlertTriangle className="w-5 h-5" />
-                <span className="text-sm font-semibold">
-                  {t('ui.krislage_aktivit')}
-                </span>
+              <div>
+                <h1 className="text-4xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                  BEREDD
+                </h1>
               </div>
-            )}
+            </div>
 
-            {/* User Menu */}
-            {user && (
-              <div className="relative user-menu-container">
-                <button
-                  onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-colors"
-                >
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white p-1">
-                    <RPACLogo size="sm" className="text-green-700" />
-                  </div>
-                  <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
-                    {user.user_metadata?.name || user.email}
-                  </span>
-                  <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
-                </button>
-                
-                {showUserMenu && (
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 py-2 z-50">
-                    <button
-                      onClick={() => {
-                        setShowUserMenu(false);
-                        router.push('/settings');
-                      }}
-                      className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-                    >
-                      <Settings className="w-4 h-4" />
-                      <span>{t('navigation.settings')}</span>
-                    </button>
-                    <button
-                      onClick={handleSignOut}
-                      className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      <span>{t('navigation.sign_out')}</span>
-                    </button>
-                  </div>
+            {/* Professional Status Bar */}
+            <div className="flex items-center space-x-3">
+              
+              {/* Connection Status */}
+              <div className={`flex items-center space-x-2 px-3 py-1 rounded-lg text-xs transition-all duration-300 ${
+                isOnline 
+                  ? 'shadow-sm' 
+                  : 'animate-pulse'
+              }`} style={{
+                backgroundColor: isOnline ? 'var(--bg-olive-light)' : 'rgba(139, 69, 19, 0.1)',
+                color: isOnline ? 'var(--color-primary)' : 'var(--color-danger)'
+              }}>
+                {isOnline ? (
+                  <>
+                    <Wifi className="w-4 h-4" />
+                    <span className="font-semibold">Online</span>
+                  </>
+                ) : (
+                  <>
+                    <WifiOff className="w-4 h-4" />
+                    <span className="font-semibold">Offline</span>
+                  </>
                 )}
               </div>
-            )}
-          </div>
-        </div>
 
-        {/* Modern Navigation Links */}
-        <div className="flex flex-wrap justify-center gap-4 pb-6 w-full">
-          {isClient && navigation.map((item) => {
-            // Handle trailing slashes and root paths
-            const normalizedPathname = pathname.replace(/\/$/, '') || '/';
-            const normalizedHref = item.href.replace(/\/$/, '') || '/';
-            const isActive = normalizedPathname === normalizedHref || 
-                           (normalizedHref === '/dashboard' && normalizedPathname === '') ||
-                           (normalizedHref === '/dashboard' && normalizedPathname === '/');
-            
-            // Debug logging
-            if (typeof window !== 'undefined') {
-              console.log(`Navigation item: ${item.name}, href: ${item.href}, normalized href: ${normalizedHref}, pathname: ${pathname}, normalized pathname: ${normalizedPathname}, isActive: ${isActive}`);
-            }
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={
-                  isActive
-                    ? 'nav-item-active group relative flex items-center space-x-4 px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300'
-                    : 'group relative flex items-center space-x-4 px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 text-slate-700 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-800/50 hover:shadow-md bg-white/30'
-                }
-              >
-                <item.icon 
-                  className={`w-6 h-6 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-slate-600 dark:text-slate-400'}`}
-                  fill="none"
-                  stroke="currentColor"
-                />
-                <span className={isActive ? 'text-white' : ''}>{item.name}</span>
-              </Link>
-            );
-          })}
+              {/* Crisis Mode Alert */}
+              {isCrisisMode && (
+                <div className="flex items-center space-x-2 px-3 py-1 rounded-lg text-xs font-semibold animate-pulse" style={{
+                  backgroundColor: 'rgba(139, 69, 19, 0.1)',
+                  color: 'var(--color-danger)'
+                }}>
+                  <AlertTriangle className="w-4 h-4" />
+                  <span>Krisläge</span>
+                </div>
+              )}
+
+              {/* Professional User Menu */}
+              {user && (
+                <div className="relative user-menu-container">
+                  <button
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className="flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 border" 
+                    style={{
+                      backgroundColor: 'var(--bg-card)',
+                      borderColor: 'var(--color-muted)'
+                    }}
+                  >
+                    <div className="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold text-white" style={{ 
+                      backgroundColor: 'var(--color-primary)' 
+                    }}>
+                      {(user.user_metadata?.name || user.email || 'V').charAt(0).toUpperCase()}
+                    </div>
+                    <div className="text-left">
+                      <div className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
+                        {user.user_metadata?.name || user.email}
+                      </div>
+                    </div>
+                    <ChevronDown className={`w-3 h-3 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} style={{ color: 'var(--text-tertiary)' }} />
+                  </button>
+                  
+                  {showUserMenu && (
+                    <div className="absolute right-0 top-full mt-2 w-48 rounded-lg shadow-lg border py-2 z-50" style={{
+                      backgroundColor: 'var(--bg-card)',
+                      borderColor: 'var(--color-muted)'
+                    }}>
+                      <button
+                        onClick={() => {
+                          setShowUserMenu(false);
+                          router.push('/settings');
+                        }}
+                        className="w-full flex items-center space-x-3 px-4 py-2 text-xs transition-colors hover:bg-gray-50" 
+                        style={{ color: 'var(--text-secondary)' }}
+                      >
+                        <Settings className="w-3 h-3" />
+                        <span>{t('navigation.settings')}</span>
+                      </button>
+                      <button
+                        onClick={handleSignOut}
+                        className="w-full flex items-center space-x-3 px-4 py-2 text-xs transition-colors hover:bg-gray-50"
+                        style={{ color: 'var(--text-secondary)' }}
+                      >
+                        <LogOut className="w-3 h-3" />
+                        <span>{t('navigation.sign_out')}</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Professional Navigation Grid */}
+          <div className="pb-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 max-w-3xl mx-auto">
+              {isClient && navigation.map((item, index) => {
+                const normalizedPathname = pathname.replace(/\/$/, '') || '/';
+                const normalizedHref = item.href.replace(/\/$/, '') || '/';
+                const isActive = normalizedPathname === normalizedHref || 
+                               (normalizedHref === '/dashboard' && normalizedPathname === '') ||
+                               (normalizedHref === '/dashboard' && normalizedPathname === '/');
+                
+                // Different olive tones for each navigation item
+                const colorVariants = [
+                  { bg: 'var(--color-primary)', border: 'var(--color-primary-dark)', accent: 'var(--color-primary)' },
+                  { bg: 'var(--color-sage)', border: 'var(--color-quaternary)', accent: 'var(--color-sage)' },
+                  { bg: 'var(--color-cool-olive)', border: 'var(--color-tertiary)', accent: 'var(--color-cool-olive)' },
+                  { bg: 'var(--color-khaki)', border: 'var(--color-warm-olive)', accent: 'var(--color-khaki)' }
+                ];
+                const colors = colorVariants[index % colorVariants.length];
+                
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={`group relative overflow-hidden rounded-lg transition-all duration-300 border ${
+                      isActive
+                        ? 'shadow-md border-2'
+                        : 'shadow-sm hover:shadow-md border'
+                    }`}
+                    style={{
+                      backgroundColor: isActive ? colors.bg : 'var(--bg-card)',
+                      borderColor: isActive ? colors.border : 'var(--color-secondary)'
+                    }}
+                  >
+                    <div className="relative p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <item.icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${
+                          isActive ? 'text-white' : ''
+                        }`} style={{ 
+                          color: isActive ? 'white' : colors.accent
+                        }} />
+                        <span className="text-xs px-2 py-1 rounded font-mono" style={{
+                          backgroundColor: isActive ? 'rgba(255,255,255,0.2)' : `${colors.bg}15`,
+                          color: isActive ? 'white' : colors.accent
+                        }}>{item.category}</span>
+                      </div>
+                      
+                      <h3 className="font-bold text-sm mb-1" style={{ 
+                        color: isActive ? 'white' : 'var(--text-primary)' 
+                      }}>{item.name}</h3>
+                      <p className="text-xs" style={{ 
+                        color: isActive ? 'rgba(255,255,255,0.8)' : 'var(--text-secondary)' 
+                      }}>{item.description}</p>
+                      
+                      {/* Professional Active Indicator */}
+                      {isActive && (
+                        <div className="absolute top-2 right-2">
+                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
     </nav>

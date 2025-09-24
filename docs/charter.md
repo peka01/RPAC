@@ -134,6 +134,14 @@ Detta innebär:
 - Test i minst **2 svenska samhällen** (stad + landsbygd).
 - Iteration baserat på faktisk användning innan regional synk läggs till.
 
+**För detaljerad utvecklingsplanering, se `/docs/roadmap.md`**
+
+### Nuvarande Prioriteringar
+- Odlingskalender & planering för självförsörjning
+- Kommunikationssystem (real-time meddelanden + extern kommunikation) ✅
+- Supabase-integration och produktionsredo databas
+- AI-driven svensk språkstöd och växtdiagnos
+
 ---
 
 ## 11. Core Philosophy

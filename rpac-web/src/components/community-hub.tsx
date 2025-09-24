@@ -2,8 +2,23 @@
 
 import { useState, useEffect } from 'react';
 import { communityService, resourceSharingService, helpRequestService, LocalCommunity, ResourceSharing, HelpRequest } from '@/lib/supabase';
-// Removed unused User import
-import { Users, Share2, HelpCircle, MapPin, Clock, AlertTriangle } from 'lucide-react';
+import { 
+  Users, 
+  Share2, 
+  HelpCircle, 
+  MapPin, 
+  Clock, 
+  AlertTriangle,
+  Heart,
+  Sparkles,
+  MessageCircle,
+  HandHeart,
+  TreePine,
+  Sun,
+  Zap,
+  Shield
+} from 'lucide-react';
+import { t } from '@/lib/locales';
 
 interface CommunityHubProps {
   user: {
@@ -227,53 +242,151 @@ export function CommunityHub({ user }: CommunityHubProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-          Lokalt Samhälle
-        </h2>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setShowCreateCommunity(true)}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            <Users size={20} />
-            Skapa samhälle
-          </button>
-          <button
-            onClick={() => setShowCreateRequest(true)}
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            <HelpCircle size={20} />
-            Be om hjälp
-          </button>
+    <div className="bg-white/95 rounded-xl p-6 border shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden" style={{ 
+      backgroundColor: 'var(--bg-card)',
+      borderColor: 'var(--color-cool-olive)'
+    }}>
+      {/* Professional Background Elements */}
+      <div className="absolute top-0 right-0 w-24 h-24 opacity-[0.03]">
+        <TreePine className="w-full h-full" style={{ color: 'var(--color-sage)' }} />
+      </div>
+      <div className="absolute bottom-0 left-0 w-16 h-16 opacity-[0.03]">
+        <Heart className="w-full h-full" style={{ color: 'var(--color-warm-olive)' }} />
+      </div>
+
+      {/* Community Intelligence Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-4">
+          <div className="relative">
+            <div className="w-14 h-14 rounded-lg flex items-center justify-center shadow-md" style={{ 
+              background: 'linear-gradient(135deg, var(--color-cool-olive) 0%, var(--color-tertiary) 100%)' 
+            }}>
+              <Users className="w-7 h-7 text-white" />
+            </div>
+            {/* Network Status Pulse */}
+            <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full animate-pulse" style={{ backgroundColor: 'var(--color-sage)' }}>
+              <div className="absolute inset-0 rounded-full bg-current animate-ping opacity-50"></div>
+            </div>
+          </div>
+          <div>
+            <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Samhällskoordination</h2>
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Kollektiv säkerhet och resurshantering</p>
+          </div>
+        </div>
+        
+        {/* Network Health Metrics */}
+        <div className="text-center px-3 py-2 rounded-lg shadow-sm" style={{ backgroundColor: 'var(--bg-olive-light)' }}>
+          <div className="text-lg font-bold" style={{ color: 'var(--color-cool-olive)' }}>87%</div>
+          <div className="text-xs font-semibold" style={{ color: 'var(--text-tertiary)' }}>NÄTVERK</div>
         </div>
       </div>
 
+      {/* Tactical Community Operations */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <button
+          onClick={() => setShowCreateCommunity(true)}
+          className="group text-white p-5 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] relative overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, var(--color-sage) 0%, var(--color-quaternary) 100%)' }}
+        >
+          <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div className="relative flex items-center space-x-3">
+            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+              <Users className="w-6 h-6" />
+            </div>
+            <div className="text-left">
+              <div className="font-bold text-base">{t('buttons.establish_community')}</div>
+              <div className="text-sm opacity-90">{t('descriptions.organize_preparedness')}</div>
+            </div>
+          </div>
+        </button>
+        
+        <button
+          onClick={() => setShowCreateRequest(true)}
+          className="group text-white p-5 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] relative overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, var(--color-warm-olive) 0%, var(--color-primary-dark) 100%)' }}
+        >
+          <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div className="relative flex items-center space-x-3">
+            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+              <HandHeart className="w-6 h-6" />
+            </div>
+            <div className="text-left">
+              <div className="font-bold text-base">{t('buttons.request_assistance')}</div>
+              <div className="text-sm opacity-90">{t('descriptions.activate_support')}</div>
+            </div>
+          </div>
+        </button>
+      </div>
+
+      {/* Error Message with Empathy */}
       {error && (
-        <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-          {error}
+        <div className="mb-6 p-4 bg-red-50/80 backdrop-blur-sm border border-red-200 rounded-xl">
+          <div className="flex items-center space-x-2">
+            <AlertTriangle className="w-5 h-5 text-red-600" />
+            <span className="text-red-800 font-semibold">Något gick fel, men det ordnar sig</span>
+          </div>
+          <p className="text-red-700 text-sm mt-1">{error}</p>
         </div>
       )}
 
-      {/* Tab Navigation */}
-      <div className="flex space-x-1 bg-white/10 backdrop-blur-sm rounded-lg p-1">
+      {/* Revolutionary Zero-Learning Navigation */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {[
-          { id: 'communities', label: 'Samhällen', icon: Users },
-          { id: 'resources', label: 'Delade resurser', icon: Share2 },
-          { id: 'requests', label: 'Hjälpförfrågningar', icon: HelpCircle }
-        ].map(({ id, label, icon: Icon }) => (
+          { 
+            id: 'communities', 
+            label: 'Samhällen Som Bryr Sig', 
+            icon: Users,
+            description: 'Upptäck vänliga grannar',
+            emotion: '🏘️',
+            gradient: 'from-slate-500 to-slate-600'
+          },
+          { 
+            id: 'resources', 
+            label: 'Generösa Hjärtan', 
+            icon: Share2,
+            description: 'Dela med kärlek',
+            emotion: '💝',
+            gradient: 'from-stone-500 to-stone-600'
+          },
+          { 
+            id: 'requests', 
+            label: 'Hjälpande Händer', 
+            icon: HandHeart,
+            description: 'Hjälp när det behövs',
+            emotion: '🤲',
+            gradient: 'from-gray-500 to-gray-600'
+          }
+        ].map(({ id, label, icon: Icon, description, emotion, gradient }) => (
           <button
             key={id}
             onClick={() => setActiveTab(id as 'communities' | 'resources' | 'requests')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
+            className={`group relative p-4 rounded-xl transition-all duration-300 transform hover:scale-105 overflow-hidden ${
               activeTab === id
-                ? 'bg-white/20 text-white'
-                : 'text-gray-300 hover:text-white hover:bg-white/10'
+                ? 'ring-2 ring-white/50 shadow-xl'
+                : 'hover:shadow-lg'
             }`}
           >
-            <Icon size={18} />
-            {label}
+            {/* Dynamic Background */}
+            <div className={`absolute inset-0 bg-gradient-to-br ${gradient} transition-opacity duration-300 ${
+              activeTab === id ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'
+            }`}></div>
+            
+            {/* Content */}
+            <div className="relative text-white text-center">
+              <div className="flex items-center justify-center mb-2">
+                <Icon className={`w-6 h-6 mr-2 ${activeTab === id ? 'animate-pulse' : ''}`} />
+                <span className="text-lg">{emotion}</span>
+              </div>
+              <div className="font-bold text-sm mb-1">{label}</div>
+              <div className="text-xs opacity-90">{description}</div>
+              
+              {/* Active Indicator */}
+              {activeTab === id && (
+                <div className="absolute top-2 right-2">
+                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                </div>
+              )}
+            </div>
           </button>
         ))}
       </div>

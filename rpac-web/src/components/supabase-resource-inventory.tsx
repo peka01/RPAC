@@ -2,9 +2,24 @@
 
 import { useState, useEffect } from 'react';
 import { resourceService, Resource } from '@/lib/supabase';
-// Debug imports removed - using demo mode due to Supabase columns= bug
-// Removed unused User import
-import { Plus, Edit, Trash2, Package, Droplets, Heart, Zap, Wrench } from 'lucide-react';
+import { t } from '@/lib/locales';
+import { 
+  Plus, 
+  Edit, 
+  Trash2, 
+  Package, 
+  Droplets, 
+  Heart, 
+  Zap, 
+  Wrench,
+  Shield,
+  Sparkles,
+  CheckCircle,
+  Calendar,
+  TrendingUp,
+  Sun,
+  Leaf
+} from 'lucide-react';
 
 interface SupabaseResourceInventoryProps {
   user: { id: string; email?: string; user_metadata?: { name?: string } };
@@ -200,30 +215,114 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
     );
   }
 
+  const getResourceHealthScore = () => {
+    if (resources.length === 0) return 0;
+    const totalDays = resources.reduce((sum, resource) => sum + resource.days_remaining, 0);
+    const avgDays = totalDays / resources.length;
+    return Math.min(100, Math.round((avgDays / 30) * 100));
+  };
+
+  const getCategoryEmoji = (category: string) => {
+    switch (category) {
+      case 'food': return '🍽️';
+      case 'water': return '💧';
+      case 'medicine': return '💊';
+      case 'energy': return '⚡';
+      case 'tools': return '🔧';
+      default: return '📦';
+    }
+  };
+
+  const getConfidenceMessage = () => {
+    const healthScore = getResourceHealthScore();
+    if (healthScore >= 80) return "Du är fantastiskt förberedd! 🌟";
+    if (healthScore >= 60) return "Du har en solid grund att bygga på 💪";
+    if (healthScore >= 40) return "På bra väg - fortsätt bygga din trygghet 🚀";
+    if (healthScore >= 20) return "Varje resurs du lägger till gör dig starkare 💝";
+    return "Börja din resa mot trygghet idag ✨";
+  };
+
+  const resourceHealthScore = getResourceHealthScore();
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-          Resursinventering
-        </h2>
-        <button
-          onClick={() => {
-            setShowAddForm(true);
-            setEditingResource(null);
-            setFormData({
-              name: '',
-              category: 'food',
-              quantity: 1,
-              unit: '',
-              days_remaining: 30
-            });
-          }}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-        >
-          <Plus size={20} />
-          Lägg till resurs
-        </button>
+    <div className="bg-white/95 rounded-xl p-6 border shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden" style={{ 
+      backgroundColor: 'var(--bg-card)',
+      borderColor: 'var(--color-khaki)'
+    }}>
+      {/* Professional Background Patterns */}
+      <div className="absolute top-0 right-0 w-24 h-24 opacity-[0.02]">
+        <div className="w-full h-full rounded-full" style={{ background: 'linear-gradient(135deg, var(--color-sage) 0%, var(--color-quaternary) 100%)' }}></div>
       </div>
+      <div className="absolute bottom-0 left-0 w-20 h-20 opacity-[0.02]">
+        <div className="w-full h-full rounded-full animate-pulse" style={{ 
+          background: 'linear-gradient(135deg, var(--color-khaki) 0%, var(--color-warm-olive) 100%)',
+          animationDelay: '2s' 
+        }}></div>
+      </div>
+
+      {/* Resource Intelligence Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-4">
+          <div className="relative">
+            <div className="w-14 h-14 rounded-lg flex items-center justify-center shadow-md" style={{ 
+              background: 'linear-gradient(135deg, var(--color-khaki) 0%, var(--color-warm-olive) 100%)' 
+            }}>
+              <Shield className="w-7 h-7 text-white" />
+            </div>
+            {/* Resource Status Indicator */}
+            <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full animate-pulse" style={{
+              backgroundColor: resourceHealthScore > 70 ? 'var(--color-sage)' : 
+                              resourceHealthScore > 40 ? 'var(--color-warning)' : 'var(--color-danger)'
+            }}>
+              <div className="absolute inset-0 rounded-full bg-current animate-ping opacity-50"></div>
+            </div>
+          </div>
+          <div>
+            <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Resurslager</h2>
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{
+              resources.length
+            } registrerade enheter • Operativ kapacitet</p>
+          </div>
+        </div>
+        
+        {/* Resource Readiness Metrics */}
+        <div className="text-center px-4 py-2 rounded-lg shadow-sm" style={{ backgroundColor: 'var(--bg-olive-light)' }}>
+          <div className="text-2xl font-bold" style={{
+            color: resourceHealthScore > 70 ? 'var(--color-sage)' : 
+                   resourceHealthScore > 40 ? 'var(--color-warning)' : 'var(--color-danger)'
+          }}>
+            {resourceHealthScore}%
+          </div>
+          <div className="text-xs font-semibold" style={{ color: 'var(--text-tertiary)' }}>BEREDSKAP</div>
+        </div>
+      </div>
+
+      {/* Professional Resource Addition */}
+      <button
+        onClick={() => {
+          setShowAddForm(true);
+          setEditingResource(null);
+          setFormData({
+            name: '',
+            category: 'food',
+            quantity: 1,
+            unit: '',
+            days_remaining: 30
+          });
+        }}
+        className="group w-full mb-6 text-white p-5 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] relative overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, var(--color-sage) 0%, var(--color-quaternary) 100%)' }}
+      >
+        <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div className="relative flex items-center justify-center space-x-3">
+          <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center group-hover:rotate-90 transition-transform duration-300">
+            <Plus className="w-6 h-6" />
+          </div>
+          <div className="text-left">
+            <div className="font-bold text-base">{t('buttons.register_resource')}</div>
+          </div>
+        </div>
+      </button>
 
       {error && (
         <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
@@ -316,7 +415,7 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
                 type="submit"
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
               >
-                {editingResource ? 'Uppdatera' : 'Lägg till'}
+                {editingResource ? t('buttons.update') : t('buttons.add')}
               </button>
               <button
                 type="button"

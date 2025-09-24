@@ -2,35 +2,50 @@
 @tailwind components;
 @tailwind utilities;
 
-/* RPAC Military-Crisis Design System - Forward-Leaning UX */
+/* RPAC Professional Crisis Intelligence Design System */
 :root {
-  /* Semi-military color palette - muted, professional, crisis-appropriate */
-  --color-primary: #3D4A2B;           /* Dark olive green from logo for primary actions */
-  --color-primary-dark: #2A331E;      /* Darker olive green for hover states */
-  --color-secondary: #2C4A5C;         /* Muted military blue for secondary actions */
-  --color-accent: #5C4A2C;            /* Muted military brown for accents */
-  --color-success: #2E5B2E;           /* Military green for success states */
-  --color-warning: #B85C2C;           /* Muted military orange for warnings */
-  --color-danger: #8B2C2C;            /* Muted military red for critical states */
-  --color-info: #2C4A5C;              /* Military blue for information */
-  --color-neutral: #4A4A4A;           /* Military gray for neutral states */
+  /* Extended Military-Grade Olive Palette - Professional Variety */
+  --color-primary: #3D4A2B;           /* Primary Olive Green - main actions, navigation */
+  --color-primary-dark: #2A331E;      /* Dark Olive - hover states, active elements */
+  --color-primary-light: #4F5E3A;     /* Light Primary - subtle highlights */
   
-  /* Sophisticated text colors with perfect contrast */
-  --text-primary: #2D3436;
-  --text-secondary: #636E72;
-  --text-tertiary: #B2BEC3;
-  --text-inverse: #FFFFFF;
-  --text-accent: #3D4A2B;
+  --color-secondary: #5C6B47;         /* Light Olive - secondary elements, borders */
+  --color-tertiary: #4A5239;          /* Olive Gray - background elements, cards */
+  --color-quaternary: #6B7F56;        /* Sage Olive - alternative secondary */
   
-  /* Military-crisis background system with subtle, professional gradients */
-  --bg-primary: linear-gradient(135deg, #F8F9FA 0%, #E9ECEF 100%);
-  --bg-secondary: linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 100%);
+  --color-muted: #707C5F;             /* Muted Olive - text, icons, subtle elements */
+  --color-muted-dark: #5A6B4F;        /* Darker Muted - emphasis */
+  --color-muted-light: #8A9670;       /* Lighter Muted - backgrounds */
+  
+  /* Complementary Military Colors */
+  --color-warm-olive: #6B5D3A;        /* Warm Olive Brown - variety */
+  --color-cool-olive: #3A4B4A;        /* Cool Olive Gray - contrast */
+  --color-sage: #87A96B;              /* Sage Green - accents */
+  --color-khaki: #8B864E;             /* Military Khaki - alternatives */
+  
+  /* Strategic Accent Colors */
+  --color-warning: #B8860B;           /* Muted Amber - warnings */
+  --color-danger: #8B4513;            /* Muted Red-Brown - critical states */
+  --color-success: #3D4A2B;           /* Primary olive for success */
+  --color-info: #5C6B47;              /* Light olive for information */
+  --color-neutral: #707C5F;           /* Muted olive for neutral states */
+  
+  /* Professional text hierarchy with military precision */
+  --text-primary: #2A331E;            /* Dark olive for primary text */
+  --text-secondary: #4A5239;          /* Olive gray for secondary text */
+  --text-tertiary: #707C5F;           /* Muted olive for tertiary text */
+  --text-inverse: #FFFFFF;            /* White for inverse text */
+  --text-accent: #3D4A2B;             /* Primary olive for accents */
+  
+  /* Military-professional background system */
+  --bg-primary: linear-gradient(135deg, #F9FAF8 0%, #F2F4F0 100%);
+  --bg-secondary: linear-gradient(135deg, #FFFFFF 0%, #F9FAF8 100%);
   --bg-card: rgba(255, 255, 255, 0.95);
-  --bg-glass: rgba(255, 255, 255, 0.1);
-  --bg-crisis: linear-gradient(135deg, #FFF8F0 0%, #FFE8D6 100%);
-  --bg-critical: linear-gradient(135deg, #FFF0F0 0%, #FFE0E0 100%);
-  --bg-military: linear-gradient(135deg, #F5F5F5 0%, #E8E8E8 100%);
-  --bg-authority: linear-gradient(135deg, #F0F2F5 0%, #E4E7EA 100%);
+  --bg-glass: rgba(61, 74, 43, 0.05);  /* Subtle olive tint */
+  --bg-military: linear-gradient(135deg, #F5F6F4 0%, #EBEEE8 100%);
+  --bg-olive-light: rgba(61, 74, 43, 0.03);
+  --bg-olive-card: rgba(61, 74, 43, 0.08);
+  --bg-authority: linear-gradient(135deg, #F2F4F0 0%, #E8EBE4 100%);
   
   /* Modern shadow system */
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
@@ -73,18 +88,28 @@
 
 /* Legacy theme compatibility */
 
-/* Modern typography with perfect readability */
+/* Professional typography with enhanced readability */
 body {
   background: var(--bg-primary);
   color: var(--text-primary);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   font-weight: 400;
+  font-size: 16px;                    /* Increased base font size */
   line-height: 1.6;
   letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
+
+/* Enhanced font scale for professional readability */
+.text-xs { font-size: 0.825rem; }      /* 13.2px instead of 12px */
+.text-sm { font-size: 0.925rem; }      /* 14.8px instead of 14px */
+.text-base { font-size: 1.125rem; }    /* 18px instead of 16px */
+.text-lg { font-size: 1.25rem; }       /* 20px instead of 18px */
+.text-xl { font-size: 1.375rem; }      /* 22px instead of 20px */
+.text-2xl { font-size: 1.625rem; }     /* 26px instead of 24px */
+.text-3xl { font-size: 2rem; }         /* 32px instead of 30px */
 
 /* Modern glass morphism effects */
 .glass {
@@ -117,32 +142,32 @@ body {
   background: var(--color-primary);
 }
 
-/* Modern status indicators with beautiful gradients */
+/* Professional status indicators with military precision */
 .status-good {
   color: var(--color-success);
-  background: linear-gradient(135deg, rgba(0, 184, 148, 0.1) 0%, rgba(0, 184, 148, 0.05) 100%);
-  border: 1px solid rgba(0, 184, 148, 0.2);
+  background: linear-gradient(135deg, rgba(61, 74, 43, 0.1) 0%, rgba(61, 74, 43, 0.05) 100%);
+  border: 1px solid rgba(61, 74, 43, 0.2);
 }
 
 .status-warning {
   color: var(--color-warning);
-  background: linear-gradient(135deg, rgba(253, 203, 110, 0.1) 0%, rgba(253, 203, 110, 0.05) 100%);
-  border: 1px solid rgba(253, 203, 110, 0.2);
+  background: linear-gradient(135deg, rgba(184, 134, 11, 0.1) 0%, rgba(184, 134, 11, 0.05) 100%);
+  border: 1px solid rgba(184, 134, 11, 0.2);
 }
 
 .status-critical {
   color: var(--color-danger);
-  background: linear-gradient(135deg, rgba(225, 112, 85, 0.1) 0%, rgba(225, 112, 85, 0.05) 100%);
-  border: 1px solid rgba(225, 112, 85, 0.2);
+  background: linear-gradient(135deg, rgba(139, 69, 19, 0.1) 0%, rgba(139, 69, 19, 0.05) 100%);
+  border: 1px solid rgba(139, 69, 19, 0.2);
 }
 
 .status-unknown {
-  color: var(--color-neutral);
-  background: linear-gradient(135deg, rgba(99, 110, 114, 0.1) 0%, rgba(99, 110, 114, 0.05) 100%);
-  border: 1px solid rgba(99, 110, 114, 0.2);
+  color: var(--color-muted);
+  background: linear-gradient(135deg, rgba(112, 124, 95, 0.1) 0%, rgba(112, 124, 95, 0.05) 100%);
+  border: 1px solid rgba(112, 124, 95, 0.2);
 }
 
-/* Modern button system with stunning effects */
+/* Professional button system with military precision */
 .modern-button {
   position: relative;
   min-height: 48px;
@@ -151,7 +176,7 @@ body {
   border-radius: var(--radius-md);
   font-weight: 600;
   font-size: 16px;
-  border: none;
+  border: 1px solid var(--color-primary-dark);
   cursor: pointer;
   overflow: hidden;
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
