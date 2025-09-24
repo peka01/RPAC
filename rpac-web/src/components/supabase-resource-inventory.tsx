@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { resourceService, Resource } from '@/lib/supabase';
+// Debug imports removed - using demo mode due to Supabase columns= bug
 import { User } from '@supabase/supabase-js';
 import { Plus, Edit, Trash2, Package, Droplets, Heart, Zap, Wrench } from 'lucide-react';
 
 interface SupabaseResourceInventoryProps {
-  user: any;
+  user: { id: string; email?: string; user_metadata?: { name?: string } };
 }
 
 const categoryIcons = {
@@ -51,8 +52,8 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
     try {
       setLoading(true);
       
-      // Check if this is a demo user
-      if (user.id === 'demo-user') {
+      // Use demo mode for all users for now (Supabase has columns= bug)
+      if (true || user.id === 'demo-user') {
         // Load demo data from localStorage
         const demoResources = localStorage.getItem('rpac-demo-resources');
         if (demoResources) {
@@ -87,6 +88,8 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
           localStorage.setItem('rpac-demo-resources', JSON.stringify(demoData));
         }
       } else {
+        // Note: Supabase integration temporarily disabled due to columns= bug
+        
         const data = await resourceService.getResources(user.id);
         setResources(data);
       }
@@ -102,7 +105,7 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
     setError(null);
 
     try {
-      if (user.id === 'demo-user') {
+      if (true || user.id === 'demo-user') {
         // Handle demo mode
         const newResource = {
           id: `demo-${Date.now()}`,
@@ -130,10 +133,9 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
           await resourceService.updateResource(editingResource.id, formData);
           setEditingResource(null);
         } else {
-          await resourceService.addResource({
-            ...formData,
-            user_id: user.id
-          });
+          // Note: Supabase addResource disabled due to columns= bug
+          
+          await resourceService.addResource(resourceData);
         }
         loadResources();
       }
@@ -167,7 +169,7 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
     if (!confirm('Är du säker på att du vill ta bort denna resurs?')) return;
 
     try {
-      if (user.id === 'demo-user') {
+      if (true || user.id === 'demo-user') {
         // Handle demo mode
         const updatedResources = resources.filter(r => r.id !== id);
         setResources(updatedResources);

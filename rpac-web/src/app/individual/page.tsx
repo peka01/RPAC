@@ -1,4 +1,4 @@
-import { ResourceInventory } from '@/components/resource-inventory';
+import { SupabaseResourceInventory } from '@/components/supabase-resource-inventory';
 import { PlantDiagnosis } from '@/components/plant-diagnosis';
 import { PersonalDashboard } from '@/components/personal-dashboard';
 import { t } from '@/lib/locales';
@@ -21,7 +21,7 @@ export default function IndividualPage() {
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <ResourceInventory />
+        <SupabaseResourceInventory user={{ id: 'individual-user' }} />
         <PlantDiagnosis />
       </div>
 

@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import { MapPin, Users, TrendingUp, AlertTriangle } from 'lucide-react';
 
+import type { User } from '@supabase/supabase-js';
+
 export default function RegionalPage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Always use demo mode for now

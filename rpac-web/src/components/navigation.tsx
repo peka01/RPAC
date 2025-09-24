@@ -24,7 +24,11 @@ export function Navigation() {
   const [isOnline, setIsOnline] = useState(true);
   const [isCrisisMode] = useState(false);
   const [isClient, setIsClient] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{
+    id: string;
+    email?: string;
+    user_metadata?: { name?: string };
+  } | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   // Ensure we're on the client side to prevent hydration mismatches

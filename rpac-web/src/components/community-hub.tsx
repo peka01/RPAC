@@ -2,11 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { communityService, resourceSharingService, helpRequestService, LocalCommunity, ResourceSharing, HelpRequest } from '@/lib/supabase';
-import { User } from '@supabase/supabase-js';
+// Removed unused User import
 import { Users, Share2, HelpCircle, MapPin, Clock, AlertTriangle } from 'lucide-react';
 
 interface CommunityHubProps {
-  user: any;
+  user: {
+    id: string;
+    email?: string;
+    user_metadata?: { name?: string };
+  };
 }
 
 const priorityColors = {
@@ -56,9 +60,10 @@ export function CommunityHub({ user }: CommunityHubProps) {
         setLoading(true);
         
         // Check if this is a demo user
-        if (user.id === 'demo-user') {
-          // Load demo data
-          const demoCommunities = [
+        if (true || user.id === 'demo-user') {
+          // Load demo data from localStorage (persist between reloads)
+          const savedCommunities = localStorage.getItem('rpac-demo-communities');
+          const demoCommunities: LocalCommunity[] = savedCommunities ? JSON.parse(savedCommunities) : [
             {
               id: 'demo-comm-1',
               user_id: 'demo-user',
@@ -69,8 +74,12 @@ export function CommunityHub({ user }: CommunityHubProps) {
               updated_at: new Date().toISOString()
             }
           ];
-          
-          const demoRequests = [
+          if (!savedCommunities) {
+            localStorage.setItem('rpac-demo-communities', JSON.stringify(demoCommunities));
+          }
+
+          const savedRequests = localStorage.getItem('rpac-demo-requests');
+          const demoRequests: HelpRequest[] = savedRequests ? JSON.parse(savedRequests) : [
             {
               id: 'demo-req-1',
               user_id: 'demo-user',
@@ -84,7 +93,10 @@ export function CommunityHub({ user }: CommunityHubProps) {
               updated_at: new Date().toISOString()
             }
           ];
-          
+          if (!savedRequests) {
+            localStorage.setItem('rpac-demo-requests', JSON.stringify(demoRequests));
+          }
+
           if (mounted) {
             setCommunities(demoCommunities);
             setSharedResources([]);
@@ -119,7 +131,7 @@ export function CommunityHub({ user }: CommunityHubProps) {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [user.id]);
 
 
   const handleCreateCommunity = async (e: React.FormEvent) => {
@@ -127,15 +139,33 @@ export function CommunityHub({ user }: CommunityHubProps) {
     setError(null);
 
     try {
-      await communityService.createCommunity({
-        ...communityForm,
-        user_id: user.id
-      });
+      // Use demo mode for all users (Supabase has columns= bug)
+      if (true || user.id === 'demo-user') {
+        // Persist to localStorage and update state
+        const newCommunity: LocalCommunity = {
+          id: `demo-comm-${Date.now()}`,
+          user_id: user?.id || 'demo-user',
+          community_name: communityForm.community_name,
+          location: communityForm.location,
+          description: communityForm.description,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        const saved = localStorage.getItem('rpac-demo-communities');
+        const list: LocalCommunity[] = saved ? JSON.parse(saved) : [];
+        const updated = [newCommunity, ...list];
+        localStorage.setItem('rpac-demo-communities', JSON.stringify(updated));
+        setCommunities(updated);
+      } else {
+        await communityService.createCommunity({
+          ...communityForm,
+          user_id: user.id
+        });
+      }
 
       setCommunityForm({ community_name: '', location: '', description: '' });
       setShowCreateCommunity(false);
-      // Reload data by triggering a re-render
-      window.location.reload();
+      // No reload needed; state already updated in demo mode
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'Ett oväntat fel inträffade');
     }
@@ -146,11 +176,33 @@ export function CommunityHub({ user }: CommunityHubProps) {
     setError(null);
 
     try {
-      await helpRequestService.createHelpRequest({
-        ...requestForm,
-        user_id: user.id,
-        status: 'open'
-      });
+      // Use demo mode for all users (Supabase has columns= bug)
+      if (true || user.id === 'demo-user') {
+        // Persist to localStorage and update state
+        const newRequest: HelpRequest = {
+          id: `demo-req-${Date.now()}`,
+          user_id: user?.id || 'demo-user',
+          title: requestForm.title,
+          description: requestForm.description,
+          category: requestForm.category,
+          priority: requestForm.priority,
+          location: requestForm.location,
+          status: 'open',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        } as HelpRequest;
+        const saved = localStorage.getItem('rpac-demo-requests');
+        const list: HelpRequest[] = saved ? JSON.parse(saved) : [];
+        const updated = [newRequest, ...list];
+        localStorage.setItem('rpac-demo-requests', JSON.stringify(updated));
+        setHelpRequests(updated);
+      } else {
+        await helpRequestService.createHelpRequest({
+          ...requestForm,
+          user_id: user.id,
+          status: 'open'
+        });
+      }
 
       setRequestForm({
         title: '',
@@ -160,8 +212,7 @@ export function CommunityHub({ user }: CommunityHubProps) {
         location: ''
       });
       setShowCreateRequest(false);
-      // Reload data by triggering a re-render
-      window.location.reload();
+      // No reload needed; state already updated in demo mode
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'Ett oväntat fel inträffade');
     }

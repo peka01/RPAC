@@ -89,11 +89,9 @@ export const resourceService = {
     const { data, error } = await supabase
       .from('resources')
       .insert([resource])
-      .select()
-      .single()
     
     if (error) throw error
-    return data
+    return data?.[0] || data
   },
 
   async updateResource(id: string, updates: Partial<Resource>): Promise<Resource> {

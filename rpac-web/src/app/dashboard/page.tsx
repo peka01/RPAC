@@ -8,9 +8,10 @@ import { PreparednessOverview } from '@/components/preparedness-overview';
 import { SupabaseResourceInventory } from '@/components/supabase-resource-inventory';
 import { CommunityHub } from '@/components/community-hub';
 import { supabase } from '@/lib/supabase';
+import type { User } from '@supabase/supabase-js';
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
