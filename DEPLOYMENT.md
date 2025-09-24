@@ -46,12 +46,36 @@ The deployment happens automatically when you:
 - Push to the `main` or `master` branch
 - Create a pull request to `main` or `master`
 
+The workflow will automatically create the Cloudflare Pages project if it doesn't exist.
+
 ### Manual Deployment
 You can also trigger deployment manually:
 1. Go to your GitHub repository
 2. Click on "Actions" tab
 3. Select "Deploy to Cloudflare Pages" workflow
 4. Click "Run workflow"
+
+### Creating the Project Manually (Alternative)
+If you prefer to create the Cloudflare Pages project manually:
+
+1. **Go to Cloudflare Dashboard**
+   - Visit [https://dash.cloudflare.com/pages](https://dash.cloudflare.com/pages)
+
+2. **Create New Project**
+   - Click "Create a project"
+   - Choose "Connect to Git"
+   - Select your GitHub repository
+   - Set project name: `rpac-web`
+   - Set production branch: `main`
+
+3. **Configure Build Settings**
+   - Framework preset: `Next.js (Static HTML Export)`
+   - Build command: `cd rpac-web && npm run build`
+   - Build output directory: `rpac-web/out`
+   - Root directory: `/`
+
+4. **Environment Variables**
+   - Add your environment variables in the project settings
 
 ## Build Configuration
 
