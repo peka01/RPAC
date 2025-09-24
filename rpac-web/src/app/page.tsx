@@ -4,27 +4,19 @@ import { useState, useEffect } from 'react';
 import { StatusCard } from '@/components/status-card';
 import { QuickActions } from '@/components/quick-actions';
 import { PreparednessOverview } from '@/components/preparedness-overview';
-import { WelcomeScreen } from '@/components/welcome-screen';
-import { localAuth } from '@/lib/local-auth';
+import { SupabaseAuth } from '@/components/supabase-auth';
+import { SupabaseResourceInventory } from '@/components/supabase-resource-inventory';
+import { CommunityHub } from '@/components/community-hub';
+import { User } from '@supabase/supabase-js';
 
 export default function HomePage() {
-  const [user, setUser] = useState<{ id: string; email?: string; name?: string } | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Get initial user
-    const currentUser = localAuth.getCurrentUser();
-    setUser(currentUser);
+  const handleAuthChange = (newUser: User | null) => {
+    setUser(newUser);
     setLoading(false);
-
-    // Listen for auth changes
-    const unsubscribe = localAuth.onAuthStateChange((user) => {
-      setUser(user);
-      setLoading(false);
-    });
-
-    return unsubscribe;
-  }, []);
+  };
 
   if (loading) {
     return (
@@ -37,14 +29,27 @@ export default function HomePage() {
     );
   }
 
-  // Show welcome screen for non-authenticated users
+  // Show authentication screen for non-authenticated users
   if (!user) {
-    return <WelcomeScreen />;
+    return <SupabaseAuth onAuthChange={handleAuthChange} />;
   }
 
   // Show main content for authenticated users
   return (
     <div className="space-y-16">
+      {/* Welcome Message */}
+      <div className="text-center">
+        <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+          Välkommen till RPAC
+        </h1>
+        <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
+          Resilience & Preparedness AI Companion
+        </p>
+        <p className="mt-2" style={{ color: 'var(--text-secondary)' }}>
+          Hej {user.user_metadata?.name || user.email}! Du är redo att börja bygga din beredskap.
+        </p>
+      </div>
+
       {/* Modern Status and Actions Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         <div className="space-y-6">
@@ -53,6 +58,16 @@ export default function HomePage() {
         <div className="space-y-6">
           <QuickActions />
         </div>
+      </div>
+
+      {/* Resource Inventory */}
+      <div className="space-y-6">
+        <SupabaseResourceInventory user={user} />
+      </div>
+
+      {/* Community Hub */}
+      <div className="space-y-6">
+        <CommunityHub user={user} />
       </div>
 
       {/* Preparedness Overview */}
