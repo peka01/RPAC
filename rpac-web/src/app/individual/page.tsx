@@ -13,7 +13,7 @@ export default function IndividualPage() {
             {t('individual.title')}
           </h1>
           <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-            Hantera din personliga beredskap och resurser
+            {t('individual.manage_resources')}
           </p>
         </div>
 
@@ -43,13 +43,13 @@ export default function IndividualPage() {
           </p>
           <div className="space-y-2">
             <button className="crisis-button w-full text-left" style={{ backgroundColor: 'var(--color-crisis-green)', color: 'white' }}>
-              📚 Grundläggande beredskap
+              {t('individual.basic_preparedness')}
             </button>
             <button className="crisis-button w-full text-left" style={{ backgroundColor: 'var(--color-crisis-blue)', color: 'white' }}>
-              🌱 Odlingsguide för nybörjare
+              {t('individual.gardening_guide')}
             </button>
             <button className="crisis-button w-full text-left" style={{ backgroundColor: 'var(--color-crisis-brown)', color: 'white' }}>
-              🏠 Hemförsvar och säkerhet
+              {t('individual.home_defense')}
             </button>
           </div>
         </div>
@@ -63,13 +63,13 @@ export default function IndividualPage() {
           </p>
           <div className="space-y-2">
             <button className="crisis-button w-full text-left" style={{ backgroundColor: 'var(--color-crisis-orange)', color: 'white' }}>
-              💡 Få personliga råd
+              {t('individual.get_personal_advice')}
             </button>
             <button className="crisis-button w-full text-left" style={{ backgroundColor: 'var(--color-crisis-blue)', color: 'white' }}>
-              📊 Analysera din beredskap
+              {t('individual.analyze_preparedness')}
             </button>
             <button className="crisis-button w-full text-left" style={{ backgroundColor: 'var(--color-crisis-green)', color: 'white' }}>
-              🎯 Sätt beredskapsmål
+              {t('individual.set_preparedness_goals')}
             </button>
           </div>
         </div>

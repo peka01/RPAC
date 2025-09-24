@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { t } from '@/lib/locales';
 import { StatusCard } from '@/components/status-card';
 import { QuickActions } from '@/components/quick-actions';
 import { PreparednessOverview } from '@/components/preparedness-overview';
@@ -34,7 +35,7 @@ export default function DashboardPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-700">Laddar dashboard...</p>
+          <p className="text-lg text-gray-700">{t('loading.loading_dashboard')}</p>
         </div>
       </div>
     );
@@ -47,14 +48,8 @@ export default function DashboardPage() {
       <div className="text-center py-12 px-6">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
-            Välkommen till RPAC
+            {t('dashboard.welcome_to_rpac')}
           </h1>
-          <p className="text-xl md:text-2xl mb-4 text-gray-600">
-            Resilience & Preparedness AI Companion
-          </p>
-          <p className="text-lg mb-8 text-gray-600">
-            Hej {(user?.user_metadata?.name || user?.email || '')}! Du är redo att börja bygga din beredskap.
-          </p>
         </div>
       </div>
 

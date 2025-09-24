@@ -31,8 +31,8 @@ interface OnboardingStep {
 const onboardingSteps: OnboardingStep[] = [
   {
     id: 'welcome',
-    title: 'Välkommen till Beredd',
-    description: 'Din trygga stöd när allt annat fallerar. Vi hjälper dig att förbereda dig för oväntade situationer.',
+    title: t('onboarding.welcome_to_ready'),
+    description: t('onboarding.welcome_description'),
     icon: Home,
     color: 'var(--color-crisis-green)'
   },
@@ -122,7 +122,7 @@ export function SimpleAuth() {
       setFormData({ email: '', password: '', name: '' });
     } catch (error: unknown) {
       console.error('Auth error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Ett fel uppstod. Försök igen.';
+      const errorMessage = error instanceof Error ? error.message : t('errors.generic_error');
       setFormErrors([errorMessage]);
     } finally {
       setIsSubmitting(false);
@@ -155,7 +155,7 @@ export function SimpleAuth() {
     return (
       <div className="flex items-center space-x-2">
         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
-        <span className="text-sm text-slate-800 dark:text-slate-200">Laddar...</span>
+        <span className="text-sm text-slate-800 dark:text-slate-200">{t('loading.loading')}</span>
       </div>
     );
   }
@@ -186,14 +186,14 @@ export function SimpleAuth() {
               className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
             >
               <Settings className="w-4 h-4" />
-              <span>Inställningar</span>
+              <span>{t('navigation.settings')}</span>
             </button>
             <button
               onClick={handleSignOut}
               className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
             >
               <LogOut className="w-4 h-4" />
-              <span>Logga ut</span>
+              <span>{t('navigation.sign_out')}</span>
             </button>
           </div>
         )}
@@ -220,7 +220,7 @@ export function SimpleAuth() {
                 className="text-sm underline"
                 style={{ color: 'var(--color-crisis-blue)' }}
               >
-                Hoppa över
+                {t('onboarding.skip')}
               </button>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
@@ -263,7 +263,7 @@ export function SimpleAuth() {
               }}
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Föregående</span>
+              <span>{t('onboarding.previous')}</span>
             </button>
 
             {currentStep === onboardingSteps.length - 1 ? (
@@ -272,7 +272,7 @@ export function SimpleAuth() {
                 className="modern-button flex items-center space-x-2 px-4 py-2 text-white"
                 style={{ background: 'linear-gradient(135deg, #3D4A2B 0%, #2A331E 100%)' }}
               >
-                <span>Kom igång</span>
+                <span>{t('onboarding.get_started')}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             ) : (
@@ -281,7 +281,7 @@ export function SimpleAuth() {
                 className="modern-button flex items-center space-x-2 px-4 py-2 text-white"
                 style={{ background: 'linear-gradient(135deg, #3D4A2B 0%, #2A331E 100%)' }}
               >
-                <span>Nästa</span>
+                <span>{t('onboarding.next')}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             )}
@@ -301,12 +301,12 @@ export function SimpleAuth() {
             <RPACLogo size="lg" className="text-green-700" />
           </div>
           <h3 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-            {isSignUp ? 'Skapa ditt konto' : 'Välkommen tillbaka'}
+            {isSignUp ? t('auth.create_account') : t('auth.welcome_back')}
           </h3>
           <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)' }}>
             {isSignUp 
-              ? 'Börja din beredskapsresa idag' 
-              : 'Logga in för att fortsätta'
+              ? t('auth.start_journey') 
+              : t('auth.continue')
             }
           </p>
         </div>

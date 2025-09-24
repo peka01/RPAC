@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { CommunityHub } from '@/components/community-hub';
+import { t } from '@/lib/locales';
 
 import type { User } from '@supabase/supabase-js';
 
@@ -30,7 +31,7 @@ export default function LocalPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-700">Laddar...</p>
+          <p className="text-lg text-gray-700">{t('loading.loading')}</p>
         </div>
       </div>
     );
@@ -41,7 +42,7 @@ export default function LocalPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-700">Initialiserar...</p>
+          <p className="text-lg text-gray-700">{t('loading.initializing')}</p>
         </div>
       </div>
     );
@@ -52,10 +53,10 @@ export default function LocalPage() {
       <div className="max-w-7xl mx-auto px-6 py-12 space-y-8">
         <div className="text-center">
           <h1 className="text-3xl font-bold mb-2 text-gray-800">
-            Lokalt Samhälle
+            {t('local_community.title')}
           </h1>
           <p className="text-lg text-gray-600">
-            Samarbeta med ditt lokala samhälle för ömsesidig hjälp och resursdelning
+            {t('local_community.subtitle')}
           </p>
         </div>
 

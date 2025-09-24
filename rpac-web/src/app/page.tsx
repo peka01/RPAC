@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { t } from '@/lib/locales';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -50,7 +51,7 @@ export default function LoginPage() {
       }
       router.push('/dashboard');
   } catch (err: unknown) {
-      const _message = err instanceof Error ? err.message : 'Ett fel uppstod. Försök igen.';
+      const _message = err instanceof Error ? err.message : t('errors.generic_error');
       setError(_message);
     } finally {
       setLoading(false);
@@ -83,17 +84,17 @@ export default function LoginPage() {
             RPAC
           </h2>
           <p className="text-lg text-gray-600 mb-8">
-            Resilience & Preparedness AI Companion
+            {t('dashboard.subtitle')}
           </p>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-8">
           <div className="text-center mb-6">
             <h3 className="text-xl font-bold text-gray-800">
-              {isSignUp ? 'Skapa ditt konto' : 'Välkommen tillbaka'}
+              {isSignUp ? t('auth.create_account') : t('auth.welcome_back')}
             </h3>
             <p className="text-sm text-gray-600 mt-2">
-              {isSignUp ? 'Börja din beredskapsresa idag' : 'Logga in för att fortsätta'}
+              {isSignUp ? t('auth.start_journey') : t('auth.continue')}
             </p>
           </div>
 
@@ -170,10 +171,10 @@ export default function LoginPage() {
               {loading ? (
                 <div className="flex items-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  {isSignUp ? 'Skapar konto...' : 'Loggar in...'}
+                  {isSignUp ? t('auth.creating_account') : t('auth.signing_in')}
                 </div>
               ) : (
-                isSignUp ? 'Skapa konto' : 'Logga in'
+                isSignUp ? t('auth.create_account') : t('auth.sign_in')
               )}
             </button>
           </form>
@@ -196,10 +197,10 @@ export default function LoginPage() {
               {loading ? (
                 <div className="flex items-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
-                  Laddar...
+                  {t('loading.loading')}
                 </div>
               ) : (
-                'Fortsätt som Demo'
+                t('auth.continue_as_demo')
               )}
             </button>
           </div>
@@ -217,7 +218,7 @@ export default function LoginPage() {
                 }}
                 className="font-medium text-blue-600 hover:text-blue-500"
               >
-                {isSignUp ? 'Logga in här' : 'Registrera dig här'}
+                {isSignUp ? t('auth.sign_in_here') : t('auth.register_here')}
               </button>
             </p>
           </div>
