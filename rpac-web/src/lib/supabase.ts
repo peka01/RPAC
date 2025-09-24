@@ -181,15 +181,8 @@ export const resourceSharingService = {
   async getSharedResources(): Promise<ResourceSharing[]> {
     const { data, error } = await supabase
       .from('resource_sharing')
-      .select(`
-        *,
-        resources (
-          name,
-          category,
-          unit
-        )
-      `)
-      .eq('status', 'available')
+      .select('*')
+      .eq('is_available', true)
       .order('created_at', { ascending: false })
     
     if (error) throw error
@@ -225,7 +218,7 @@ export const helpRequestService = {
     const { data, error } = await supabase
       .from('help_requests')
       .select('*')
-      .order('urgency', { ascending: false })
+      .order('priority', { ascending: false })
       .order('created_at', { ascending: false })
     
     if (error) throw error

@@ -6,21 +6,21 @@ import { User } from '@supabase/supabase-js';
 import { Users, Share2, HelpCircle, MapPin, Clock, AlertTriangle } from 'lucide-react';
 
 interface CommunityHubProps {
-  user: User;
+  user: any;
 }
 
-const urgencyColors = {
+const priorityColors = {
   low: 'bg-green-100 text-green-800',
   medium: 'bg-yellow-100 text-yellow-800',
   high: 'bg-orange-100 text-orange-800',
-  critical: 'bg-red-100 text-red-800'
+  urgent: 'bg-red-100 text-red-800'
 };
 
-const urgencyLabels = {
+const priorityLabels = {
   low: 'Låg',
   medium: 'Medium',
   high: 'Hög',
-  critical: 'Kritisk'
+  urgent: 'Akut'
 };
 
 export function CommunityHub({ user }: CommunityHubProps) {
@@ -44,7 +44,7 @@ export function CommunityHub({ user }: CommunityHubProps) {
     title: '',
     description: '',
     category: 'other' as HelpRequest['category'],
-    urgency: 'medium' as HelpRequest['urgency'],
+    priority: 'medium' as HelpRequest['priority'],
     location: ''
   });
 
@@ -54,16 +54,54 @@ export function CommunityHub({ user }: CommunityHubProps) {
     const loadData = async () => {
       try {
         setLoading(true);
-        const [communitiesData, resourcesData, requestsData] = await Promise.all([
-          communityService.getCommunities(),
-          resourceSharingService.getSharedResources(),
-          helpRequestService.getHelpRequests()
-        ]);
         
-        if (mounted) {
-          setCommunities(communitiesData);
-          setSharedResources(resourcesData);
-          setHelpRequests(requestsData);
+        // Check if this is a demo user
+        if (user.id === 'demo-user') {
+          // Load demo data
+          const demoCommunities = [
+            {
+              id: 'demo-comm-1',
+              user_id: 'demo-user',
+              community_name: 'Demo Samhälle',
+              location: 'Stockholm',
+              description: 'Ett demo-samhälle för testning',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            }
+          ];
+          
+          const demoRequests = [
+            {
+              id: 'demo-req-1',
+              user_id: 'demo-user',
+              title: 'Behöver hjälp med mat',
+              description: 'Behöver akut hjälp med mat för familjen',
+              category: 'food' as const,
+              priority: 'high' as const,
+              location: 'Stockholm',
+              status: 'open' as const,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            }
+          ];
+          
+          if (mounted) {
+            setCommunities(demoCommunities);
+            setSharedResources([]);
+            setHelpRequests(demoRequests);
+          }
+        } else {
+          const [communitiesData, resourcesData, requestsData] = await Promise.all([
+            communityService.getCommunities(),
+            resourceSharingService.getSharedResources(),
+            helpRequestService.getHelpRequests()
+          ]);
+          
+          if (mounted) {
+            setCommunities(communitiesData);
+            setSharedResources(resourcesData);
+            setHelpRequests(requestsData);
+          }
         }
       } catch (error: unknown) {
         if (mounted) {
@@ -118,7 +156,7 @@ export function CommunityHub({ user }: CommunityHubProps) {
         title: '',
         description: '',
         category: 'other',
-        urgency: 'medium',
+        priority: 'medium',
         location: ''
       });
       setShowCreateRequest(false);
@@ -293,8 +331,8 @@ export function CommunityHub({ user }: CommunityHubProps) {
                   {request.title}
                 </h3>
                 <div className="flex items-center gap-2">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${urgencyColors[request.urgency]}`}>
-                    {urgencyLabels[request.urgency]}
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${priorityColors[request.priority]}`}>
+                    {priorityLabels[request.priority]}
                   </span>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                     request.status === 'open' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
@@ -446,14 +484,14 @@ export function CommunityHub({ user }: CommunityHubProps) {
                 <div>
                   <label className="block text-sm font-medium mb-1">Brådska</label>
                   <select
-                    value={requestForm.urgency}
-                    onChange={(e) => setRequestForm({ ...requestForm, urgency: e.target.value as HelpRequest['urgency'] })}
+                    value={requestForm.priority}
+                    onChange={(e) => setRequestForm({ ...requestForm, priority: e.target.value as HelpRequest['priority'] })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="low">Låg</option>
                     <option value="medium">Medium</option>
                     <option value="high">Hög</option>
-                    <option value="critical">Kritisk</option>
+                    <option value="urgent">Akut</option>
                   </select>
                 </div>
               </div>

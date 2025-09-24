@@ -132,6 +132,8 @@ export function SimpleAuth() {
   const handleSignOut = async () => {
     try {
       await localAuth.signOut();
+      setShowUserMenu(false);
+      router.push('/');
     } catch (error) {
       console.error('Sign out error:', error);
     }

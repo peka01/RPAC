@@ -14,21 +14,67 @@ import {
 import { RPACLogo } from './rpac-logo';
 import { t } from '@/lib/locales';
 import { useState, useEffect } from 'react';
-import { SimpleAuth } from './simple-auth';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { ChevronDown, Settings, LogOut } from 'lucide-react';
 
 export function Navigation() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isOnline, setIsOnline] = useState(true);
   const [isCrisisMode] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   // Ensure we're on the client side to prevent hydration mismatches
   useEffect(() => {
     setIsClient(true);
+    
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    
+    checkUser();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showUserMenu) {
+        const target = event.target as Element;
+        if (!target.closest('.user-menu-container')) {
+          setShowUserMenu(false);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showUserMenu]);
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      setShowUserMenu(false);
+      router.push('/');
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
+  };
+
   const navigation = [
-    { name: t('navigation.home'), href: '/', icon: Home },
+    { name: t('navigation.home'), href: '/dashboard', icon: Home },
     { name: t('navigation.individual'), href: '/individual', icon: User },
     { name: t('navigation.local'), href: '/local', icon: Users },
     { name: t('navigation.regional'), href: '/regional', icon: Globe },
@@ -98,10 +144,45 @@ export function Navigation() {
               </div>
             )}
 
-            {/* Auth Component */}
-            <div className="ml-auto">
-              <SimpleAuth />
-            </div>
+            {/* User Menu */}
+            {user && (
+              <div className="relative user-menu-container">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white p-1">
+                    <RPACLogo size="sm" className="text-green-700" />
+                  </div>
+                  <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                    {user.user_metadata?.name || user.email}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {showUserMenu && (
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 py-2 z-50">
+                    <button
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        router.push('/settings');
+                      }}
+                      className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      <Settings className="w-4 h-4" />
+                      <span>Inställningar</span>
+                    </button>
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>Logga ut</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

@@ -48,10 +48,8 @@ export default function RootLayout({
             {/* Main content with modern spacing */}
             <div className="relative z-10">
               <Navigation />
-              <main className="container mx-auto px-6 py-12 max-w-7xl">
-                <div className="space-y-12">
-                  {children}
-                </div>
+              <main>
+                {children}
               </main>
             </div>
           </div>

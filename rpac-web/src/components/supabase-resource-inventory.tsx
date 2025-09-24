@@ -6,7 +6,7 @@ import { User } from '@supabase/supabase-js';
 import { Plus, Edit, Trash2, Package, Droplets, Heart, Zap, Wrench } from 'lucide-react';
 
 interface SupabaseResourceInventoryProps {
-  user: User;
+  user: any;
 }
 
 const categoryIcons = {
@@ -50,8 +50,46 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
   const loadResources = async () => {
     try {
       setLoading(true);
-      const data = await resourceService.getResources(user.id);
-      setResources(data);
+      
+      // Check if this is a demo user
+      if (user.id === 'demo-user') {
+        // Load demo data from localStorage
+        const demoResources = localStorage.getItem('rpac-demo-resources');
+        if (demoResources) {
+          setResources(JSON.parse(demoResources));
+        } else {
+          // Create some demo resources
+          const demoData = [
+            {
+              id: 'demo-1',
+              user_id: 'demo-user',
+              name: 'Konserverad mat',
+              category: 'food' as const,
+              quantity: 20,
+              unit: 'burkar',
+              days_remaining: 365,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            },
+            {
+              id: 'demo-2',
+              user_id: 'demo-user',
+              name: 'Vatten',
+              category: 'water' as const,
+              quantity: 50,
+              unit: 'liter',
+              days_remaining: 30,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            }
+          ];
+          setResources(demoData);
+          localStorage.setItem('rpac-demo-resources', JSON.stringify(demoData));
+        }
+      } else {
+        const data = await resourceService.getResources(user.id);
+        setResources(data);
+      }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'Ett oväntat fel inträffade');
     } finally {
@@ -64,14 +102,40 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
     setError(null);
 
     try {
-      if (editingResource) {
-        await resourceService.updateResource(editingResource.id, formData);
-        setEditingResource(null);
-      } else {
-        await resourceService.addResource({
+      if (user.id === 'demo-user') {
+        // Handle demo mode
+        const newResource = {
+          id: `demo-${Date.now()}`,
+          user_id: user.id,
           ...formData,
-          user_id: user.id
-        });
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        if (editingResource) {
+          const updatedResources = resources.map(r => 
+            r.id === editingResource.id ? { ...r, ...formData, updated_at: new Date().toISOString() } : r
+          );
+          setResources(updatedResources);
+          localStorage.setItem('rpac-demo-resources', JSON.stringify(updatedResources));
+          setEditingResource(null);
+        } else {
+          const updatedResources = [...resources, newResource];
+          setResources(updatedResources);
+          localStorage.setItem('rpac-demo-resources', JSON.stringify(updatedResources));
+        }
+      } else {
+        // Handle real Supabase mode
+        if (editingResource) {
+          await resourceService.updateResource(editingResource.id, formData);
+          setEditingResource(null);
+        } else {
+          await resourceService.addResource({
+            ...formData,
+            user_id: user.id
+          });
+        }
+        loadResources();
       }
 
       setFormData({
@@ -82,7 +146,6 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
         days_remaining: 30
       });
       setShowAddForm(false);
-      loadResources();
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'Ett oväntat fel inträffade');
     }
@@ -104,8 +167,15 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
     if (!confirm('Är du säker på att du vill ta bort denna resurs?')) return;
 
     try {
-      await resourceService.deleteResource(id);
-      loadResources();
+      if (user.id === 'demo-user') {
+        // Handle demo mode
+        const updatedResources = resources.filter(r => r.id !== id);
+        setResources(updatedResources);
+        localStorage.setItem('rpac-demo-resources', JSON.stringify(updatedResources));
+      } else {
+        await resourceService.deleteResource(id);
+        loadResources();
+      }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'Ett oväntat fel inträffade');
     }
