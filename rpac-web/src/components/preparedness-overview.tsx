@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { 
   Droplets, 
   Utensils, 
@@ -10,7 +10,6 @@ import {
   AlertCircle,
   CheckCircle
 } from 'lucide-react';
-import { t } from '@/lib/locales';
 
 interface ResourceStatus {
   name: string;
@@ -21,7 +20,7 @@ interface ResourceStatus {
 }
 
 export function PreparednessOverview() {
-  const [resources, setResources] = useState<ResourceStatus[]>([
+  const [resources] = useState<ResourceStatus[]>([
     {
       name: t('resources.food'),
       days: 14,

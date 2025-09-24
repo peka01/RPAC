@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { 
   User, 
   Mail, 
   Lock, 
   Bell, 
   Shield, 
-  Globe, 
   MapPin, 
   Phone,
   Camera,
@@ -22,7 +21,6 @@ import {
   Monitor
 } from 'lucide-react';
 import { RPACLogo } from '@/components/rpac-logo';
-import { t } from '@/lib/locales';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('profile');
@@ -71,7 +69,7 @@ export default function SettingsPage() {
     { id: 'preferences', label: 'Inställningar', icon: SettingsIcon }
   ];
 
-  const handleSave = async (section: string) => {
+  const handleSave = async (_section: string) => {
     setIsSaving(true);
     setSaveStatus('idle');
     

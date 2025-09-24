@@ -15,8 +15,8 @@ import { t } from '@/lib/locales';
 export function StatusCard() {
   const [isOnline, setIsOnline] = useState(true);
   const [batteryLevel, setBatteryLevel] = useState(85);
-  const [isMeshConnected, setIsMeshConnected] = useState(false);
-  const [isCrisisMode, setIsCrisisMode] = useState(false);
+  const [isMeshConnected] = useState(false);
+  const [isCrisisMode] = useState(false);
 
   useEffect(() => {
     // Only run on client side to prevent hydration issues
@@ -47,11 +47,6 @@ export function StatusCard() {
     return Battery;
   };
 
-  const getBatteryColor = () => {
-    if (batteryLevel < 10) return 'text-red-500';
-    if (batteryLevel < 25) return 'text-orange-500';
-    return 'text-green-500';
-  };
 
   const getStatusIcon = () => {
     if (isCrisisMode) return AlertTriangle;
@@ -60,12 +55,6 @@ export function StatusCard() {
     return WifiOff;
   };
 
-  const getStatusColor = () => {
-    if (isCrisisMode) return 'text-red-500';
-    if (isOnline) return 'text-green-500';
-    if (isMeshConnected) return 'text-blue-500';
-    return 'text-gray-500';
-  };
 
   const getStatusText = () => {
     if (isCrisisMode) return t('status.crisis_mode');

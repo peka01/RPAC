@@ -9,7 +9,6 @@ import {
   LogIn, 
   LogOut, 
   UserPlus, 
-  CheckCircle, 
   ArrowRight,
   ArrowLeft,
   Home,
@@ -25,7 +24,7 @@ interface OnboardingStep {
   id: string;
   title: string;
   description: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   color: string;
 }
 
@@ -62,7 +61,7 @@ const onboardingSteps: OnboardingStep[] = [
 
 export function SimpleAuth() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ id: string; email?: string; name?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(0);
   const [showAuthForm, setShowAuthForm] = useState(false);
@@ -121,7 +120,7 @@ export function SimpleAuth() {
       }
       setShowAuthForm(false);
       setFormData({ email: '', password: '', name: '' });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Auth error:', error);
       const errorMessage = error.message || 'Ett fel uppstod. Försök igen.';
       setFormErrors([errorMessage]);

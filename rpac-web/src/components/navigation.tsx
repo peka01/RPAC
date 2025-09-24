@@ -19,7 +19,7 @@ import { SimpleAuth } from './simple-auth';
 export function Navigation() {
   const pathname = usePathname();
   const [isOnline, setIsOnline] = useState(true);
-  const [isCrisisMode, setIsCrisisMode] = useState(false);
+  const [isCrisisMode] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
   // Ensure we're on the client side to prevent hydration mismatches

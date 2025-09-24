@@ -39,8 +39,8 @@ export function ResourceInventory() {
   const [resources, setResources] = useState<Resource[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [loading] = useState(true);
+  const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
 
   // Get current user and load resources
   useEffect(() => {
@@ -59,7 +59,7 @@ export function ResourceInventory() {
         const savedResources = localStorage.getItem('rpac-resources');
         if (savedResources) {
           const parsed = JSON.parse(savedResources);
-          setResources(parsed.map((r: any) => ({
+          setResources(parsed.map((r: { lastUpdated: string; [key: string]: unknown }) => ({
             ...r,
             lastUpdated: new Date(r.lastUpdated)
           })));
@@ -306,7 +306,7 @@ function ResourceForm({ resource, onSave, onCancel }: ResourceFormProps) {
             </label>
             <select
               value={formData.category}
-              onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value as any }))}
+              onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value as 'food' | 'water' | 'medicine' | 'energy' | 'tools' }))}
               className="w-full p-3 border-2 rounded-lg"
               style={{ borderColor: 'var(--color-crisis-grey)' }}
             >

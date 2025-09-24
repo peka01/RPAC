@@ -21,7 +21,7 @@ interface OnboardingStep {
   id: string;
   title: string;
   description: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   color: string;
 }
 
@@ -57,7 +57,7 @@ const onboardingSteps: OnboardingStep[] = [
 ];
 
 export function OnboardingAuth() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ id: string; email?: string; user_metadata?: { name?: string } } | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(0);
   const [showAuthForm, setShowAuthForm] = useState(false);
@@ -102,9 +102,9 @@ export function OnboardingAuth() {
       }
       setShowAuthForm(false);
       setFormData({ email: '', password: '', name: '' });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Auth error:', error);
-      const errorMessage = error.message || 'Ett fel uppstod. Försök igen.';
+      const errorMessage = error instanceof Error ? error.message : 'Ett fel uppstod. Försök igen.';
       setFormErrors([errorMessage]);
     } finally {
       setIsSubmitting(false);

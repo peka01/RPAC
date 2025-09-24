@@ -8,10 +8,8 @@ import {
   TrendingUp,
   Calendar,
   Target,
-  Award
 } from 'lucide-react';
 import { t } from '@/lib/locales';
-import { localAuth } from '@/lib/local-auth';
 
 interface PreparednessScore {
   overall: number;
@@ -43,15 +41,15 @@ export function PersonalDashboard() {
       
       // Calculate scores for each category
       const categories = ['food', 'water', 'medicine', 'energy', 'tools'];
-      const categoryScores: any = {};
+      const categoryScores: Record<string, number> = {};
       
       categories.forEach(category => {
-        const categoryResources = resources.filter((r: any) => r.category === category);
+        const categoryResources = resources.filter((r: { category: string }) => r.category === category);
         if (categoryResources.length === 0) {
           categoryScores[category] = 0;
           newAlerts.push(`Inga ${t(`resources.${category}`)} resurser registrerade`);
         } else {
-          const avgDays = categoryResources.reduce((sum: number, r: any) => sum + (r.days_remaining || r.daysRemaining || 0), 0) / categoryResources.length;
+          const avgDays = categoryResources.reduce((sum: number, r: { days_remaining?: number; daysRemaining?: number }) => sum + (r.days_remaining || r.daysRemaining || 0), 0) / categoryResources.length;
           categoryScores[category] = Math.min(100, Math.round((avgDays / 30) * 100));
           
           if (avgDays < 3) {

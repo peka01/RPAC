@@ -5,12 +5,10 @@ import { StatusCard } from '@/components/status-card';
 import { QuickActions } from '@/components/quick-actions';
 import { PreparednessOverview } from '@/components/preparedness-overview';
 import { WelcomeScreen } from '@/components/welcome-screen';
-import { RPACLogo } from '@/components/rpac-logo';
-import { t } from '@/lib/locales';
 import { localAuth } from '@/lib/local-auth';
 
 export default function HomePage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ id: string; email?: string; name?: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

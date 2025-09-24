@@ -59,7 +59,7 @@ class LocalAuth {
     return user;
   }
 
-  async signIn(email: string, password: string): Promise<User> {
+  async signIn(email: string, _password: string): Promise<User> {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500));
     

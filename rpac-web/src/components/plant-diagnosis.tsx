@@ -108,9 +108,10 @@ export function PlantDiagnosis() {
              style={{ borderColor: 'var(--color-crisis-grey)' }}>
           {selectedImage ? (
             <div className="space-y-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img 
                 src={selectedImage} 
-                alt={t('alt_text.selected_plant')} 
+                alt="Selected plant" 
                 className="max-h-48 mx-auto rounded-lg"
               />
               <div className="flex space-x-3 justify-center">

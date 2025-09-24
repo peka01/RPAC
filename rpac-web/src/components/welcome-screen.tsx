@@ -8,14 +8,12 @@ import {
   Heart, 
   ArrowRight,
   CheckCircle,
-  Star,
   Globe
 } from 'lucide-react';
 import { RPACLogo } from './rpac-logo';
-import { t } from '@/lib/locales';
 
 interface Feature {
-  icon: any;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   title: string;
   description: string;
   color: string;
@@ -43,7 +41,7 @@ const features: Feature[] = [
 ];
 
 export function WelcomeScreen() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

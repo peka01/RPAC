@@ -5,7 +5,7 @@ import { supabase, authService } from '@/lib/supabase';
 import { User, LogIn, LogOut, UserPlus } from 'lucide-react';
 
 export function Auth() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ id: string; email?: string; user_metadata?: { name?: string } } | null>(null);
   const [loading, setLoading] = useState(true);
   const [showAuthForm, setShowAuthForm] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
