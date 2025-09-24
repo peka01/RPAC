@@ -5,16 +5,17 @@ import { t } from '@/lib/locales';
 
 export default function IndividualPage() {
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
-          {t('individual.title')}
-        </h1>
-        <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-          Hantera din personliga beredskap och resurser
-        </p>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
+            {t('individual.title')}
+          </h1>
+          <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
+            Hantera din personliga beredskap och resurser
+          </p>
+        </div>
 
       {/* Personal Dashboard */}
       <PersonalDashboard />
@@ -67,6 +68,7 @@ export default function IndividualPage() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }
