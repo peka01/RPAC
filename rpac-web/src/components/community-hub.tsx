@@ -49,27 +49,40 @@ export function CommunityHub({ user }: CommunityHubProps) {
   });
 
   useEffect(() => {
+    let mounted = true;
+    
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [communitiesData, resourcesData, requestsData] = await Promise.all([
+          communityService.getCommunities(),
+          resourceSharingService.getSharedResources(),
+          helpRequestService.getHelpRequests()
+        ]);
+        
+        if (mounted) {
+          setCommunities(communitiesData);
+          setSharedResources(resourcesData);
+          setHelpRequests(requestsData);
+        }
+      } catch (error: unknown) {
+        if (mounted) {
+          setError(error instanceof Error ? error.message : 'Ett oväntat fel inträffade');
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
     loadData();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const [communitiesData, resourcesData, requestsData] = await Promise.all([
-        communityService.getCommunities(),
-        resourceSharingService.getSharedResources(),
-        helpRequestService.getHelpRequests()
-      ]);
-      
-      setCommunities(communitiesData);
-      setSharedResources(resourcesData);
-      setHelpRequests(requestsData);
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'Ett oväntat fel inträffade');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleCreateCommunity = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,7 +96,8 @@ export function CommunityHub({ user }: CommunityHubProps) {
 
       setCommunityForm({ community_name: '', location: '', description: '' });
       setShowCreateCommunity(false);
-      loadData();
+      // Reload data by triggering a re-render
+      window.location.reload();
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'Ett oväntat fel inträffade');
     }
@@ -108,7 +122,8 @@ export function CommunityHub({ user }: CommunityHubProps) {
         location: ''
       });
       setShowCreateRequest(false);
-      loadData();
+      // Reload data by triggering a re-render
+      window.location.reload();
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'Ett oväntat fel inträffade');
     }

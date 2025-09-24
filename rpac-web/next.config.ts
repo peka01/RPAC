@@ -5,6 +5,12 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
   images: {
     unoptimized: true
+  },
+  // Disable server-side features for static export
+  serverExternalPackages: [],
+  distDir: 'out',
+  generateBuildId: async () => {
+    return 'build-' + Date.now()
   }
 };
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { StatusCard } from '@/components/status-card';
 import { QuickActions } from '@/components/quick-actions';
 import { PreparednessOverview } from '@/components/preparedness-overview';
@@ -13,10 +13,10 @@ export default function HomePage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const handleAuthChange = (newUser: User | null) => {
+  const handleAuthChange = useCallback((newUser: User | null) => {
     setUser(newUser);
     setLoading(false);
-  };
+  }, []);
 
   if (loading) {
     return (

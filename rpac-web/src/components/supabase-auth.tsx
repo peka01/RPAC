@@ -18,12 +18,23 @@ export function SupabaseAuth({ onAuthChange }: SupabaseAuthProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let mounted = true;
+
     // Get initial session
     const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      onAuthChange(session?.user ?? null);
-      setLoading(false);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (mounted) {
+          setUser(session?.user ?? null);
+          onAuthChange(session?.user ?? null);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error getting initial session:', error);
+        if (mounted) {
+          setLoading(false);
+        }
+      }
     };
 
     getInitialSession();
@@ -31,6 +42,8 @@ export function SupabaseAuth({ onAuthChange }: SupabaseAuthProps) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
+        
         setUser(session?.user ?? null);
         onAuthChange(session?.user ?? null);
         setLoading(false);
@@ -53,8 +66,11 @@ export function SupabaseAuth({ onAuthChange }: SupabaseAuthProps) {
       }
     );
 
-    return () => subscription.unsubscribe();
-  }, [onAuthChange]);
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []); // Remove onAuthChange dependency to prevent loops
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();

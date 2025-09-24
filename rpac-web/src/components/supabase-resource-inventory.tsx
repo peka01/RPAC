@@ -42,8 +42,10 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
   });
 
   useEffect(() => {
-    loadResources();
-  }, [user.id]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (user?.id) {
+      loadResources();
+    }
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadResources = async () => {
     try {
