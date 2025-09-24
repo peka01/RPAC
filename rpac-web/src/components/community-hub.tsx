@@ -96,7 +96,8 @@ export function CommunityHub({ user }: CommunityHubProps) {
     try {
       await helpRequestService.createHelpRequest({
         ...requestForm,
-        user_id: user.id
+        user_id: user.id,
+        status: 'open'
       });
 
       setRequestForm({

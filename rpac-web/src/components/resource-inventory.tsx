@@ -55,16 +55,18 @@ export function ResourceInventory() {
       } catch (error) {
         console.error('Error loading resources:', error);
         // Fallback to localStorage if Supabase fails
-        const savedResources = localStorage.getItem('rpac-resources');
-        if (savedResources) {
-          const parsed = JSON.parse(savedResources);
-          setResources(parsed.map((r: { lastUpdated: string; [key: string]: unknown }) => ({
-            ...r,
-            lastUpdated: new Date(r.lastUpdated)
-          })));
+        try {
+          const savedResources = localStorage.getItem('rpac-resources');
+          if (savedResources) {
+            const parsed = JSON.parse(savedResources);
+            setResources(parsed.map((r: { lastUpdated: string; [key: string]: unknown }) => ({
+              ...r,
+              lastUpdated: new Date(r.lastUpdated)
+            })));
+          }
+        } catch (localError) {
+          console.error('Error loading from localStorage:', localError);
         }
-      } finally {
-        setLoading(false);
       }
     };
 
