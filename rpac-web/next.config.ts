@@ -5,10 +5,6 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
   images: {
     unoptimized: true
-  },
-  // Disable server-side features for static export
-  experimental: {
-    esmExternals: false
   }
 };
 

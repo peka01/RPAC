@@ -122,7 +122,7 @@ export function SimpleAuth() {
       setFormData({ email: '', password: '', name: '' });
     } catch (error: unknown) {
       console.error('Auth error:', error);
-      const errorMessage = error.message || 'Ett fel uppstod. Försök igen.';
+      const errorMessage = error instanceof Error ? error.message : 'Ett fel uppstod. Försök igen.';
       setFormErrors([errorMessage]);
     } finally {
       setIsSubmitting(false);
@@ -338,7 +338,6 @@ export function SimpleAuth() {
                 className="w-full p-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
                 style={{ 
                   borderColor: 'var(--color-crisis-grey)',
-                  focusRingColor: 'var(--color-crisis-blue)'
                 }}
                 placeholder={t('placeholders.enter_name')}
                 required
@@ -357,7 +356,6 @@ export function SimpleAuth() {
               className="w-full p-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
               style={{ 
                 borderColor: 'var(--color-crisis-grey)',
-                focusRingColor: 'var(--color-crisis-blue)'
               }}
               placeholder={t('placeholders.enter_email')}
               required
@@ -375,7 +373,6 @@ export function SimpleAuth() {
               className="w-full p-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
               style={{ 
                 borderColor: 'var(--color-crisis-grey)',
-                focusRingColor: 'var(--color-crisis-blue)'
               }}
               placeholder={isSignUp ? t('placeholders.enter_password_new') : t('placeholders.enter_password')}
               required

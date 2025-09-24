@@ -14,7 +14,7 @@ import {
 interface ResourceStatus {
   name: string;
   days: number;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   color: string;
   status: 'excellent' | 'good' | 'needs_improvement';
 }
@@ -22,28 +22,28 @@ interface ResourceStatus {
 export function PreparednessOverview() {
   const [resources] = useState<ResourceStatus[]>([
     {
-      name: t('resources.food'),
+      name: 'Mat',
       days: 14,
       icon: Utensils,
       color: 'text-green-500',
       status: 'excellent'
     },
     {
-      name: t('resources.water'),
+      name: 'Vatten',
       days: 7,
       icon: Droplets,
       color: 'text-blue-500',
       status: 'good'
     },
     {
-      name: t('resources.energy'),
+      name: 'Energi',
       days: 3,
       icon: Zap,
       color: 'text-orange-500',
       status: 'needs_improvement'
     },
     {
-      name: t('resources.medicine'),
+      name: 'Medicin',
       days: 21,
       icon: Heart,
       color: 'text-red-500',
@@ -76,13 +76,13 @@ export function PreparednessOverview() {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'excellent':
-        return t('preparedness.excellent');
+        return 'Utmärkt';
       case 'good':
-        return t('preparedness.good');
+        return 'Bra';
       case 'needs_improvement':
-        return t('preparedness.needs_improvement');
+        return 'Behöver förbättras';
       default:
-        return t('preparedness.good');
+        return 'Bra';
     }
   };
 
@@ -96,7 +96,7 @@ export function PreparednessOverview() {
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-600 to-green-700 flex items-center justify-center mr-3">
             <TrendingUp className="w-6 h-6 text-white" />
           </div>
-          {t('ui.beredskapsoversikt')}
+          {'Beredskapsöversikt'}
         </h2>
         <div className="w-3 h-3 rounded-full bg-gradient-to-r from-green-500 to-green-600 animate-pulse"></div>
       </div>
@@ -108,7 +108,7 @@ export function PreparednessOverview() {
             <StatusIcon className="w-6 h-6" />
             <div>
               <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
-                {t('preparedness.overall_score')}
+                {'Övergripande poäng'}
               </h3>
               <p className="text-sm font-medium">
                 {getStatusText(overallScore.score)}
@@ -151,7 +151,7 @@ export function PreparednessOverview() {
                 {resource.days}
               </p>
               <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                {t('preparedness.food_days').replace('mat', resource.name.toLowerCase())}
+                {`${resource.name.toLowerCase()} dagar kvar`}
               </p>
             </div>
           );
@@ -165,7 +165,7 @@ export function PreparednessOverview() {
             <CheckCircle className="w-5 h-5 text-white" />
           </div>
           <p className="font-bold text-green-800 dark:text-green-200 text-center">
-            {t('ui.du_ar_val_forberedd')}
+            {'Du är väl förberedd'}
           </p>
         </div>
       </div>

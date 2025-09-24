@@ -69,7 +69,7 @@ export default function SettingsPage() {
     { id: 'preferences', label: 'Inställningar', icon: SettingsIcon }
   ];
 
-  const handleSave = async (_section: string) => {
+  const handleSave = async () => {
     setIsSaving(true);
     setSaveStatus('idle');
     
@@ -143,7 +143,7 @@ export default function SettingsPage() {
                       Profilinformation
                     </h2>
                     <button
-                      onClick={() => handleSave('profile')}
+                      onClick={() => handleSave()}
                       disabled={isSaving}
                       className="modern-button flex items-center space-x-2 px-6 py-2 text-white disabled:opacity-50"
                       style={{ background: 'linear-gradient(135deg, #3D4A2B 0%, #2A331E 100%)' }}
@@ -341,7 +341,7 @@ export default function SettingsPage() {
                     </div>
 
                     <button
-                      onClick={() => handleSave('security')}
+                      onClick={() => handleSave()}
                       disabled={isSaving}
                       className="modern-button flex items-center space-x-2 px-6 py-3 text-white disabled:opacity-50"
                       style={{ background: 'linear-gradient(135deg, #3D4A2B 0%, #2A331E 100%)' }}
@@ -617,7 +617,7 @@ export default function SettingsPage() {
                     </div>
 
                     <button
-                      onClick={() => handleSave('preferences')}
+                      onClick={() => handleSave()}
                       disabled={isSaving}
                       className="modern-button flex items-center space-x-2 px-6 py-3 text-white disabled:opacity-50"
                       style={{ background: 'linear-gradient(135deg, #3D4A2B 0%, #2A331E 100%)' }}

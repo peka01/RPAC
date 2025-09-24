@@ -59,11 +59,12 @@ class LocalAuth {
     return user;
   }
 
-  async signIn(email: string, _password: string): Promise<User> {
+  async signIn(email: string, password: string): Promise<User> {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    // For demo purposes, accept any email/password
+    // For demo purposes, accept any email/password (password is validated but not used for demo)
+    console.log('Sign in attempt for:', email, 'with password length:', password.length);
     const user: User = {
       id: Date.now().toString(),
       email,

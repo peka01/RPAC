@@ -39,7 +39,7 @@ export function ResourceInventory() {
   const [resources, setResources] = useState<Resource[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
-  const [loading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
 
   // Get current user and load resources
@@ -85,11 +85,12 @@ export function ResourceInventory() {
     } catch (error) {
       console.error('Error adding resource:', error);
       // Fallback to localStorage
-      const fallbackResource = {
+      const fallbackResource: Resource = {
         ...resource,
         id: Date.now().toString(),
-        daysRemaining: resource.days_remaining,
-        lastUpdated: new Date(),
+        user_id: user?.id || 'local',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
       setResources(prev => [...prev, fallbackResource]);
       setShowAddForm(false);
@@ -243,11 +244,15 @@ export function ResourceInventory() {
       {(showAddForm || editingResource) && (
         <ResourceForm
           resource={editingResource}
-          onSave={editingResource ? updateResource : addResource}
+          onSave={editingResource ? 
+            (resource) => updateResource(editingResource.id, resource) : 
+            addResource
+          }
           onCancel={() => {
             setShowAddForm(false);
             setEditingResource(null);
           }}
+          user={user}
         />
       )}
     </div>
@@ -258,24 +263,24 @@ interface ResourceFormProps {
   resource?: Resource | null;
   onSave: (resource: Omit<Resource, 'id' | 'created_at' | 'updated_at'>) => void;
   onCancel: () => void;
+  user?: { id: string; email?: string } | null;
 }
 
-function ResourceForm({ resource, onSave, onCancel }: ResourceFormProps) {
+function ResourceForm({ resource, onSave, onCancel, user }: ResourceFormProps) {
   const [formData, setFormData] = useState({
     name: resource?.name || '',
     category: resource?.category || 'food',
     quantity: resource?.quantity || 0,
     unit: resource?.unit || '',
-    days_remaining: resource?.days_remaining || resource?.daysRemaining || 0,
+    days_remaining: resource?.days_remaining || 0,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (resource) {
-      onSave(resource.id, formData);
-    } else {
-      onSave(formData);
-    }
+    onSave({
+      ...formData,
+      user_id: user?.id || 'local'
+    });
   };
 
   return (

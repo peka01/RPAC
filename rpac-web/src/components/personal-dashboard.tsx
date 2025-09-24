@@ -66,7 +66,11 @@ export function PersonalDashboard() {
 
       setScore({
         overall: overallScore,
-        ...categoryScores,
+        food: categoryScores.food || 0,
+        water: categoryScores.water || 0,
+        medicine: categoryScores.medicine || 0,
+        energy: categoryScores.energy || 0,
+        tools: categoryScores.tools || 0,
       });
       
       setAlerts(newAlerts);

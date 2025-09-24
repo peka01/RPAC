@@ -8,10 +8,8 @@ import {
   LogOut, 
   UserPlus, 
   Shield, 
-  CheckCircle, 
   ArrowRight,
   ArrowLeft,
-  Home,
   Users,
   Heart,
   AlertTriangle
@@ -305,8 +303,7 @@ export function OnboardingAuth() {
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 className="w-full p-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
                 style={{ 
-                  borderColor: 'var(--color-crisis-grey)',
-                  focusRingColor: 'var(--color-crisis-blue)'
+                  borderColor: 'var(--color-crisis-grey)'
                 }}
                 placeholder="Ange ditt fullständiga namn"
                 required
@@ -325,7 +322,6 @@ export function OnboardingAuth() {
               className="w-full p-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
               style={{ 
                 borderColor: 'var(--color-crisis-grey)',
-                focusRingColor: 'var(--color-crisis-blue)'
               }}
               placeholder="din@email.se"
               required
@@ -343,7 +339,6 @@ export function OnboardingAuth() {
               className="w-full p-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
               style={{ 
                 borderColor: 'var(--color-crisis-grey)',
-                focusRingColor: 'var(--color-crisis-blue)'
               }}
               placeholder={isSignUp ? "Minst 6 tecken" : "Ditt lösenord"}
               required
