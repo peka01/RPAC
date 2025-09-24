@@ -13,18 +13,18 @@ interface CommunityHubProps {
   };
 }
 
-const priorityColors = {
+const urgencyColors = {
   low: 'bg-green-100 text-green-800',
   medium: 'bg-yellow-100 text-yellow-800',
   high: 'bg-orange-100 text-orange-800',
-  urgent: 'bg-red-100 text-red-800'
+  critical: 'bg-red-100 text-red-800'
 };
 
-const priorityLabels = {
+const urgencyLabels = {
   low: 'Låg',
   medium: 'Medium',
   high: 'Hög',
-  urgent: 'Akut'
+  critical: 'Kritisk'
 };
 
 export function CommunityHub({ user }: CommunityHubProps) {
@@ -48,7 +48,7 @@ export function CommunityHub({ user }: CommunityHubProps) {
     title: '',
     description: '',
     category: 'other' as HelpRequest['category'],
-    priority: 'medium' as HelpRequest['priority'],
+    urgency: 'medium' as HelpRequest['urgency'],
     location: ''
   });
 
@@ -86,7 +86,7 @@ export function CommunityHub({ user }: CommunityHubProps) {
               title: 'Behöver hjälp med mat',
               description: 'Behöver akut hjälp med mat för familjen',
               category: 'food' as const,
-              priority: 'high' as const,
+              urgency: 'high' as const,
               location: 'Stockholm',
               status: 'open' as const,
               created_at: new Date().toISOString(),
@@ -185,7 +185,7 @@ export function CommunityHub({ user }: CommunityHubProps) {
           title: requestForm.title,
           description: requestForm.description,
           category: requestForm.category,
-          priority: requestForm.priority,
+          urgency: requestForm.urgency,
           location: requestForm.location,
           status: 'open',
           created_at: new Date().toISOString(),
@@ -208,7 +208,7 @@ export function CommunityHub({ user }: CommunityHubProps) {
         title: '',
         description: '',
         category: 'other',
-        priority: 'medium',
+        urgency: 'medium',
         location: ''
       });
       setShowCreateRequest(false);
@@ -382,8 +382,8 @@ export function CommunityHub({ user }: CommunityHubProps) {
                   {request.title}
                 </h3>
                 <div className="flex items-center gap-2">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${priorityColors[request.priority]}`}>
-                    {priorityLabels[request.priority]}
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${urgencyColors[request.urgency]}`}>
+                    {urgencyLabels[request.urgency]}
                   </span>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                     request.status === 'open' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
@@ -535,8 +535,8 @@ export function CommunityHub({ user }: CommunityHubProps) {
                 <div>
                   <label className="block text-sm font-medium mb-1">Brådska</label>
                   <select
-                    value={requestForm.priority}
-                    onChange={(e) => setRequestForm({ ...requestForm, priority: e.target.value as HelpRequest['priority'] })}
+                    value={requestForm.urgency}
+                    onChange={(e) => setRequestForm({ ...requestForm, urgency: e.target.value as HelpRequest['urgency'] })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="low">Låg</option>

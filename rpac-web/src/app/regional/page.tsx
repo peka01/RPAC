@@ -17,7 +17,7 @@ export default function RegionalPage() {
         id: 'demo-user',
         email: 'demo@rpac.se',
         user_metadata: { name: 'Demo Användare' }
-      };
+      } as unknown as User;
       setUser(demoUser);
       setLoading(false);
     }, 1000);

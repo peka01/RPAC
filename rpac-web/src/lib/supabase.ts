@@ -91,7 +91,8 @@ export const resourceService = {
       .insert([resource])
     
     if (error) throw error
-    return data?.[0] || data
+    if (!data) throw new Error('No data returned from insert')
+    return data as Resource
   },
 
   async updateResource(id: string, updates: Partial<Resource>): Promise<Resource> {

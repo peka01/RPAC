@@ -25,7 +25,7 @@ export function SupabaseAuth({ onAuthChange }: SupabaseAuthProps) {
       id: 'demo-user',
       email: 'demo@rpac.se',
       user_metadata: { name: 'Demo Användare' }
-    } as User;
+    } as unknown as User;
     
     setUser(demoUser);
     onAuthChange(demoUser);

@@ -129,12 +129,15 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
         }
       } else {
         // Handle real Supabase mode
-        if (editingResource) {
-          await resourceService.updateResource(editingResource.id, formData);
+        if (editingResource?.id) {
+          await resourceService.updateResource(editingResource!.id, formData);
           setEditingResource(null);
         } else {
           // Note: Supabase addResource disabled due to columns= bug
-          
+          const resourceData = {
+            user_id: user.id,
+            ...formData
+          };
           await resourceService.addResource(resourceData);
         }
         loadResources();

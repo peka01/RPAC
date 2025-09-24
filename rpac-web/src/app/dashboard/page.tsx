@@ -71,14 +71,18 @@ export default function DashboardPage() {
         </div>
 
         {/* Resource Inventory */}
-        <div className="space-y-6">
-          <SupabaseResourceInventory user={user} />
-        </div>
+        {user && (
+          <div className="space-y-6">
+            <SupabaseResourceInventory user={user} />
+          </div>
+        )}
 
         {/* Community Hub */}
-        <div className="space-y-6">
-          <CommunityHub user={user} />
-        </div>
+        {user && (
+          <div className="space-y-6">
+            <CommunityHub user={user} />
+          </div>
+        )}
 
         {/* Preparedness Overview */}
         <div className="space-y-6">
