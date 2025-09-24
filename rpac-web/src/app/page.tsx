@@ -50,8 +50,8 @@ export default function LoginPage() {
       }
       router.push('/dashboard');
   } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Ett fel uppstod. Försök igen.';
-      setError(errorMessage);
+      const _message = err instanceof Error ? err.message : 'Ett fel uppstod. Försök igen.';
+      setError(_message);
     } finally {
       setLoading(false);
     }

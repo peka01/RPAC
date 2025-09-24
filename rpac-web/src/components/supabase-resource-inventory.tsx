@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { resourceService, Resource } from '@/lib/supabase';
 // Debug imports removed - using demo mode due to Supabase columns= bug
-import { User } from '@supabase/supabase-js';
+// Removed unused User import
 import { Plus, Edit, Trash2, Package, Droplets, Heart, Zap, Wrench } from 'lucide-react';
 
 interface SupabaseResourceInventoryProps {

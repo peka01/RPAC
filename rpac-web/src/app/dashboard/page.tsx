@@ -53,7 +53,7 @@ export default function DashboardPage() {
             Resilience & Preparedness AI Companion
           </p>
           <p className="text-lg mb-8 text-gray-600">
-            Hej {user.user_metadata?.name || user.email}! Du är redo att börja bygga din beredskap.
+            Hej {(user?.user_metadata?.name || user?.email || '')}! Du är redo att börja bygga din beredskap.
           </p>
         </div>
       </div>
