@@ -113,6 +113,20 @@ To use a custom domain:
 2. **404 Errors**: Ensure `trailingSlash: true` is set in Next.js config
 3. **API Errors**: Verify Supabase credentials are correct
 4. **Deployment Timeout**: Large builds may timeout; consider optimizing bundle size
+5. **GitHub Permissions Error**: If you see "Resource not accessible by integration", the workflow has been updated to handle this automatically
+
+### GitHub Permissions Issue
+If you encounter a "Resource not accessible by integration" error:
+
+**Solution 1: Use the Updated Workflow (Recommended)**
+- The workflow has been updated to remove the GitHub deployment integration
+- This eliminates the permission issue while still deploying to Cloudflare Pages
+
+**Solution 2: Enable GitHub Deployments (Optional)**
+If you want GitHub deployment status integration:
+1. Go to your repository Settings → Actions → General
+2. Under "Workflow permissions", select "Read and write permissions"
+3. Check "Allow GitHub Actions to create and approve pull requests"
 
 ### Build Logs
 - Check GitHub Actions logs for build issues
