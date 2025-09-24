@@ -59,7 +59,9 @@ export default function LocalPage() {
           </p>
         </div>
 
-        <CommunityHub user={user} />
+        <div className="modern-card">
+          <CommunityHub user={user} />
+        </div>
       </div>
     </div>
   );

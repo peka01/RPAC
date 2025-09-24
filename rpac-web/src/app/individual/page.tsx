@@ -18,12 +18,18 @@ export default function IndividualPage() {
         </div>
 
       {/* Personal Dashboard */}
-      <PersonalDashboard />
+      <div className="modern-card">
+        <PersonalDashboard />
+      </div>
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <SupabaseResourceInventory user={{ id: 'individual-user' }} />
-        <PlantDiagnosis />
+        <div className="modern-card">
+          <SupabaseResourceInventory user={{ id: 'individual-user' }} />
+        </div>
+        <div className="modern-card">
+          <PlantDiagnosis />
+        </div>
       </div>
 
       {/* Additional Features */}

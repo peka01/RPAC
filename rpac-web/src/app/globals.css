@@ -481,3 +481,53 @@ body {
   background: rgba(45, 52, 54, 0.95);
   border-color: var(--color-neutral);
 }
+
+/* Active navigation styling with olive green background - HIGHEST PRIORITY */
+nav .nav-item-active,
+.modern-nav .nav-item-active,
+a.nav-item-active {
+  background: #3D4A2B !important;
+  background-color: #3D4A2B !important;
+  background-image: linear-gradient(135deg, #3D4A2B 0%, #2A331E 100%) !important;
+  box-shadow: 0 6px 20px rgba(61, 74, 43, 0.4) !important;
+  color: white !important;
+  border: 2px solid #2A331E !important;
+}
+
+nav .nav-item-active:hover,
+.modern-nav .nav-item-active:hover,
+a.nav-item-active:hover {
+  background: #2A331E !important;
+  background-color: #2A331E !important;
+  background-image: linear-gradient(135deg, #2A331E 0%, #1F2817 100%) !important;
+  transform: translateY(-2px) !important;
+}
+
+nav .nav-item-active span,
+nav .nav-item-active svg,
+.modern-nav .nav-item-active span,
+.modern-nav .nav-item-active svg,
+a.nav-item-active span,
+a.nav-item-active svg {
+  color: white !important;
+  fill: white !important;
+}
+
+/* Navigation backdrop blur */
+.modern-nav {
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* NUCLEAR OPTION - Force olive background no matter what */
+[class*="nav-item-active"] {
+  background: #3D4A2B !important;
+  background-color: #3D4A2B !important;
+  color: white !important;
+}
+
+[class*="nav-item-active"] * {
+  color: white !important;
+}
