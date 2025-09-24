@@ -39,7 +39,6 @@ export function ResourceInventory() {
   const [resources, setResources] = useState<Resource[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
-  const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
 
   // Get current user and load resources

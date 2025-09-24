@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase, communityService, resourceSharingService, helpRequestService, LocalCommunity, ResourceSharing, HelpRequest } from '@/lib/supabase';
+import { communityService, resourceSharingService, helpRequestService, LocalCommunity, ResourceSharing, HelpRequest } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
 import { Users, Share2, HelpCircle, MapPin, Clock, AlertTriangle } from 'lucide-react';
 
@@ -64,8 +64,8 @@ export function CommunityHub({ user }: CommunityHubProps) {
       setCommunities(communitiesData);
       setSharedResources(resourcesData);
       setHelpRequests(requestsData);
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'Ett oväntat fel inträffade');
     } finally {
       setLoading(false);
     }
@@ -84,8 +84,8 @@ export function CommunityHub({ user }: CommunityHubProps) {
       setCommunityForm({ community_name: '', location: '', description: '' });
       setShowCreateCommunity(false);
       loadData();
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'Ett oväntat fel inträffade');
     }
   };
 
@@ -108,8 +108,8 @@ export function CommunityHub({ user }: CommunityHubProps) {
       });
       setShowCreateRequest(false);
       loadData();
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'Ett oväntat fel inträffade');
     }
   };
 
@@ -160,7 +160,7 @@ export function CommunityHub({ user }: CommunityHubProps) {
         ].map(({ id, label, icon: Icon }) => (
           <button
             key={id}
-            onClick={() => setActiveTab(id as any)}
+            onClick={() => setActiveTab(id as 'communities' | 'resources' | 'requests')}
             className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === id
                 ? 'bg-white/20 text-white'

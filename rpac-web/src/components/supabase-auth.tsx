@@ -71,8 +71,8 @@ export function SupabaseAuth({ onAuthChange }: SupabaseAuthProps) {
         setError(null);
         // Don't set loading to false here - wait for auth state change
       }
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'Ett oväntat fel inträffade');
       setLoading(false);
     }
   };
@@ -80,8 +80,8 @@ export function SupabaseAuth({ onAuthChange }: SupabaseAuthProps) {
   const handleSignOut = async () => {
     try {
       await authService.signOut();
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'Ett oväntat fel inträffade');
     }
   };
 

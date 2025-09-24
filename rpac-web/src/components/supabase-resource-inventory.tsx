@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase, resourceService, Resource } from '@/lib/supabase';
+import { resourceService, Resource } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
 import { Plus, Edit, Trash2, Package, Droplets, Heart, Zap, Wrench } from 'lucide-react';
 
@@ -43,15 +43,15 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
 
   useEffect(() => {
     loadResources();
-  }, [user.id]);
+  }, [user.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadResources = async () => {
     try {
       setLoading(true);
       const data = await resourceService.getResources(user.id);
       setResources(data);
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'Ett oväntat fel inträffade');
     } finally {
       setLoading(false);
     }
@@ -81,8 +81,8 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
       });
       setShowAddForm(false);
       loadResources();
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'Ett oväntat fel inträffade');
     }
   };
 
@@ -104,8 +104,8 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
     try {
       await resourceService.deleteResource(id);
       loadResources();
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'Ett oväntat fel inträffade');
     }
   };
 
