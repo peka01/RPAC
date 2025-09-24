@@ -27,3 +27,4 @@ export function t(key: string, locale: Locale = defaultLocale): string {
   
   return typeof value === 'string' ? value : key;
 }
+
