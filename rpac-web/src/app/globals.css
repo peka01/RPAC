@@ -510,7 +510,13 @@ nav .nav-item-active svg,
 a.nav-item-active span,
 a.nav-item-active svg {
   color: white !important;
-  fill: white !important;
+  stroke: white !important;
+}
+
+/* Force all navigation icons to be outlined */
+nav svg,
+.modern-nav svg {
+  fill: none !important;
 }
 
 /* Navigation backdrop blur */

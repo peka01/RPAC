@@ -216,6 +216,8 @@ export function Navigation() {
               >
                 <item.icon 
                   className={`w-6 h-6 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-slate-600 dark:text-slate-400'}`}
+                  fill="none"
+                  stroke="currentColor"
                 />
                 <span className={isActive ? 'text-white' : ''}>{item.name}</span>
               </Link>
