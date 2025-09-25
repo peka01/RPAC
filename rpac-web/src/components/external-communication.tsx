@@ -102,7 +102,16 @@ export function ExternalCommunication() {
         name: 'Krisinformation.se',
         url: 'https://www.krisinformation.se',
         type: 'emergency',
-        description: 'Officiella varningar från svenska myndigheter',
+        description: 'Officiell nationell kanal för krisinformation i Sverige',
+        status: 'online',
+        last_updated: new Date(Date.now() - 150000).toISOString()
+      },
+      {
+        id: 'msb',
+        name: 'MSB.se - Myndigheten för samhällsskydd och beredskap',
+        url: 'https://www.msb.se',
+        type: 'emergency',
+        description: 'Officiella MSB-riktlinjer och beredskapsinformation',
         status: 'online',
         last_updated: new Date(Date.now() - 300000).toISOString()
       },
@@ -114,6 +123,15 @@ export function ExternalCommunication() {
         description: 'Vädervarningar och prognoser från SMHI',
         status: 'online',
         last_updated: new Date(Date.now() - 600000).toISOString()
+      },
+      {
+        id: 'folkhalsomyndigheten',
+        name: 'Folkhälsomyndigheten',
+        url: 'https://www.folkhalsomyndigheten.se',
+        type: 'government',
+        description: 'Hälso- och sjukvårdsriktlinjer vid kriser',
+        status: 'online',
+        last_updated: new Date(Date.now() - 450000).toISOString()
       },
       {
         id: 'svt-nyheter',
@@ -137,6 +155,17 @@ export function ExternalCommunication() {
 
     const demoBroadcasts: EmergencyBroadcast[] = [
       {
+        id: 'msb-nuclear-1',
+        source: 'MSB - Krisinformation.se',
+        title: 'MSB: Information om kärnvapenskydd',
+        content: 'Enligt "Om krisen eller kriget kommer": Vid kärnvapenvarning, sök skydd inomhus omedelbart. Stäng fönster, dörrar och ventilation. Stanna inomhus i minst 24 timmar och lyssna på radio.',
+        priority: 'critical',
+        category: 'security',
+        area: 'Hela Sverige',
+        timestamp: new Date(Date.now() - 1800000).toISOString(),
+        expires: new Date(Date.now() + 86400000).toISOString()
+      },
+      {
         id: 'emergency-1',
         source: 'Krisinformation.se',
         title: 'VMA: Strömavbrott i Stockholms centrum',
@@ -148,6 +177,16 @@ export function ExternalCommunication() {
         expires: new Date(Date.now() + 7200000).toISOString()
       },
       {
+        id: 'msb-water-1',
+        source: 'MSB - Folkhälsomyndigheten',
+        title: 'MSB Riktlinjer: Vattenförsörjning vid kris',
+        content: 'Enligt MSB:s beredskapguide: Ha minst 3 liter vatten per person och dag i 3 dagar. Rena vatten genom kokning eller tabletter vid tveksamhet.',
+        priority: 'warning',
+        category: 'health',
+        area: 'Nationellt',
+        timestamp: new Date(Date.now() - 5400000).toISOString()
+      },
+      {
         id: 'weather-1',
         source: 'SMHI',
         title: 'Klass 2 Varning: Kraftiga vindar',
@@ -157,6 +196,16 @@ export function ExternalCommunication() {
         area: 'Stockholms län',
         timestamp: new Date(Date.now() - 1800000).toISOString(),
         expires: new Date(Date.now() + 43200000).toISOString()
+      },
+      {
+        id: 'msb-digital-security-1',
+        source: 'MSB - Digital säkerhet',
+        title: 'MSB: Viktigt om informationssäkerhet',
+        content: 'Kontrollera att information kommer från officiella källor. Ha viktiga telefonnummer nedskrivna på papper. Undvik att sprida obekräftad information.',
+        priority: 'info',
+        category: 'security',
+        area: 'Nationellt',
+        timestamp: new Date(Date.now() - 7200000).toISOString()
       },
       {
         id: 'info-1',

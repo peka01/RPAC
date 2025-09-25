@@ -31,8 +31,8 @@ export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [communityHeartbeat, setCommunityHeartbeat] = useState(87); // Community health percentage
   const router = useRouter();
+
 
   useEffect(() => {
     const checkUser = async () => {
@@ -51,14 +51,10 @@ export default function DashboardPage() {
       setCurrentTime(new Date());
     }, 60000);
 
-    // Simulate community heartbeat pulse
-    const heartbeatInterval = setInterval(() => {
-      setCommunityHeartbeat(prev => prev + (Math.random() - 0.5) * 2);
-    }, 5000);
+    // Note: Removed heartbeat animation to prevent flashing
 
     return () => {
       clearInterval(timeInterval);
-      clearInterval(heartbeatInterval);
     };
   }, [router]);
 
@@ -96,9 +92,11 @@ export default function DashboardPage() {
                 borderColor: 'var(--color-secondary)' 
               }}>
                 <div 
-                  className="h-full rounded-full military-progress" 
+                  className="h-full rounded-full" 
                   style={{ 
-                    background: 'linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)'
+                    background: 'linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
+                    width: '75%',
+                    transition: 'none' // Remove animations to prevent flashing
                   }}
                 ></div>
               </div>
@@ -190,10 +188,14 @@ export default function DashboardPage() {
             </div>
 
             {/* Cultivation Management */}
-            <div className="group bg-white/95 rounded-lg p-4 border shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer lg:col-span-2 xl:col-span-1" style={{ 
-              backgroundColor: 'var(--bg-card)',
-              borderColor: 'var(--color-khaki)'
-            }}>
+            <div 
+              className="group bg-white/95 rounded-lg p-4 border shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer lg:col-span-2 xl:col-span-1" 
+              style={{ 
+                backgroundColor: 'var(--bg-card)',
+                borderColor: 'var(--color-khaki)'
+              }}
+              onClick={() => router.push('/individual')}
+            >
               <div className="flex items-center justify-between mb-4">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm" style={{ 
                   background: 'linear-gradient(135deg, var(--color-khaki) 0%, var(--color-warm-olive) 100%)' 
@@ -201,13 +203,23 @@ export default function DashboardPage() {
                   <Leaf className="w-5 h-5 text-white" />
                 </div>
                 <div className="text-right">
-                  <div className="text-lg" style={{ color: 'var(--color-khaki)' }}>🌱</div>
-                  <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{t('dashboard.active')}</div>
+                  <div className="text-lg font-bold" style={{ color: 'var(--color-khaki)' }}>68%</div>
+                  <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Självförsörjning</div>
                 </div>
               </div>
               <h3 className="text-sm font-bold mb-2" style={{ color: 'var(--text-primary)' }}>{t('dashboard.cultivation_plan')}</h3>
-              <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>{t('dashboard.cultivation_status')}</p>
-              <div className="text-xs font-semibold" style={{ color: 'var(--color-khaki)' }}>{t('dashboard.harvest_time')}</div>
+              <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>Kalorier: 1,850/dag • Skörd: 3 veckor • Näring: Optimal</p>
+              <div className="flex justify-between items-center">
+                <div className="flex space-x-2 flex-1">
+                  <div className="flex-1 rounded-full h-2" style={{ backgroundColor: 'rgba(160, 142, 90, 0.2)' }}>
+                    <div className="h-2 rounded-full" style={{ width: '68%', backgroundColor: 'var(--color-khaki)' }}></div>
+                  </div>
+                  <span className="text-xs font-semibold" style={{ color: 'var(--color-khaki)' }}>God nivå</span>
+                </div>
+                <span className="text-xs ml-2 group-hover:underline" style={{ color: 'var(--color-khaki)' }}>
+                  Hantera →
+                </span>
+              </div>
             </div>
           </div>
 
@@ -220,6 +232,7 @@ export default function DashboardPage() {
               <ExternalCommunication />
             </div>
           </div>
+
 
           {/* Resource Excellence */}
           {user && (

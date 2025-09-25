@@ -152,11 +152,43 @@ We design for humans in crisis with clarity and reliability. Visual design uses 
 - Don't use: formal/institutional language
 - Don't sound like a government agency or military system
 
+## PROVEN SUCCESS PATTERNS - USE THESE! ⭐️
+
+**BREAKTHROUGH ACHIEVED**: Perfect balance of tone, visual appearance, and hard/easy UI elements!
+
+### ✅ Proven Design Patterns That Work
+- **Emoji Section Headers** (🏠🌱🛠️📚) - Instantly recognizable, reduces cognitive load
+- **Card-based Progressive Disclosure** - Summary → Detail, works perfectly for crisis UX
+- **Dashboard → Individual → Settings** - Logical information architecture that users understand immediately
+- **Seasonal Color Coding** - Visual cues that feel natural and reduce stress
+- **Everyday Swedish + Semi-Military Visual** - Perfect balance of approachable and professional
+
+### ✅ Proven Technical Patterns
+- **useUserProfile Hook** - Centralized profile management with localStorage fallback
+- **t() Localization** - All text externalized, makes maintenance and translation effortless
+- **Component Key Props** - Prevents React re-mounting and UI flashing
+- **Smart useEffect Dependencies** - Performance optimization that actually works
+- **Location-based Personalization** - Profile data enhances every feature contextually
+
+### ✅ Proven Content Organization
+- **Hemöversikt First** - Personal dashboard at top of Individual page feels right
+- **Cultivation as Core Feature** - Self-sufficiency tools are central to RPAC mission
+- **Progressive Tool Complexity** - Simple summary cards → detailed management tools
+- **Clear Visual Hierarchy** - h2 for main sections, h3 for subsections, proper spacing
+
+### ✅ User Experience Breakthroughs
+- **Crisis-Ready but Warm** - Professional capability without coldness
+- **Zero Learning Curve** - Intuitive navigation through emoji and clear structure
+- **Stress-Adaptive** - Information hierarchy that works under pressure
+- **Swedish Communication Culture** - Direct but caring tone that builds confidence
+
+**MANDATE**: Use these proven patterns for all future development. They work!
+
 ## Current Development Priorities
 
 Aktuella roadmap-fokusområden:
 - **Kommunikationssystem** ✅ - Real-time meddelanden och extern kommunikation
-- **Odlingskalender & Planering** ⭐️ - Högsta prioritet för självförsörjning
+- **Odlingskalender & Planering** ✅ - COMPLETED and PERFECTED! 
 - **Supabase-migrering** - Från localStorage till produktion
 - **AI-integration** - Riktig GPT-4 och Computer Vision
 

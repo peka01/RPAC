@@ -12,6 +12,9 @@ export interface Resource {
   quantity: number
   unit: string
   days_remaining: number
+  is_msb_recommended?: boolean
+  msb_priority?: 'high' | 'medium' | 'low'
+  is_filled?: boolean
   created_at: string
   updated_at: string
 }
@@ -79,10 +82,75 @@ export const resourceService = {
       .from('resources')
       .select('*')
       .eq('user_id', userId)
+      .order('is_msb_recommended', { ascending: false })
+      .order('msb_priority', { ascending: true })
       .order('created_at', { ascending: false })
     
     if (error) throw error
     return data || []
+  },
+
+  async initializeMsbResources(userId: string): Promise<void> {
+    // Check if MSB resources already exist for this user
+    const { data: existingMsbResources } = await supabase
+      .from('resources')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('is_msb_recommended', true)
+    
+    if (existingMsbResources && existingMsbResources.length > 0) {
+      return // MSB resources already initialized
+    }
+
+    // MSB recommended items to auto-create
+    const msbItems = [
+      // Food
+      { name: 'Konserver och burkar', category: 'food', unit: 'burkar', msb_priority: 'high' },
+      { name: 'Knäckebröd eller hårt bröd', category: 'food', unit: 'paket', msb_priority: 'high' },
+      { name: 'Kött- eller fiskkonserver', category: 'food', unit: 'burkar', msb_priority: 'high' },
+      { name: 'Frukt och nötter', category: 'food', unit: 'kg', msb_priority: 'medium' },
+      
+      // Water
+      { name: 'Dricksvatten', category: 'water', unit: 'liter', msb_priority: 'high' },
+      { name: 'Vattenreningstavletter', category: 'water', unit: 'förpackningar', msb_priority: 'medium' },
+      { name: 'Extra vattenbehållare', category: 'water', unit: 'stycken', msb_priority: 'medium' },
+      
+      // Medicine
+      { name: 'Receptbelagda mediciner', category: 'medicine', unit: 'dagars förbrukning', msb_priority: 'high' },
+      { name: 'Första hjälpen-kit', category: 'medicine', unit: 'kit', msb_priority: 'high' },
+      { name: 'Smärtstillande', category: 'medicine', unit: 'förpackningar', msb_priority: 'medium' },
+      { name: 'Termometer', category: 'medicine', unit: 'stycken', msb_priority: 'medium' },
+      
+      // Energy
+      { name: 'Batterier (olika storlekar)', category: 'energy', unit: 'förpackningar', msb_priority: 'high' },
+      { name: 'Ficklampor', category: 'energy', unit: 'stycken', msb_priority: 'high' },
+      { name: 'Batteridriven radio', category: 'energy', unit: 'stycken', msb_priority: 'high' },
+      { name: 'Ljus och tändstickor', category: 'energy', unit: 'förpackningar', msb_priority: 'medium' },
+      
+      // Tools
+      { name: 'Viktiga papper (vattentätt)', category: 'tools', unit: 'mapp', msb_priority: 'high' },
+      { name: 'Kontanter', category: 'tools', unit: 'mindre mängder', msb_priority: 'high' },
+      { name: 'Varma filtar', category: 'tools', unit: 'stycken', msb_priority: 'medium' },
+      { name: 'Multiverktyg eller kniv', category: 'tools', unit: 'stycken', msb_priority: 'medium' },
+    ]
+
+    const resourcesToInsert = msbItems.map(item => ({
+      user_id: userId,
+      name: item.name,
+      category: item.category as Resource['category'],
+      quantity: 0, // Start as empty
+      unit: item.unit,
+      days_remaining: 0, // Empty = 0 days
+      is_msb_recommended: true,
+      msb_priority: item.msb_priority as 'high' | 'medium' | 'low',
+      is_filled: false
+    }))
+
+    const { error } = await supabase
+      .from('resources')
+      .insert(resourcesToInsert)
+    
+    if (error) throw error
   },
 
   async addResource(resource: Omit<Resource, 'id' | 'created_at' | 'updated_at'>): Promise<Resource> {

@@ -8,8 +8,12 @@ import {
   Heart,
   TrendingUp,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  Shield,
+  Radio,
+  Battery
 } from 'lucide-react';
+import { t } from '@/lib/locales';
 
 interface ResourceStatus {
   name: string;
@@ -49,6 +53,17 @@ export function PreparednessOverview() {
       color: 'text-red-500',
       status: 'excellent'
     }
+  ]);
+
+  const [msbChecklistItems] = useState([
+    { key: 'water_3_days', icon: Droplets, completed: false },
+    { key: 'food_3_days', icon: Utensils, completed: false },
+    { key: 'radio_battery', icon: Radio, completed: false },
+    { key: 'flashlight', icon: Zap, completed: false },
+    { key: 'first_aid', icon: Heart, completed: false },
+    { key: 'medicines', icon: Heart, completed: false },
+    { key: 'batteries', icon: Battery, completed: false },
+    { key: 'important_papers', icon: Shield, completed: false }
   ]);
 
   const getOverallScore = () => {
@@ -158,6 +173,76 @@ export function PreparednessOverview() {
         })}
       </div>
 
+      {/* MSB Official Checklist */}
+      <div className="mt-8">
+        <div className="flex items-center mb-6">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center mr-3">
+            <Shield className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200">
+              {t('msb.official_checklist')}
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              {t('msb.basic_supplies.description')}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {msbChecklistItems.map((item, index) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={index}
+                className="flex items-center space-x-3 p-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+              >
+                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                  item.completed 
+                    ? 'bg-green-500 border-green-500' 
+                    : 'border-slate-300 dark:border-slate-600'
+                }`}>
+                  {item.completed && <CheckCircle className="w-4 h-4 text-white" />}
+                </div>
+                <Icon className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                <span className="text-sm font-medium text-slate-800 dark:text-slate-200 flex-1">
+                  {t(`msb.basic_supplies.${item.key}`)}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Digital Security Tips */}
+      <div className="mt-8">
+        <div className="flex items-center mb-4">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center mr-3">
+            <Shield className="w-5 h-5 text-white" />
+          </div>
+          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">
+            {t('msb.digital_security_tips.title')}
+          </h3>
+        </div>
+        
+        <div className="space-y-3">
+          {[
+            'verify_sources',
+            'backup_contacts', 
+            'charge_devices',
+            'official_channels',
+            'emergency_radio'
+          ].map((tip, index) => (
+            <div key={index} className="flex items-start space-x-3 p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20">
+              <CheckCircle className="w-5 h-5 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
+              <span className="text-sm text-slate-700 dark:text-slate-300">
+                {t(`msb.digital_security_tips.${tip}`)}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Status Message */}
       <div className="mt-8 p-6 rounded-2xl bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border border-green-200 dark:border-green-800">
         <div className="flex items-center justify-center space-x-3">
@@ -166,6 +251,11 @@ export function PreparednessOverview() {
           </div>
           <p className="font-bold text-green-800 dark:text-green-200 text-center">
             {'Du är väl förberedd'}
+          </p>
+        </div>
+        <div className="mt-3 text-center">
+          <p className="text-sm text-green-700 dark:text-green-300">
+            {t('msb.official_guidance')} • {t('msb.crisis_preparedness')}
           </p>
         </div>
       </div>

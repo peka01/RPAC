@@ -128,7 +128,19 @@ Detta innebär:
 
 ---
 
-## 10. Early Development Goals
+## 10. MSB-Integration och Officiell Krisstöd
+
+**RPAC inkorporerar officiella svenska krisriktlinjer från MSB:s "Om krisen eller kriget kommer"** för att säkerställa att all beredskapsinformation är i linje med myndigheternas rekommendationer.
+
+### Integrerade MSB-Funktioner
+- **Officiella beredskapschecklistor** baserade på "Om krisen eller kriget kommer"
+- **Digital säkerhet** enligt MSB:s riktlinjer för säker kommunikation
+- **Psykologiskt försvar** med verktyg för mental motståndskraft
+- **Krisinformation** från auktoritativa svenska källor
+- **Vattenförsörjning och sanitation** enligt officiella protokoll
+- **Skydd mot luftangrepp och kärnvapen** med specifika svenska förhållanden
+
+## 11. Early Development Goals
 
 - MVP med **Individ + Lokal funktionalitet** inom 6 månader.
 - Test i minst **2 svenska samhällen** (stad + landsbygd).
@@ -139,6 +151,7 @@ Detta innebär:
 ### Nuvarande Prioriteringar
 - Odlingskalender & planering för självförsörjning
 - Kommunikationssystem (real-time meddelanden + extern kommunikation) ✅
+- MSB-contenintegrering i beredskapssystem ⭐️
 - Supabase-integration och produktionsredo databas
 - AI-driven svensk språkstöd och växtdiagnos
 

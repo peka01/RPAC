@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   User, 
   Mail, 
@@ -21,7 +21,11 @@ import {
   Monitor
 } from 'lucide-react';
 import { RPACLogo } from '@/components/rpac-logo';
+import { UserProfile } from '@/components/user-profile';
+import { useUserProfile } from '@/lib/useUserProfile';
+import { supabase } from '@/lib/supabase';
 import { t } from '@/lib/locales';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('profile');
@@ -29,6 +33,21 @@ export default function SettingsPage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // User profile hook
+  const { profile } = useUserProfile(user);
+
+  // Load user on component mount
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      setLoading(false);
+    };
+    checkUser();
+  }, []);
   
   // Form states
   const [profileData, setProfileData] = useState({
@@ -91,6 +110,28 @@ export default function SettingsPage() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto mb-4" 
+               style={{ borderColor: 'var(--color-sage)' }}></div>
+          <p style={{ color: 'var(--text-secondary)' }}>Laddar inställningar...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
+        <div className="text-center">
+          <p style={{ color: 'var(--text-secondary)' }}>Du måste vara inloggad för att komma åt inställningar.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       <div className="container mx-auto px-6 py-8">
@@ -138,135 +179,14 @@ export default function SettingsPage() {
             {/* Profile Tab */}
             {activeTab === 'profile' && (
               <div className="space-y-6">
-                <div className="modern-card p-8">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                      Profilinformation
-                    </h2>
-                    <button
-                      onClick={() => handleSave()}
-                      disabled={isSaving}
-                      className="modern-button flex items-center space-x-2 px-6 py-2 text-white disabled:opacity-50"
-                      style={{ background: 'linear-gradient(135deg, #3D4A2B 0%, #2A331E 100%)' }}
-                    >
-                      <Save className="w-4 h-4" />
-                      <span>{isSaving ? 'Sparar...' : 'Spara'}</span>
-                    </button>
-                  </div>
-
-                  {/* Avatar Section */}
-                  <div className="flex items-center space-x-6 mb-8">
-                    <div className="relative">
-                      <div className="w-24 h-24 rounded-full bg-white p-2 shadow-lg">
-                        <RPACLogo size="lg" className="text-green-700" />
-                      </div>
-                      <label className="absolute -bottom-2 -right-2 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center cursor-pointer hover:bg-slate-50 transition-colors">
-                        <Camera className="w-4 h-4 text-slate-600" />
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleAvatarUpload}
-                          className="hidden"
-                        />
-                      </label>
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-                        {profileData.name}
-                      </h3>
-                      <p className="text-slate-600 dark:text-slate-400">
-                        Ladda upp en ny profilbild
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Form Fields */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-                        Fullständigt namn
-                      </label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-                        <input
-                          type="text"
-                          value={profileData.name}
-                          onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
-                          className="w-full pl-10 pr-4 py-3 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-slate-800"
-                          placeholder={t('placeholders.full_name')}
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-                        E-postadress
-                      </label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-                        <input
-                          type="email"
-                          value={profileData.email}
-                          onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
-                          className="w-full pl-10 pr-4 py-3 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-slate-800"
-                          placeholder="din@email.se"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-                        Telefonnummer
-                      </label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-                        <input
-                          type="tel"
-                          value={profileData.phone}
-                          onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
-                          className="w-full pl-10 pr-4 py-3 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-slate-800"
-                          placeholder="+46 70 123 45 67"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-                        Plats
-                      </label>
-                      <div className="relative">
-                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-                        <input
-                          type="text"
-                          value={profileData.location}
-                          onChange={(e) => setProfileData(prev => ({ ...prev, location: e.target.value }))}
-                          className="w-full pl-10 pr-4 py-3 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-slate-800"
-                          placeholder={t('placeholders.city_country')}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-6">
-                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-                      Om mig
-                    </label>
-                    <textarea
-                      value={profileData.bio}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
-                      rows={4}
-                      className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-slate-800"
-                      placeholder={t('placeholders.about_yourself')}
-                    />
-                  </div>
-
-                  {saveStatus === 'success' && (
-                    <div className="mt-4 flex items-center space-x-2 text-green-600">
-                      <CheckCircle className="w-5 h-5" />
-                      <span>Profil sparad framgångsrikt!</span>
-                    </div>
-                  )}
-                </div>
+                <UserProfile 
+                  user={user}
+                  initialProfile={profile || undefined}
+                  onProfileUpdate={(updatedProfile) => {
+                    console.log('Profile updated:', updatedProfile);
+                    // The profile is automatically saved by the component
+                  }}
+                />
               </div>
             )}
 

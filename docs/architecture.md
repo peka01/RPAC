@@ -146,9 +146,31 @@ RPAC (Resilience & Preparedness AI Companion) har omorienterats till en **web-f�
 - **Plugin Architecture**: Modulär utbyggnad
 - **Community Features**: Användargenererat innehåll
 
+## MSB-Integration och Officiella Riktlinjer
+
+### 🏛️ **Integration av "Om krisen eller kriget kommer"**
+RPAC inkorporerar innehåll och riktlinjer från MSB:s officiella beredskapguide "Om krisen eller kriget kommer" för att säkerställa att alla rekommendationer är i linje med svenska myndigheters officiella krisförberedelsestandard.
+
+**Integrerade MSB-områden:**
+- **Totalförsvar och beredskapsplikt**: Information om medborgerlig beredskapsplikt
+- **Psykologiskt försvar**: Verktyg för mental motståndskraft under kriser
+- **Digital säkerhet**: Riktlinjer för säker kommunikation och informationshantering
+- **Skydd mot luftangrepp**: Förberedelseråd för olika hotscenarier
+- **Kärnvapenskydd**: Specifika åtgärder för kärnvapenrelaterade hot
+- **Vattenförsörjning**: Sanitära lösningar vid vattenbrist och försörjningsavbrott
+- **Husdjursberedskap**: Riktlinjer för djurvård under krisförhållanden
+
+### 🎯 **Officiell Krisberedskapstandard**
+- **MSB-certifierad innehåll**: Alla beredskapschecklistor baserade på officiella riktlinjer
+- **Svensk krishanteringskultur**: Anpassat till svenska myndigheters kommunikationsformer
+- **Uppdateringsrutiner**: Automatisk uppdatering när MSB-riktlinjer förändras
+- **Lokal adaptation**: Integration av lokala beredskapsmyndigheter och ressurser
+
 ## Slutsats
 
 RPAC:s nya web-först arkitektur kombinerar **moderna webbteknologier**, **global tillgänglighet**, och **automatisk skalning** för att skapa ett robust krisverktyg som fungerar när det behövs som mest. Systemet är byggt för framtiden med beprövad teknologi som garanterar tillförlitlighet och prestanda under kriser.
+
+**MSB-Integration säkerställer att RPAC följer svenska myndigheters officiella beredskapsstandard och ger användarna tillgång till auktoritativ, uppdaterad krisinformation via Krisinformation.se och andra officiella kanaler.**
 
 ### 🚀 **Senaste Förbättringar**
 - **SSR-Safe Authentication**: Robust hantering av localStorage med browser environment checks

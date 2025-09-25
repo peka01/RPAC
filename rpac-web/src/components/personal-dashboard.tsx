@@ -8,6 +8,9 @@ import {
   TrendingUp,
   Calendar,
   Target,
+  Heart,
+  Radio,
+  Smartphone
 } from 'lucide-react';
 import { t } from '@/lib/locales';
 
@@ -198,11 +201,76 @@ export function PersonalDashboard() {
         </div>
       )}
 
-      {/* Quick Actions */}
+      {/* MSB Digital Security */}
       <div className="mt-6 pt-6 border-t" style={{ borderColor: 'var(--color-crisis-grey)' }}>
-          <h3 className="font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
-            {t('preparedness.quick_actions')}
+        <div className="flex items-center mb-4">
+          <Smartphone className="w-5 h-5 mr-2" style={{ color: 'var(--color-crisis-blue)' }} />
+          <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+            {t('msb.digital_security')}
           </h3>
+        </div>
+        
+        <div className="space-y-3">
+          {[
+            'verify_sources',
+            'backup_contacts',
+            'charge_devices',
+            'avoid_rumors'
+          ].map((tip, index) => (
+            <div key={index} className="flex items-start space-x-3 p-3 rounded-lg" 
+                 style={{ backgroundColor: 'var(--color-crisis-blue)20' }}>
+              <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" 
+                          style={{ color: 'var(--color-crisis-blue)' }} />
+              <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                {t(`msb.digital_security_tips.${tip}`)}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* MSB Psychological Support */}
+      <div className="mt-6">
+        <div className="flex items-center mb-4">
+          <Heart className="w-5 h-5 mr-2" style={{ color: 'var(--color-crisis-green)' }} />
+          <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+            {t('msb.psychological_support.title')}
+          </h3>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {[
+            'stay_calm',
+            'trust_authorities',
+            'help_others',
+            'maintain_routines'
+          ].map((support, index) => (
+            <div key={index} className="flex items-center space-x-2 p-3 rounded-lg" 
+                 style={{ backgroundColor: 'var(--color-crisis-green)20' }}>
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--color-crisis-green)' }}></div>
+              <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                {t(`msb.psychological_support.${support}`)}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Emergency Radio Information */}
+      <div className="mt-6 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-crisis-orange)20' }}>
+        <div className="flex items-center mb-2">
+          <Radio className="w-5 h-5 mr-2" style={{ color: 'var(--color-crisis-orange)' }} />
+          <h4 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
+            {t('msb.digital_security_tips.emergency_radio')}
+          </h4>
+        </div>
+        <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+          Ha alltid tillgång till batteridriven radio för officiella meddelanden när internet och mobilt nät inte fungerar.
+        </p>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="mt-6">
         <div className="grid grid-cols-2 gap-3">
           <button className="crisis-button text-sm" 
                   style={{ backgroundColor: 'var(--color-crisis-green)', color: 'white' }}>
