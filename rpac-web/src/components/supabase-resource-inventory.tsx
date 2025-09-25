@@ -109,7 +109,7 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
         setResources(data);
       }
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'Ett oväntat fel inträffade');
+      setError(error instanceof Error ? error.message : t('resources.error_occurred'));
     } finally {
       setLoading(false);
     }
@@ -167,7 +167,7 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
       });
       setShowAddForm(false);
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'Ett oväntat fel inträffade');
+      setError(error instanceof Error ? error.message : t('resources.error_occurred'));
     }
   };
 
@@ -184,7 +184,7 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Är du säker på att du vill ta bort denna resurs?')) return;
+    if (!confirm(t('resources.confirm_delete'))) return;
 
     try {
       if (true || user.id === 'demo-user') {
@@ -197,7 +197,7 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
         loadResources();
       }
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'Ett oväntat fel inträffade');
+      setError(error instanceof Error ? error.message : t('resources.error_occurred'));
     }
   };
 
@@ -278,10 +278,10 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
             </div>
           </div>
           <div>
-            <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Resurslager</h2>
+            <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('resources.storage_title')}</h2>
             <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{
               resources.length
-            } registrerade enheter • Operativ kapacitet</p>
+            } {t('resources.registered_units')}</p>
           </div>
         </div>
         
@@ -333,7 +333,7 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
       {showAddForm && (
         <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 p-6">
           <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
-            {editingResource ? 'Redigera resurs' : 'Lägg till ny resurs'}
+            {editingResource ? t('resources.edit_resource') : t('resources.add_new_resource')}
           </h3>
           
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -397,7 +397,7 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
 
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>
-                  Dagar kvar (hållbarhet)
+                  {t('resources.days_remaining')}
                 </label>
                 <input
                   type="number"
@@ -484,7 +484,7 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
         <div className="text-center py-8">
           <Package size={48} className="mx-auto mb-4 opacity-50" style={{ color: 'var(--text-secondary)' }} />
           <p style={{ color: 'var(--text-secondary)' }}>
-            Inga resurser registrerade än. Lägg till din första resurs för att komma igång.
+            {t('resources.no_resources_message')}
           </p>
         </div>
       )}

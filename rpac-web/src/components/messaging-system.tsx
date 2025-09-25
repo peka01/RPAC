@@ -446,8 +446,8 @@ export function MessagingSystem({ user, communityId }: MessagingSystemProps) {
 
               {/* Emergency info */}
               {emergencyMode && (
-                <div className="mt-2 p-2 bg-red-100 dark:bg-red-900/20 rounded-lg">
-                  <p className="text-xs text-red-800 dark:text-red-200 flex items-center space-x-1">
+                <div className="mt-2 p-2 bg-orange-100/70 dark:bg-orange-900/20 rounded-lg">
+                  <p className="text-xs text-orange-700 dark:text-orange-200 flex items-center space-x-1">
                     <AlertTriangle className="w-3 h-3" />
                     <span>{t('emergency.emergency_sent_to_all')}</span>
                   </p>

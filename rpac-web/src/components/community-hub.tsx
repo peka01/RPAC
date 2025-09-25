@@ -269,15 +269,15 @@ export function CommunityHub({ user }: CommunityHubProps) {
             </div>
           </div>
           <div>
-            <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Samhällskoordination</h2>
-            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Kollektiv säkerhet och resurshantering</p>
+            <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('community.coordination_title')}</h2>
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('community.coordination_description')}</p>
           </div>
         </div>
         
         {/* Network Health Metrics */}
         <div className="text-center px-3 py-2 rounded-lg shadow-sm" style={{ backgroundColor: 'var(--bg-olive-light)' }}>
           <div className="text-lg font-bold" style={{ color: 'var(--color-cool-olive)' }}>87%</div>
-          <div className="text-xs font-semibold" style={{ color: 'var(--text-tertiary)' }}>NÄTVERK</div>
+          <div className="text-xs font-semibold" style={{ color: 'var(--text-tertiary)' }}>{t('community.network')}</div>
         </div>
       </div>
 
@@ -334,25 +334,25 @@ export function CommunityHub({ user }: CommunityHubProps) {
         {[
           { 
             id: 'communities', 
-            label: 'Samhällen Som Bryr Sig', 
+            label: t('community.caring_communities'), 
             icon: Users,
-            description: 'Upptäck vänliga grannar',
+            description: t('community.discover_neighbors'),
             emotion: '🏘️',
             gradient: 'from-slate-500 to-slate-600'
           },
           { 
             id: 'resources', 
-            label: 'Generösa Hjärtan', 
+            label: t('community.generous_hearts'), 
             icon: Share2,
-            description: 'Dela med kärlek',
+            description: t('community.share_with_love'),
             emotion: '💝',
             gradient: 'from-stone-500 to-stone-600'
           },
           { 
             id: 'requests', 
-            label: 'Hjälpande Händer', 
+            label: t('community.helping_hands'), 
             icon: HandHeart,
-            description: 'Hjälp när det behövs',
+            description: t('community.help_when_needed'),
             emotion: '🤲',
             gradient: 'from-gray-500 to-gray-600'
           }

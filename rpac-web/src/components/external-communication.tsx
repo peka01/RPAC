@@ -539,7 +539,7 @@ export function ExternalCommunication() {
                   
                   <div className="flex items-center justify-between">
                     <span className={`inline-block px-2 py-1 rounded-full text-xs ${
-                      source.type === 'emergency' ? 'bg-red-100 text-red-800' :
+                      source.type === 'emergency' ? 'bg-orange-100 text-orange-700' :
                       source.type === 'weather' ? 'bg-blue-100 text-blue-800' :
                       source.type === 'news' ? 'bg-gray-100 text-gray-800' :
                       'bg-purple-100 text-purple-800'
@@ -572,14 +572,14 @@ export function ExternalCommunication() {
           </div>
 
           {internetStatus === 'offline' && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <div className="bg-orange-50/70 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-lg p-4">
               <div className="flex items-center space-x-2">
-                <WifiOff className="w-5 h-5 text-red-600" />
-                <p className="font-medium text-red-800 dark:text-red-200">
+                <WifiOff className="w-5 h-5 text-orange-600" />
+                <p className="font-medium text-orange-700 dark:text-orange-200">
                   Ingen internetanslutning
                 </p>
               </div>
-              <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+              <p className="text-sm text-orange-600 dark:text-orange-300 mt-1">
                 Webkällor är inte tillgängliga. Använd radio för att få information.
               </p>
             </div>

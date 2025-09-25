@@ -262,21 +262,21 @@ export function StatusCard() {
 
       {/* Crisis Mode - Trauma-Informed Support */}
       {isCrisisMode && (
-        <div className="mt-6 p-5 rounded-xl bg-red-50/80 backdrop-blur-sm border border-red-200 shadow-md">
+        <div className="mt-6 p-5 rounded-xl bg-orange-50/60 backdrop-blur-sm border border-orange-200/70 shadow-md">
           <div className="flex items-center space-x-3 mb-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center shadow-lg">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-300 to-orange-500 flex items-center justify-center shadow-lg">
               <Heart className="w-5 h-5 text-white animate-pulse" />
             </div>
             <div>
-              <h3 className="font-bold text-red-800">{t('status_messages.support_mode_active')}</h3>
-              <p className="text-sm text-red-700">Systemet hjälper dig prioritera det viktigaste just nu</p>
+              <h3 className="font-bold text-orange-700">{t('status_messages.support_mode_active')}</h3>
+              <p className="text-sm text-orange-600">Systemet hjälper dig prioritera det viktigaste just nu</p>
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-            <button className="bg-red-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors text-sm">
+            <button className="bg-orange-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-orange-600 transition-colors text-sm">
               {t('dashboard.breathe_calm')}
             </button>
-            <button className="bg-red-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors text-sm">
+            <button className="bg-orange-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-orange-600 transition-colors text-sm">
               {t('buttons.simple_checklist')}
             </button>
           </div>

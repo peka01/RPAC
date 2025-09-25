@@ -10,7 +10,7 @@
       "operational_status": "Status",
       "individual_preparedness": "Mitt hem",
       "community_resources": "Mitt närområde",
-      "regional_coordination": "Större området"
+      "regional_coordination": "Utanför närområdet"
     },
     "categories": {
       "command": "DASHBOARD",
@@ -142,7 +142,7 @@
     "loading_status_start": "Startar",
     "loading_status_end": "Redo",
     "status_line": "Läge: Fungerar • Status: Redo",
-    "operational_status_title": "Hur läget är",
+    "operational_status_title": "Läget just nu",
     "preparedness_level": "Hur förberedd du är",
     "daily_update_complete": "Dagens uppdatering klar",
     "daily_update_description": "Saker uppdaterade • Grannar kontaktade • Hemmet förbättrat",
@@ -210,8 +210,8 @@
     "generic_error": "Ett fel uppstod. Försök igen."
   },
   "professional": {
-    "tactical_communication": "Kommunikation",
-    "external_communications": "Externa kommunikationslänkar",
+    "tactical_communication": "Närkommunikation",
+    "external_communications": "Extern kommunikation",
     "tactical_operations": "Viktiga åtgärder",
     "secure_messaging": "Säkra meddelanden",
     "radio_frequencies": "Radiofrekvenser",
@@ -247,7 +247,7 @@
     "support_mode_active": "Stödläge aktivt - Du är trygg"
   },
   "buttons": {
-    "register_resource": "Lägg till en sak",
+    "register_resource": "Lägg till en resurs",
     "update": "Uppdatera",
     "add": "Lägg till",
     "establish_community": "Skapa närområdesgrupp",
@@ -271,5 +271,26 @@
     "coordinate_resources": "Dela saker med dina grannar",
     "organize_preparedness": "Hjälp till att förbereda närområdet",
     "activate_support": "Få hjälp från andra"
+  },
+  "community": {
+    "coordination_title": "Samhällskoordination",
+    "coordination_description": "Gemensam säkerhet och resurshantering",
+    "network": "NÄTVERK",
+    "caring_communities": "Områden i närheten",
+    "discover_neighbors": "Upptäck vänliga grannar",
+    "generous_hearts": "Delade resurser",
+    "share_with_love": "Dela med kärlek",
+    "helping_hands": "Hjälpförfrågningar",
+    "help_when_needed": "Hjälp när det behövs"
+  },
+  "resources": {
+    "storage_title": "Resurslager",
+    "registered_units": "resurser",
+    "edit_resource": "Redigera resurs",
+    "add_new_resource": "Lägg till ny resurs",
+    "days_remaining": "Dagar kvar (hållbarhet)",
+    "no_resources_message": "Inga resurser registrerade än. Lägg till din första resurs för att komma igång.",
+    "confirm_delete": "Är du säker på att du vill ta bort denna resurs?",
+    "error_occurred": "Ett oväntat fel inträffade"
   }
 }

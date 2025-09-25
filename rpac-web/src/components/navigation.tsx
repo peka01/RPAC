@@ -177,7 +177,7 @@ export function Navigation() {
           <div className={`flex items-center justify-between transition-all duration-300 ${isScrolled ? 'h-12' : 'h-16'}`}>
             
             {/* Authority Logo */}
-            <div className="flex items-center space-x-3">
+            <Link href="/dashboard" className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200">
               <div className="relative">
                 <div className={`flex items-center justify-center rounded-lg shadow-md p-2 transition-all duration-300 ${
                   isScrolled ? 'w-8 h-8' : 'w-12 h-12'
@@ -200,7 +200,7 @@ export function Navigation() {
                   BEREDD
                 </h1>
               </div>
-            </div>
+            </Link>
 
             {/* Inline Navigation Items - Only when scrolled */}
             {isScrolled && (
