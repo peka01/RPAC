@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { t } from '@/lib/locales';
 import { RPACLogo } from '@/components/rpac-logo';
-import { MigrationWizard } from '@/components/migration-wizard';
 import { User, LogIn, UserPlus, X, AlertTriangle } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -17,8 +16,6 @@ export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [authenticatedUser, setAuthenticatedUser] = useState<SupabaseUser | null>(null);
-  const [showMigration, setShowMigration] = useState(false);
   const router = useRouter();
 
   // Check if user is already logged in
@@ -26,8 +23,8 @@ export default function LoginPage() {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        setAuthenticatedUser(user);
-        setShowMigration(true);
+        // User is already logged in, redirect to dashboard
+        router.push('/dashboard');
       } else {
         setShowModal(true);
       }
@@ -60,12 +57,11 @@ export default function LoginPage() {
         if (error) throw error;
       }
       
-      // Get the authenticated user
+      // Get the authenticated user and redirect to dashboard
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        setAuthenticatedUser(user);
-        setShowMigration(true);
         setShowModal(false);
+        router.push('/dashboard');
       }
   } catch (err: unknown) {
       const _message = err instanceof Error ? err.message : t('errors.generic_error');
@@ -112,12 +108,11 @@ export default function LoginPage() {
         if (retryError) throw retryError;
       }
       
-      // Get the authenticated user
+      // Get the authenticated user and redirect to dashboard
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        setAuthenticatedUser(user);
-        setShowMigration(true);
         setShowModal(false);
+        router.push('/dashboard');
       }
     } catch (error) {
       console.error('Demo login error:', error);
@@ -126,20 +121,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleMigrationComplete = () => {
-    setShowMigration(false);
-    router.push('/dashboard');
-  };
-
-  // Show migration wizard if user is authenticated
-  if (showMigration && authenticatedUser) {
-    return (
-      <MigrationWizard 
-        user={authenticatedUser} 
-        onMigrationComplete={handleMigrationComplete}
-      />
-    );
-  }
 
   // Landing page when not showing modal
   if (!showModal) {

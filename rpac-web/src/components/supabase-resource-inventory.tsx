@@ -106,6 +106,7 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
   const loadResources = async () => {
     try {
       setLoading(true);
+      console.log('Loading resources for user:', user?.id);
       
       // Load resources from Supabase
       const data = await resourceService.getResources(user.id);
@@ -125,6 +126,8 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
         setResources(data);
       }
     } catch (error: unknown) {
+      console.error('Error loading resources:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
       setError(error instanceof Error ? error.message : t('resources.error_occurred'));
     } finally {
       setLoading(false);
@@ -169,7 +172,7 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
           ];
 
     return msbRecommendedResources.map((item, index) => ({
-      id: `msb-${index + 1}`,
+      id: crypto.randomUUID(), // Generate proper UUID
       user_id: user.id,
       name: item.name,
       category: item.category as Resource['category'],
