@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { t } from '@/lib/locales';
+import { supabase } from '@/lib/supabase';
 import { 
   Bell,
   Calendar,
@@ -21,18 +22,15 @@ import {
 
 interface CultivationReminder {
   id: string;
-  type: 'sowing' | 'planting' | 'watering' | 'fertilizing' | 'harvesting' | 'general';
-  plantType: string;
-  plantName: string;
-  title: string;
-  description: string;
-  dueDate: Date;
-  isCompleted: boolean;
-  isRecurring: boolean;
-  recurringDays?: number;
-  priority: 'high' | 'medium' | 'low';
-  icon: string;
-  createdAt: Date;
+  user_id: string;
+  plant_id?: string;
+  reminder_type: string;
+  reminder_date: string;
+  reminder_time?: string;
+  message: string;
+  is_completed: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 interface NotificationSettings {
@@ -46,11 +44,13 @@ interface NotificationSettings {
 }
 
 interface CultivationRemindersProps {
+  user: { id: string; email?: string; user_metadata?: { name?: string } };
   climateZone?: 'gotaland' | 'svealand' | 'norrland';
   crisisMode?: boolean;
 }
 
 export function CultivationReminders({ 
+  user,
   climateZone = 'svealand',
   crisisMode = false 
 }: CultivationRemindersProps) {
@@ -68,193 +68,42 @@ export function CultivationReminders({
   const [newReminder, setNewReminder] = useState<Partial<CultivationReminder> | null>(null);
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed' | 'overdue'>('pending');
 
-  // Generate Swedish seasonal reminders
+  // Generate Swedish seasonal reminders - temporarily disabled
   const generateSeasonalReminders = () => {
-    const now = new Date();
-    const currentMonth = now.getMonth() + 1;
-    const currentYear = now.getFullYear();
-    const seasonalReminders: Partial<CultivationReminder>[] = [];
-
-    // Climate zone adjustments
-    const climateAdjustment = {
-      gotaland: 0, // Reference zone
-      svealand: 7, // 1 week later
-      norrland: 21 // 3 weeks later
-    };
-
-    const adjustment = climateAdjustment[climateZone];
-
-    // Spring reminders (March-May)
-    if (currentMonth >= 3 && currentMonth <= 5) {
-      seasonalReminders.push({
-        type: 'sowing',
-        plantType: 'potatoes',
-        plantName: t('cultivation.plants.potatoes'),
-        title: 'Dags att förgrodd potatis',
-        description: 'Lägg potatis i ljus, sval plats 4-6 veckor innan plantering',
-        dueDate: new Date(currentYear, 2, 15 + adjustment), // March 15 + adjustment
-        priority: 'high',
-        icon: '🥔',
-        isRecurring: true,
-        recurringDays: 365
-      });
-
-      seasonalReminders.push({
-        type: 'sowing',
-        plantType: 'lettuce',
-        plantName: t('cultivation.plants.lettuce'),
-        title: 'Första salladsåningen',
-        description: 'Så sallad i växthus eller på fönsterbrädan',
-        dueDate: new Date(currentYear, 2, 1 + adjustment),
-        priority: 'medium',
-        icon: '🥬',
-        isRecurring: true,
-        recurringDays: 21 // Every 3 weeks
-      });
-
-      seasonalReminders.push({
-        type: 'general',
-        plantType: 'garden',
-        plantName: 'Trädgård',
-        title: 'Förbered odlingsbäddar',
-        description: 'Tillsätt kompost och förbered jorden för säsongen',
-        dueDate: new Date(currentYear, 3, 1 + adjustment), // April 1
-        priority: 'high',
-        icon: '🌱'
-      });
-    }
-
-    // Summer reminders (June-August)
-    if (currentMonth >= 6 && currentMonth <= 8) {
-      seasonalReminders.push({
-        type: 'watering',
-        plantType: 'all',
-        plantName: 'Alla växter',
-        title: 'Daglig vattenkontroll',
-        description: 'Kontrollera jordfuktighet och vattna vid behov',
-        dueDate: now,
-        priority: 'high',
-        icon: '💧',
-        isRecurring: true,
-        recurringDays: 1
-      });
-
-      seasonalReminders.push({
-        type: 'harvesting',
-        plantType: 'lettuce',
-        plantName: t('cultivation.plants.lettuce'),
-        title: 'Skörda sallad',
-        description: 'Skörda ytterbladen för kontinuerlig tillväxt',
-        dueDate: new Date(currentYear, 5, 15), // June 15
-        priority: 'medium',
-        icon: '🥬',
-        isRecurring: true,
-        recurringDays: 14
-      });
-    }
-
-    // Autumn reminders (September-November)
-    if (currentMonth >= 9 && currentMonth <= 11) {
-      seasonalReminders.push({
-        type: 'harvesting',
-        plantType: 'potatoes',
-        plantName: t('cultivation.plants.potatoes'),
-        title: 'Potatisskörd',
-        description: 'Skörda potatis innan första frosten',
-        dueDate: new Date(currentYear, 8, 15 - adjustment), // Sept 15 - adjustment
-        priority: 'high',
-        icon: '🥔'
-      });
-
-      seasonalReminders.push({
-        type: 'harvesting',
-        plantType: 'carrots',
-        plantName: t('cultivation.plants.carrots'),
-        title: 'Morotsskörd',
-        description: 'Skörda morötter för vinterlagring',
-        dueDate: new Date(currentYear, 9, 1 - adjustment), // October 1
-        priority: 'high',
-        icon: '🥕'
-      });
-
-      seasonalReminders.push({
-        type: 'general',
-        plantType: 'garden',
-        plantName: 'Trädgård',
-        title: 'Förbered för vinter',
-        description: 'Täck odlingsbäddar med löv eller halm',
-        dueDate: new Date(currentYear, 10, 1), // November 1
-        priority: 'medium',
-        icon: '🍂'
-      });
-    }
-
-    // Crisis mode specific reminders
-    if (crisisMode) {
-      seasonalReminders.push({
-        type: 'sowing',
-        plantType: 'radishes',
-        plantName: t('cultivation.plants.radishes'),
-        title: 'Snabbodling: Rädisor',
-        description: 'Så rädisor för skörd inom 4 veckor',
-        dueDate: now,
-        priority: 'high',
-        icon: '🔴',
-        isRecurring: true,
-        recurringDays: 28
-      });
-
-      seasonalReminders.push({
-        type: 'sowing',
-        plantType: 'spinach',
-        plantName: t('cultivation.plants.spinach'),
-        title: 'Snabbodling: Spenat',
-        description: 'Så spenat för näringsrik skörd inom 6 veckor',
-        dueDate: now,
-        priority: 'high',
-        icon: '🥬',
-        isRecurring: true,
-        recurringDays: 42
-      });
-    }
-
-    return seasonalReminders.map(reminder => ({
-      id: `seasonal-${Date.now()}-${Math.random()}`,
-      isCompleted: false,
-      createdAt: now,
-      ...reminder
-    } as CultivationReminder));
+    // TODO: Update this function to use the new CultivationReminder interface
+    return [];
   };
 
-  // Load reminders on component mount
+  // Load reminders from Supabase on component mount
   useEffect(() => {
-    const savedReminders = localStorage.getItem('cultivationReminders');
-    const savedSettings = localStorage.getItem('reminderSettings');
-    
-    if (savedReminders) {
-      const parsed = JSON.parse(savedReminders).map((r: any) => ({
-        ...r,
-        dueDate: new Date(r.dueDate),
-        createdAt: new Date(r.createdAt)
-      }));
-      setReminders(parsed);
-    } else {
-      // Generate initial seasonal reminders
-      const seasonal = generateSeasonalReminders();
-      setReminders(seasonal);
-    }
+    const loadReminders = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('cultivation_reminders')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('reminder_date', { ascending: true });
 
-    if (savedSettings) {
-      setSettings(JSON.parse(savedSettings));
-    }
-  }, []); // Remove dependencies to prevent unnecessary re-renders
+        if (error) {
+          console.error('Error loading reminders:', error);
+          return;
+        }
 
-  // Save reminders to localStorage
-  useEffect(() => {
-    localStorage.setItem('cultivationReminders', JSON.stringify(reminders));
-  }, [reminders]);
+        if (data && data.length > 0) {
+          setReminders(data);
+        } else {
+          // No reminders exist yet - user can add their own
+          setReminders([]);
+        }
+      } catch (error) {
+        console.error('Error loading reminders:', error);
+      }
+    };
 
-  // Save settings to localStorage
+    loadReminders();
+  }, [user.id]);
+
+  // Save settings to localStorage (keeping this for now as it's UI preferences)
   useEffect(() => {
     localStorage.setItem('reminderSettings', JSON.stringify(settings));
   }, [settings]);
@@ -265,19 +114,19 @@ export function CultivationReminders({
     return reminders.filter(reminder => {
       switch (filter) {
         case 'pending':
-          return !reminder.isCompleted;
+          return !reminder.is_completed;
         case 'completed':
-          return reminder.isCompleted;
+          return reminder.is_completed;
         case 'overdue':
-          return !reminder.isCompleted && reminder.dueDate < now;
+          return !reminder.is_completed && new Date(reminder.reminder_date) < now;
         default:
           return true;
       }
     }).sort((a, b) => {
-      if (a.isCompleted !== b.isCompleted) {
-        return a.isCompleted ? 1 : -1;
+      if (a.is_completed !== b.is_completed) {
+        return a.is_completed ? 1 : -1;
       }
-      return a.dueDate.getTime() - b.dueDate.getTime();
+      return new Date(a.reminder_date).getTime() - new Date(b.reminder_date).getTime();
     });
   };
 
@@ -285,28 +134,7 @@ export function CultivationReminders({
   const toggleReminder = (id: string) => {
     setReminders(prev => prev.map(reminder => {
       if (reminder.id === id) {
-        const updated = { ...reminder, isCompleted: !reminder.isCompleted };
-        
-        // If completing a recurring reminder, create next occurrence
-        if (!reminder.isCompleted && reminder.isRecurring && reminder.recurringDays) {
-          const nextDue = new Date(reminder.dueDate);
-          nextDue.setDate(nextDue.getDate() + reminder.recurringDays);
-          
-          const nextReminder: CultivationReminder = {
-            ...reminder,
-            id: `${reminder.id}-${Date.now()}`,
-            dueDate: nextDue,
-            isCompleted: false,
-            createdAt: new Date()
-          };
-          
-          // Add the next occurrence
-          setTimeout(() => {
-            setReminders(current => [...current, nextReminder]);
-          }, 100);
-        }
-        
-        return updated;
+        return { ...reminder, is_completed: !reminder.is_completed };
       }
       return reminder;
     }));
@@ -321,17 +149,13 @@ export function CultivationReminders({
   const addReminder = (reminder: Partial<CultivationReminder>) => {
     const newRem: CultivationReminder = {
       id: `custom-${Date.now()}`,
-      type: 'general',
-      plantType: 'custom',
-      plantName: 'Anpassad',
-      title: 'Ny påminnelse',
-      description: '',
-      dueDate: new Date(),
-      isCompleted: false,
-      isRecurring: false,
-      priority: 'medium',
-      icon: '📝',
-      createdAt: new Date(),
+      user_id: user.id,
+      reminder_type: 'general',
+      reminder_date: new Date().toISOString(),
+      message: 'Ny påminnelse',
+      is_completed: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
       ...reminder
     };
     
@@ -364,8 +188,8 @@ export function CultivationReminders({
   };
 
   const filteredReminders = getFilteredReminders();
-  const pendingCount = reminders.filter(r => !r.isCompleted).length;
-  const overdueCount = reminders.filter(r => !r.isCompleted && isOverdue(r.dueDate)).length;
+  const pendingCount = reminders.filter(r => !r.is_completed).length;
+  const overdueCount = reminders.filter(r => !r.is_completed && isOverdue(new Date(r.reminder_date))).length;
 
   return (
     <div className="rounded-lg p-6 border shadow-lg" style={{ 
@@ -423,7 +247,7 @@ export function CultivationReminders({
         {[
           { id: 'pending', label: 'Väntande', count: pendingCount },
           { id: 'overdue', label: 'Försenade', count: overdueCount },
-          { id: 'completed', label: 'Klara', count: reminders.filter(r => r.isCompleted).length },
+          { id: 'completed', label: 'Klara', count: reminders.filter(r => r.is_completed).length },
           { id: 'all', label: 'Alla', count: reminders.length }
         ].map(filterOption => (
           <button
@@ -445,15 +269,15 @@ export function CultivationReminders({
       {/* Reminders List */}
       <div className="space-y-3">
         {filteredReminders.map(reminder => {
-          const TypeIcon = getTypeIcon(reminder.type);
-          const priorityColor = getPriorityColor(reminder.priority);
-          const isReminderOverdue = !reminder.isCompleted && isOverdue(reminder.dueDate);
+          const TypeIcon = getTypeIcon(reminder.reminder_type);
+          const priorityColor = getPriorityColor('medium'); // Default priority
+          const isReminderOverdue = !reminder.is_completed && isOverdue(new Date(reminder.reminder_date));
           
           return (
             <div
               key={reminder.id}
               className={`p-4 rounded-lg border transition-all duration-200 ${
-                reminder.isCompleted ? 'opacity-60' : ''
+                reminder.is_completed ? 'opacity-60' : ''
               }`}
               style={{ 
                 backgroundColor: isReminderOverdue ? 'rgba(184, 134, 11, 0.1)' : 'var(--bg-card)',
@@ -464,37 +288,25 @@ export function CultivationReminders({
                 <button
                   onClick={() => toggleReminder(reminder.id)}
                   className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
-                    reminder.isCompleted ? 'shadow-sm' : 'hover:shadow-sm'
+                    reminder.is_completed ? 'shadow-sm' : 'hover:shadow-sm'
                   }`}
                   style={{
-                    backgroundColor: reminder.isCompleted ? priorityColor : 'transparent',
+                    backgroundColor: reminder.is_completed ? priorityColor : 'transparent',
                     borderColor: priorityColor
                   }}
                 >
-                  {reminder.isCompleted && <CheckCircle className="w-4 h-4 text-white" />}
+                  {reminder.is_completed && <CheckCircle className="w-4 h-4 text-white" />}
                 </button>
 
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-1">
                     <TypeIcon className="w-4 h-4" style={{ color: priorityColor }} />
-                    <h3 className={`font-semibold text-sm ${reminder.isCompleted ? 'line-through' : ''}`} 
+                    <h3 className={`font-semibold text-sm ${reminder.is_completed ? 'line-through' : ''}`}
                         style={{ color: 'var(--text-primary)' }}>
-                      {reminder.title}
+                      {reminder.message}
                     </h3>
-                    <span className="text-lg">{reminder.icon}</span>
-                    
-                    {reminder.isRecurring && (
-                      <div className="w-4 h-4 rounded-full flex items-center justify-center" style={{
-                        backgroundColor: 'var(--color-cool-olive)'
-                      }}>
-                        <Clock className="w-2 h-2 text-white" />
-                      </div>
-                    )}
                   </div>
                   
-                  <p className="text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
-                    {reminder.description}
-                  </p>
                   
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4 text-xs">
@@ -503,16 +315,11 @@ export function CultivationReminders({
                         <span style={{ 
                           color: isReminderOverdue ? 'var(--color-warm-olive)' : 'var(--text-tertiary)' 
                         }}>
-                          {reminder.dueDate.toLocaleDateString('sv-SE')}
+                          {new Date(reminder.reminder_date).toLocaleDateString('sv-SE')}
                           {isReminderOverdue && ' (försenad)'}
                         </span>
                       </div>
                       
-                      <div className="flex items-center space-x-1">
-                        <span style={{ color: 'var(--text-tertiary)' }}>
-                          {reminder.plantName}
-                        </span>
-                      </div>
                     </div>
 
                     <button
@@ -626,8 +433,8 @@ export function CultivationReminders({
                 </label>
                 <input
                   type="text"
-                  value={newReminder.title || ''}
-                  onChange={(e) => setNewReminder(prev => ({ ...prev, title: e.target.value }))}
+                  value={newReminder.message || ''}
+                  onChange={(e) => setNewReminder(prev => ({ ...prev, message: e.target.value }))}
                   className="w-full p-2 border rounded"
                   style={{ borderColor: 'var(--color-secondary)' }}
                   placeholder="Vad ska du komma ihåg?"
@@ -639,8 +446,8 @@ export function CultivationReminders({
                   Beskrivning
                 </label>
                 <textarea
-                  value={newReminder.description || ''}
-                  onChange={(e) => setNewReminder(prev => ({ ...prev, description: e.target.value }))}
+                  value=""
+                  onChange={() => {}}
                   className="w-full p-2 border rounded h-20"
                   style={{ borderColor: 'var(--color-secondary)' }}
                   placeholder="Detaljer om uppgiften..."
@@ -653,10 +460,10 @@ export function CultivationReminders({
                 </label>
                 <input
                   type="date"
-                  value={newReminder.dueDate ? newReminder.dueDate.toISOString().split('T')[0] : ''}
+                  value={newReminder.reminder_date ? newReminder.reminder_date.split('T')[0] : ''}
                   onChange={(e) => setNewReminder(prev => ({ 
                     ...prev, 
-                    dueDate: new Date(e.target.value) 
+                    reminder_date: new Date(e.target.value).toISOString() 
                   }))}
                   className="w-full p-2 border rounded"
                   style={{ borderColor: 'var(--color-secondary)' }}
@@ -675,7 +482,7 @@ export function CultivationReminders({
                   onClick={() => addReminder(newReminder)}
                   className="px-4 py-2 rounded text-sm text-white"
                   style={{ backgroundColor: 'var(--color-sage)' }}
-                  disabled={!newReminder.title || !newReminder.dueDate}
+                  disabled={!newReminder.message || !newReminder.reminder_date}
                 >
                   Lägg till
                 </button>

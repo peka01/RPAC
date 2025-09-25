@@ -24,6 +24,7 @@ import { SupabaseResourceInventory } from '@/components/supabase-resource-invent
 import { CommunityHub } from '@/components/community-hub';
 import { MessagingSystem } from '@/components/messaging-system';
 import { ExternalCommunication } from '@/components/external-communication';
+import { MigrationTest } from '@/components/migration-test';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 
@@ -31,6 +32,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [showMigrationTest, setShowMigrationTest] = useState(false);
   const router = useRouter();
 
 
@@ -275,6 +277,32 @@ export default function DashboardPage() {
               </div>
               <div className="text-lg" style={{ color: 'var(--color-primary)' }}>✓</div>
             </div>
+          </div>
+
+          {/* Migration Test Section (Development Only) */}
+          <div className="mt-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+                Migration Test Suite
+              </h2>
+              <button
+                onClick={() => setShowMigrationTest(!showMigrationTest)}
+                className="text-sm px-3 py-1 rounded-lg border transition-colors"
+                style={{ 
+                  borderColor: 'var(--color-secondary)',
+                  backgroundColor: showMigrationTest ? 'var(--color-primary)' : 'var(--bg-card)',
+                  color: showMigrationTest ? 'white' : 'var(--text-primary)'
+                }}
+              >
+                {showMigrationTest ? 'Hide' : 'Show'} Test Suite
+              </button>
+            </div>
+            
+            {showMigrationTest && (
+              <div className="bg-white rounded-lg border shadow-sm p-6">
+                <MigrationTest user={user} />
+              </div>
+            )}
           </div>
         </div>
 

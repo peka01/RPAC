@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { t } from '@/lib/locales';
 import { RPACLogo } from '@/components/rpac-logo';
+import { MigrationWizard } from '@/components/migration-wizard';
 import { User, LogIn, UserPlus, X, AlertTriangle } from 'lucide-react';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -15,6 +17,8 @@ export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [authenticatedUser, setAuthenticatedUser] = useState<SupabaseUser | null>(null);
+  const [showMigration, setShowMigration] = useState(false);
   const router = useRouter();
 
   // Check if user is already logged in
@@ -22,7 +26,8 @@ export default function LoginPage() {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        router.push('/dashboard');
+        setAuthenticatedUser(user);
+        setShowMigration(true);
       } else {
         setShowModal(true);
       }
@@ -54,7 +59,14 @@ export default function LoginPage() {
         });
         if (error) throw error;
       }
-      router.push('/dashboard');
+      
+      // Get the authenticated user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setAuthenticatedUser(user);
+        setShowMigration(true);
+        setShowModal(false);
+      }
   } catch (err: unknown) {
       const _message = err instanceof Error ? err.message : t('errors.generic_error');
       setError(_message);
@@ -66,17 +78,68 @@ export default function LoginPage() {
   const handleDemoLogin = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      // First try to sign in with demo credentials
+      const { error: signInError } = await supabase.auth.signInWithPassword({
         email: 'demo@rpac.se',
         password: 'demo123'
       });
-      if (error) throw error;
-      router.push('/dashboard');
+      
+      if (signInError) {
+        // If demo user doesn't exist, try to create it
+        console.log('Demo user not found, attempting to create...');
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: 'demo@rpac.se',
+          password: 'demo123',
+          options: {
+            data: {
+              name: 'Demo Användare'
+            }
+          }
+        });
+        
+        if (signUpError) {
+          throw signUpError;
+        }
+        
+        // Wait a moment for user creation, then try to sign in
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const { error: retryError } = await supabase.auth.signInWithPassword({
+          email: 'demo@rpac.se',
+          password: 'demo123'
+        });
+        
+        if (retryError) throw retryError;
+      }
+      
+      // Get the authenticated user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setAuthenticatedUser(user);
+        setShowMigration(true);
+        setShowModal(false);
+      }
     } catch (error) {
-      setError(t('auth.demo_login_failed'));
+      console.error('Demo login error:', error);
+      setError('Demo-inloggning misslyckades. Prova att skapa ett eget konto istället.');
       setLoading(false);
     }
   };
+
+  const handleMigrationComplete = () => {
+    setShowMigration(false);
+    router.push('/dashboard');
+  };
+
+  // Show migration wizard if user is authenticated
+  if (showMigration && authenticatedUser) {
+    return (
+      <MigrationWizard 
+        user={authenticatedUser} 
+        onMigrationComplete={handleMigrationComplete}
+      />
+    );
+  }
 
   // Landing page when not showing modal
   if (!showModal) {
@@ -267,6 +330,10 @@ export default function LoginPage() {
               </>
             )}
           </button>
+          
+          <p className="text-xs text-center mt-2" style={{ color: 'var(--text-tertiary)' }}>
+            Demo-kontot skapas automatiskt om det inte finns
+          </p>
         </div>
 
         {/* Toggle Auth Mode */}

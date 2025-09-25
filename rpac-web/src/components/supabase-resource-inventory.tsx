@@ -107,34 +107,21 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
     try {
       setLoading(true);
       
-      // Use demo mode for all users for now (Supabase has columns= bug)
-      if (true || user.id === 'demo-user') {
-        // Load demo data from localStorage
-        const demoResources = localStorage.getItem('rpac-demo-resources');
-        if (demoResources) {
-          const existingResources = JSON.parse(demoResources);
-          
-          // Check if MSB resources exist, if not, add them
-          const hasMsbResources = existingResources.some((r: any) => r.is_msb_recommended);
-          
-          if (!hasMsbResources) {
-            // Add MSB resources to existing user resources
-            const msbResources = createMsbResources();
-            const combinedResources = [...msbResources, ...existingResources];
-            setResources(combinedResources);
-            localStorage.setItem('rpac-demo-resources', JSON.stringify(combinedResources));
-          } else {
-            setResources(existingResources);
-          }
-        } else {
-          const demoData = createMsbResources();
-          setResources(demoData);
-          localStorage.setItem('rpac-demo-resources', JSON.stringify(demoData));
+      // Load resources from Supabase
+      const data = await resourceService.getResources(user.id);
+      
+      // If no resources exist, initialize with MSB recommendations
+      if (data.length === 0) {
+        const msbResources = createMsbResources();
+        // Save MSB resources to Supabase
+        for (const resource of msbResources) {
+          await resourceService.addResource({
+            ...resource,
+            user_id: user.id
+          });
         }
+        setResources(msbResources);
       } else {
-        // Note: Supabase integration temporarily disabled due to columns= bug
-        
-        const data = await resourceService.getResources(user.id);
         setResources(data);
       }
     } catch (error: unknown) {
@@ -269,44 +256,23 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
       // Calculate automatic shelf life
       const automaticShelfLife = calculateShelfLife(formData.name, formData.category);
       
-      if (true || user.id === 'demo-user') {
-        // Handle demo mode
-        const newResource = {
-          id: `demo-${Date.now()}`,
+      // Handle Supabase mode
+      if (editingResource?.id) {
+        await resourceService.updateResource(editingResource.id, {
+          ...formData,
+          days_remaining: automaticShelfLife,
+          updated_at: new Date().toISOString()
+        });
+        setEditingResource(null);
+      } else {
+        const resourceData = {
           user_id: user.id,
           ...formData,
-          days_remaining: automaticShelfLife, // Use calculated shelf life
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          days_remaining: automaticShelfLife
         };
-
-        if (editingResource) {
-          const updatedResources = resources.map(r => 
-            r.id === editingResource.id ? { ...r, ...formData, days_remaining: automaticShelfLife, updated_at: new Date().toISOString() } : r
-          );
-          setResources(updatedResources);
-          localStorage.setItem('rpac-demo-resources', JSON.stringify(updatedResources));
-          setEditingResource(null);
-        } else {
-          const updatedResources = [...resources, newResource];
-          setResources(updatedResources);
-          localStorage.setItem('rpac-demo-resources', JSON.stringify(updatedResources));
-        }
-      } else {
-        // Handle real Supabase mode
-        if (editingResource?.id) {
-          await resourceService.updateResource(editingResource!.id, formData);
-          setEditingResource(null);
-        } else {
-          // Note: Supabase addResource disabled due to columns= bug
-          const resourceData = {
-            user_id: user.id,
-            ...formData
-          };
-          await resourceService.addResource(resourceData);
-        }
-        loadResources();
+        await resourceService.addResource(resourceData);
       }
+      loadResources();
 
       setFormData({
         name: '',
@@ -338,7 +304,7 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
       setError(null);
       
       // Get family size from user profile (default to 1 if not available)
-      const familySize = userProfile?.family_size || 1;
+      const familySize = userProfile?.household_size || 1;
       
       // Calculate automatic shelf life for this resource
       const automaticShelfLife = calculateShelfLife(resource.name, resource.category);
@@ -363,12 +329,9 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
         updated_at: new Date().toISOString()
       };
       
-      // Handle demo mode
-      const updatedResources = resources.map(r => 
-        r.id === resource.id ? { ...r, ...defaultValues } : r
-      );
-      setResources(updatedResources);
-      localStorage.setItem('rpac-demo-resources', JSON.stringify(updatedResources));
+      // Handle Supabase mode
+      await resourceService.updateResource(resource.id, defaultValues);
+      loadResources();
     } catch (err) {
       console.error('Error quick filling resource:', err);
       setError(t('resources.error_occurred'));
@@ -379,27 +342,17 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
     try {
       if (isMsbRecommended) {
         // For MSB resources, mark as empty instead of deleting
-        const updatedResources = resources.map(r => 
-          r.id === id ? { 
-            ...r, 
-            quantity: 0, 
-            days_remaining: 0, 
-            is_filled: false,
-            updated_at: new Date().toISOString() 
-          } : r
-        );
-        setResources(updatedResources);
-        localStorage.setItem('rpac-demo-resources', JSON.stringify(updatedResources));
+        await resourceService.updateResource(id, {
+          quantity: 0,
+          days_remaining: 0,
+          is_filled: false,
+          updated_at: new Date().toISOString()
+        });
+        loadResources();
       } else if (confirm(t('resources.confirm_delete'))) {
         // For user resources, delete completely
-        if (true || user.id === 'demo-user') {
-          const updatedResources = resources.filter(r => r.id !== id);
-        setResources(updatedResources);
-        localStorage.setItem('rpac-demo-resources', JSON.stringify(updatedResources));
-      } else {
         await resourceService.deleteResource(id);
         loadResources();
-        }
       }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : t('resources.error_occurred'));
@@ -535,8 +488,16 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
             </h3>
           </div>
           <button
-            onClick={() => {
-              localStorage.removeItem('rpac-demo-resources');
+            onClick={async () => {
+              // Reset all resources to empty state
+              for (const resource of resources) {
+                await resourceService.updateResource(resource.id, {
+                  quantity: 0,
+                  days_remaining: 0,
+                  is_filled: false,
+                  updated_at: new Date().toISOString()
+                });
+              }
               loadResources();
             }}
             className="text-xs px-3 py-1 rounded border transition-colors hover:bg-white/20"
@@ -551,13 +512,13 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
         <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
           {t('msb.basic_supplies.description')} {t('resources.msb_supplies_description')}
         </p>
-        {userProfile?.family_size && userProfile.family_size > 1 && (
+        {userProfile?.household_size && userProfile.household_size > 1 && (
           <p className="text-xs mt-2 px-3 py-2 rounded-lg" style={{ 
             backgroundColor: 'var(--color-sage)10',
             color: 'var(--color-sage)',
             border: '1px solid var(--color-sage)30'
           }}>
-            💡 {t('resources.family_scaling_note').replace('{familySize}', userProfile.family_size.toString())}
+            💡 {t('resources.family_scaling_note').replace('{familySize}', userProfile.household_size.toString())}
           </p>
         )}
       </div>

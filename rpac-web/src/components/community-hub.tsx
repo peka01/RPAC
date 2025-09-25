@@ -67,85 +67,29 @@ export function CommunityHub({ user }: CommunityHubProps) {
     location: ''
   });
 
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      
+      // Load data from Supabase
+      const [communitiesData, resourcesData, requestsData] = await Promise.all([
+        communityService.getCommunities(),
+        resourceSharingService.getSharedResources(),
+        helpRequestService.getHelpRequests()
+      ]);
+      
+      setCommunities(communitiesData);
+      setSharedResources(resourcesData);
+      setHelpRequests(requestsData);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'Ett oväntat fel inträffade');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    let mounted = true;
-    
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        
-        // Check if this is a demo user
-        if (true || user.id === 'demo-user') {
-          // Load demo data from localStorage (persist between reloads)
-          const savedCommunities = localStorage.getItem('rpac-demo-communities');
-          const demoCommunities: LocalCommunity[] = savedCommunities ? JSON.parse(savedCommunities) : [
-            {
-              id: 'demo-comm-1',
-              user_id: 'demo-user',
-              community_name: 'Demo Samhälle',
-              location: 'Stockholm',
-              description: 'Ett demo-samhälle för testning',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            }
-          ];
-          if (!savedCommunities) {
-            localStorage.setItem('rpac-demo-communities', JSON.stringify(demoCommunities));
-          }
-
-          const savedRequests = localStorage.getItem('rpac-demo-requests');
-          const demoRequests: HelpRequest[] = savedRequests ? JSON.parse(savedRequests) : [
-            {
-              id: 'demo-req-1',
-              user_id: 'demo-user',
-              title: 'Behöver hjälp med mat',
-              description: 'Behöver akut hjälp med mat för familjen',
-              category: 'food' as const,
-              urgency: 'high' as const,
-              location: 'Stockholm',
-              status: 'open' as const,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            }
-          ];
-          if (!savedRequests) {
-            localStorage.setItem('rpac-demo-requests', JSON.stringify(demoRequests));
-          }
-
-          if (mounted) {
-            setCommunities(demoCommunities);
-            setSharedResources([]);
-            setHelpRequests(demoRequests);
-          }
-        } else {
-          const [communitiesData, resourcesData, requestsData] = await Promise.all([
-            communityService.getCommunities(),
-            resourceSharingService.getSharedResources(),
-            helpRequestService.getHelpRequests()
-          ]);
-          
-          if (mounted) {
-            setCommunities(communitiesData);
-            setSharedResources(resourcesData);
-            setHelpRequests(requestsData);
-          }
-        }
-      } catch (error: unknown) {
-        if (mounted) {
-          setError(error instanceof Error ? error.message : 'Ett oväntat fel inträffade');
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-
     loadData();
-
-    return () => {
-      mounted = false;
-    };
   }, [user.id]);
 
 
@@ -154,29 +98,11 @@ export function CommunityHub({ user }: CommunityHubProps) {
     setError(null);
 
     try {
-      // Use demo mode for all users (Supabase has columns= bug)
-      if (true || user.id === 'demo-user') {
-        // Persist to localStorage and update state
-        const newCommunity: LocalCommunity = {
-          id: `demo-comm-${Date.now()}`,
-          user_id: user?.id || 'demo-user',
-          community_name: communityForm.community_name,
-          location: communityForm.location,
-          description: communityForm.description,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-        const saved = localStorage.getItem('rpac-demo-communities');
-        const list: LocalCommunity[] = saved ? JSON.parse(saved) : [];
-        const updated = [newCommunity, ...list];
-        localStorage.setItem('rpac-demo-communities', JSON.stringify(updated));
-        setCommunities(updated);
-      } else {
-        await communityService.createCommunity({
-          ...communityForm,
-          user_id: user.id
-        });
-      }
+      await communityService.createCommunity({
+        ...communityForm,
+        user_id: user.id
+      });
+      loadData();
 
       setCommunityForm({ community_name: '', location: '', description: '' });
       setShowCreateCommunity(false);
@@ -191,33 +117,12 @@ export function CommunityHub({ user }: CommunityHubProps) {
     setError(null);
 
     try {
-      // Use demo mode for all users (Supabase has columns= bug)
-      if (true || user.id === 'demo-user') {
-        // Persist to localStorage and update state
-        const newRequest: HelpRequest = {
-          id: `demo-req-${Date.now()}`,
-          user_id: user?.id || 'demo-user',
-          title: requestForm.title,
-          description: requestForm.description,
-          category: requestForm.category,
-          urgency: requestForm.urgency,
-          location: requestForm.location,
-          status: 'open',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        } as HelpRequest;
-        const saved = localStorage.getItem('rpac-demo-requests');
-        const list: HelpRequest[] = saved ? JSON.parse(saved) : [];
-        const updated = [newRequest, ...list];
-        localStorage.setItem('rpac-demo-requests', JSON.stringify(updated));
-        setHelpRequests(updated);
-      } else {
-        await helpRequestService.createHelpRequest({
-          ...requestForm,
-          user_id: user.id,
-          status: 'open'
-        });
-      }
+      await helpRequestService.createHelpRequest({
+        ...requestForm,
+        user_id: user.id,
+        status: 'open'
+      });
+      loadData();
 
       setRequestForm({
         title: '',

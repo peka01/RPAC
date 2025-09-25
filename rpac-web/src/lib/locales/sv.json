@@ -353,7 +353,7 @@
     "help_when_needed": "Hjälp när det behövs"
   },
   "resources": {
-    "storage_title": "Resurslager",
+    "storage_title": "Dina resurser",
     "registered_units": "resurser",
     "edit_resource": "Redigera resurs",
     "add_new_resource": "Lägg till ny resurs",
@@ -702,6 +702,35 @@
       "pet_medication_storage_description": "Ha alltid minst en veckas förbrukning av djurens mediciner hemma",
       "pet_food_storage": "Lagring av djurmat",
       "pet_food_storage_description": "Ha alltid minst en veckas djurmat hemma, lagrad på ett torrt och svalt ställe"
+    }
+  },
+  "migration": {
+    "title": "Datamigrering till Supabase",
+    "description": "Vi migrerar din data från lokal lagring till vår säkra databas för bättre prestanda och tillgänglighet.",
+    "status_title": "Migrering krävs",
+    "status_description": "Vi har upptäckt att du har data i lokal lagring som behöver migreras till vår nya databas.",
+    "progress_title": "Migreringsframsteg",
+    "current_step": "Bearbetar...",
+    "start_migration": "Starta migrering",
+    "skip": "Hoppa över",
+    "migrating": "Migrerar data...",
+    "complete": "Migrering klar",
+    "info": "Din data kommer att vara säker och tillgänglig på alla dina enheter efter migreringen.",
+    "success": "Migrering slutförd framgångsrikt!",
+    "error": "Ett fel uppstod under migreringen. Försök igen eller kontakta support.",
+    "steps": {
+      "user_profile": "Användarprofil",
+      "resources": "Resursinventering", 
+      "cultivation": "Odlingsdata",
+      "community": "Samhällsdata",
+      "cleanup": "Rensning"
+    },
+    "descriptions": {
+      "user_profile": "Migrerar din profil och inställningar",
+      "resources": "Överför resursinventering och MSB-rekommendationer",
+      "cultivation": "Migrerar odlingskalender och påminnelser",
+      "community": "Överför samhällsdata och hjälpförfrågningar",
+      "cleanup": "Rensar lokal data efter lyckad migrering"
     }
   }
 }

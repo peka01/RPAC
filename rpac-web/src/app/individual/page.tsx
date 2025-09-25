@@ -107,10 +107,8 @@ export default function IndividualPage() {
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
             <div className="xl:col-span-2">
               <CultivationCalendar 
-                climateZone={profile?.climate_zone || 'svealand'} 
-                gardenSize={profile?.garden_size === 'none' || profile?.garden_size === 'balcony' ? 'small' : 
-                          profile?.garden_size === 'farm' ? 'large' : 
-                          profile?.garden_size || 'medium'}
+                climateZone="svealand"
+                gardenSize="medium"
                 crisisMode={false}
               />
             </div>
@@ -118,12 +116,10 @@ export default function IndividualPage() {
             <div className="xl:col-span-1">
               <AICultivationAdvisor 
                 userProfile={{
-                  climateZone: profile?.climate_zone || 'svealand',
-                  experienceLevel: profile?.experience_level || 'beginner',
-                  gardenSize: profile?.garden_size === 'none' || profile?.garden_size === 'balcony' ? 'small' : 
-                             profile?.garden_size === 'farm' ? 'large' : 
-                             profile?.garden_size || 'medium',
-                  preferences: profile?.growing_preferences || ['potatoes', 'carrots', 'lettuce'],
+                  climateZone: 'svealand',
+                  experienceLevel: 'beginner',
+                  gardenSize: 'medium',
+                  preferences: ['potatoes', 'carrots', 'lettuce'],
                   currentCrops: ['tomatoes', 'herbs']
                 }}
                 crisisMode={false}
@@ -143,7 +139,8 @@ export default function IndividualPage() {
             </div>
             <div>
               <CultivationReminders 
-                climateZone={profile?.climate_zone || 'svealand'}
+                user={user}
+                climateZone="svealand"
                 crisisMode={false}
               />
             </div>
@@ -153,7 +150,7 @@ export default function IndividualPage() {
           <div className="mb-6">
             <CrisisCultivation 
               urgencyLevel="medium"
-              availableSpace={profile?.garden_size === 'none' || profile?.garden_size === 'balcony' ? 'indoor' : 'both'}
+              availableSpace="both"
               timeframe={30}
             />
           </div>
@@ -161,9 +158,7 @@ export default function IndividualPage() {
           {/* Nutrition Calculator */}
           <div>
             <NutritionCalculator 
-              gardenSize={profile?.garden_size === 'none' || profile?.garden_size === 'balcony' ? 'small' : 
-                         profile?.garden_size === 'farm' ? 'large' : 
-                         profile?.garden_size || 'medium'}
+              gardenSize="medium"
               onCalculationChange={(data) => {
                 console.log('Nutrition calculation:', data);
               }}

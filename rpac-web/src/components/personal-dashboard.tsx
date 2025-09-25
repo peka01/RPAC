@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { useUserProfile } from '@/lib/useUserProfile';
+import { resourceService } from '@/lib/supabase';
 
 interface PreparednessScore {
   overall: number;
@@ -79,9 +80,11 @@ export function PersonalDashboard({ user }: PersonalDashboardProps = {}) {
 
   // Calculate preparedness score and generate insights
   useEffect(() => {
-    const savedResources = localStorage.getItem('rpac-resources');
-    if (savedResources) {
-      const resources = JSON.parse(savedResources);
+    const loadResourcesAndCalculate = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const resources = await resourceService.getResources(user.id);
       const newAlerts: string[] = [];
       const newQuickActions: QuickAction[] = [];
       
@@ -168,7 +171,7 @@ export function PersonalDashboard({ user }: PersonalDashboardProps = {}) {
       });
 
       // Calculate overall score, excluding pet_supplies if user has no pets
-      const categoriesToInclude = profile?.pets && profile.pets.length > 0 
+      const categoriesToInclude = profile?.has_pets 
         ? categoryConfig 
         : categoryConfig.filter(cat => cat.key !== 'pet_supplies');
       
@@ -187,15 +190,20 @@ export function PersonalDashboard({ user }: PersonalDashboardProps = {}) {
       });
       
       // Only include pet_supplies category if user has pets
-      const filteredCategories = profile?.pets && profile.pets.length > 0 
+      const filteredCategories = profile?.has_pets 
         ? categories 
         : categories.filter(cat => cat.name !== 'Djurförnödenheter');
       
-      setResourceCategories(filteredCategories);
-      setCriticalAlerts(newAlerts);
-      setQuickActions(newQuickActions.slice(0, 3)); // Show top 3 actions
-    }
-  }, [profile]);
+        setResourceCategories(filteredCategories);
+        setCriticalAlerts(newAlerts);
+        setQuickActions(newQuickActions.slice(0, 3)); // Show top 3 actions
+      } catch (error) {
+        console.error('Error loading resources for dashboard:', error);
+      }
+    };
+
+    loadResourcesAndCalculate();
+  }, [profile, user?.id]);
 
   const getScoreColor = (score: number) => {
     if (score === 0) return '#6b7280'; // gray-500 for loading state
@@ -363,7 +371,7 @@ export function PersonalDashboard({ user }: PersonalDashboardProps = {}) {
       )}
 
       {/* Pet Preparedness Section - Only show if user has pets */}
-      {profile?.pets && profile.pets.length > 0 && (
+      {profile?.has_pets && (
         <div className="bg-white rounded-xl p-6 shadow-sm border">
           <div className="flex items-center mb-4">
             <Heart className="w-5 h-5 mr-2" style={{ color: 'var(--color-crisis-orange)' }} />
@@ -419,19 +427,19 @@ export function PersonalDashboard({ user }: PersonalDashboardProps = {}) {
             <div className="flex items-center justify-between">
               <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('individual.family_members')}</span>
               <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                {profile?.family_size || 1} {t('individual.people_count')}
+                {profile?.household_size || 1} {t('individual.people_count')}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('individual.pets')}</span>
               <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                {profile?.pets?.length || 0} {t('individual.animals')}
+                {profile?.pet_types || t('individual.no_pets')}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('individual.medications')}</span>
-              <span className="text-sm font-medium" style={{ color: profile?.medications?.length ? 'var(--color-crisis-green)' : 'var(--color-crisis-orange)' }}>
-                {profile?.medications?.length ? t('individual.updated') : t('individual.needs_registration')}
+              <span className="text-sm font-medium" style={{ color: profile?.medications ? 'var(--color-crisis-green)' : 'var(--color-crisis-orange)' }}>
+                {profile?.medications ? t('individual.updated') : t('individual.needs_registration')}
               </span>
             </div>
             <div className="flex items-center justify-between">
@@ -454,26 +462,26 @@ export function PersonalDashboard({ user }: PersonalDashboardProps = {}) {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('individual.evacuation_plan')}</span>
-              <span className="text-sm font-medium" style={{ color: profile?.evacuation_plan?.meeting_point ? 'var(--color-crisis-green)' : 'var(--color-crisis-orange)' }}>
-                {profile?.evacuation_plan?.meeting_point ? `✓ ${t('individual.ready')}` : t('individual.needs_planning')}
+              <span className="text-sm font-medium" style={{ color: 'var(--color-crisis-orange)' }}>
+                {t('individual.needs_planning')}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('individual.meeting_point')}</span>
-              <span className="text-sm font-medium" style={{ color: profile?.evacuation_plan?.meeting_point ? 'var(--color-crisis-green)' : 'var(--color-crisis-orange)' }}>
-                {profile?.evacuation_plan?.meeting_point ? `✓ ${t('individual.selected')}` : t('individual.needs_selection')}
+              <span className="text-sm font-medium" style={{ color: 'var(--color-crisis-orange)' }}>
+                {t('individual.needs_selection')}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('individual.communication_plan')}</span>
-              <span className="text-sm font-medium" style={{ color: profile?.evacuation_plan?.communication_plan ? 'var(--color-crisis-green)' : 'var(--color-crisis-orange)' }}>
-                {profile?.evacuation_plan?.communication_plan ? `✓ ${t('individual.updated_status')}` : t('individual.needs_update')}
+              <span className="text-sm font-medium" style={{ color: 'var(--color-crisis-orange)' }}>
+                {t('individual.needs_update')}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('individual.emergency_contacts')}</span>
-              <span className="text-sm font-medium" style={{ color: profile?.emergency_contacts?.length ? 'var(--color-crisis-green)' : 'var(--color-crisis-orange)' }}>
-                {profile?.emergency_contacts?.length ? `✓ ${profile.emergency_contacts.length} ${t('individual.saved')}` : t('individual.needs_addition')}
+              <span className="text-sm font-medium" style={{ color: 'var(--color-crisis-orange)' }}>
+                {t('individual.needs_addition')}
               </span>
         </div>
       </div>
