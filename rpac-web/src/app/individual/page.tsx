@@ -12,9 +12,6 @@ export default function IndividualPage() {
           <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
             {t('individual.title')}
           </h1>
-          <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-            {t('individual.manage_resources')}
-          </p>
         </div>
 
       {/* Personal Dashboard */}

@@ -54,9 +54,6 @@ export default function RegionalPage() {
           <h1 className="text-3xl font-bold mb-2 text-gray-800">
             {t('regional.title')}
           </h1>
-          <p className="text-lg text-gray-600">
-            {t('regional.subtitle')}
-          </p>
         </div>
 
       {/* Regional Status Cards */}

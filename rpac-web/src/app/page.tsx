@@ -87,12 +87,9 @@ export default function LoginPage() {
             <div className="flex justify-center mb-4">
               <RPACLogo size="xl" />
             </div>
-            <h2 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+            <h2 className="text-3xl font-bold mb-8" style={{ color: 'var(--text-primary)' }}>
               {t('dashboard.title')}
             </h2>
-            <p className="text-lg mb-8" style={{ color: 'var(--text-secondary)' }}>
-              {t('dashboard.subtitle')}
-            </p>
             <button
               onClick={() => setShowModal(true)}
               className="modern-button flex items-center space-x-2 px-6 py-3 text-white mx-auto"

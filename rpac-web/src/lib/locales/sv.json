@@ -8,7 +8,7 @@
     "sign_out": "Logga ut",
     "descriptions": {
       "operational_status": "Status",
-      "individual_preparedness": "Mitt hem",
+      "individual_preparedness": "Mitt hem och mina resurser",
       "community_resources": "Mitt närområde",
       "regional_coordination": "Utanför närområdet"
     },
@@ -20,13 +20,12 @@
     }
   },
   "individual": {
-    "title": "Mitt hem och mina saker",
+    "title": "Mitt hem och mina resurser",
     "plant_diagnosis": "Växtdiagnos & Hälsa",
     "guides": "Steg-för-steg guider",
     "guides_description": "Steg-för-steg guider för krisberedskap",
     "personal_coach": "Min hjälpare",
     "coach_description": "AI-driven personlig beredskapscoach",
-    "manage_resources": "Ta hand om ditt hem och dina saker",
     "basic_preparedness": "📚 Grundläggande förberedelser",
     "gardening_guide": "🌱 Odlingsguide för nybörjare",
     "home_defense": "🏠 Hemtrygghet och säkerhet",
@@ -102,12 +101,10 @@
     "starting": "Startar..."
   },
   "local_community": {
-    "title": "Mitt närområde",
-    "subtitle": "Samarbeta med dina grannar för att hjälpa varandra och dela saker"
+    "title": "Mitt närområde"
   },
   "regional": {
     "title": "Regional översikt",
-    "subtitle": "Regional samordning och krisberedskap",
     "active_communities": "Aktiva samhällen",
     "registered_communities": "Registrerade lokala samhällen",
     "active_users": "Aktiva användare",
@@ -130,7 +127,6 @@
   },
   "dashboard": {
     "title": "BEREDD",
-    "subtitle": "Din trygga grund",
     "good_evening": "God kväll",
     "good_night": "God natt",
     "good_morning": "God morgon",

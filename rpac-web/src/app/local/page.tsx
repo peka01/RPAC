@@ -55,9 +55,6 @@ export default function LocalPage() {
           <h1 className="text-3xl font-bold mb-2 text-gray-800">
             {t('local_community.title')}
           </h1>
-          <p className="text-lg text-gray-600">
-            {t('local_community.subtitle')}
-          </p>
         </div>
 
         <div className="modern-card">
