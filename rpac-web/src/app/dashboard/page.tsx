@@ -13,8 +13,6 @@ import {
   Sun,
   Moon,
   CheckCircle,
-  AlertTriangle,
-  TrendingUp,
   Smile,
   Wind,
   Droplets
@@ -33,7 +31,6 @@ export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [stressLevel, setStressLevel] = useState<'calm' | 'moderate' | 'stressed'>('calm');
   const [communityHeartbeat, setCommunityHeartbeat] = useState(87); // Community health percentage
   const router = useRouter();
 
@@ -136,94 +133,9 @@ export default function DashboardPage() {
   return (
     <div className="relative" style={{ background: 'var(--bg-primary)' }}>
       <div className="max-w-7xl mx-auto px-6 py-6">
-        {/* Operational Mode Selector - moved to top */}
-        <div className="mb-6">
-          <div className="grid grid-cols-3 gap-2">
-            <button 
-              onClick={() => setStressLevel('calm')}
-              className={`p-3 rounded-lg transition-all duration-300 border ${
-                stressLevel === 'calm' 
-                  ? 'border-2 shadow-md' 
-                  : 'border hover:border-gray-300'
-              }`}
-              style={{
-                backgroundColor: stressLevel === 'calm' ? 'rgba(135, 169, 107, 0.15)' : 'var(--bg-card)',
-                borderColor: stressLevel === 'calm' ? 'var(--color-sage)' : 'var(--color-muted)',
-              }}
-            >
-              <CheckCircle className={`w-5 h-5 mx-auto mb-1`} style={{ 
-                color: stressLevel === 'calm' ? 'var(--color-sage)' : 'var(--color-muted)' 
-              }} />
-              <div className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{t('dashboard.mode_standard')}</div>
-            </button>
-            
-            <button 
-              onClick={() => setStressLevel('moderate')}
-              className={`p-3 rounded-lg transition-all duration-300 border ${
-                stressLevel === 'moderate' 
-                  ? 'border-2 shadow-md' 
-                  : 'border hover:border-gray-300'
-              }`}
-              style={{
-                backgroundColor: stressLevel === 'moderate' ? 'rgba(139, 132, 78, 0.15)' : 'var(--bg-card)',
-                borderColor: stressLevel === 'moderate' ? 'var(--color-khaki)' : 'var(--color-muted)',
-              }}
-            >
-              <TrendingUp className={`w-5 h-5 mx-auto mb-1`} style={{ 
-                color: stressLevel === 'moderate' ? 'var(--color-khaki)' : 'var(--color-muted)' 
-              }} />
-              <div className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{t('dashboard.mode_focused')}</div>
-            </button>
-            
-            <button 
-              onClick={() => setStressLevel('stressed')}
-              className={`p-3 rounded-lg transition-all duration-300 border ${
-                stressLevel === 'stressed' 
-                  ? 'border-2 shadow-md' 
-                  : 'border hover:border-gray-300'
-              }`}
-              style={{
-                backgroundColor: stressLevel === 'stressed' ? 'rgba(184, 134, 11, 0.15)' : 'var(--bg-card)',
-                borderColor: stressLevel === 'stressed' ? 'var(--color-warning)' : 'var(--color-muted)',
-              }}
-            >
-              <AlertTriangle className={`w-5 h-5 mx-auto mb-1`} style={{ 
-                color: stressLevel === 'stressed' ? 'var(--color-warning)' : 'var(--color-muted)' 
-              }} />
-              <div className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{t('dashboard.mode_crisis')}</div>
-            </button>
-          </div>
-        </div>
 
         {/* Dashboard Content */}
         <div className="space-y-6">
-          {/* Professional Crisis Support Mode */}
-          {stressLevel === 'stressed' && (
-            <div className="mb-6 rounded-lg p-4 border shadow-md" style={{ 
-              backgroundColor: 'rgba(139, 69, 19, 0.05)', 
-              borderColor: 'var(--color-danger)' 
-            }}>
-              <div className="flex items-center space-x-3 mb-3">
-                <Shield className="w-5 h-5" style={{ color: 'var(--color-danger)' }} />
-                <h2 className="text-lg font-bold" style={{ color: 'var(--color-danger)' }}>{t('dashboard.crisis_support_active')}</h2>
-              </div>
-              <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>{t('dashboard.priority_actions_description')}</p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <button className="px-4 py-2 rounded-lg font-semibold text-white text-sm transition-colors" 
-                        style={{ background: 'linear-gradient(135deg, var(--color-danger) 0%, #7A3D10 100%)' }}>
-                  {t('dashboard.breathing_technique')}
-                </button>
-                <button className="px-4 py-2 rounded-lg font-semibold text-white text-sm transition-colors"
-                        style={{ background: 'linear-gradient(135deg, var(--color-danger) 0%, #7A3D10 100%)' }}>
-                  {t('dashboard.contact_network')}
-                </button>
-                <button className="px-4 py-2 rounded-lg font-semibold text-white text-sm transition-colors"
-                        style={{ background: 'linear-gradient(135deg, var(--color-danger) 0%, #7A3D10 100%)' }}>
-                  {t('dashboard.crisis_checklist')}
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Professional Information Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
@@ -299,33 +211,28 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Stress-Adaptive Layout - Simplified when stressed */}
-          {stressLevel !== 'stressed' && (
-            <>
-              {/* Advanced Communication Hub - Enhanced & Resizable */}
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
-                <div className="xl:col-span-1">
-                  {user && <MessagingSystem user={user} communityId="demo-community-1" />}
-                </div>
-                <div className="xl:col-span-1">
-                  <ExternalCommunication />
-                </div>
-              </div>
+          {/* Advanced Communication Hub - Enhanced & Resizable */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+            <div className="xl:col-span-1">
+              {user && <MessagingSystem user={user} communityId="demo-community-1" />}
+            </div>
+            <div className="xl:col-span-1">
+              <ExternalCommunication />
+            </div>
+          </div>
 
-              {/* Resource Excellence */}
-              {user && (
-                <div className="mb-6">
-                  <SupabaseResourceInventory user={user} />
-                </div>
-              )}
+          {/* Resource Excellence */}
+          {user && (
+            <div className="mb-6">
+              <SupabaseResourceInventory user={user} />
+            </div>
+          )}
 
-              {/* Community Psychology Integration */}
-              {user && (
-                <div className="mb-6">
-                  <CommunityHub user={user} />
-                </div>
-              )}
-            </>
+          {/* Community Psychology Integration */}
+          {user && (
+            <div className="mb-6">
+              <CommunityHub user={user} />
+            </div>
           )}
 
           {/* Always Show - Core Preparedness (Crisis-Ready) */}
