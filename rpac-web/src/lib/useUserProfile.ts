@@ -12,6 +12,20 @@ export interface UserProfile {
   garden_size: 'none' | 'balcony' | 'small' | 'medium' | 'large' | 'farm';
   growing_preferences: string[];
   location_privacy: 'full' | 'county_only' | 'climate_zone_only';
+  family_size: number; // Number of family members for MSB calculations
+  pets?: string[]; // List of pets
+  medications?: string[]; // List of medications
+  special_needs?: string[]; // Special needs or requirements
+  emergency_contacts?: Array<{
+    name: string;
+    phone: string;
+    relationship: string;
+  }>;
+  evacuation_plan?: {
+    meeting_point: string;
+    communication_plan: string;
+    emergency_kit_location: string;
+  };
   created_at: Date;
   updated_at: Date;
 }
@@ -51,7 +65,9 @@ export function useUserProfile(user: User | null) {
     experience_level: 'beginner',
     garden_size: 'medium',
     growing_preferences: ['potatoes', 'carrots', 'lettuce'],
-    location_privacy: 'county_only'
+    location_privacy: 'county_only',
+    family_size: 1,
+    pets: []
   });
 
   useEffect(() => {

@@ -204,20 +204,20 @@ export default function DashboardPage() {
                 </div>
                 <div className="text-right">
                   <div className="text-lg font-bold" style={{ color: 'var(--color-khaki)' }}>68%</div>
-                  <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Självförsörjning</div>
+                  <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{t('dashboard.self_sufficiency')}</div>
                 </div>
               </div>
               <h3 className="text-sm font-bold mb-2" style={{ color: 'var(--text-primary)' }}>{t('dashboard.cultivation_plan')}</h3>
-              <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>Kalorier: 1,850/dag • Skörd: 3 veckor • Näring: Optimal</p>
+              <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>{t('dashboard.cultivation_details')}</p>
               <div className="flex justify-between items-center">
                 <div className="flex space-x-2 flex-1">
                   <div className="flex-1 rounded-full h-2" style={{ backgroundColor: 'rgba(160, 142, 90, 0.2)' }}>
                     <div className="h-2 rounded-full" style={{ width: '68%', backgroundColor: 'var(--color-khaki)' }}></div>
                   </div>
-                  <span className="text-xs font-semibold" style={{ color: 'var(--color-khaki)' }}>God nivå</span>
+                  <span className="text-xs font-semibold" style={{ color: 'var(--color-khaki)' }}>{t('dashboard.good_level')}</span>
                 </div>
                 <span className="text-xs ml-2 group-hover:underline" style={{ color: 'var(--color-khaki)' }}>
-                  Hantera →
+                  {t('dashboard.manage')}
                 </span>
               </div>
             </div>

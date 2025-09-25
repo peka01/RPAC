@@ -42,7 +42,7 @@ export default function IndividualPage() {
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto mb-4" 
                style={{ borderColor: 'var(--color-sage)' }}></div>
-          <p style={{ color: 'var(--text-secondary)' }}>Laddar din personliga profil...</p>
+          <p style={{ color: 'var(--text-secondary)' }}>{t('individual.loading_profile')}</p>
         </div>
       </div>
     );
@@ -52,7 +52,7 @@ export default function IndividualPage() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
         <div className="text-center">
-          <p style={{ color: 'var(--text-secondary)' }}>Du måste vara inloggad för att komma åt din personliga sida.</p>
+          <p style={{ color: 'var(--text-secondary)' }}>{t('individual.login_required')}</p>
         </div>
       </div>
     );
@@ -67,7 +67,7 @@ export default function IndividualPage() {
             {t('individual.title')}
           </h1>
           <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-            Din personliga odlings- och beredskapscentral
+            {t('individual.subtitle')}
           </p>
         </div>
 
@@ -75,17 +75,17 @@ export default function IndividualPage() {
         {/* Hemöversikt - Personal Dashboard at Top */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
-            🏠 Hemöversikt
+            {t('individual.home_overview')}
           </h2>
           <div className="modern-card">
-            <PersonalDashboard />
+            <PersonalDashboard user={user} />
           </div>
         </div>
 
         {/* Personal Resources & Tools */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
-            🛠️ Personliga Resurser & Verktyg
+            {t('individual.personal_resources')}
           </h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="modern-card">
@@ -100,7 +100,7 @@ export default function IndividualPage() {
         {/* Cultivation Section */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
-            🌱 Odlings- och Planeringscentral
+            {t('individual.cultivation_planning')}
           </h2>
           
           {/* Cultivation Calendar & AI Advisor */}
@@ -174,7 +174,7 @@ export default function IndividualPage() {
         {/* Guides & Personal Development */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
-            📚 Guider & Personlig Utveckling
+            {t('individual.guides_development')}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="crisis-card">

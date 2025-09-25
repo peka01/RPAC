@@ -10,9 +10,24 @@ import {
   Target,
   Heart,
   Radio,
-  Smartphone
+  Smartphone,
+  Home,
+  Users,
+  Clock,
+  Zap,
+  Droplets,
+  Utensils,
+  Pill,
+  Wrench,
+  Phone,
+  MapPin,
+  MessageCircle,
+  ArrowRight,
+  Plus,
+  Eye
 } from 'lucide-react';
 import { t } from '@/lib/locales';
+import { useUserProfile } from '@/lib/useUserProfile';
 
 interface PreparednessScore {
   overall: number;
@@ -21,9 +36,33 @@ interface PreparednessScore {
   medicine: number;
   energy: number;
   tools: number;
+  pet_supplies: number;
 }
 
-export function PersonalDashboard() {
+interface ResourceCategory {
+  name: string;
+  icon: any;
+  score: number;
+  daysRemaining: number;
+  status: 'excellent' | 'good' | 'fair' | 'poor' | 'critical';
+  needsAttention: boolean;
+}
+
+interface QuickAction {
+  title: string;
+  description: string;
+  icon: any;
+  color: string;
+  urgent: boolean;
+}
+
+interface PersonalDashboardProps {
+  user?: { id: string } | null;
+}
+
+export function PersonalDashboard({ user }: PersonalDashboardProps = {}) {
+  const { profile } = useUserProfile(user as any);
+  
   const [score, setScore] = useState<PreparednessScore>({
     overall: 0,
     food: 0,
@@ -31,40 +70,110 @@ export function PersonalDashboard() {
     medicine: 0,
     energy: 0,
     tools: 0,
+    pet_supplies: 0,
   });
 
-  const [alerts, setAlerts] = useState<string[]>([]);
+  const [resourceCategories, setResourceCategories] = useState<ResourceCategory[]>([]);
+  const [criticalAlerts, setCriticalAlerts] = useState<string[]>([]);
+  const [quickActions, setQuickActions] = useState<QuickAction[]>([]);
 
-  // Calculate preparedness score based on resources
+  // Calculate preparedness score and generate insights
   useEffect(() => {
     const savedResources = localStorage.getItem('rpac-resources');
     if (savedResources) {
       const resources = JSON.parse(savedResources);
       const newAlerts: string[] = [];
+      const newQuickActions: QuickAction[] = [];
       
-      // Calculate scores for each category
-      const categories = ['food', 'water', 'medicine', 'energy', 'tools'];
+      // Define resource categories with icons and thresholds
+      const categoryConfig = [
+        { key: 'food', name: 'Mat', icon: Utensils, threshold: 7 },
+        { key: 'water', name: 'Vatten', icon: Droplets, threshold: 3 },
+        { key: 'medicine', name: 'Mediciner', icon: Pill, threshold: 14 },
+        { key: 'energy', name: 'Energi', icon: Zap, threshold: 3 },
+        { key: 'tools', name: 'Verktyg', icon: Wrench, threshold: 30 },
+        { key: 'pet_supplies', name: 'Djurförnödenheter', icon: Heart, threshold: 7 }
+      ];
+
+      const categories: ResourceCategory[] = [];
       const categoryScores: Record<string, number> = {};
       
-      categories.forEach(category => {
-        const categoryResources = resources.filter((r: { category: string }) => r.category === category);
+      categoryConfig.forEach(config => {
+        const categoryResources = resources.filter((r: { category: string }) => r.category === config.key);
+        let avgDays = 0;
+        let status: 'excellent' | 'good' | 'fair' | 'poor' | 'critical' = 'critical';
+        let needsAttention = false;
+
         if (categoryResources.length === 0) {
-          categoryScores[category] = 0;
-          newAlerts.push(`Inga ${t(`resources.${category}`)} resurser registrerade`);
+          avgDays = 0;
+          status = 'critical';
+          needsAttention = true;
+          newAlerts.push(t('individual.no_resources_registered', { type: config.name.toLowerCase() }));
+          newQuickActions.push({
+            title: t('individual.add_resource_type', { type: config.name.toLowerCase() }),
+            description: t('individual.register_resource_type', { type: config.name.toLowerCase() }),
+            icon: Plus,
+            color: 'var(--color-crisis-red)',
+            urgent: true
+          });
         } else {
-          const avgDays = categoryResources.reduce((sum: number, r: { days_remaining?: number; daysRemaining?: number }) => sum + (r.days_remaining || r.daysRemaining || 0), 0) / categoryResources.length;
-          categoryScores[category] = Math.min(100, Math.round((avgDays / 30) * 100));
+          avgDays = categoryResources.reduce((sum: number, r: { days_remaining?: number; daysRemaining?: number }) => 
+            sum + (r.days_remaining || r.daysRemaining || 0), 0) / categoryResources.length;
+          
+          if (avgDays >= config.threshold * 2) {
+            status = 'excellent';
+          } else if (avgDays >= config.threshold) {
+            status = 'good';
+          } else if (avgDays >= config.threshold / 2) {
+            status = 'fair';
+            needsAttention = true;
+          } else {
+            status = 'poor';
+            needsAttention = true;
+          }
           
           if (avgDays < 3) {
-            newAlerts.push(`Kritiskt låga ${t(`resources.${category}`)} resurser (${Math.round(avgDays)} dagar kvar)`);
-          } else if (avgDays < 7) {
-            newAlerts.push(`Låga ${t(`resources.${category}`)} resurser (${Math.round(avgDays)} dagar kvar)`);
+            status = 'critical';
+            newAlerts.push(t('individual.critically_low_resources', { type: config.name.toLowerCase(), days: Math.round(avgDays) }));
+            newQuickActions.push({
+              title: t('individual.renew_resource_type', { type: config.name.toLowerCase() }),
+              description: t('individual.urgent_need_resource_type', { type: config.name.toLowerCase() }),
+              icon: AlertTriangle,
+              color: 'var(--color-crisis-red)',
+              urgent: true
+            });
+          } else if (avgDays < config.threshold) {
+            newAlerts.push(t('individual.low_resources', { type: config.name.toLowerCase(), days: Math.round(avgDays) }));
+            newQuickActions.push({
+              title: t('individual.plan_resource_type', { type: config.name.toLowerCase() }),
+              description: t('individual.renew_within_days', { days: Math.round(avgDays) }),
+              icon: Clock,
+              color: 'var(--color-crisis-orange)',
+              urgent: false
+            });
           }
         }
+
+        const categoryScore = Math.min(100, Math.round((avgDays / 30) * 100));
+        categoryScores[config.key] = categoryScore;
+
+        categories.push({
+          name: config.name,
+          icon: config.icon,
+          score: categoryScore,
+          daysRemaining: Math.round(avgDays),
+          status,
+          needsAttention
+        });
       });
 
+      // Calculate overall score, excluding pet_supplies if user has no pets
+      const categoriesToInclude = profile?.pets && profile.pets.length > 0 
+        ? categoryConfig 
+        : categoryConfig.filter(cat => cat.key !== 'pet_supplies');
+      
       const overallScore = Math.round(
-        Object.values(categoryScores).reduce((sum: number, score: number) => sum + score, 0) / categories.length
+        categoriesToInclude.reduce((sum, config) => sum + (categoryScores[config.key] || 0), 0) / categoriesToInclude.length
       );
 
       setScore({
@@ -74,215 +183,333 @@ export function PersonalDashboard() {
         medicine: categoryScores.medicine || 0,
         energy: categoryScores.energy || 0,
         tools: categoryScores.tools || 0,
+        pet_supplies: categoryScores.pet_supplies || 0,
       });
       
-      setAlerts(newAlerts);
+      // Only include pet_supplies category if user has pets
+      const filteredCategories = profile?.pets && profile.pets.length > 0 
+        ? categories 
+        : categories.filter(cat => cat.name !== 'Djurförnödenheter');
+      
+      setResourceCategories(filteredCategories);
+      setCriticalAlerts(newAlerts);
+      setQuickActions(newQuickActions.slice(0, 3)); // Show top 3 actions
     }
-  }, []);
+  }, [profile]);
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'var(--color-crisis-green)';
-    if (score >= 60) return 'var(--color-crisis-blue)';
-    if (score >= 40) return 'var(--color-crisis-orange)';
-    return 'var(--color-crisis-red)';
+    if (score === 0) return '#6b7280'; // gray-500 for loading state
+    if (score >= 80) return '#4ade80'; // green-400
+    if (score >= 60) return '#60a5fa'; // blue-400
+    if (score >= 40) return '#fb923c'; // orange-400
+    return '#f87171'; // red-400
   };
 
-  const getScoreIcon = (score: number) => {
-    if (score >= 80) return CheckCircle;
-    if (score >= 60) return TrendingUp;
-    return AlertTriangle;
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'excellent': return 'var(--color-crisis-green)';
+      case 'good': return 'var(--color-crisis-blue)';
+      case 'fair': return 'var(--color-crisis-orange)';
+      case 'poor': return 'var(--color-crisis-red)';
+      case 'critical': return 'var(--color-crisis-red)';
+      default: return 'var(--color-crisis-grey)';
+    }
   };
 
-  const getScoreLabel = (score: number) => {
-    if (score >= 80) return 'Utmärkt';
-    if (score >= 60) return 'Bra';
-    if (score >= 40) return 'Acceptabel';
-    return 'Kritisk';
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'excellent': return t('individual.excellent_condition');
+      case 'good': return t('individual.good_condition');
+      case 'fair': return t('individual.fair_condition');
+      case 'poor': return t('individual.poor_condition');
+      case 'critical': return t('individual.needs_attention');
+      default: return 'Okänd';
+    }
   };
 
   return (
-    <div className="crisis-card">
-      <div className="flex items-center justify-between mb-6">
+    <div className="space-y-6">
+      {/* Header with Overall Status */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg" 
+               style={{ 
+                 backgroundColor: getScoreColor(score.overall) || '#6b7280',
+                 minWidth: '48px',
+                 minHeight: '48px'
+               }}>
+            <Home className="w-6 h-6 text-white drop-shadow-sm" />
+          </div>
+          <div>
         <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-          {t('individual.personal_dashboard')}
+              {t('individual.home_status')}
         </h2>
-        <div className="flex items-center space-x-2">
-          <Shield className="w-5 h-5" style={{ color: getScoreColor(score.overall) }} />
-          <span className="font-semibold" style={{ color: getScoreColor(score.overall) }}>
-            {score.overall}%
-          </span>
-        </div>
-      </div>
-
-      {/* Overall Score */}
-      <div className="text-center mb-8">
-        <div className="relative w-32 h-32 mx-auto mb-4">
-          <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
-            <circle
-              cx="50"
-              cy="50"
-              r="40"
-              stroke="var(--color-crisis-grey)"
-              strokeWidth="8"
-              fill="none"
-            />
-            <circle
-              cx="50"
-              cy="50"
-              r="40"
-              stroke={getScoreColor(score.overall)}
-              strokeWidth="8"
-              fill="none"
-              strokeDasharray={`${score.overall * 2.51} 251`}
-              strokeLinecap="round"
-            />
-          </svg>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-2xl font-bold" style={{ color: getScoreColor(score.overall) }}>
-                {score.overall}%
-              </div>
-              <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                {getScoreLabel(score.overall)}
-              </div>
-            </div>
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              {score.overall >= 80 ? t('individual.all_good') : 
+               score.overall >= 60 ? t('individual.good_condition') : 
+               t('individual.attention_needed')}
+            </p>
           </div>
         </div>
-        
-        <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-          {t('preparedness.overall_score')}
-        </h3>
-        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-          {score.overall >= 80 
-            ? t('preparedness.excellent') 
-            : score.overall >= 60 
-            ? t('preparedness.good')
-            : t('preparedness.needs_improvement')
-          }
-        </p>
+        <div className="text-right">
+          <div className="text-3xl font-bold" style={{ color: getScoreColor(score.overall) }}>
+            {score.overall}%
+          </div>
+          <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+            {t('individual.readiness_score')}
+          </div>
+        </div>
       </div>
 
-      {/* Category Scores */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-        {Object.entries(score).filter(([key]) => key !== 'overall').map(([category, categoryScore]) => {
-          const Icon = getScoreIcon(categoryScore);
+      {/* Critical Alerts - Priority Display */}
+      {criticalAlerts.length > 0 && (
+        <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-r-lg">
+          <div className="flex items-center mb-2">
+            <AlertTriangle className="w-5 h-5 text-red-400 mr-2" />
+            <h3 className="font-semibold text-red-800">{t('individual.critical_alerts')}</h3>
+              </div>
+          <div className="space-y-2">
+            {criticalAlerts.slice(0, 2).map((alert, index) => (
+              <p key={index} className="text-sm text-red-700">{alert}</p>
+            ))}
+            {criticalAlerts.length > 2 && (
+              <p className="text-sm text-red-600 font-medium">
+                +{criticalAlerts.length - 2} {t('individual.more_warnings')}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Resource Health Overview */}
+      <div className="bg-white rounded-xl p-6 shadow-sm border">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+            {t('individual.resource_health')}
+        </h3>
+          <button className="text-sm flex items-center space-x-1" style={{ color: 'var(--color-primary)' }}>
+            <Eye className="w-4 h-4" />
+            <span>{t('individual.view_details')}</span>
+          </button>
+      </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          {resourceCategories.map((category, index) => {
+            const Icon = category.icon;
           return (
-            <div key={category} className="text-center">
-              <div className="w-16 h-16 mx-auto mb-2 rounded-full flex items-center justify-center" 
-                   style={{ backgroundColor: getScoreColor(categoryScore) + '20' }}>
-                <Icon className="w-6 h-6" style={{ color: getScoreColor(categoryScore) }} />
+              <div key={index} className="text-center group cursor-pointer">
+                <div className="relative w-16 h-16 mx-auto mb-3 rounded-xl flex items-center justify-center transition-all duration-200 group-hover:scale-105"
+                     style={{ 
+                       backgroundColor: getStatusColor(category.status) + '15',
+                       border: `2px solid ${getStatusColor(category.status)}30`
+                     }}>
+                  <Icon className="w-7 h-7" style={{ color: getStatusColor(category.status) }} />
+                  {category.needsAttention && (
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                    </div>
+                  )}
+                </div>
+                <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                  {category.name}
+                </div>
+                <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  {category.daysRemaining > 0 ? `${category.daysRemaining} ${t('individual.days_remaining')}` : t('individual.no_resources')}
               </div>
-              <div className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                {t(`resources.${category}`)}
-              </div>
-              <div className="text-lg font-bold" style={{ color: getScoreColor(categoryScore) }}>
-                {categoryScore}%
+                <div className="text-xs font-semibold mt-1" style={{ color: getStatusColor(category.status) }}>
+                  {getStatusLabel(category.status)}
               </div>
             </div>
           );
         })}
-      </div>
-
-      {/* Alerts */}
-      {alerts.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
-            {t('preparedness.important_warnings')}
-          </h3>
-          {alerts.map((alert, index) => (
-            <div key={index} className="flex items-center space-x-3 p-3 rounded-lg" 
-                 style={{ backgroundColor: 'var(--color-crisis-red)20' }}>
-              <AlertTriangle className="w-5 h-5" style={{ color: 'var(--color-crisis-red)' }} />
-              <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                {alert}
-              </span>
-            </div>
-          ))}
         </div>
-      )}
-
-      {/* MSB Digital Security */}
-      <div className="mt-6 pt-6 border-t" style={{ borderColor: 'var(--color-crisis-grey)' }}>
-        <div className="flex items-center mb-4">
-          <Smartphone className="w-5 h-5 mr-2" style={{ color: 'var(--color-crisis-blue)' }} />
-          <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
-            {t('msb.digital_security')}
-          </h3>
-        </div>
-        
-        <div className="space-y-3">
-          {[
-            'verify_sources',
-            'backup_contacts',
-            'charge_devices',
-            'avoid_rumors'
-          ].map((tip, index) => (
-            <div key={index} className="flex items-start space-x-3 p-3 rounded-lg" 
-                 style={{ backgroundColor: 'var(--color-crisis-blue)20' }}>
-              <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" 
-                          style={{ color: 'var(--color-crisis-blue)' }} />
-              <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                {t(`msb.digital_security_tips.${tip}`)}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* MSB Psychological Support */}
-      <div className="mt-6">
-        <div className="flex items-center mb-4">
-          <Heart className="w-5 h-5 mr-2" style={{ color: 'var(--color-crisis-green)' }} />
-          <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
-            {t('msb.psychological_support.title')}
-          </h3>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {[
-            'stay_calm',
-            'trust_authorities',
-            'help_others',
-            'maintain_routines'
-          ].map((support, index) => (
-            <div key={index} className="flex items-center space-x-2 p-3 rounded-lg" 
-                 style={{ backgroundColor: 'var(--color-crisis-green)20' }}>
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--color-crisis-green)' }}></div>
-              <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                {t(`msb.psychological_support.${support}`)}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Emergency Radio Information */}
-      <div className="mt-6 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-crisis-orange)20' }}>
-        <div className="flex items-center mb-2">
-          <Radio className="w-5 h-5 mr-2" style={{ color: 'var(--color-crisis-orange)' }} />
-          <h4 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
-            {t('msb.digital_security_tips.emergency_radio')}
-          </h4>
-        </div>
-        <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-          Ha alltid tillgång till batteridriven radio för officiella meddelanden när internet och mobilt nät inte fungerar.
-        </p>
       </div>
 
       {/* Quick Actions */}
-      <div className="mt-6">
-        <div className="grid grid-cols-2 gap-3">
-          <button className="crisis-button text-sm" 
-                  style={{ backgroundColor: 'var(--color-crisis-green)', color: 'white' }}>
-            <Target className="w-4 h-4 mr-2" />
-            {t('preparedness.set_goals')}
-          </button>
-          <button className="crisis-button text-sm" 
-                  style={{ backgroundColor: 'var(--color-crisis-blue)', color: 'white' }}>
-            <Calendar className="w-4 h-4 mr-2" />
-            {t('preparedness.plan')}
-          </button>
+      {quickActions.length > 0 && (
+        <div className="bg-white rounded-xl p-6 shadow-sm border">
+          <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
+            {t('individual.next_actions')}
+          </h3>
+          <div className="space-y-3">
+            {quickActions.map((action, index) => {
+              const Icon = action.icon;
+              return (
+                <div key={index} className="flex items-center justify-between p-4 rounded-lg border transition-all duration-200 hover:shadow-md cursor-pointer"
+                     style={{ 
+                       backgroundColor: action.urgent ? action.color + '10' : 'var(--bg-card)',
+                       borderColor: action.urgent ? action.color + '30' : 'var(--color-secondary)'
+                     }}>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center"
+                         style={{ backgroundColor: action.color + '20' }}>
+                      <Icon className="w-5 h-5" style={{ color: action.color }} />
+                    </div>
+                    <div>
+                      <div className="font-medium" style={{ color: 'var(--text-primary)' }}>
+                        {action.title}
+                      </div>
+                      <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                        {action.description}
+                      </div>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-5 h-5" style={{ color: 'var(--text-tertiary)' }} />
+                </div>
+              );
+            })}
+          </div>
         </div>
+      )}
+
+      {/* Pet Preparedness Section - Only show if user has pets */}
+      {profile?.pets && profile.pets.length > 0 && (
+        <div className="bg-white rounded-xl p-6 shadow-sm border">
+          <div className="flex items-center mb-4">
+            <Heart className="w-5 h-5 mr-2" style={{ color: 'var(--color-crisis-orange)' }} />
+            <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+              {t('msb.pet_care.title')}
+            </h3>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('msb.pet_care.extra_food')}</span>
+              <span className="text-sm font-medium" style={{ color: 'var(--color-crisis-orange)' }}>{t('msb.pet_care.check_supplies')}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('msb.pet_care.medications')}</span>
+              <span className="text-sm font-medium" style={{ color: 'var(--color-crisis-orange)' }}>{t('msb.pet_care.check_supplies')}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('msb.pet_care.id_tags')}</span>
+              <span className="text-sm font-medium" style={{ color: 'var(--color-crisis-orange)' }}>{t('msb.pet_care.check_identification')}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('msb.pet_care.carriers')}</span>
+              <span className="text-sm font-medium" style={{ color: 'var(--color-crisis-orange)' }}>{t('msb.pet_care.check_transport')}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('msb.pet_care.veterinary_info')}</span>
+              <span className="text-sm font-medium" style={{ color: 'var(--color-crisis-orange)' }}>{t('msb.pet_care.save_contacts')}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('msb.pet_care.safe_spaces')}</span>
+              <span className="text-sm font-medium" style={{ color: 'var(--color-crisis-orange)' }}>{t('msb.pet_care.plan_safe_spaces')}</span>
+            </div>
+          </div>
+          <div className="mt-4 p-3 rounded-lg" style={{ backgroundColor: 'var(--color-crisis-orange)10' }}>
+            <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+              <strong>{t('msb.pet_care.msb_recommendation')}</strong>
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Family Safety & Emergency Info */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Family Safety */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border">
+        <div className="flex items-center mb-4">
+            <Users className="w-5 h-5 mr-2" style={{ color: 'var(--color-crisis-green)' }} />
+            <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+              {t('individual.family_safety')}
+          </h3>
+        </div>
+        <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('individual.family_members')}</span>
+              <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                {profile?.family_size || 1} {t('individual.people_count')}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('individual.pets')}</span>
+              <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                {profile?.pets?.length || 0} {t('individual.animals')}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('individual.medications')}</span>
+              <span className="text-sm font-medium" style={{ color: profile?.medications?.length ? 'var(--color-crisis-green)' : 'var(--color-crisis-orange)' }}>
+                {profile?.medications?.length ? t('individual.updated') : t('individual.needs_registration')}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('individual.special_needs')}</span>
+              <span className="text-sm font-medium" style={{ color: 'var(--color-crisis-green)' }}>
+                {profile?.special_needs?.length || 0} {t('individual.registered_count')}
+              </span>
+        </div>
+      </div>
+        </div>
+        
+        {/* Emergency Readiness */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border">
+          <div className="flex items-center mb-4">
+            <Shield className="w-5 h-5 mr-2" style={{ color: 'var(--color-crisis-blue)' }} />
+            <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+              {t('individual.emergency_readiness')}
+            </h3>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('individual.evacuation_plan')}</span>
+              <span className="text-sm font-medium" style={{ color: profile?.evacuation_plan?.meeting_point ? 'var(--color-crisis-green)' : 'var(--color-crisis-orange)' }}>
+                {profile?.evacuation_plan?.meeting_point ? `✓ ${t('individual.ready')}` : t('individual.needs_planning')}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('individual.meeting_point')}</span>
+              <span className="text-sm font-medium" style={{ color: profile?.evacuation_plan?.meeting_point ? 'var(--color-crisis-green)' : 'var(--color-crisis-orange)' }}>
+                {profile?.evacuation_plan?.meeting_point ? `✓ ${t('individual.selected')}` : t('individual.needs_selection')}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('individual.communication_plan')}</span>
+              <span className="text-sm font-medium" style={{ color: profile?.evacuation_plan?.communication_plan ? 'var(--color-crisis-green)' : 'var(--color-crisis-orange)' }}>
+                {profile?.evacuation_plan?.communication_plan ? `✓ ${t('individual.updated_status')}` : t('individual.needs_update')}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('individual.emergency_contacts')}</span>
+              <span className="text-sm font-medium" style={{ color: profile?.emergency_contacts?.length ? 'var(--color-crisis-green)' : 'var(--color-crisis-orange)' }}>
+                {profile?.emergency_contacts?.length ? `✓ ${profile.emergency_contacts.length} ${t('individual.saved')}` : t('individual.needs_addition')}
+              </span>
+        </div>
+      </div>
+        </div>
+      </div>
+
+      {/* Quick Access Actions */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <button className="flex flex-col items-center p-4 rounded-xl border transition-all duration-200 hover:shadow-md"
+                style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--color-secondary)' }}>
+          <Plus className="w-6 h-6 mb-2" style={{ color: 'var(--color-primary)' }} />
+          <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+            {t('individual.add_resources')}
+          </span>
+        </button>
+        <button className="flex flex-col items-center p-4 rounded-xl border transition-all duration-200 hover:shadow-md"
+                style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--color-secondary)' }}>
+          <Target className="w-6 h-6 mb-2" style={{ color: 'var(--color-crisis-green)' }} />
+          <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+            {t('preparedness.set_goals')}
+          </span>
+          </button>
+        <button className="flex flex-col items-center p-4 rounded-xl border transition-all duration-200 hover:shadow-md"
+                style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--color-secondary)' }}>
+          <Calendar className="w-6 h-6 mb-2" style={{ color: 'var(--color-crisis-blue)' }} />
+          <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+            {t('preparedness.plan')}
+          </span>
+        </button>
+        <button className="flex flex-col items-center p-4 rounded-xl border transition-all duration-200 hover:shadow-md"
+                style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--color-secondary)' }}>
+          <MessageCircle className="w-6 h-6 mb-2" style={{ color: 'var(--color-crisis-orange)' }} />
+          <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+            {t('individual.update_status')}
+          </span>
+          </button>
       </div>
     </div>
   );

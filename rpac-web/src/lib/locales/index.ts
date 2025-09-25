@@ -12,7 +12,7 @@ export function getTranslations(locale: Locale = defaultLocale) {
   return locales[locale];
 }
 
-export function t(key: string, locale: Locale = defaultLocale): string {
+export function t(key: string, params?: Record<string, string | number>, locale: Locale = defaultLocale): string {
   const translations = getTranslations(locale);
   const keys = key.split('.');
   let value: unknown = translations;
@@ -25,6 +25,15 @@ export function t(key: string, locale: Locale = defaultLocale): string {
     }
   }
   
-  return typeof value === 'string' ? value : key;
+  if (typeof value === 'string') {
+    if (params) {
+      return value.replace(/\{(\w+)\}/g, (match, paramKey) => {
+        return params[paramKey]?.toString() || match;
+      });
+    }
+    return value;
+  }
+  
+  return key;
 }
 

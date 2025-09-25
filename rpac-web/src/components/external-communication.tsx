@@ -428,7 +428,7 @@ export function ExternalCommunication() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
-              Radiofrekvenser
+              {t('professional.radio_frequencies')}
             </h3>
             
             <div className="flex items-center space-x-4">
@@ -546,7 +546,7 @@ export function ExternalCommunication() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
-              Webbaserade Källor
+              {t('professional.web_based_sources')}
             </h3>
             <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
               Internet: {internetStatus}
@@ -580,8 +580,8 @@ export function ExternalCommunication() {
                         source.status === 'online' ? 'text-green-600' :
                         source.status === 'limited' ? 'text-yellow-600' : 'text-red-600'
                       }`}>
-                        {source.status === 'online' ? 'Online' :
-                         source.status === 'limited' ? 'Begränsad' : 'Offline'}
+                        {source.status === 'online' ? t('professional.online') :
+                         source.status === 'limited' ? t('professional.limited') : t('professional.offline')}
                       </span>
                     </div>
                   </div>
@@ -593,9 +593,9 @@ export function ExternalCommunication() {
                       source.type === 'news' ? 'bg-gray-100 text-gray-800' :
                       'bg-purple-100 text-purple-800'
                     }`}>
-                      {source.type === 'emergency' ? 'Nöd' :
-                       source.type === 'weather' ? 'Väder' :
-                       source.type === 'news' ? 'Nyheter' : 'Myndighet'}
+                      {source.type === 'emergency' ? t('professional.emergency_type') :
+                       source.type === 'weather' ? t('professional.weather_type') :
+                       source.type === 'news' ? t('professional.news_type') : t('professional.government_type')}
                     </span>
                     
                     {source.last_updated && (
@@ -605,16 +605,36 @@ export function ExternalCommunication() {
                     )}
                   </div>
 
-                  {internetStatus === 'online' && source.status !== 'offline' && (
-                    <button
-                      onClick={() => window.open(source.url, '_blank')}
-                      className="mt-3 w-full crisis-button text-sm"
-                      style={{ backgroundColor: 'var(--color-crisis-blue)', color: 'white' }}
+                  <a
+                    href={source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`mt-3 inline-flex items-center text-sm font-medium transition-colors duration-200 ${
+                      internetStatus === 'online' && source.status !== 'offline'
+                        ? 'text-blue-600 hover:text-blue-800 cursor-pointer'
+                        : 'text-gray-400 cursor-not-allowed'
+                    }`}
+                    onClick={(e) => {
+                      if (internetStatus !== 'online' || source.status === 'offline') {
+                        e.preventDefault();
+                      }
+                    }}
+                  >
+                    <svg 
+                      className="w-3 h-3 mr-1.5" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
                     >
-                      <Rss className="w-4 h-4 mr-2" />
-                      Besök källa
-                    </button>
-                  )}
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={2} 
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" 
+                      />
+                    </svg>
+                    {t('professional.visit_source')}
+                  </a>
                 </div>
               );
             })}

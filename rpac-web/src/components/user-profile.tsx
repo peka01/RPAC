@@ -31,6 +31,7 @@ interface UserProfile {
   garden_size: 'none' | 'balcony' | 'small' | 'medium' | 'large' | 'farm';
   growing_preferences: string[];
   location_privacy: 'full' | 'county_only' | 'climate_zone_only';
+  family_size: number;
   created_at: Date;
   updated_at: Date;
 }
@@ -85,6 +86,8 @@ export function UserProfile({
     garden_size: 'medium',
     growing_preferences: ['potatoes', 'carrots', 'lettuce'],
     location_privacy: 'county_only',
+    family_size: 1,
+    pets: [],
     ...initialProfile
   });
 
@@ -137,6 +140,8 @@ export function UserProfile({
         garden_size: profile.garden_size || 'none',
         growing_preferences: profile.growing_preferences || [],
         location_privacy: profile.location_privacy || 'county_only',
+        family_size: profile.family_size || 1,
+        pets: profile.pets || [],
         created_at: profile.created_at || new Date(),
         updated_at: new Date()
       };
@@ -418,6 +423,123 @@ export function UserProfile({
               </div>
             )}
           </div>
+        </div>
+
+        {/* Family Size */}
+        <div>
+          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+            {t('profile.family_size')}
+          </label>
+          {isEditing ? (
+            <select
+              value={profile.family_size || 1}
+              onChange={(e) => setProfile(prev => ({ ...prev, family_size: parseInt(e.target.value) }))}
+              className="w-full p-3 border rounded-lg"
+              style={{ borderColor: 'var(--color-secondary)' }}
+            >
+              <option value={1}>1 person</option>
+              <option value={2}>2 personer</option>
+              <option value={3}>3 personer</option>
+              <option value={4}>4 personer</option>
+              <option value={5}>5 personer</option>
+              <option value={6}>6 personer</option>
+              <option value={7}>7 personer</option>
+              <option value={8}>8 personer</option>
+            </select>
+          ) : (
+            <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-olive-light)' }}>
+              <span style={{ color: 'var(--text-primary)' }}>
+                {profile.family_size || 1} {profile.family_size === 1 ? 'person' : 'personer'}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Pets */}
+        <div>
+          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+            {t('profile.pets')}
+          </label>
+          {isEditing ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {['hund', 'katt', 'kanin', 'hamster', 'fågel', 'fisk', 'reptil', 'annat'].map(petType => (
+                  <label key={petType} className="flex items-center space-x-2 p-2 rounded cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="checkbox"
+                      checked={profile.pets?.includes(petType) || false}
+                      onChange={(e) => {
+                        const pets = profile.pets || [];
+                        if (e.target.checked) {
+                          setProfile(prev => ({ 
+                            ...prev, 
+                            pets: [...pets, petType] 
+                          }));
+                        } else {
+                          setProfile(prev => ({ 
+                            ...prev, 
+                            pets: pets.filter(p => p !== petType) 
+                          }));
+                        }
+                      }}
+                    />
+                    <span className="text-sm capitalize" style={{ color: 'var(--text-primary)' }}>
+                      {petType}
+                    </span>
+                  </label>
+                ))}
+              </div>
+              {profile.pets && profile.pets.length > 0 && (
+                <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-olive-light)' }}>
+                  <div className="text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+                    Dina husdjur:
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.pets.map(pet => (
+                      <span 
+                        key={pet}
+                        className="px-2 py-1 rounded text-xs"
+                        style={{
+                          backgroundColor: 'var(--color-sage)',
+                          color: 'white'
+                        }}
+                      >
+                        {pet}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-olive-light)' }}>
+              {profile.pets && profile.pets.length > 0 ? (
+                <div>
+                  <span style={{ color: 'var(--text-primary)' }}>
+                    {profile.pets.length} {profile.pets.length === 1 ? 'husdjur' : 'husdjur'}
+                  </span>
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {profile.pets.map(pet => (
+                      <span 
+                        key={pet}
+                        className="px-2 py-1 rounded text-xs"
+                        style={{
+                          backgroundColor: 'var(--color-sage)',
+                          color: 'white'
+                        }}
+                      >
+                        {pet}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <span style={{ color: 'var(--text-secondary)' }}>
+                  Inga husdjur registrerade
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Growing Preferences */}

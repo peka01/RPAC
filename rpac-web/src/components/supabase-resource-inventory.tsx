@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { resourceService, Resource } from '@/lib/supabase';
+import { useUserProfile } from '@/lib/useUserProfile';
 import { t } from '@/lib/locales';
 import { 
   Plus, 
@@ -30,7 +31,8 @@ const categoryIcons = {
   water: Droplets,
   medicine: Heart,
   energy: Zap,
-  tools: Wrench
+  tools: Wrench,
+  other: Sparkles
 };
 
 const categoryLabels = {
@@ -38,7 +40,8 @@ const categoryLabels = {
   water: 'Vatten',
   medicine: 'Medicin',
   energy: 'Energi',
-  tools: 'Verktyg'
+  tools: 'Verktyg',
+  other: 'Övrigt'
 };
 
 // MSB recommended emergency supplies based on "Om krisen eller kriget kommer"
@@ -67,10 +70,11 @@ const msbRecommendations = {
     { name: 'Ljus och tändstickor', quantity: 'Flera förpackningar', priority: 'medium' }
   ],
   tools: [
-    { name: 'Multiverktyg eller kniv', quantity: '1 styck', priority: 'medium' },
+    { name: 'Multiverktyg eller kniv', quantity: '1 styck', priority: 'medium' }
+  ],
+  other: [
     { name: 'Kontanter', quantity: 'Mindre mängder', priority: 'high' },
-    { name: 'Viktiga papper (vattentätt)', quantity: '1 mapp', priority: 'high' },
-    { name: 'Varma filtar', quantity: '1 per person', priority: 'medium' }
+    { name: 'Varma filtar', quantity: '1 per person', priority: 'high' }
   ]
 };
 
@@ -80,6 +84,9 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  // Get user profile for family size
+  const { profile: userProfile } = useUserProfile(user as any);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -147,7 +154,7 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
             { name: 'Frukt och nötter', category: 'food', unit: 'kg', msb_priority: 'medium', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
             
             // MSB Water recommendations  
-            { name: 'Dricksvatten', category: 'water', unit: 'liter', msb_priority: 'high', is_msb_recommended: true, quantity: 9, days_remaining: 30, is_filled: true }, // Demo: filled with good expiration
+            { name: 'Dricksvatten', category: 'water', unit: 'liter', msb_priority: 'high', is_msb_recommended: true, quantity: 14, days_remaining: 7, is_filled: true }, // Demo: 1 week supply for 1 person (2L per day)
             { name: 'Vattenreningstavletter', category: 'water', unit: 'förpackningar', msb_priority: 'medium', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
             { name: 'Extra vattenbehållare', category: 'water', unit: 'stycken', msb_priority: 'medium', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
             
@@ -164,10 +171,11 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
             { name: 'Ljus och tändstickor', category: 'energy', unit: 'förpackningar', msb_priority: 'medium', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
             
             // MSB Tools recommendations
-            { name: 'Viktiga papper (vattentätt)', category: 'tools', unit: 'mapp', msb_priority: 'high', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
-            { name: 'Kontanter', category: 'tools', unit: 'mindre mängder', msb_priority: 'high', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
-            { name: 'Varma filtar', category: 'tools', unit: 'stycken', msb_priority: 'medium', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
-            { name: 'Multiverktyg eller kniv', category: 'tools', unit: 'stycken', msb_priority: 'medium', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
+            { name: 'Multiverktyg eller kniv', category: 'tools', unit: 'styck', msb_priority: 'medium', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
+            
+            // MSB Other recommendations
+            { name: 'Kontanter', category: 'other', unit: 'mindre mängder', msb_priority: 'high', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
+            { name: 'Varma filtar', category: 'other', unit: 'stycken', msb_priority: 'high', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
             
             // User added example
             { name: 'Extra ris och pasta', category: 'food', unit: 'kg', is_msb_recommended: false, quantity: 5, days_remaining: 90, is_filled: true }
@@ -189,24 +197,92 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
     }));
   };
 
+  // Function to calculate automatic shelf life based on resource type and name
+  const calculateShelfLife = (name: string, category: string): number => {
+    const lowerName = name.toLowerCase();
+    
+    // Water - typically 6 months to 2 years depending on storage
+    if (category === 'water') {
+      if (lowerName.includes('rening') || lowerName.includes('tablett')) return 1095; // 3 years
+      return 365; // 1 year for stored water
+    }
+    
+    // Food - varies greatly by type
+    if (category === 'food') {
+      // Canned goods - 2-5 years
+      if (lowerName.includes('konserv') || lowerName.includes('burk') || lowerName.includes('burkar')) return 1095; // 3 years
+      // Dry goods - 1-2 years
+      if (lowerName.includes('knäckebröd') || lowerName.includes('bröd') || lowerName.includes('pasta') || lowerName.includes('ris')) return 730; // 2 years
+      // Nuts and dried fruits - 1 year
+      if (lowerName.includes('nötter') || lowerName.includes('frukt') || lowerName.includes('torkad')) return 365; // 1 year
+      // Default for food
+      return 365; // 1 year
+    }
+    
+    // Medicine - check expiration dates, typically 1-3 years
+    if (category === 'medicine') {
+      if (lowerName.includes('första hjälpen') || lowerName.includes('kit')) return 1095; // 3 years
+      if (lowerName.includes('smärtstillande') || lowerName.includes('tablett')) return 730; // 2 years
+      return 365; // 1 year default
+    }
+    
+    // Energy - batteries and electronics
+    if (category === 'energy') {
+      if (lowerName.includes('batteri')) return 1095; // 3 years (batteries degrade)
+      if (lowerName.includes('radio') || lowerName.includes('ficklampa')) return 1825; // 5 years (electronics can fail)
+      if (lowerName.includes('ljus') || lowerName.includes('tändstickor')) return 99999; // Essentially unlimited
+      return 1095; // 3 years default
+    }
+    
+    // Tools - many have unlimited shelf life
+    if (category === 'tools') {
+      if (lowerName.includes('verktyg') || lowerName.includes('kniv') || lowerName.includes('multiverktyg')) return 99999; // Essentially unlimited
+      return 99999; // Essentially unlimited default for tools
+    }
+    
+    // Other category - special items
+    if (category === 'other') {
+      if (lowerName.includes('kontanter') || lowerName.includes('cash')) return 99999; // Essentially unlimited
+      if (lowerName.includes('filtar') || lowerName.includes('filt')) return 99999; // Essentially unlimited (blankets last forever)
+      return 99999; // Essentially unlimited default for other
+    }
+    
+    return 365; // Default 1 year
+  };
+
+  // Function to get urgency color based on days remaining
+  const getUrgencyColor = (daysRemaining: number, isMsbRecommended?: boolean, isFilled?: boolean): string => {
+    if (!isFilled) return 'bg-gray-100 text-gray-500'; // Empty MSB resources
+    
+    if (daysRemaining >= 99999) return 'bg-green-100 text-green-800'; // Unlimited shelf life
+    if (daysRemaining > 365) return 'bg-green-100 text-green-800'; // More than 1 year
+    if (daysRemaining > 30) return 'bg-yellow-100 text-yellow-800'; // 1 month to 1 year
+    if (daysRemaining > 7) return 'bg-orange-100 text-orange-800'; // 1 week to 1 month
+    return 'bg-red-100 text-red-800'; // Less than 1 week
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
     try {
+      // Calculate automatic shelf life
+      const automaticShelfLife = calculateShelfLife(formData.name, formData.category);
+      
       if (true || user.id === 'demo-user') {
         // Handle demo mode
         const newResource = {
           id: `demo-${Date.now()}`,
           user_id: user.id,
           ...formData,
+          days_remaining: automaticShelfLife, // Use calculated shelf life
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         };
 
         if (editingResource) {
           const updatedResources = resources.map(r => 
-            r.id === editingResource.id ? { ...r, ...formData, updated_at: new Date().toISOString() } : r
+            r.id === editingResource.id ? { ...r, ...formData, days_remaining: automaticShelfLife, updated_at: new Date().toISOString() } : r
           );
           setResources(updatedResources);
           localStorage.setItem('rpac-demo-resources', JSON.stringify(updatedResources));
@@ -237,7 +313,7 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
         category: 'food',
         quantity: 1,
         unit: '',
-        days_remaining: 30
+        days_remaining: 0 // Will be calculated automatically
       });
       setShowAddForm(false);
     } catch (error: unknown) {
@@ -246,14 +322,14 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
   };
 
   const handleEdit = (resource: Resource) => {
-    setEditingResource(resource);
     setFormData({
       name: resource.name,
       category: resource.category,
       quantity: resource.quantity,
       unit: resource.unit,
-      days_remaining: resource.days_remaining
+      days_remaining: 0 // Will be calculated automatically
     });
+    setEditingResource(resource);
     setShowAddForm(true);
   };
 
@@ -261,16 +337,28 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
     try {
       setError(null);
       
-      // Quick fill with default values for MSB recommendations
+      // Get family size from user profile (default to 1 if not available)
+      const familySize = userProfile?.family_size || 1;
+      
+      // Calculate automatic shelf life for this resource
+      const automaticShelfLife = calculateShelfLife(resource.name, resource.category);
+      
+      // Quick fill with default values for MSB recommendations (1 week supply per person)
+      // Only scale consumable items with family size, not tools/equipment
+      const isConsumable = resource.category === 'water' || resource.category === 'food' || 
+                          (resource.category === 'medicine' && !resource.name.toLowerCase().includes('kit') && !resource.name.toLowerCase().includes('termometer'));
+      
       const defaultValues = {
-        quantity: resource.category === 'water' ? 9 : // 3L x 3 days
-                  resource.category === 'food' ? 3 : 
-                  resource.category === 'medicine' ? 7 : // 1 week
-                  resource.category === 'energy' ? 2 : 1,
-        days_remaining: resource.category === 'water' ? 3 :
-                       resource.category === 'food' ? 3 :
-                       resource.category === 'medicine' ? 30 :
-                       resource.category === 'energy' ? 30 : 14,
+        quantity: resource.category === 'water' ? 14 * familySize : // 2L x 7 days per person
+                  resource.category === 'food' ? 7 * familySize : // 1 week supply per person
+                  resource.category === 'medicine' && isConsumable ? 7 * familySize : // 1 week supply per person for consumable medicine
+                  resource.category === 'energy' ? Math.max(2, familySize) : // At least 2, scale with family
+                  resource.category === 'tools' ? 1 : // Tools are typically 1 per family
+                  resource.category === 'medicine' ? 1 : // Medical equipment is typically 1 per family
+                  resource.category === 'other' && resource.name.toLowerCase().includes('filtar') ? familySize : // Blankets scale with family
+                  resource.category === 'other' ? 1 : // Other items (like cash) are typically 1 per family
+                  1, // Default to 1 for non-consumables
+        days_remaining: automaticShelfLife, // Use calculated shelf life
         is_filled: true,
         updated_at: new Date().toISOString()
       };
@@ -318,14 +406,6 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
     }
   };
 
-  const getUrgencyColor = (days: number, isMsbRecommended?: boolean, isFilled?: boolean) => {
-    if (isMsbRecommended && !isFilled) {
-      return 'text-gray-500 bg-gray-100 border border-dashed border-gray-300';
-    }
-    if (days <= 7) return 'text-red-600 bg-red-100';
-    if (days <= 30) return 'text-yellow-600 bg-yellow-100';
-    return 'text-green-600 bg-green-100';
-  };
 
   if (loading) {
     return (
@@ -349,6 +429,7 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
       case 'medicine': return '💊';
       case 'energy': return '⚡';
       case 'tools': return '🔧';
+      case 'other': return '✨';
       default: return '📦';
     }
   };
@@ -464,12 +545,21 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
               color: 'var(--color-sage)'
             }}
           >
-            🔄 Ladda MSB-resurser
+            🔄 {t('resources.load_msb_resources')}
           </button>
         </div>
         <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-          {t('msb.basic_supplies.description')} MSB-rekommenderade förnödenheter visas nedan och kan fyllas i när du skaffar dem.
+          {t('msb.basic_supplies.description')} {t('resources.msb_supplies_description')}
         </p>
+        {userProfile?.family_size && userProfile.family_size > 1 && (
+          <p className="text-xs mt-2 px-3 py-2 rounded-lg" style={{ 
+            backgroundColor: 'var(--color-sage)10',
+            color: 'var(--color-sage)',
+            border: '1px solid var(--color-sage)30'
+          }}>
+            💡 {t('resources.family_scaling_note').replace('{familySize}', userProfile.family_size.toString())}
+          </p>
+        )}
       </div>
 
       {error && (
@@ -545,16 +635,20 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
 
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>
-                  {t('resources.days_remaining')}
+                  {t('resources.days_remaining')} (automatisk)
                 </label>
-                <input
-                  type="number"
-                  min="1"
-                  value={formData.days_remaining}
-                  onChange={(e) => setFormData({ ...formData, days_remaining: parseInt(e.target.value) || 1 })}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50" style={{ color: 'var(--text-secondary)' }}>
+                  {formData.name && formData.category ? 
+                    (calculateShelfLife(formData.name, formData.category) >= 99999 ? 
+                      'Obegränsad hållbarhet' : 
+                      `${calculateShelfLife(formData.name, formData.category)} dagar`
+                    ) : 
+                    'Välj namn och kategori för att se hållbarhet'
+                  }
+                </div>
+                <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
+                  Hållbarhet beräknas automatiskt baserat på resurstyp
+                </p>
               </div>
             </div>
 
@@ -600,29 +694,31 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
                   backgroundColor: 'var(--color-sage)20',
                   color: 'var(--color-sage)'
                 }}>
-                  {categoryResources.length} {categoryResources.length === 1 ? 'resurs' : 'resurser'}
+                  {categoryResources.length} {categoryResources.length === 1 ? t('resources.resource_count.single') : t('resources.resource_count.multiple')}
                 </span>
               </div>
 
-              {/* Resources Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full">
+              {/* Resources Table - Responsive */}
+              <div className="w-full">
+                {/* Desktop Table View */}
+                <div className="hidden lg:block">
+                  <table className="w-full table-fixed">
                   <thead>
                     <tr className="border-b" style={{ borderColor: 'var(--color-crisis-grey)' }}>
-                      <th className="text-left py-2 px-3 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>
-                        Namn
+                      <th className="text-left py-2 px-2 font-medium text-sm w-1/3" style={{ color: 'var(--text-secondary)' }}>
+                        {t('resources.table_headers.name')}
                       </th>
-                      <th className="text-left py-2 px-3 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>
-                        Antal
+                      <th className="text-left py-2 px-2 font-medium text-sm w-1/6" style={{ color: 'var(--text-secondary)' }}>
+                        {t('resources.table_headers.quantity')}
                       </th>
-                      <th className="text-left py-2 px-3 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>
-                        Hållbarhet
+                      <th className="text-left py-2 px-2 font-medium text-sm w-1/6" style={{ color: 'var(--text-secondary)' }}>
+                        {t('resources.table_headers.shelf_life')}
                       </th>
-                      <th className="text-left py-2 px-3 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>
-                        Status
+                      <th className="text-left py-2 px-2 font-medium text-sm w-1/6" style={{ color: 'var(--text-secondary)' }}>
+                        {t('resources.table_headers.status')}
                       </th>
-                      <th className="text-right py-2 px-3 font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>
-                        Åtgärder
+                      <th className="text-right py-2 px-2 font-medium text-sm w-1/6" style={{ color: 'var(--text-secondary)' }}>
+                        {t('resources.table_headers.actions')}
                       </th>
                     </tr>
                   </thead>
@@ -641,17 +737,17 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
                           style={{ borderColor: 'var(--color-crisis-grey)20' }}
                         >
                           {/* Name Column */}
-                          <td className="py-3 px-3">
-                            <div className="flex items-center gap-2">
-                              <span className={`font-medium ${isEmpty ? 'text-gray-500' : ''}`} style={{ 
+                          <td className="py-3 px-2 truncate">
+                            <div className="flex flex-col gap-1">
+                              <span className={`font-medium truncate ${isEmpty ? 'text-gray-500' : ''}`} style={{ 
                                 color: isEmpty ? 'var(--text-secondary)' : 'var(--text-primary)' 
                               }}>
                                 {resource.name}
                               </span>
                               {isMsbRecommended && (
                                 <div className="flex items-center gap-1">
-                                  <Shield className="w-3 h-3" style={{ color: 'var(--color-sage)' }} />
-                                  <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ 
+                                  <Shield className="w-3 h-3 flex-shrink-0" style={{ color: 'var(--color-sage)' }} />
+                                  <span className="text-xs px-1.5 py-0.5 rounded-full truncate" style={{ 
                                     backgroundColor: 'var(--color-sage)20',
                                     color: 'var(--color-sage)'
                                   }}>
@@ -663,29 +759,29 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
                           </td>
 
                           {/* Quantity Column */}
-                          <td className="py-3 px-3">
+                          <td className="py-3 px-2">
                             {isEmpty ? (
-                              <span className="text-gray-400 italic">Ej ifylld</span>
+                              <span className="text-gray-400 italic text-sm">-</span>
                             ) : (
-                              <span style={{ color: 'var(--text-primary)' }}>
+                              <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
                                 {resource.quantity} {resource.unit}
                               </span>
                             )}
                           </td>
 
                           {/* Days Remaining Column */}
-                          <td className="py-3 px-3">
+                          <td className="py-3 px-2">
                             {isEmpty ? (
-                              <span className="text-gray-400 italic">-</span>
+                              <span className="text-gray-400 italic text-sm">-</span>
                             ) : (
                               <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getUrgencyColor(resource.days_remaining, isMsbRecommended, isFilled)}`}>
-                                {resource.days_remaining} dagar
+                                {resource.days_remaining >= 99999 ? '∞' : `${resource.days_remaining}d`}
                               </span>
                             )}
                           </td>
 
                           {/* Status Column */}
-                          <td className="py-3 px-3">
+                          <td className="py-3 px-2">
                             {isEmpty ? (
                               <span className="text-xs px-2 py-1 rounded-full border border-dashed" style={{ 
                                 borderColor: 'var(--color-sage)',
@@ -704,13 +800,13 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
                           </td>
 
                           {/* Actions Column */}
-                          <td className="py-3 px-3">
-                            <div className="flex items-center justify-end gap-1">
+                          <td className="py-3 px-2">
+                            <div className="flex items-center justify-end gap-1 flex-shrink-0">
                               {isEmpty && (
                                 <button
                                   onClick={() => handleQuickFill(resource)}
                                   className="p-1.5 hover:bg-green-500/20 rounded transition-colors"
-                                  title="Snabbfyll med rekommenderade värden"
+                                  title="Snabbfyll"
                                 >
                                   <Plus size={14} style={{ color: 'var(--color-sage)' }} />
                                 </button>
@@ -718,14 +814,14 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
                               <button
                                 onClick={() => handleEdit(resource)}
                                 className="p-1.5 hover:bg-white/20 rounded transition-colors"
-                                title="Redigera resurs"
+                                title="Redigera"
                               >
                                 <Edit size={14} style={{ color: 'var(--text-secondary)' }} />
                               </button>
                               <button
                                 onClick={() => handleDelete(resource.id, isMsbRecommended)}
                                 className="p-1.5 hover:bg-red-500/20 rounded transition-colors"
-                                title={isMsbRecommended ? 'Töm resurs' : 'Ta bort resurs'}
+                                title={isMsbRecommended ? 'Töm' : 'Ta bort'}
                               >
                                 <Trash2 size={14} className="text-red-500" />
                               </button>
@@ -735,7 +831,122 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
                       );
                     })}
                   </tbody>
-                </table>
+                  </table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="lg:hidden space-y-3">
+                  {categoryResources.map((resource) => {
+                    const isMsbRecommended = resource.is_msb_recommended;
+                    const isFilled = resource.is_filled;
+                    const isEmpty = isMsbRecommended && !isFilled;
+                    
+                    return (
+                      <div 
+                        key={resource.id}
+                        className={`p-3 rounded-lg border transition-colors ${
+                          isEmpty ? 'opacity-60 border-dashed' : 'border-solid'
+                        }`}
+                        style={{ 
+                          borderColor: isEmpty ? 'var(--color-sage)' : 'var(--color-crisis-grey)20',
+                          backgroundColor: 'var(--bg-white)'
+                        }}
+                      >
+                        {/* Resource Header */}
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1 min-w-0 pr-2">
+                            <h4 className={`font-medium truncate ${isEmpty ? 'text-gray-500' : ''}`} style={{ 
+                              color: isEmpty ? 'var(--text-secondary)' : 'var(--text-primary)' 
+                            }}>
+                              {resource.name}
+                            </h4>
+                            {isMsbRecommended && (
+                              <div className="flex items-center gap-1 mt-1">
+                                <Shield className="w-3 h-3 flex-shrink-0" style={{ color: 'var(--color-sage)' }} />
+                                <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ 
+                                  backgroundColor: 'var(--color-sage)20',
+                                  color: 'var(--color-sage)'
+                                }}>
+                                  MSB {resource.msb_priority === 'high' ? 'Viktigt' : 'Rekommenderat'}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            {isEmpty && (
+                              <button
+                                onClick={() => handleQuickFill(resource)}
+                                className="p-2 hover:bg-green-500/20 rounded transition-colors"
+                                title="Snabbfyll"
+                              >
+                                <Plus size={16} style={{ color: 'var(--color-sage)' }} />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleEdit(resource)}
+                              className="p-2 hover:bg-white/20 rounded transition-colors"
+                              title="Redigera"
+                            >
+                              <Edit size={16} style={{ color: 'var(--text-secondary)' }} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(resource.id, isMsbRecommended)}
+                              className="p-2 hover:bg-red-500/20 rounded transition-colors"
+                              title={isMsbRecommended ? 'Töm' : 'Ta bort'}
+                            >
+                              <Trash2 size={16} className="text-red-500" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Resource Details */}
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <span className="text-gray-500">Antal:</span>
+                            <div className="font-medium" style={{ color: 'var(--text-primary)' }}>
+                              {isEmpty ? (
+                                <span className="text-gray-400 italic">Ej ifylld</span>
+                              ) : (
+                                `${resource.quantity} ${resource.unit}`
+                              )}
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Hållbarhet:</span>
+                            <div>
+                              {isEmpty ? (
+                                <span className="text-gray-400 italic">-</span>
+                              ) : (
+                                <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getUrgencyColor(resource.days_remaining, isMsbRecommended, isFilled)}`}>
+                                  {resource.days_remaining >= 99999 ? '∞' : `${resource.days_remaining}d`}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Status */}
+                        <div className="mt-2">
+                          {isEmpty ? (
+                            <span className="text-xs px-2 py-1 rounded-full border border-dashed" style={{ 
+                              borderColor: 'var(--color-sage)',
+                              color: 'var(--color-sage)'
+                            }}>
+                              Ej ifylld
+                            </span>
+                          ) : (
+                            <span className="text-xs px-2 py-1 rounded-full" style={{ 
+                              backgroundColor: 'var(--color-crisis-green)20',
+                              color: 'var(--color-crisis-green)'
+                            }}>
+                              Registrerad
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           );
