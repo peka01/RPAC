@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { t } from '@/lib/locales';
 import { RPACLogo } from '@/components/rpac-logo';
+import { User, LogIn, UserPlus, X, AlertTriangle } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -13,6 +14,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState('');
+  const [showModal, setShowModal] = useState(false);
   const router = useRouter();
 
   // Check if user is already logged in
@@ -21,6 +23,8 @@ export default function LoginPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         router.push('/dashboard');
+      } else {
+        setShowModal(true);
       }
     };
     checkUser();
@@ -69,165 +73,228 @@ export default function LoginPage() {
       if (error) throw error;
       router.push('/dashboard');
     } catch (error) {
-      setError('Demo-inloggning misslyckades');
+      setError(t('auth.demo_login_failed'));
       setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen flex items-start justify-center bg-gray-50 pt-20">
-      <div className="max-w-md w-full space-y-8 p-8">
-        <div className="text-center">
-          <div className="mx-auto mb-4">
-            <RPACLogo size="xl" />
+  // Landing page when not showing modal
+  if (!showModal) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
+        <div className="max-w-md w-full space-y-8 p-8">
+          <div className="text-center">
+            <div className="flex justify-center mb-4">
+              <RPACLogo size="xl" />
+            </div>
+            <h2 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+              {t('dashboard.title')}
+            </h2>
+            <p className="text-lg mb-8" style={{ color: 'var(--text-secondary)' }}>
+              {t('dashboard.subtitle')}
+            </p>
+            <button
+              onClick={() => setShowModal(true)}
+              className="modern-button flex items-center space-x-2 px-6 py-3 text-white mx-auto"
+              style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)' }}
+            >
+              <LogIn className="w-5 h-5" />
+              <span>{t('auth.sign_in')}</span>
+            </button>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            RPAC
-          </h2>
-          <p className="text-lg text-gray-600 mb-8">
-            {t('dashboard.subtitle')}
+        </div>
+      </div>
+    );
+  }
+
+  // Modal login form
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="crisis-card max-w-md w-full relative">
+        {/* Close button */}
+        <button
+          onClick={() => setShowModal(false)}
+          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          <X className="w-5 h-5" style={{ color: 'var(--text-secondary)' }} />
+        </button>
+
+        {/* Header */}
+        <div className="text-center mb-6">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center p-3" 
+               style={{ backgroundColor: 'var(--color-primary)', color: 'white' }}>
+            <div className="flex justify-center">
+              <RPACLogo size="lg" />
+            </div>
+          </div>
+          <h3 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+            {isSignUp ? t('auth.create_account') : t('auth.welcome_back')}
+          </h3>
+          <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)' }}>
+            {isSignUp ? t('auth.start_journey') : t('auth.continue')}
           </p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <div className="text-center mb-6">
-            <h3 className="text-xl font-bold text-gray-800">
-              {isSignUp ? t('auth.create_account') : t('auth.welcome_back')}
-            </h3>
-            <p className="text-sm text-gray-600 mt-2">
-              {isSignUp ? t('auth.start_journey') : t('auth.continue')}
+        {/* Error Messages */}
+        {error && (
+          <div className="mb-4 p-3 rounded-lg flex items-center space-x-2"
+               style={{ backgroundColor: 'var(--color-danger)20', border: '1px solid var(--color-danger)40' }}>
+            <AlertTriangle className="w-5 h-5" style={{ color: 'var(--color-danger)' }} />
+            <p className="text-sm" style={{ color: 'var(--color-danger)' }}>
+              {error}
             </p>
           </div>
+        )}
 
-          <form className="space-y-6" onSubmit={handleLogin}>
+        {/* Form */}
+        <form onSubmit={handleLogin} className="space-y-4">
+          {isSignUp && (
+            <div>
+              <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                {t('forms.name')}
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full p-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
+                style={{ 
+                  borderColor: 'var(--color-secondary)',
+                  backgroundColor: 'var(--bg-card)',
+                  color: 'var(--text-primary)',
+                  '--tw-ring-color': 'var(--color-primary)'
+                } as React.CSSProperties}
+                placeholder={t('placeholders.enter_name')}
+                required
+              />
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+              {t('forms.email')}
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
+              style={{ 
+                borderColor: 'var(--color-secondary)',
+                backgroundColor: 'var(--bg-card)',
+                color: 'var(--text-primary)',
+                '--tw-ring-color': 'var(--color-primary)'
+              } as React.CSSProperties}
+              placeholder={t('placeholders.enter_email')}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+              {t('forms.password')}
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
+              style={{ 
+                borderColor: 'var(--color-secondary)',
+                backgroundColor: 'var(--bg-card)',
+                color: 'var(--text-primary)',
+                '--tw-ring-color': 'var(--color-primary)'
+              } as React.CSSProperties}
+              placeholder={isSignUp ? t('auth.choose_secure_password') : t('auth.your_password')}
+              required
+            />
             {isSignUp && (
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                  Namn
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  autoComplete="name"
-                  required={isSignUp}
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Ditt namn"
-                />
-              </div>
+              <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+                {t('auth.minimum_characters')}
+              </p>
             )}
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                E-postadress
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="din@email.se"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Lösenord
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete={isSignUp ? "new-password" : "current-password"}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder={isSignUp ? "Välj ett säkert lösenord" : "Ditt lösenord"}
-              />
-              {isSignUp && (
-                <p className="text-xs text-gray-500 mt-1">
-                  Minst 6 tecken
-                </p>
-              )}
-            </div>
-
-            {error && (
-              <div className="text-red-600 text-sm text-center bg-red-50 p-3 rounded-md">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <div className="flex items-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  {isSignUp ? t('auth.creating_account') : t('auth.signing_in')}
-                </div>
-              ) : (
-                isSignUp ? t('auth.create_account') : t('auth.sign_in')
-              )}
-            </button>
-          </form>
-
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">eller</span>
-              </div>
-            </div>
-
-            <button
-              onClick={handleDemoLogin}
-              disabled={loading}
-              className="mt-4 w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <div className="flex items-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
-                  {t('loading.loading')}
-                </div>
-              ) : (
-                t('auth.continue_as_demo')
-              )}
-            </button>
           </div>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              {isSignUp ? 'Har du redan ett konto?' : 'Har du inget konto?'}{' '}
-              <button
-                onClick={() => {
-                  setIsSignUp(!isSignUp);
-                  setError('');
-                  setEmail('');
-                  setPassword('');
-                  setName('');
-                }}
-                className="font-medium text-blue-600 hover:text-blue-500"
-              >
-                {isSignUp ? t('auth.sign_in_here') : t('auth.register_here')}
-              </button>
-            </p>
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full modern-button flex items-center justify-center space-x-2 px-4 py-3 text-white disabled:opacity-50"
+            style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)' }}
+          >
+            {loading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span>{isSignUp ? t('auth.creating_account') : t('auth.signing_in')}</span>
+              </>
+            ) : (
+              <>
+                {isSignUp ? <UserPlus className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
+                <span>{isSignUp ? t('auth.create_account') : t('auth.sign_in')}</span>
+              </>
+            )}
+          </button>
+        </form>
+
+        <div className="mt-6">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t" style={{ borderColor: 'var(--color-secondary)' }} />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 text-sm" style={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-secondary)' }}>
+                {t('auth.or')}
+              </span>
+            </div>
           </div>
+
+          <button
+            onClick={handleDemoLogin}
+            disabled={loading}
+            className="mt-4 w-full flex justify-center py-3 px-4 border-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ 
+              borderColor: 'var(--color-secondary)',
+              backgroundColor: 'var(--bg-card)',
+              color: 'var(--text-primary)'
+            }}
+          >
+            {loading ? (
+              <div className="flex items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 mr-2" style={{ borderColor: 'var(--color-primary)' }}></div>
+                {t('loading.loading')}
+              </div>
+            ) : (
+              <>
+                <User className="w-4 h-4 mr-2" />
+                {t('auth.continue_as_demo')}
+              </>
+            )}
+          </button>
         </div>
 
-        <div className="text-center">
-          <p className="text-xs text-gray-500">
-            RPAC hjälper dig att bygga beredskap för kriser och nödsituationer
+        {/* Toggle Auth Mode */}
+        <div className="mt-6 text-center">
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+            {isSignUp ? t('auth.already_have_account') : t('auth.need_account')}
+          </p>
+          <button
+            onClick={() => {
+              setIsSignUp(!isSignUp);
+              setError('');
+              setEmail('');
+              setPassword('');
+              setName('');
+            }}
+            className="text-sm font-semibold mt-1 underline transition-colors hover:opacity-80"
+            style={{ color: 'var(--color-primary)' }}
+          >
+            {isSignUp ? t('auth.sign_in_here') : t('auth.register_here')}
+          </button>
+        </div>
+
+        <div className="mt-4 text-center">
+          <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+            {t('auth.app_description')}
           </p>
         </div>
       </div>

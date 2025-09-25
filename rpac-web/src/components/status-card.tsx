@@ -53,11 +53,11 @@ export function StatusCard() {
   }, []);
 
   const getConfidenceMessage = () => {
-    if (isCrisisMode) return "Du klarar detta - andas lugnt";
-    if (!isOnline && batteryLevel < 25) return "Offline-läge fungerar perfekt";
-    if (isOnline && batteryLevel > 75) return "Allt fungerar utmärkt";
-    if (batteryLevel < 25) return "Låg batterinivå - ladda snart";
-    return "Systemet är stabilt och redo";
+    if (isCrisisMode) return t('status_messages.crisis_mode');
+    if (!isOnline && batteryLevel < 25) return t('status_messages.offline_battery_low');
+    if (isOnline && batteryLevel > 75) return t('status_messages.online_battery_high');
+    if (batteryLevel < 25) return t('status_messages.low_battery');
+    return t('status_messages.system_stable');
   };
 
   const getOverallHealthScore = () => {
@@ -268,16 +268,16 @@ export function StatusCard() {
               <Heart className="w-5 h-5 text-white animate-pulse" />
             </div>
             <div>
-              <h3 className="font-bold text-red-800">Stödläge aktivt - Du är trygg</h3>
+              <h3 className="font-bold text-red-800">{t('status_messages.support_mode_active')}</h3>
               <p className="text-sm text-red-700">Systemet hjälper dig prioritera det viktigaste just nu</p>
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
             <button className="bg-red-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors text-sm">
-              🫁 Andas lugnt (2 min)
+              {t('dashboard.breathe_calm')}
             </button>
             <button className="bg-red-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors text-sm">
-              📋 Enkel checklista
+              {t('buttons.simple_checklist')}
             </button>
           </div>
         </div>

@@ -21,6 +21,7 @@ import {
   Monitor
 } from 'lucide-react';
 import { RPACLogo } from '@/components/rpac-logo';
+import { t } from '@/lib/locales';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('profile');
@@ -35,7 +36,7 @@ export default function SettingsPage() {
     email: 'user@example.com',
     phone: '+46 70 123 45 67',
     location: 'Stockholm, Sverige',
-    bio: 'Beredskap är viktigt för mig och min familj.',
+    bio: t('placeholders.default_bio'),
     avatar: null as File | null
   });
 
@@ -192,7 +193,7 @@ export default function SettingsPage() {
                           value={profileData.name}
                           onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
                           className="w-full pl-10 pr-4 py-3 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-slate-800"
-                          placeholder="Ditt fullständiga namn"
+                          placeholder={t('placeholders.full_name')}
                         />
                       </div>
                     </div>
@@ -240,7 +241,7 @@ export default function SettingsPage() {
                           value={profileData.location}
                           onChange={(e) => setProfileData(prev => ({ ...prev, location: e.target.value }))}
                           className="w-full pl-10 pr-4 py-3 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-slate-800"
-                          placeholder="Stad, Land"
+                          placeholder={t('placeholders.city_country')}
                         />
                       </div>
                     </div>
@@ -255,7 +256,7 @@ export default function SettingsPage() {
                       onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
                       rows={4}
                       className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-slate-800"
-                      placeholder="Berätta lite om dig själv och din beredskap..."
+                      placeholder={t('placeholders.about_yourself')}
                     />
                   </div>
 
@@ -289,7 +290,7 @@ export default function SettingsPage() {
                           value={securityData.currentPassword}
                           onChange={(e) => setSecurityData(prev => ({ ...prev, currentPassword: e.target.value }))}
                           className="w-full pl-10 pr-12 py-3 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-slate-800"
-                          placeholder="Ditt nuvarande lösenord"
+                          placeholder={t('placeholders.current_password')}
                         />
                         <button
                           type="button"
@@ -312,7 +313,7 @@ export default function SettingsPage() {
                           value={securityData.newPassword}
                           onChange={(e) => setSecurityData(prev => ({ ...prev, newPassword: e.target.value }))}
                           className="w-full pl-10 pr-12 py-3 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-slate-800"
-                          placeholder="Ditt nya lösenord"
+                          placeholder={t('placeholders.new_password')}
                         />
                         <button
                           type="button"
@@ -335,7 +336,7 @@ export default function SettingsPage() {
                           value={securityData.confirmPassword}
                           onChange={(e) => setSecurityData(prev => ({ ...prev, confirmPassword: e.target.value }))}
                           className="w-full pl-10 pr-4 py-3 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-slate-800"
-                          placeholder="Bekräfta ditt nya lösenord"
+                          placeholder={t('placeholders.confirm_password')}
                         />
                       </div>
                     </div>
@@ -540,7 +541,7 @@ export default function SettingsPage() {
                             Datainsamling
                           </h3>
                           <p className="text-sm text-slate-600 dark:text-slate-400">
-                            Tillåt anonymiserad datainsamling för förbättringar
+                            {t('settings.allow_data_collection')}
                           </p>
                         </div>
                       </div>

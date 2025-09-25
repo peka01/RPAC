@@ -10,15 +10,19 @@
 
 ## Professional Crisis Intelligence Design Philosophy
 
-### Human-Centered Military Competence
-We design for humans in crisis with the competence and reliability they expect from professional emergency systems. Every interface element must build confidence through demonstrated capability, not superficial cheerfulness.
+### Human-Centered Semi-Military Design Approach
+We design for humans in crisis with clarity and reliability. Visual design uses semi-military principles for clarity and directness, but text content remains conversational and accessible Swedish.
 
-### Emotional Intelligence Through Professional Competence
-- **Competence-First Design** - Interface decisions build trust through demonstrated reliability and expertise
-- **Confident Authority Architecture** - Design that projects calm competence and professional preparedness
-- **Stress-Adaptive Clarity** - UI that becomes more precise and focused under pressure
-- **Subtle Human Touches** - Professional warmth that acknowledges human needs without compromising authority
-- **Swedish Crisis Communication Culture** - Professional, direct, caring tone appropriate for emergency services
+**CRITICAL DISTINCTION:**
+- **Visual Design**: Semi-military inspired (clean lines, clear hierarchy, purposeful colors, direct layouts)
+- **Text Content**: Everyday Swedish (clear, warm, accessible language that anyone can understand)
+
+### Emotional Intelligence Through Clear Design
+- **Clarity-First Design** - Interface decisions prioritize immediate understanding over aesthetics
+- **Confident Simplicity** - Design that projects calm competence through clear visual hierarchy
+- **Stress-Adaptive Clarity** - UI that becomes more focused and easier to use under pressure
+- **Accessible Language** - Text that uses everyday Swedish, not technical or military jargon
+- **Swedish Communication Culture** - Direct but caring tone appropriate for Swedish crisis communication
 
 ### Military-Grade Usability Principles
 - **Zero-Learning Interfaces** - Intuitive operation under stress, like professional emergency equipment
@@ -28,13 +32,13 @@ We design for humans in crisis with the competence and reliability they expect f
 - **Professional Navigation Flow** - Clear, logical paths that feel like emergency procedures
 - **Error-Prevention Design** - Architecture that prevents critical mistakes through clear information hierarchy
 
-### Military-Inspired Visual Language
-- **Authoritative Calm Aesthetic** - Dark olive green palette that projects competence and stability
-- **Professional Biophilic Touches** - Subtle natural elements that reduce stress without compromising authority
-- **Military Typography Hierarchy** - Clear, readable text that prioritizes critical information
-- **Precision Animation Language** - Minimal, purposeful movements that communicate system status
-- **Swedish Military Minimalism** - Clean, functional design that reduces cognitive load while maintaining authority
-- **Universal Professional Design** - Accessibility that feels like professional-grade equipment
+### Semi-Military Visual Language (Visual Design Only)
+- **Calm Aesthetic** - Dark olive green palette that projects stability and clarity
+- **Natural Touches** - Subtle elements that reduce stress while maintaining clear focus
+- **Clear Typography Hierarchy** - Readable text that prioritizes critical information using everyday Swedish
+- **Purposeful Animation** - Minimal, clear movements that communicate system status
+- **Swedish Minimalism** - Clean, functional design that reduces cognitive load
+- **Universal Design** - Accessibility that feels reliable and clear to all users
 
 ### Professional Interaction Paradigms
 - **Military-Grade Touch Patterns** - Precise interactions that work with gloves and under stress
@@ -69,6 +73,16 @@ We design for humans in crisis with the competence and reliability they expect f
 
 ## Language and Tone of Voice
 
+### ⚠️ FUNDAMENTAL PRINCIPLE: ALL TEXT MUST BE IN JSON
+**MANDATORY**: Every single user-facing text string MUST be in the localization JSON file and accessed via `t()` function. No exceptions.
+
+- **NO hardcoded Swedish text** - Every string must be editable via `/lib/locales/sv.json`
+- **Use `t('key.name')` for all text** - Including placeholders, error messages, status text, everything
+- **Audit regularly** - Check codebase for Swedish characters (åäöÅÄÖ) outside of JSON files
+- **Test international readiness** - All text must be translatable without code changes
+- **CLEAN UP JSON** - Remove unused strings when refactoring or changing features
+- **ZERO TOLERANCE** - Any hardcoded Swedish text is a critical bug that must be fixed immediately
+
 ### Swedish Language Requirements
 - **Primary language**: Swedish for all user-facing content
 - **Fallback**: English only for external connectors or technical fallbacks
@@ -76,12 +90,20 @@ We design for humans in crisis with the competence and reliability they expect f
 - **Localized text integration**: All placeholder strings must be replaced with proper Swedish translations
 
 ### Crisis Communication Tone Guidelines
-- **Clarity**: Use simple, direct language that's easy to understand under stress
-- **Empathy**: Show understanding and support in all messages
-- **Reassurance**: Provide confidence and hope while being realistic
-- **Action-oriented**: Focus on practical steps and solutions
-- **Calm authority**: Sound knowledgeable and trustworthy without being alarmist
-- **Immediate comprehension**: Messages must be understood instantly, even under duress
+**IMPORTANT**: Text content should NEVER use military terminology or jargon. Use everyday Swedish.
+
+- **Clarity**: Use simple, everyday Swedish that's easy to understand under stress
+- **Warmth**: Show understanding and support in all messages - be human, not institutional
+- **Reassurance**: Provide confidence through clear, helpful language
+- **Action-oriented**: Focus on practical steps using normal Swedish words
+- **Calm clarity**: Sound helpful and trustworthy using accessible language
+- **Immediate comprehension**: Messages must be understood instantly by anyone, using familiar words
+
+**Examples of Good vs. Bad Text:**
+- ✅ Good: "Laddar ditt hem" (Loading your home)
+- ❌ Bad: "Initialiserar beredskapssystem" (Initializing preparedness system)
+- ✅ Good: "Hämtar din information" (Fetching your information)  
+- ❌ Bad: "Laddar operativ databas" (Loading operational database)
 
 ### Swedish Technical Terms
 - Use proper Swedish technical terminology
@@ -106,7 +128,29 @@ We design for humans in crisis with the competence and reliability they expect f
 4. Use Swedish in variable names and UI where possible
 5. Document all new features in `/docs/dev_notes.md`
 6. Test offline functionality thoroughly
-7. Ensure crisis-appropriate messaging throughout
+7. **CRITICAL**: Ensure text uses everyday Swedish - NO military jargon in user-facing text
+
+## Visual vs. Text Design Principles
+
+### ✅ **Visual Design**: Semi-Military Inspired
+- Clean, direct layouts
+- Clear visual hierarchy
+- Purposeful olive green color scheme
+- Minimal, focused animations
+- Professional spacing and typography
+
+### ✅ **Text Content**: Everyday Swedish
+- Use words any Swedish person understands immediately
+- Warm, helpful tone (not cold or institutional)
+- Clear, simple instructions
+- Familiar terminology from daily life
+- Human-centered language
+
+### ❌ **NEVER DO**: Military Text Content
+- Don't use: "operativ", "system", "databas", "initialisera"
+- Don't use: "beredskapssystem", "taktisk", "mission"
+- Don't use: formal/institutional language
+- Don't sound like a government agency or military system
 
 ## Current Development Priorities
 
@@ -129,6 +173,8 @@ Before shipping ANY feature, validate against these human-centered criteria:
 - [ ] **Does this reduce anxiety rather than create it?**
 - [ ] **Is the emotional tone appropriate for Swedish crisis communication culture?**
 - [ ] **Does this build community connection rather than technological dependence?**
+- [ ] **Does ALL text use everyday Swedish that anyone can understand immediately?**
+- [ ] **Is the language warm and human, not cold or institutional?**
 
 #### Breakthrough Usability Standards
 - [ ] **Can this be used successfully by someone who's never seen it before, within 10 seconds?**

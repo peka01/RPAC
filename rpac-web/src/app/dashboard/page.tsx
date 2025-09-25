@@ -65,28 +65,59 @@ export default function DashboardPage() {
     };
   }, [router]);
 
-  // Revolutionary stress-adaptive loading experience
+  // Professional military loading experience
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
-        {/* Biophilic breathing pattern background */}
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-green-50/40 via-blue-50/30 to-green-50/40"></div>
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-green-100/20 rounded-full animate-pulse"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-blue-100/20 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
+      <div className="h-full overflow-hidden flex items-center justify-center relative" style={{ background: 'var(--bg-primary)' }}>
+        {/* Professional background patterns */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-20 left-20 w-32 h-32 opacity-[0.02]">
+            <div className="w-full h-full rounded-full" style={{ backgroundColor: 'var(--color-primary)' }}></div>
+          </div>
+          <div className="absolute bottom-20 right-20 w-24 h-24 opacity-[0.02]">
+            <div className="w-full h-full rounded-full" style={{ backgroundColor: 'var(--color-secondary)' }}></div>
+          </div>
         </div>
         
-        <div className="text-center z-10">
-          {/* Calm confidence loading indicator */}
-          <div className="relative mb-8">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center mx-auto shadow-lg">
-              <Heart className="w-8 h-8 text-white animate-pulse" />
+        <div className="text-center z-10 max-w-md mx-auto px-6">
+          {/* Military-style loading indicator */}
+          <div className="mb-8">
+            <div className="w-20 h-20 rounded-lg flex items-center justify-center mx-auto shadow-lg mb-6" style={{ 
+              background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)' 
+            }}>
+              <Shield className="w-10 h-10 text-white" />
             </div>
-            <div className="absolute inset-0 rounded-full border-4 border-green-200 animate-spin" style={{ animationDuration: '3s' }}></div>
+            
+            {/* Clean progress bar */}
+            <div className="w-64 mx-auto">
+              <div className="flex justify-between text-xs mb-2" style={{ color: 'var(--text-secondary)' }}>
+                <span>{t('dashboard.loading_progress')}</span>
+                <span>75%</span>
+              </div>
+              <div className="h-2 rounded-full border" style={{ 
+                backgroundColor: 'var(--bg-card)', 
+                borderColor: 'var(--color-secondary)' 
+              }}>
+                <div 
+                  className="h-full rounded-full military-progress" 
+                  style={{ 
+                    background: 'linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)'
+                  }}
+                ></div>
+              </div>
+              <div className="flex justify-between text-xs mt-2" style={{ color: 'var(--text-tertiary)' }}>
+                <span>{t('dashboard.loading_status_start')}</span>
+                <span>{t('dashboard.loading_status_end')}</span>
+              </div>
+            </div>
           </div>
           
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Förbereder din trygghet...</h2>
-          <p className="text-gray-600">Andas lugnt medan vi laddar din personliga beredskapscentral</p>
+          <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+            {t('dashboard.loading_title')}
+          </h2>
+          <p style={{ color: 'var(--text-secondary)' }}>
+            {t('dashboard.loading_description')}
+          </p>
         </div>
       </div>
     );
@@ -94,167 +125,110 @@ export default function DashboardPage() {
 
   const getTimeOfDayGreeting = () => {
     const hour = currentTime.getHours();
-    if (hour < 6) return "God natt";
-    if (hour < 12) return "God morgon";
-    if (hour < 18) return "God dag";
-    return "God kväll";
+    if (hour < 6) return t('dashboard.good_night');
+    if (hour < 12) return t('dashboard.good_morning');
+    if (hour < 18) return t('dashboard.good_day');
+    return t('dashboard.good_evening');
   };
 
-  const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Vän';
+  const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || t('dashboard.default_user');
 
   return (
-    <div className="min-h-screen relative">
-      {/* Professional military background with subtle biophilic touches */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute inset-0" style={{ background: 'var(--bg-primary)' }}></div>
-        {/* Subtle professional patterns */}
-        <div className="absolute top-20 left-20 w-32 h-32 opacity-[0.02]">
-          <div className="w-full h-full rounded-full" style={{ backgroundColor: 'var(--color-primary)' }}></div>
-        </div>
-        <div className="absolute bottom-20 right-20 w-24 h-24 opacity-[0.02]">
-          <div className="w-full h-full rounded-full" style={{ backgroundColor: 'var(--color-secondary)' }}></div>
-        </div>
-      </div>
-
-      <div className="relative z-10">
-        {/* Professional Crisis Intelligence Dashboard Header */}
-        <div className="px-6 py-8">
-          <div className="max-w-7xl mx-auto">
-            <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 border border-gray-200 shadow-lg" style={{ backgroundColor: 'var(--bg-card)' }}>
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-4">
-                  <div className="relative">
-                    <div className="w-14 h-14 rounded-lg flex items-center justify-center shadow-md" style={{ 
-                      background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)' 
-                    }}>
-                      {currentTime.getHours() >= 6 && currentTime.getHours() < 18 ? 
-                        <Sun className="w-7 h-7 text-white" /> : 
-                        <Moon className="w-7 h-7 text-white" />
-                      }
-                    </div>
-                    {/* Professional status indicator */}
-                    <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full" style={{ backgroundColor: 'var(--color-success)' }}>
-                      <div className="absolute inset-0 rounded-full animate-pulse" style={{ backgroundColor: 'var(--color-success)' }}></div>
-                    </div>
-                  </div>
-                  <div>
-                    <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
-                      {getTimeOfDayGreeting()}, {userName}
-                    </h1>
-                    <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Beredskapsläge: Operationell • Status: Förberedd</p>
-                  </div>
-                </div>
-
-                {/* Professional Community Status */}
-                <div className="text-center">
-                  <div className="relative mb-2">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm" style={{ 
-                      background: 'linear-gradient(135deg, var(--color-secondary) 0%, var(--color-tertiary) 100%)' 
-                    }}>
-                      <Users className="w-5 h-5 text-white" />
-                    </div>
-                  </div>
-                  <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Nätverk</div>
-                  <div className="text-sm font-bold" style={{ color: 'var(--color-primary)' }}>{Math.round(communityHeartbeat)}%</div>
-                </div>
-              </div>
-
-              {/* Professional Operational Mode Selector */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
-                <button 
-                  onClick={() => setStressLevel('calm')}
-                  className={`p-3 rounded-lg transition-all duration-300 border ${
-                    stressLevel === 'calm' 
-                      ? 'border-2 shadow-md' 
-                      : 'border hover:border-gray-300'
-                  }`}
-                  style={{
-                    backgroundColor: stressLevel === 'calm' ? 'rgba(135, 169, 107, 0.15)' : 'var(--bg-card)',
-                    borderColor: stressLevel === 'calm' ? 'var(--color-sage)' : 'var(--color-muted)',
-                  }}
-                >
-                  <CheckCircle className={`w-5 h-5 mx-auto mb-1`} style={{ 
-                    color: stressLevel === 'calm' ? 'var(--color-sage)' : 'var(--color-muted)' 
-                  }} />
-                  <div className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>Standard</div>
-                </button>
-                
-                <button 
-                  onClick={() => setStressLevel('moderate')}
-                  className={`p-3 rounded-lg transition-all duration-300 border ${
-                    stressLevel === 'moderate' 
-                      ? 'border-2 shadow-md' 
-                      : 'border hover:border-gray-300'
-                  }`}
-                  style={{
-                    backgroundColor: stressLevel === 'moderate' ? 'rgba(139, 132, 78, 0.15)' : 'var(--bg-card)',
-                    borderColor: stressLevel === 'moderate' ? 'var(--color-khaki)' : 'var(--color-muted)',
-                  }}
-                >
-                  <TrendingUp className={`w-5 h-5 mx-auto mb-1`} style={{ 
-                    color: stressLevel === 'moderate' ? 'var(--color-khaki)' : 'var(--color-muted)' 
-                  }} />
-                  <div className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>Fokuserad</div>
-                </button>
-                
-                <button 
-                  onClick={() => setStressLevel('stressed')}
-                  className={`p-3 rounded-lg transition-all duration-300 border ${
-                    stressLevel === 'stressed' 
-                      ? 'border-2 shadow-md' 
-                      : 'border hover:border-gray-300'
-                  }`}
-                  style={{
-                    backgroundColor: stressLevel === 'stressed' ? 'rgba(184, 134, 11, 0.15)' : 'var(--bg-card)',
-                    borderColor: stressLevel === 'stressed' ? 'var(--color-warning)' : 'var(--color-muted)',
-                  }}
-                >
-                  <AlertTriangle className={`w-5 h-5 mx-auto mb-1`} style={{ 
-                    color: stressLevel === 'stressed' ? 'var(--color-warning)' : 'var(--color-muted)' 
-                  }} />
-                  <div className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>Kris</div>
-                </button>
-              </div>
-            </div>
+    <div className="relative" style={{ background: 'var(--bg-primary)' }}>
+      <div className="max-w-7xl mx-auto px-6 py-6">
+        {/* Operational Mode Selector - moved to top */}
+        <div className="mb-6">
+          <div className="grid grid-cols-3 gap-2">
+            <button 
+              onClick={() => setStressLevel('calm')}
+              className={`p-3 rounded-lg transition-all duration-300 border ${
+                stressLevel === 'calm' 
+                  ? 'border-2 shadow-md' 
+                  : 'border hover:border-gray-300'
+              }`}
+              style={{
+                backgroundColor: stressLevel === 'calm' ? 'rgba(135, 169, 107, 0.15)' : 'var(--bg-card)',
+                borderColor: stressLevel === 'calm' ? 'var(--color-sage)' : 'var(--color-muted)',
+              }}
+            >
+              <CheckCircle className={`w-5 h-5 mx-auto mb-1`} style={{ 
+                color: stressLevel === 'calm' ? 'var(--color-sage)' : 'var(--color-muted)' 
+              }} />
+              <div className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{t('dashboard.mode_standard')}</div>
+            </button>
+            
+            <button 
+              onClick={() => setStressLevel('moderate')}
+              className={`p-3 rounded-lg transition-all duration-300 border ${
+                stressLevel === 'moderate' 
+                  ? 'border-2 shadow-md' 
+                  : 'border hover:border-gray-300'
+              }`}
+              style={{
+                backgroundColor: stressLevel === 'moderate' ? 'rgba(139, 132, 78, 0.15)' : 'var(--bg-card)',
+                borderColor: stressLevel === 'moderate' ? 'var(--color-khaki)' : 'var(--color-muted)',
+              }}
+            >
+              <TrendingUp className={`w-5 h-5 mx-auto mb-1`} style={{ 
+                color: stressLevel === 'moderate' ? 'var(--color-khaki)' : 'var(--color-muted)' 
+              }} />
+              <div className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{t('dashboard.mode_focused')}</div>
+            </button>
+            
+            <button 
+              onClick={() => setStressLevel('stressed')}
+              className={`p-3 rounded-lg transition-all duration-300 border ${
+                stressLevel === 'stressed' 
+                  ? 'border-2 shadow-md' 
+                  : 'border hover:border-gray-300'
+              }`}
+              style={{
+                backgroundColor: stressLevel === 'stressed' ? 'rgba(184, 134, 11, 0.15)' : 'var(--bg-card)',
+                borderColor: stressLevel === 'stressed' ? 'var(--color-warning)' : 'var(--color-muted)',
+              }}
+            >
+              <AlertTriangle className={`w-5 h-5 mx-auto mb-1`} style={{ 
+                color: stressLevel === 'stressed' ? 'var(--color-warning)' : 'var(--color-muted)' 
+              }} />
+              <div className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{t('dashboard.mode_crisis')}</div>
+            </button>
           </div>
         </div>
 
-        {/* Zero-Learning Interface - Contextual Sections */}
-        <div className="max-w-7xl mx-auto px-6 pb-12">
-          
+        {/* Dashboard Content */}
+        <div className="space-y-6">
           {/* Professional Crisis Support Mode */}
           {stressLevel === 'stressed' && (
-            <div className="mb-8 rounded-lg p-5 border shadow-md" style={{ 
+            <div className="mb-6 rounded-lg p-4 border shadow-md" style={{ 
               backgroundColor: 'rgba(139, 69, 19, 0.05)', 
               borderColor: 'var(--color-danger)' 
             }}>
-              <div className="flex items-center space-x-3 mb-4">
+              <div className="flex items-center space-x-3 mb-3">
                 <Shield className="w-5 h-5" style={{ color: 'var(--color-danger)' }} />
-                <h2 className="text-lg font-bold" style={{ color: 'var(--color-danger)' }}>Krisstöd aktiverat</h2>
+                <h2 className="text-lg font-bold" style={{ color: 'var(--color-danger)' }}>{t('dashboard.crisis_support_active')}</h2>
               </div>
-              <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>Prioriterade åtgärder för nuvarande situation. Du har resurserna som behövs.</p>
+              <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>{t('dashboard.priority_actions_description')}</p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <button className="px-4 py-2 rounded-lg font-semibold text-white text-sm transition-colors" 
                         style={{ background: 'linear-gradient(135deg, var(--color-danger) 0%, #7A3D10 100%)' }}>
-                  Andningsteknik (2 min)
+                  {t('dashboard.breathing_technique')}
                 </button>
                 <button className="px-4 py-2 rounded-lg font-semibold text-white text-sm transition-colors"
                         style={{ background: 'linear-gradient(135deg, var(--color-danger) 0%, #7A3D10 100%)' }}>
-                  Kontakta nätverk
+                  {t('dashboard.contact_network')}
                 </button>
                 <button className="px-4 py-2 rounded-lg font-semibold text-white text-sm transition-colors"
                         style={{ background: 'linear-gradient(135deg, var(--color-danger) 0%, #7A3D10 100%)' }}>
-                  Krischecklista
+                  {t('dashboard.crisis_checklist')}
                 </button>
               </div>
             </div>
           )}
 
           {/* Professional Information Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
-            
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
             {/* Preparedness Status Report */}
-            <div className="group bg-white/95 rounded-lg p-5 border shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer" style={{ 
+            <div className="group bg-white/95 rounded-lg p-4 border shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer" style={{ 
               backgroundColor: 'var(--bg-card)',
               borderColor: 'var(--color-sage)'
             }}>
@@ -266,21 +240,21 @@ export default function DashboardPage() {
                 </div>
                 <div className="text-right">
                   <div className="text-xl font-bold" style={{ color: 'var(--color-sage)' }}>92%</div>
-                  <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Beredskapsgrad</div>
+                  <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{t('dashboard.preparedness_level')}</div>
                 </div>
               </div>
-              <h3 className="text-sm font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Operationell Status</h3>
-              <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>Resurser: 14 dagar • Nätverk: Aktivt • Utbildning: Genomförd</p>
+              <h3 className="text-sm font-bold mb-2" style={{ color: 'var(--text-primary)' }}>{t('dashboard.operational_status_title')}</h3>
+              <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>{t('dashboard.resources_status')}</p>
               <div className="flex space-x-2">
                 <div className="flex-1 rounded-full h-2" style={{ backgroundColor: 'rgba(135, 169, 107, 0.2)' }}>
                   <div className="h-2 rounded-full" style={{ width: '92%', backgroundColor: 'var(--color-sage)' }}></div>
                 </div>
-                <span className="text-xs font-semibold" style={{ color: 'var(--color-sage)' }}>Optimal</span>
+                <span className="text-xs font-semibold" style={{ color: 'var(--color-sage)' }}>{t('dashboard.optimal')}</span>
               </div>
             </div>
 
             {/* Network Intelligence */}
-            <div className="group bg-white/95 rounded-lg p-5 border shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer" style={{ 
+            <div className="group bg-white/95 rounded-lg p-4 border shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer" style={{ 
               backgroundColor: 'var(--bg-card)',
               borderColor: 'var(--color-cool-olive)'
             }}>
@@ -292,19 +266,19 @@ export default function DashboardPage() {
                 </div>
                 <div className="text-right">
                   <div className="text-xl font-bold" style={{ color: 'var(--color-cool-olive)' }}>23</div>
-                  <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Kontakter</div>
+                  <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{t('dashboard.contacts')}</div>
                 </div>
               </div>
-              <h3 className="text-sm font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Nätverk</h3>
-              <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>Aktiva medlemmar • Resursdelning pågår • Kommunikation säker</p>
+              <h3 className="text-sm font-bold mb-2" style={{ color: 'var(--text-primary)' }}>{t('dashboard.network')}</h3>
+              <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>{t('dashboard.community_status_description')}</p>
               <div className="flex items-center space-x-2 text-xs" style={{ color: 'var(--color-cool-olive)' }}>
                 <MessageCircle className="w-3 h-3" />
-                <span>3 meddelanden</span>
+                <span>{t('dashboard.messages_count')}</span>
               </div>
             </div>
 
             {/* Cultivation Management */}
-            <div className="group bg-white/95 rounded-lg p-5 border shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer lg:col-span-2 xl:col-span-1" style={{ 
+            <div className="group bg-white/95 rounded-lg p-4 border shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer lg:col-span-2 xl:col-span-1" style={{ 
               backgroundColor: 'var(--bg-card)',
               borderColor: 'var(--color-khaki)'
             }}>
@@ -316,12 +290,12 @@ export default function DashboardPage() {
                 </div>
                 <div className="text-right">
                   <div className="text-lg" style={{ color: 'var(--color-khaki)' }}>🌱</div>
-                  <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Aktiv</div>
+                  <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{t('dashboard.active')}</div>
                 </div>
               </div>
-              <h3 className="text-sm font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Odlingsplan</h3>
-              <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>Tomater: Utvecklas • Kål: Mogen snart • Nästa: Morötter</p>
-              <div className="text-xs font-semibold" style={{ color: 'var(--color-khaki)' }}>Skörd: 3 veckor</div>
+              <h3 className="text-sm font-bold mb-2" style={{ color: 'var(--text-primary)' }}>{t('dashboard.cultivation_plan')}</h3>
+              <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>{t('dashboard.cultivation_status')}</p>
+              <div className="text-xs font-semibold" style={{ color: 'var(--color-khaki)' }}>{t('dashboard.harvest_time')}</div>
             </div>
           </div>
 
@@ -329,7 +303,7 @@ export default function DashboardPage() {
           {stressLevel !== 'stressed' && (
             <>
               {/* Advanced Communication Hub - Enhanced & Resizable */}
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
                 <div className="xl:col-span-1">
                   {user && <MessagingSystem user={user} communityId="demo-community-1" />}
                 </div>
@@ -340,14 +314,14 @@ export default function DashboardPage() {
 
               {/* Resource Excellence */}
               {user && (
-                <div className="mb-8">
+                <div className="mb-6">
                   <SupabaseResourceInventory user={user} />
                 </div>
               )}
 
               {/* Community Psychology Integration */}
               {user && (
-                <div className="mb-8">
+                <div className="mb-6">
                   <CommunityHub user={user} />
                 </div>
               )}
@@ -355,7 +329,7 @@ export default function DashboardPage() {
           )}
 
           {/* Always Show - Core Preparedness (Crisis-Ready) */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <div className="order-2 lg:order-1">
               <StatusCard />
             </div>
@@ -365,7 +339,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Professional Status Update */}
-          <div className="mt-8 rounded-lg p-4 border shadow-sm" style={{ 
+          <div className="rounded-lg p-3 border shadow-sm" style={{ 
             background: 'linear-gradient(135deg, var(--bg-olive-light) 0%, var(--bg-card) 100%)',
             borderColor: 'var(--color-secondary)'
           }}>
@@ -376,13 +350,14 @@ export default function DashboardPage() {
                 <CheckCircle className="w-4 h-4 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Daglig uppdatering slutförd</h3>
-                <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Resurser uppdaterade • Nätverk utökat • Beredskap förbättrad</p>
+                <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{t('dashboard.daily_update_complete')}</h3>
+                <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{t('dashboard.daily_update_description')}</p>
               </div>
               <div className="text-lg" style={{ color: 'var(--color-primary)' }}>✓</div>
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase, authService } from '@/lib/supabase';
 import { User, LogIn, LogOut, UserPlus } from 'lucide-react';
+import { t } from '@/lib/locales';
 
 export function Auth() {
   const [user, setUser] = useState<{ id: string; email?: string; user_metadata?: { name?: string } } | null>(null);
@@ -49,7 +50,7 @@ export function Auth() {
       setFormData({ email: '', password: '', name: '' });
     } catch (error) {
       console.error('Auth error:', error);
-      alert('Ett fel uppstod. Försök igen.');
+      alert(t('errors.generic_error'));
     }
   };
 

@@ -235,11 +235,11 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
 
   const getConfidenceMessage = () => {
     const healthScore = getResourceHealthScore();
-    if (healthScore >= 80) return "Du är fantastiskt förberedd! 🌟";
-    if (healthScore >= 60) return "Du har en solid grund att bygga på 💪";
-    if (healthScore >= 40) return "På bra väg - fortsätt bygga din trygghet 🚀";
-    if (healthScore >= 20) return "Varje resurs du lägger till gör dig starkare 💝";
-    return "Börja din resa mot trygghet idag ✨";
+    if (healthScore >= 80) return t('preparedness.health_messages.excellent');
+    if (healthScore >= 60) return t('preparedness.health_messages.very_good');
+    if (healthScore >= 40) return t('preparedness.health_messages.good');
+    if (healthScore >= 20) return t('preparedness.health_messages.fair');
+    return t('preparedness.health_messages.poor');
   };
 
   const resourceHealthScore = getResourceHealthScore();

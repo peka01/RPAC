@@ -35,6 +35,7 @@ export function Navigation() {
     user_metadata?: { name?: string };
   } | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -88,6 +89,21 @@ export function Navigation() {
     }
   };
 
+  const getTimeOfDayGreeting = () => {
+    if (!isClient) return t('dashboard.good_day');
+    
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) {
+      return t('dashboard.good_morning');
+    } else if (hour >= 12 && hour < 17) {
+      return t('dashboard.good_day');
+    } else if (hour >= 17 && hour < 22) {
+      return t('dashboard.good_evening');
+    } else {
+      return t('dashboard.good_night');
+    }
+  };
+
   // Professional Crisis Intelligence Navigation
   const navigation = [
     { 
@@ -137,8 +153,18 @@ export function Navigation() {
     }
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      setIsScrolled(scrollPosition > 20);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <nav className="relative">
+    <nav className="fixed top-0 left-0 right-0 z-50 flex-shrink-0">
       {/* Professional Military Background */}
       <div className="absolute inset-0 backdrop-blur-sm border-b" style={{ 
         backgroundColor: 'var(--bg-card)',
@@ -148,15 +174,17 @@ export function Navigation() {
       <div className="relative z-10">
         <div className="container mx-auto px-6">
           {/* Professional Header */}
-          <div className="flex items-center justify-between h-16">
+          <div className={`flex items-center justify-between transition-all duration-300 ${isScrolled ? 'h-12' : 'h-16'}`}>
             
             {/* Authority Logo */}
             <div className="flex items-center space-x-3">
               <div className="relative">
-                <div className="flex items-center justify-center w-12 h-12 rounded-lg shadow-md p-2" style={{ 
+                <div className={`flex items-center justify-center rounded-lg shadow-md p-2 transition-all duration-300 ${
+                  isScrolled ? 'w-8 h-8' : 'w-12 h-12'
+                }`} style={{ 
                   background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)' 
                 }}>
-                  <RPACLogo size="md" className="text-white" />
+                  <RPACLogo size={isScrolled ? "sm" : "md"} className="text-white" />
                 </div>
                 {/* Professional status indicator */}
                 <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full transition-all duration-500 ${
@@ -166,17 +194,53 @@ export function Navigation() {
                 </div>
               </div>
               <div>
-                <h1 className="text-4xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                <h1 className={`font-bold transition-all duration-300 ${
+                  isScrolled ? 'text-2xl' : 'text-4xl'
+                }`} style={{ color: 'var(--text-primary)' }}>
                   BEREDD
                 </h1>
               </div>
             </div>
 
+            {/* Inline Navigation Items - Only when scrolled */}
+            {isScrolled && (
+              <div className="flex items-center space-x-2">
+                {isClient && navigation.slice(0, 4).map((item, index) => {
+                  const normalizedPathname = pathname.replace(/\/$/, '') || '/';
+                  const normalizedHref = item.href.replace(/\/$/, '') || '/';
+                  const isActive = normalizedPathname === normalizedHref || 
+                                 (normalizedHref === '/dashboard' && normalizedPathname === '') ||
+                                 (normalizedHref === '/dashboard' && normalizedPathname === '/');
+                  
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className={`flex items-center space-x-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-300 ${
+                        isActive
+                          ? 'shadow-sm'
+                          : 'hover:shadow-sm'
+                      }`}
+                      style={{
+                        backgroundColor: isActive ? 'var(--color-primary)' : 'transparent',
+                        color: isActive ? 'white' : 'var(--text-primary)'
+                      }}
+                    >
+                      <item.icon className="w-3 h-3" />
+                      <span className="hidden lg:inline">{item.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+
             {/* Professional Status Bar */}
             <div className="flex items-center space-x-3">
               
               {/* Connection Status */}
-              <div className={`flex items-center space-x-2 px-3 py-1 rounded-lg text-xs transition-all duration-300 ${
+              <div className={`flex items-center space-x-2 rounded-lg text-xs transition-all duration-300 ${
+                isScrolled ? 'px-2 py-1' : 'px-3 py-1'
+              } ${
                 isOnline 
                   ? 'shadow-sm' 
                   : 'animate-pulse'
@@ -186,25 +250,27 @@ export function Navigation() {
               }}>
                 {isOnline ? (
                   <>
-                    <Wifi className="w-4 h-4" />
-                    <span className="font-semibold">Online</span>
+                    <Wifi className={isScrolled ? "w-3 h-3" : "w-4 h-4"} />
+                    {!isScrolled && <span className="font-semibold">Online</span>}
                   </>
                 ) : (
                   <>
-                    <WifiOff className="w-4 h-4" />
-                    <span className="font-semibold">Offline</span>
+                    <WifiOff className={isScrolled ? "w-3 h-3" : "w-4 h-4"} />
+                    {!isScrolled && <span className="font-semibold">Offline</span>}
                   </>
                 )}
               </div>
 
               {/* Crisis Mode Alert */}
               {isCrisisMode && (
-                <div className="flex items-center space-x-2 px-3 py-1 rounded-lg text-xs font-semibold animate-pulse" style={{
+                <div className={`flex items-center space-x-2 rounded-lg text-xs font-semibold animate-pulse transition-all duration-300 ${
+                  isScrolled ? 'px-2 py-1' : 'px-3 py-1'
+                }`} style={{
                   backgroundColor: 'rgba(139, 69, 19, 0.1)',
                   color: 'var(--color-danger)'
                 }}>
-                  <AlertTriangle className="w-4 h-4" />
-                  <span>Krisläge</span>
+                  <AlertTriangle className={isScrolled ? "w-3 h-3" : "w-4 h-4"} />
+                  {!isScrolled && <span>Krisläge</span>}
                 </div>
               )}
 
@@ -213,23 +279,34 @@ export function Navigation() {
                 <div className="relative user-menu-container">
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}
-                    className="flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 border" 
+                    className={`flex items-center space-x-2 rounded-lg transition-all duration-300 border ${
+                      isScrolled ? 'px-2 py-1.5' : 'px-3 py-2'
+                    }`}
                     style={{
                       backgroundColor: 'var(--bg-card)',
                       borderColor: 'var(--color-muted)'
                     }}
                   >
-                    <div className="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold text-white" style={{ 
+                    <div className={`rounded-lg flex items-center justify-center font-bold text-white transition-all duration-300 ${
+                      isScrolled ? 'w-5 h-5 text-xs' : 'w-6 h-6 text-xs'
+                    }`} style={{ 
                       backgroundColor: 'var(--color-primary)' 
                     }}>
                       {(user.user_metadata?.name || user.email || 'V').charAt(0).toUpperCase()}
                     </div>
-                    <div className="text-left">
-                      <div className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
-                        {user.user_metadata?.name || user.email}
+                    {!isScrolled && (
+                      <div className="text-left">
+                        <div className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
+                          {getTimeOfDayGreeting()}, {user.user_metadata?.name || user.email?.split('@')[0] || t('dashboard.default_user')}
+                        </div>
+                        <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                          {t('dashboard.status_line')}
+                        </div>
                       </div>
-                    </div>
-                    <ChevronDown className={`w-3 h-3 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} style={{ color: 'var(--text-tertiary)' }} />
+                    )}
+                    <ChevronDown className={`transition-transform ${showUserMenu ? 'rotate-180' : ''} ${
+                      isScrolled ? 'w-3 h-3' : 'w-3 h-3'
+                    }`} style={{ color: 'var(--text-tertiary)' }} />
                   </button>
                   
                   {showUserMenu && (
@@ -263,8 +340,9 @@ export function Navigation() {
             </div>
           </div>
 
-          {/* Professional Navigation Grid */}
-          <div className="pb-4">
+          {/* Professional Navigation Grid - Hidden when scrolled */}
+          {!isScrolled && (
+            <div className="pb-4">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 max-w-3xl mx-auto">
               {isClient && navigation.map((item, index) => {
                 const normalizedPathname = pathname.replace(/\/$/, '') || '/';
@@ -328,6 +406,7 @@ export function Navigation() {
               })}
             </div>
           </div>
+          )}
         </div>
       </div>
     </nav>

@@ -11,6 +11,7 @@ import {
   Globe
 } from 'lucide-react';
 import { RPACLogo } from './rpac-logo';
+import { t } from '@/lib/locales';
 
 interface Feature {
   icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
@@ -22,20 +23,20 @@ interface Feature {
 const features: Feature[] = [
   {
     icon: User,
-    title: 'Personlig beredskap',
-    description: 'Håll koll på dina resurser och odla din egen mat med AI-hjälp',
+    title: t('welcome.personal_preparedness'),
+    description: t('welcome.personal_description'),
     color: 'var(--color-crisis-blue)'
   },
   {
     icon: Users,
-    title: 'Lokalt samhälle',
-    description: 'Dela resurser med grannar och bygga ett starkt nätverk',
+    title: t('welcome.local_community'),
+    description: t('welcome.local_description'),
     color: 'var(--color-crisis-orange)'
   },
   {
     icon: Heart,
-    title: 'Regional hjälp',
-    description: 'Få hjälp när du behöver det mest genom ömsesidig hjälp',
+    title: t('welcome.regional_help'),
+    description: t('welcome.regional_description'),
     color: 'var(--color-crisis-red)'
   }
 ];
@@ -68,7 +69,7 @@ export function WelcomeScreen() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p className="text-lg" style={{ color: 'var(--text-primary)' }}>Laddar...</p>
+          <p className="text-lg" style={{ color: 'var(--text-primary)' }}>{t('loading.loading')}</p>
         </div>
       </div>
     );
@@ -100,13 +101,13 @@ export function WelcomeScreen() {
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text'
                 }}>
-              Beredd
+              {t('welcome.app_title')}
             </h1>
             <p className="text-2xl md:text-3xl mb-4 text-slate-600 dark:text-slate-400 font-light">
-              Ditt trygga stöd när allt annat fallerar
+              {t('welcome.tagline')}
             </p>
             <p className="text-lg md:text-xl text-slate-500 dark:text-slate-500">
-              Krisverktyg för beredskap och ömsesidig hjälp
+              {t('welcome.description')}
             </p>
           </div>
 
@@ -134,10 +135,10 @@ export function WelcomeScreen() {
           {/* Modern Call to Action */}
           <div className="space-y-8">
             <h2 className="text-3xl md:text-4xl font-bold text-slate-800 dark:text-slate-200">
-              Redo att komma igång?
+              {t('welcome.ready_to_start')}
             </h2>
             <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-              Skapa ditt konto och börja din beredskapsresa idag
+              {t('welcome.create_account_description')}
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
               <button
@@ -151,7 +152,7 @@ export function WelcomeScreen() {
                   border: 'none'
                 }}
               >
-                <span>Kom igång</span>
+                <span>{t('welcome.get_started')}</span>
                 <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
               </button>
               <button
@@ -166,7 +167,7 @@ export function WelcomeScreen() {
                   backgroundColor: 'transparent'
                 }}
               >
-                <span>Läs mer</span>
+                <span>{t('welcome.learn_more')}</span>
                 <Globe className="w-6 h-6 group-hover:rotate-12 transition-transform" />
               </button>
             </div>
@@ -180,7 +181,7 @@ export function WelcomeScreen() {
                   <CheckCircle className="w-6 h-6 text-white" />
                 </div>
                 <span className="text-slate-700 dark:text-slate-300 font-semibold">
-                  Säker och privat
+                  {t('welcome.secure_private')}
                 </span>
               </div>
               <div className="flex items-center justify-center space-x-3 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
@@ -188,7 +189,7 @@ export function WelcomeScreen() {
                   <CheckCircle className="w-6 h-6 text-white" />
                 </div>
                 <span className="text-slate-700 dark:text-slate-300 font-semibold">
-                  Fungerar offline
+                  {t('welcome.works_offline')}
                 </span>
               </div>
               <div className="flex items-center justify-center space-x-3 p-4 rounded-xl bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900/20 dark:to-slate-800/20">
@@ -196,7 +197,7 @@ export function WelcomeScreen() {
                   <CheckCircle className="w-6 h-6 text-white" />
                 </div>
                 <span className="text-slate-700 dark:text-slate-300 font-semibold">
-                  Helt gratis
+                  {t('welcome.completely_free')}
                 </span>
               </div>
             </div>

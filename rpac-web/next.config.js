@@ -3,9 +3,10 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   images: { unoptimized: true },
-  output: 'export',
-  trailingSlash: true,
-  distDir: 'out',
+  // Temporarily disable static export for development
+  // output: 'export',
+  // trailingSlash: true,
+  // distDir: 'out',
 };
 
 module.exports = nextConfig;

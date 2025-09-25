@@ -5,7 +5,7 @@ import { t } from '@/lib/locales';
 
 export default function IndividualPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
@@ -39,7 +39,7 @@ export default function IndividualPage() {
             {t('individual.guides')}
           </h2>
           <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>
-            Steg-för-steg guider för krisberedskap
+            {t('individual.guides_description')}
           </p>
           <div className="space-y-2">
             <button className="crisis-button w-full text-left" style={{ backgroundColor: 'var(--color-crisis-green)', color: 'white' }}>
@@ -59,7 +59,7 @@ export default function IndividualPage() {
             {t('individual.personal_coach')}
           </h2>
           <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>
-            AI-driven personlig beredskapscoach
+            {t('individual.coach_description')}
           </p>
           <div className="space-y-2">
             <button className="crisis-button w-full text-left" style={{ backgroundColor: 'var(--color-crisis-orange)', color: 'white' }}>

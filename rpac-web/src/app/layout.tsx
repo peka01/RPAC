@@ -3,13 +3,14 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Navigation } from '@/components/navigation';
+import { t } from '@/lib/locales';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'RPAC - Beredskap & Krisverktyg',
-  description: 'Resilience & Preparedness AI Companion - Svenskspråkigt krisverktyg för beredskap och ömsesidig hjälp',
-  keywords: ['krisberedskap', 'resiliens', 'svenska', 'AI', 'samhälle', 'hjälp'],
+  title: t('metadata.app_title'),
+  description: t('metadata.app_description'),
+  keywords: [t('metadata.keywords_crisis'), t('metadata.keywords_resilience'), t('metadata.keywords_swedish'), t('metadata.keywords_ai'), t('metadata.keywords_community'), t('metadata.keywords_help')],
   authors: [{ name: 'RPAC Team' }],
   manifest: '/manifest.json',
   icons: {
@@ -38,7 +39,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="min-h-screen relative overflow-hidden">
+          <div className="min-h-screen relative">
             {/* Military-crisis background with subtle, professional patterns */}
             <div className="fixed inset-0 bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900"></div>
             <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(61,74,43,0.02),transparent_50%)]"></div>
@@ -48,7 +49,7 @@ export default function RootLayout({
             {/* Main content with modern spacing */}
             <div className="relative z-10">
               <Navigation />
-              <main>
+              <main className="pt-16" style={{ scrollBehavior: 'auto' }}>
                 {children}
               </main>
             </div>

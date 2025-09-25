@@ -507,6 +507,34 @@ body {
   border-color: var(--color-neutral);
 }
 
+/* Military-style loading animations */
+@keyframes militaryProgress {
+  0% { 
+    width: 0%; 
+    opacity: 0.8;
+  }
+  25% { 
+    width: 50%; 
+    opacity: 1;
+  }
+  50% { 
+    width: 75%; 
+    opacity: 1;
+  }
+  75% { 
+    width: 100%; 
+    opacity: 0.9;
+  }
+  100% { 
+    width: 75%; 
+    opacity: 0.8;
+  }
+}
+
+.military-progress {
+  animation: militaryProgress 3s ease-in-out infinite;
+}
+
 /* Active navigation styling with olive green background - HIGHEST PRIORITY */
 nav .nav-item-active,
 .modern-nav .nav-item-active,

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase, authService } from '@/lib/supabase';
+import { t } from '@/lib/locales';
 import { 
   User, 
   LogIn, 
@@ -102,7 +103,7 @@ export function OnboardingAuth() {
       setFormData({ email: '', password: '', name: '' });
     } catch (error: unknown) {
       console.error('Auth error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Ett fel uppstod. Försök igen.';
+      const errorMessage = error instanceof Error ? error.message : t('errors.generic_error');
       setFormErrors([errorMessage]);
     } finally {
       setIsSubmitting(false);
@@ -226,7 +227,7 @@ export function OnboardingAuth() {
               }}
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Föregående</span>
+              <span>{t('onboarding.previous')}</span>
             </button>
 
             {currentStep === onboardingSteps.length - 1 ? (
@@ -305,7 +306,7 @@ export function OnboardingAuth() {
                 style={{ 
                   borderColor: 'var(--color-crisis-grey)'
                 }}
-                placeholder="Ange ditt fullständiga namn"
+                placeholder={t('placeholders.enter_name')}
                 required
               />
             </div>
@@ -340,7 +341,7 @@ export function OnboardingAuth() {
               style={{ 
                 borderColor: 'var(--color-crisis-grey)',
               }}
-              placeholder={isSignUp ? "Minst 6 tecken" : "Ditt lösenord"}
+              placeholder={isSignUp ? t('placeholders.enter_password_new') : t('placeholders.enter_password')}
               required
             />
             {isSignUp && (

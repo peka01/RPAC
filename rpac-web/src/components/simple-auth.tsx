@@ -38,15 +38,15 @@ const onboardingSteps: OnboardingStep[] = [
   },
   {
     id: 'personal',
-    title: 'Din personliga beredskap',
-    description: 'Håll koll på dina resurser, odla din egen mat och få AI-hjälp med växtdiagnos.',
+    title: t('onboarding.personal_preparedness_title'),
+    description: t('onboarding.personal_preparedness_description'),
     icon: User,
     color: 'var(--color-crisis-blue)'
   },
   {
     id: 'community',
-    title: 'Vårt lokala samhälle',
-    description: 'Dela resurser med grannar, kommunicera lokalt och bygga ett starkt nätverk.',
+    title: t('onboarding.local_community_title'),
+    description: t('onboarding.local_community_description'),
     icon: Users,
     color: 'var(--color-crisis-orange)'
   },

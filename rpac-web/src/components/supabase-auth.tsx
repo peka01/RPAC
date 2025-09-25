@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { authService } from '@/lib/supabase';
+import { t } from '@/lib/locales';
 import { User } from '@supabase/supabase-js';
 
 interface SupabaseAuthProps {
@@ -124,7 +125,7 @@ export function SupabaseAuth({ onAuthChange }: SupabaseAuthProps) {
               onChange={(e) => setName(e.target.value)}
               required={isSignUp}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Ditt fullständiga namn"
+              placeholder={t('placeholders.full_name')}
             />
           </div>
         )}
@@ -155,7 +156,7 @@ export function SupabaseAuth({ onAuthChange }: SupabaseAuthProps) {
             onChange={(e) => setPassword(e.target.value)}
             required
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Minst 6 tecken"
+            placeholder={t('placeholders.enter_password_new')}
             minLength={6}
           />
         </div>

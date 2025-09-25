@@ -104,7 +104,7 @@ export function MessagingSystem({ user, communityId }: MessagingSystemProps) {
         sender_id: 'emergency-center',
         sender_name: 'Kriscentral',
         community_id: communityId,
-        content: 'VIKTIGT: Strömavbrott förväntas vara 2-4 timmar. Spara batterier och använd radio för uppdateringar.',
+        content: t('emergency.important_power_outage'),
         message_type: 'emergency',
         priority: 'emergency',
         created_at: new Date(Date.now() - 900000).toISOString()
@@ -132,9 +132,19 @@ export function MessagingSystem({ user, communityId }: MessagingSystemProps) {
     };
   }, [communityId]);
 
-  // Auto-scroll till senaste meddelande
+  // Auto-scroll till senaste meddelande within component only
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Only auto-scroll if we have messages and this isn't the initial load
+    if (messages.length > 0 && messagesEndRef.current) {
+      // Only scroll within the messages container, not the whole page
+      const messagesContainer = messagesEndRef.current.closest('.messages-container');
+      if (messagesContainer) {
+        // Use a small delay to ensure DOM is ready and avoid initial page scroll
+        setTimeout(() => {
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }, 100);
+      }
+    }
   }, [messages]);
 
   const sendMessage = async (type: Message['message_type'] = 'text', priority: Message['priority'] = 'medium') => {
@@ -274,7 +284,7 @@ export function MessagingSystem({ user, communityId }: MessagingSystemProps) {
               borderColor: 'var(--color-danger)',
               color: 'var(--color-danger)'
             }}
-            title="Aktivera nödprotokoll"
+            title={t('buttons.activate_emergency')}
           >
             <AlertTriangle className="w-4 h-4" />
           </button>
@@ -349,7 +359,7 @@ export function MessagingSystem({ user, communityId }: MessagingSystemProps) {
         {/* Meddelandeområde */}
         <div className="flex-1 flex flex-col">
           {/* Meddelanden */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 messages-container">
             {filteredMessages.map(message => (
               <div key={message.id} className="flex flex-col">
                 <div className={getMessageStyle(message)}>
@@ -419,14 +429,14 @@ export function MessagingSystem({ user, communityId }: MessagingSystemProps) {
                     <button
                       className="crisis-button p-2"
                       style={{ backgroundColor: 'var(--color-crisis-green)', color: 'white' }}
-                      title="Ring"
+                      title={t('buttons.call')}
                     >
                       <Phone className="w-4 h-4" />
                     </button>
                     <button
                       className="crisis-button p-2"
                       style={{ backgroundColor: 'var(--color-crisis-blue)', color: 'white' }}
-                      title="Videosamtal"
+                      title={t('buttons.video_call')}
                     >
                       <Video className="w-4 h-4" />
                     </button>
@@ -434,12 +444,12 @@ export function MessagingSystem({ user, communityId }: MessagingSystemProps) {
                 )}
               </div>
 
-              {/* Nödlägesinfo */}
+              {/* Emergency info */}
               {emergencyMode && (
                 <div className="mt-2 p-2 bg-red-100 dark:bg-red-900/20 rounded-lg">
                   <p className="text-xs text-red-800 dark:text-red-200 flex items-center space-x-1">
                     <AlertTriangle className="w-3 h-3" />
-                    <span>Nödmeddelande skickat till alla i närområdet</span>
+                    <span>{t('emergency.emergency_sent_to_all')}</span>
                   </p>
                 </div>
               )}

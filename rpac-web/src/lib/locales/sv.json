@@ -8,9 +8,9 @@
     "sign_out": "Logga ut",
     "descriptions": {
       "operational_status": "Status",
-      "individual_preparedness": "Individuell beredskap",
-      "community_resources": "Samhällsresurser",
-      "regional_coordination": "Regional koordination"
+      "individual_preparedness": "Mitt hem",
+      "community_resources": "Mitt närområde",
+      "regional_coordination": "Större området"
     },
     "categories": {
       "command": "DASHBOARD",
@@ -20,28 +20,37 @@
     }
   },
   "individual": {
-    "title": "Min personliga beredskap",
+    "title": "Mitt hem och mina saker",
     "plant_diagnosis": "Växtdiagnos & Hälsa",
     "guides": "Steg-för-steg guider",
-    "personal_coach": "Min beredskapscoach",
-    "manage_resources": "Hantera din personliga beredskap och resurser",
-    "basic_preparedness": "📚 Grundläggande beredskap",
+    "guides_description": "Steg-för-steg guider för krisberedskap",
+    "personal_coach": "Min hjälpare",
+    "coach_description": "AI-driven personlig beredskapscoach",
+    "manage_resources": "Ta hand om ditt hem och dina saker",
+    "basic_preparedness": "📚 Grundläggande förberedelser",
     "gardening_guide": "🌱 Odlingsguide för nybörjare",
-    "home_defense": "🏠 Hemförsvar och säkerhet",
+    "home_defense": "🏠 Hemtrygghet och säkerhet",
     "get_personal_advice": "💡 Få personliga råd",
-    "analyze_preparedness": "📊 Analysera din beredskap",
-    "set_preparedness_goals": "🎯 Sätt beredskapsmål",
-    "personal_dashboard": "Personlig Dashboard"
+    "analyze_preparedness": "📊 Se hur förberedd du är",
+    "set_preparedness_goals": "🎯 Sätt mål för framtiden",
+    "personal_dashboard": "Min hemöversikt"
   },
   "preparedness": {
-    "overall_score": "Beredskapspoäng",
-    "excellent": "Du är väl förberedd för kriser",
-    "good": "Bra beredskap, men kan förbättras",
-    "needs_improvement": "Beredskapen behöver förbättras",
+    "overall_score": "Hur förberedd du är",
+    "excellent": "Du är väl förberedd för svåra tider",
+    "good": "Du är på rätt väg, men kan göra mer",
+    "needs_improvement": "Du kan bli mer förberedd",
     "important_warnings": "Viktiga varningar",
-    "quick_actions": "Snabbåtgärder",
+    "quick_actions": "Snabba saker att göra",
     "set_goals": "Sätt mål",
-    "plan": "Planera"
+    "plan": "Planera",
+    "health_messages": {
+      "excellent": "Du är fantastiskt förberedd! 🌟",
+      "very_good": "Du har en solid grund att bygga på 💪",
+      "good": "På bra väg - fortsätt bygga din trygghet 🚀",
+      "fair": "Varje sak du lägger till gör dig starkare 💝",
+      "poor": "Börja din resa mot trygghet idag ✨"
+    }
   },
   "forms": {
     "name": "Namn",
@@ -53,7 +62,14 @@
     "enter_name": "Ange ditt fullständiga namn",
     "enter_email": "din@email.se",
     "enter_password": "Ditt lösenord",
-    "enter_password_new": "Minst 6 tecken"
+    "enter_password_new": "Minst 6 tecken",
+    "full_name": "Ditt fullständiga namn",
+    "about_yourself": "Berätta lite om dig själv och ditt hem...",
+    "current_password": "Ditt nuvarande lösenord",
+    "new_password": "Ditt nya lösenord",
+    "confirm_password": "Bekräfta ditt nya lösenord",
+    "default_bio": "Mitt hem och min familj är viktigt för mig.",
+    "city_country": "Stad, Land"
   },
   "validation": {
     "password_min_length": "Lösenordet måste vara minst 6 tecken långt"
@@ -73,18 +89,82 @@
     "signing_in": "Loggar in...",
     "sign_in_here": "Logga in här",
     "register_here": "Registrera dig här",
-    "continue_as_demo": "Fortsätt som Demo"
+    "continue_as_demo": "Fortsätt som Demo",
+    "or": "eller",
+    "demo_login_failed": "Demo-inloggning misslyckades",
+    "minimum_characters": "Minst 6 tecken",
+    "choose_secure_password": "Välj ett säkert lösenord",
+    "your_password": "Ditt lösenord",
+    "app_description": "RPAC hjälper dig och din familj att förbereda er för svåra tider"
   },
   "loading": {
     "loading": "Laddar...",
-    "initializing": "Initialiserar..."
+    "starting": "Startar..."
   },
   "local_community": {
-    "title": "Lokalt Samhälle",
-    "subtitle": "Samarbeta med ditt lokala samhälle för ömsesidig hjälp och resursdelning"
+    "title": "Mitt närområde",
+    "subtitle": "Samarbeta med dina grannar för att hjälpa varandra och dela saker"
+  },
+  "regional": {
+    "title": "Regional översikt",
+    "subtitle": "Regional samordning och krisberedskap",
+    "active_communities": "Aktiva samhällen",
+    "registered_communities": "Registrerade lokala samhällen",
+    "active_users": "Aktiva användare",
+    "registered_users": "Registrerade användare",
+    "preparedness_score": "Beredskapspoäng",
+    "average_score": "Genomsnittlig poäng",
+    "help_requests": "Aktiva hjälpförfrågningar",
+    "open_requests": "Öppna förfrågningar",
+    "regional_map": "Regional karta",
+    "map_coming_soon": "Karta kommer att implementeras i framtida version",
+    "regional_updates": "Regionala uppdateringar",
+    "new_community_registered": "Nytt samhälle registrerat",
+    "malmo_centrum_registered": "Malmö Centrum har registrerat sig som lokalt samhälle",
+    "hours_ago": "timmar sedan",
+    "preparedness_exercise_completed": "Beredskapsövning genomförd",
+    "gothenburg_exercise": "Göteborgsregionen genomförde framgångsrik beredskapsövning",
+    "day_ago": "dag sedan",
+    "weather_warning": "Vädervarning",
+    "stockholm_winds": "Kraftiga vindar förväntas i Stockholmsregionen"
   },
   "dashboard": {
-    "subtitle": "Din trygga grund när allt annat fallerar"
+    "title": "BEREDD",
+    "subtitle": "Din trygga grund",
+    "good_evening": "God kväll",
+    "good_night": "God natt",
+    "good_morning": "God morgon",
+    "good_day": "God dag",
+    "default_user": "Vän",
+    "loading_title": "Laddar ditt hem",
+    "loading_description": "Hämtar din information och beredskap",
+    "loading_progress": "Laddar",
+    "loading_status_start": "Startar",
+    "loading_status_end": "Redo",
+    "status_line": "Läge: Fungerar • Status: Redo",
+    "operational_status_title": "Hur läget är",
+    "preparedness_level": "Hur förberedd du är",
+    "daily_update_complete": "Dagens uppdatering klar",
+    "daily_update_description": "Saker uppdaterade • Grannar kontaktade • Hemmet förbättrat",
+    "breathe_calm": "🫁 Andas lugnt (2 min)",
+    "priority_actions_description": "Prioriterade åtgärder för nuvarande situation. Du har resurserna som behövs.",
+    "community_status_description": "Aktiva medlemmar • Resursdelning pågår • Kommunikation säker",
+    "mode_standard": "Standard",
+    "mode_focused": "Fokuserad", 
+    "mode_crisis": "Kris",
+    "crisis_support_active": "Krisstöd aktiverat",
+    "breathing_technique": "Andningsteknik (2 min)",
+    "contact_network": "Kontakta nätverk",
+    "crisis_checklist": "Krischecklista",
+    "resources_status": "Resurser: 14 dagar • Nätverk: Aktivt • Utbildning: Genomförd",
+    "optimal": "Optimal",
+    "contacts": "Kontakter",
+    "network": "Nätverk",
+    "messages_count": "3 meddelanden",
+    "cultivation_plan": "Odlingsplan",
+    "cultivation_status": "Tomater: Utvecklas • Kål: Mogen snart • Nästa: Morötter",
+    "harvest_time": "Skörd: 3 veckor",
+    "active": "Aktiv"
   },
   "onboarding": {
     "welcome_to_ready": "Välkommen till Beredd",
@@ -92,7 +172,39 @@
     "skip": "Hoppa över",
     "previous": "Föregående",
     "get_started": "Kom igång",
-    "next": "Nästa"
+    "next": "Nästa",
+    "personal_preparedness_title": "Din personliga beredskap",
+    "personal_preparedness_description": "Håll koll på dina resurser, odla din egen mat och få AI-hjälp med växtdiagnos.",
+    "local_community_title": "Vårt lokala samhälle",
+    "local_community_description": "Dela resurser med grannar, kommunicera lokalt och bygga ett starkt nätverk."
+  },
+  "metadata": {
+    "app_title": "RPAC - Beredskap & Krisverktyg",
+    "app_description": "Resilience & Preparedness AI Companion - Svenskspråkigt krisverktyg för beredskap och ömsesidig hjälp",
+    "keywords_crisis": "krisberedskap",
+    "keywords_resilience": "resiliens",
+    "keywords_swedish": "svenska",
+    "keywords_ai": "AI",
+    "keywords_community": "samhälle",
+    "keywords_help": "hjälp"
+  },
+  "welcome": {
+    "app_title": "Beredd",
+    "tagline": "Ditt trygga stöd när allt annat fallerar",
+    "description": "Krisverktyg för beredskap och ömsesidig hjälp",
+    "ready_to_start": "Redo att komma igång?",
+    "create_account_description": "Skapa ditt konto och börja din beredskapsresa idag",
+    "get_started": "Kom igång",
+    "learn_more": "Läs mer",
+    "secure_private": "Säker och privat",
+    "works_offline": "Fungerar offline",
+    "completely_free": "Helt gratis",
+    "personal_preparedness": "Personlig beredskap",
+    "personal_description": "Håll koll på dina resurser och odla din egen mat med AI-hjälp",
+    "local_community": "Lokalt samhälle",
+    "local_description": "Dela resurser med grannar och bygga ett starkt nätverk",
+    "regional_help": "Regional hjälp",
+    "regional_description": "Få hjälp när du behöver det mest genom ömsesidig hjälp"
   },
   "errors": {
     "generic_error": "Ett fel uppstod. Försök igen."
@@ -100,10 +212,10 @@
   "professional": {
     "tactical_communication": "Kommunikation",
     "external_communications": "Externa kommunikationslänkar",
-    "tactical_operations": "Taktiska operationer",
-    "secure_messaging": "Säker meddelandehantering",
+    "tactical_operations": "Viktiga åtgärder",
+    "secure_messaging": "Säkra meddelanden",
     "radio_frequencies": "Radiofrekvenser",
-    "government_info": "Myndighetsinformation",
+    "government_info": "Information från myndigheter",
     "web_sources": "Webkällor"
   },
   "military_terms": {
@@ -122,22 +234,42 @@
   "status_indicators": {
     "online": "ONLINE",
     "offline": "OFFLINE", 
-    "operational": "OPERATIV",
+    "operational": "FUNGERAR",
     "active": "AKTIV",
-    "standby": "STANDBY"
+    "standby": "VÄNTAR"
+  },
+  "status_messages": {
+    "offline_battery_low": "Offline-läge fungerar perfekt",
+    "online_battery_high": "Allt fungerar utmärkt",
+    "crisis_mode": "Du klarar detta - andas lugnt",
+    "low_battery": "Låg batterinivå - ladda snart",
+    "system_stable": "Allt fungerar bra och är redo",
+    "support_mode_active": "Stödläge aktivt - Du är trygg"
   },
   "buttons": {
-    "register_resource": "Registrera resurs",
+    "register_resource": "Lägg till en sak",
     "update": "Uppdatera",
     "add": "Lägg till",
-    "establish_community": "Etablera samhällsgrupp",
-    "request_assistance": "Begär assistans",
-    "update_sources": "Uppdatera informationskällor"
+    "establish_community": "Skapa närområdesgrupp",
+    "request_assistance": "Be om hjälp",
+    "update_sources": "Uppdatera informationskällor",
+    "activate_emergency": "Aktivera nödprotokoll",
+    "simple_checklist": "📋 Enkel checklista",
+    "call": "Ring",
+    "video_call": "Videosamtal"
+  },
+  "settings": {
+    "allow_data_collection": "Tillåt anonymiserad datainsamling för förbättringar"
+  },
+  "emergency": {
+    "important_power_outage": "VIKTIGT: Strömavbrott förväntas vara 2-4 timmar. Spara batterier och använd radio för uppdateringar.",
+    "emergency_info": "Nödlägesinfo",
+    "emergency_sent_to_all": "Nödmeddelande skickat till alla i närområdet"
   },
   "descriptions": {
-    "strengthen_resources": "Uppdatera och förstärk resurslager",
-    "coordinate_resources": "Koordinera resurser med nätverk",
-    "organize_preparedness": "Organisera lokal beredskapskoordination",
-    "activate_support": "Aktivera professionell stödstruktur"
+    "strengthen_resources": "Uppdatera och förbättra vad du har hemma",
+    "coordinate_resources": "Dela saker med dina grannar",
+    "organize_preparedness": "Hjälp till att förbereda närområdet",
+    "activate_support": "Få hjälp från andra"
   }
 }
