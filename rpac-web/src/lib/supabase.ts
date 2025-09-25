@@ -43,10 +43,14 @@ export interface PlantDiagnosis {
 
 export interface LocalCommunity {
   id: string
-  user_id: string
   community_name: string
-  location: string
   description?: string
+  location: string
+  postal_code?: string
+  county?: string
+  is_public?: boolean
+  member_count?: number
+  created_by: string
   created_at: string
   updated_at: string
 }
@@ -156,11 +160,12 @@ export const resourceService = {
   async addResource(resource: Omit<Resource, 'id' | 'created_at' | 'updated_at'>): Promise<Resource> {
     const { data, error } = await supabase
       .from('resources')
-      .insert([resource])
+      .insert(resource)
+      .select()
+      .single()
     
     if (error) throw error
-    if (!data) throw new Error('No data returned from insert')
-    return data as Resource
+    return data
   },
 
   async updateResource(id: string, updates: Partial<Resource>): Promise<Resource> {
@@ -212,7 +217,7 @@ export const plantDiagnosisService = {
 export const communityService = {
   async getCommunities(): Promise<LocalCommunity[]> {
     const { data, error } = await supabase
-      .from('local_community')
+      .from('local_communities')
       .select('*')
       .order('created_at', { ascending: false })
     
@@ -222,8 +227,8 @@ export const communityService = {
 
   async createCommunity(community: Omit<LocalCommunity, 'id' | 'created_at' | 'updated_at'>): Promise<LocalCommunity> {
     const { data, error } = await supabase
-      .from('local_community')
-      .insert([community])
+      .from('local_communities')
+      .insert(community)
       .select()
       .single()
     
@@ -233,7 +238,7 @@ export const communityService = {
 
   async updateCommunity(id: string, updates: Partial<LocalCommunity>): Promise<LocalCommunity> {
     const { data, error } = await supabase
-      .from('local_community')
+      .from('local_communities')
       .update({ ...updates, updated_at: new Date().toISOString() })
       .eq('id', id)
       .select()

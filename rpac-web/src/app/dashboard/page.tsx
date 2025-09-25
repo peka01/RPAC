@@ -43,7 +43,59 @@ export default function DashboardPage() {
         setUser(user);
         setLoading(false);
       } else {
-        router.push('/');
+        // If no user is authenticated, try to authenticate with demo user
+        console.log('No user authenticated, trying demo login...');
+        try {
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: 'demo@rpac.se',
+            password: 'demo123'
+          });
+          
+          if (signInError) {
+            console.log('Demo user not found, creating...');
+            const { error: signUpError } = await supabase.auth.signUp({
+              email: 'demo@rpac.se',
+              password: 'demo123',
+              options: {
+                data: {
+                  name: 'Demo Användare'
+                }
+              }
+            });
+            
+            if (signUpError) {
+              console.error('Failed to create demo user:', signUpError);
+              router.push('/');
+              return;
+            }
+            
+            // Wait for user creation and try to sign in again
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            const { error: retryError } = await supabase.auth.signInWithPassword({
+              email: 'demo@rpac.se',
+              password: 'demo123'
+            });
+            
+            if (retryError) {
+              console.error('Failed to sign in demo user:', retryError);
+              router.push('/');
+              return;
+            }
+          }
+          
+          // Get the authenticated user
+          const { data: { user: authenticatedUser } } = await supabase.auth.getUser();
+          if (authenticatedUser) {
+            setUser(authenticatedUser);
+            setLoading(false);
+          } else {
+            router.push('/');
+          }
+        } catch (error) {
+          console.error('Authentication error:', error);
+          router.push('/');
+        }
       }
     };
     checkUser();

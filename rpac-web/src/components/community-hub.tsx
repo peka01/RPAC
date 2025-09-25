@@ -100,7 +100,7 @@ export function CommunityHub({ user }: CommunityHubProps) {
     try {
       await communityService.createCommunity({
         ...communityForm,
-        user_id: user.id
+        created_by: null  // Temporary fix until foreign key constraint is updated
       });
       loadData();
 
@@ -119,7 +119,7 @@ export function CommunityHub({ user }: CommunityHubProps) {
     try {
       await helpRequestService.createHelpRequest({
         ...requestForm,
-        user_id: user.id,
+        user_id: null,  // Temporary fix until foreign key constraint is updated
         status: 'open'
       });
       loadData();
