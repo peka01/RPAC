@@ -3,10 +3,12 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   images: { unoptimized: true },
-  // Temporarily disable static export for development
-  // output: 'export',
-  // trailingSlash: true,
-  // distDir: 'out',
+  // Enable static export only for production builds
+  ...(process.env.NODE_ENV === 'production' && {
+    output: 'export',
+    trailingSlash: true,
+    distDir: 'out',
+  }),
 };
 
 module.exports = nextConfig;
