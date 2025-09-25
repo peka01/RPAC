@@ -32,6 +32,7 @@ interface UserProfile {
   growing_preferences: string[];
   location_privacy: 'full' | 'county_only' | 'climate_zone_only';
   family_size: number;
+  pets?: string[];
   created_at: Date;
   updated_at: Date;
 }
