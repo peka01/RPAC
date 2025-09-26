@@ -179,7 +179,7 @@
     "minimum_characters": "Minst 6 tecken",
     "choose_secure_password": "Välj ett säkert lösenord",
     "your_password": "Ditt lösenord",
-    "app_description": "RPAC hjälper dig och din familj att förbereda er för svåra tider"
+    "app_description": "Beready hjälper dig och din familj att förbereda er för svåra tider"
   },
   "loading": {
     "loading": "Laddar...",
@@ -284,8 +284,8 @@
     "local_community_description": "Dela resurser med grannar, kommunicera lokalt och bygga ett starkt nätverk."
   },
   "metadata": {
-    "app_title": "RPAC - Beredskap & Krisverktyg",
-    "app_description": "Resilience & Preparedness AI Companion - Svenskspråkigt krisverktyg för beredskap och ömsesidig hjälp",
+    "app_title": "Beready - Beredskap & krisverktyg",
+    "app_description": "Beready - Ett komplett krisverktyg för beredskap och ömsesidig hjälp",
     "keywords_crisis": "krisberedskap",
     "keywords_resilience": "resiliens",
     "keywords_swedish": "svenska",

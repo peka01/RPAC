@@ -44,6 +44,8 @@ interface UserProfile {
   has_elderly?: boolean;
   has_pets?: boolean;
   pet_types?: string;
+  growing_preferences?: string;
+  location_privacy?: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -91,28 +93,36 @@ export function UserProfile({
   initialProfile,
   compact = false 
 }: UserProfileProps) {
-  const [profile, setProfile] = useState<Partial<UserProfile>>({
-    display_name: user.user_metadata?.name || user.email?.split('@')[0] || '',
-    email: user.email || '',
-    phone: '',
-    address: '',
-    postal_code: '',
-    city: '',
-    county: '',
-    emergency_contact_name: '',
-    emergency_contact_phone: '',
-    emergency_contact_relation: '',
-    medical_conditions: '',
-    medications: '',
-    allergies: '',
-    blood_type: '',
-    special_needs: '',
-    household_size: 1,
-    has_children: false,
-    has_elderly: false,
-    has_pets: false,
-    pet_types: '',
-    ...initialProfile
+  const [profile, setProfile] = useState<Partial<UserProfile>>(() => {
+    // Load additional fields from localStorage on initial state
+    const localGrowingPrefs = typeof window !== 'undefined' ? localStorage.getItem(`user_${user.id}_growing_preferences`) : null;
+    const localLocationPrivacy = typeof window !== 'undefined' ? localStorage.getItem(`user_${user.id}_location_privacy`) : null;
+    
+    return {
+      display_name: user.user_metadata?.name || user.email?.split('@')[0] || '',
+      email: user.email || '',
+      phone: '',
+      address: '',
+      postal_code: '',
+      city: '',
+      county: '',
+      emergency_contact_name: '',
+      emergency_contact_phone: '',
+      emergency_contact_relation: '',
+      medical_conditions: '',
+      medications: '',
+      allergies: '',
+      blood_type: '',
+      special_needs: '',
+      household_size: 1,
+      has_children: false,
+      has_elderly: false,
+      has_pets: false,
+      pet_types: '',
+      growing_preferences: localGrowingPrefs || '',
+      location_privacy: localLocationPrivacy || 'county_only',
+      ...initialProfile
+    };
   });
 
   const [isEditing, setIsEditing] = useState(false);
@@ -152,7 +162,17 @@ export function UserProfile({
             created_at: data.created_at ? new Date(data.created_at) : new Date(),
             updated_at: data.updated_at ? new Date(data.updated_at) : new Date()
           };
-          setProfile(prev => ({ ...prev, ...profileWithDates }));
+          
+          // Load additional fields from localStorage
+          const localGrowingPrefs = localStorage.getItem(`user_${user.id}_growing_preferences`);
+          const localLocationPrivacy = localStorage.getItem(`user_${user.id}_location_privacy`);
+          
+          setProfile(prev => ({ 
+            ...prev, 
+            ...profileWithDates,
+            growing_preferences: localGrowingPrefs || '',
+            location_privacy: localLocationPrivacy || 'county_only'
+          }));
         }
       } catch (error) {
         console.error('Error loading profile:', error);
@@ -165,6 +185,7 @@ export function UserProfile({
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      // Only include fields that exist in the database schema
       const profileToSave = {
         user_id: user.id,
         display_name: profile.display_name || '',
@@ -216,6 +237,14 @@ export function UserProfile({
       }
 
       if (result.error) throw result.error;
+
+      // Save additional fields to localStorage
+      if (profile.growing_preferences) {
+        localStorage.setItem(`user_${user.id}_growing_preferences`, profile.growing_preferences);
+      }
+      if (profile.location_privacy) {
+        localStorage.setItem(`user_${user.id}_location_privacy`, profile.location_privacy);
+      }
 
       // Update local state with the saved data
       setProfile(prev => ({
@@ -406,8 +435,8 @@ export function UserProfile({
                 </label>
                 <input
                   type="text"
-                  value=""
-                  onChange={() => {}}
+                  value={profile.city || ''}
+                  onChange={(e) => setProfile(prev => ({ ...prev, city: e.target.value }))}
                   className="w-full p-3 border rounded-lg"
                   style={{ borderColor: 'var(--color-secondary)' }}
                   placeholder="t.ex. Stockholm"
@@ -529,9 +558,24 @@ export function UserProfile({
                   <label key={petType} className="flex items-center space-x-2 p-2 rounded cursor-pointer hover:bg-gray-50">
                     <input
                       type="checkbox"
-                      checked={profile.has_pets || false}
+                      checked={profile.pet_types?.includes(petType) || false}
                       onChange={(e) => {
-                        setProfile(prev => ({ ...prev, has_pets: e.target.checked }));
+                        const currentPets = profile.pet_types?.split(',').filter(p => p.trim()) || [];
+                        if (e.target.checked) {
+                          const newPets = [...currentPets, petType];
+                          setProfile(prev => ({ 
+                            ...prev, 
+                            has_pets: true,
+                            pet_types: newPets.join(',')
+                          }));
+                        } else {
+                          const newPets = currentPets.filter(p => p !== petType);
+                          setProfile(prev => ({ 
+                            ...prev, 
+                            has_pets: newPets.length > 0,
+                            pet_types: newPets.join(',')
+                          }));
+                        }
                       }}
                     />
                     <span className="text-sm capitalize" style={{ color: 'var(--text-primary)' }}>
@@ -598,8 +642,17 @@ export function UserProfile({
                 <label key={plant} className="flex items-center space-x-2 p-2 rounded cursor-pointer hover:bg-gray-50">
                   <input
                     type="checkbox"
-                    checked={false}
-                    onChange={() => {}}
+                    checked={profile.growing_preferences?.includes(plant) || false}
+                    onChange={(e) => {
+                      const currentPrefs = profile.growing_preferences?.split(',').filter(p => p.trim()) || [];
+                      if (e.target.checked) {
+                        const newPrefs = [...currentPrefs, plant];
+                        setProfile(prev => ({ ...prev, growing_preferences: newPrefs.join(',') }));
+                      } else {
+                        const newPrefs = currentPrefs.filter(p => p !== plant);
+                        setProfile(prev => ({ ...prev, growing_preferences: newPrefs.join(',') }));
+                      }
+                    }}
                   />
                   <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
                     {t(`cultivation.plants.${plant}`)}
@@ -609,7 +662,7 @@ export function UserProfile({
             </div>
           ) : (
             <div className="flex flex-wrap gap-2">
-              {[].map(plant => (
+              {(profile.growing_preferences?.split(',').filter(p => p.trim()) || []).map(plant => (
                 <span 
                   key={plant}
                   className="px-2 py-1 rounded text-xs"
@@ -646,8 +699,8 @@ export function UserProfile({
                     type="radio"
                     name="location_privacy"
                     value={option.value}
-                    checked={false}
-                    onChange={() => {}}
+                    checked={profile.location_privacy === option.value}
+                    onChange={(e) => setProfile(prev => ({ ...prev, location_privacy: e.target.value }))}
                   />
                   <option.icon className="w-4 h-4" style={{ color: 'var(--color-sage)' }} />
                   <span style={{ color: 'var(--text-primary)' }}>{option.label}</span>
@@ -657,11 +710,25 @@ export function UserProfile({
           ) : (
             <div className="p-3 rounded-lg flex items-center space-x-2" style={{ backgroundColor: 'var(--bg-olive-light)' }}>
               {(() => {
-                const PrivacyIcon = getPrivacyIcon();
+                const privacyOptions = [
+                  { value: 'climate_zone_only', label: 'Bara klimatzon', icon: Shield },
+                  { value: 'county_only', label: 'Län', icon: MapPin },
+                  { value: 'full', label: 'Full plats', icon: Globe }
+                ];
+                const selectedOption = privacyOptions.find(opt => opt.value === profile.location_privacy) || privacyOptions[1];
+                const PrivacyIcon = selectedOption.icon;
                 return <PrivacyIcon className="w-4 h-4" style={{ color: 'var(--color-sage)' }} />;
               })()}
               <span style={{ color: 'var(--text-primary)' }}>
-                Län
+                {(() => {
+                  const privacyOptions = [
+                    { value: 'climate_zone_only', label: 'Bara klimatzon' },
+                    { value: 'county_only', label: 'Län' },
+                    { value: 'full', label: 'Full plats' }
+                  ];
+                  const selectedOption = privacyOptions.find(opt => opt.value === profile.location_privacy) || privacyOptions[1];
+                  return selectedOption.label;
+                })()}
               </span>
             </div>
           )}
