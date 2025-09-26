@@ -18,10 +18,9 @@ import {
   Droplets
 } from 'lucide-react';
 import { StatusCard } from '@/components/status-card';
-import { QuickActions } from '@/components/quick-actions';
 import { PreparednessOverview } from '@/components/preparedness-overview';
-import { SupabaseResourceInventory } from '@/components/supabase-resource-inventory';
-import { CommunityHub } from '@/components/community-hub';
+import { ResourceSummaryCard } from '@/components/resource-summary-card';
+import { CommunityCoordinationSummary } from '@/components/community-coordination-summary';
 import { MessagingSystem } from '@/components/messaging-system';
 import { ExternalCommunication } from '@/components/external-communication';
 import { supabase } from '@/lib/supabase';
@@ -286,28 +285,21 @@ export default function DashboardPage() {
           </div>
 
 
-          {/* Resource Excellence */}
+          {/* Resource Summary */}
           {user && (
             <div className="mb-6">
-              <SupabaseResourceInventory user={user} />
+              <ResourceSummaryCard user={user} />
             </div>
           )}
 
-          {/* Community Psychology Integration */}
-          {user && (
-            <div className="mb-6">
-              <CommunityHub user={user} />
-            </div>
-          )}
+          {/* Community Coordination Summary */}
+          <div className="mb-6">
+            <CommunityCoordinationSummary />
+          </div>
 
-          {/* Always Show - Core Preparedness (Crisis-Ready) */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <div className="order-2 lg:order-1">
-              <StatusCard />
-            </div>
-            <div className="order-1 lg:order-2">
-              <QuickActions />
-            </div>
+          {/* Core Preparedness (Crisis-Ready) */}
+          <div className="mb-6">
+            <StatusCard />
           </div>
 
           {/* Professional Status Update */}

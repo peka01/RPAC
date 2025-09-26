@@ -85,8 +85,8 @@ export function StatusCard() {
       </div>
       
       {/* Professional Intelligence Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
+        <div className="flex items-center space-x-4 min-w-0">
           <div className="relative">
             <div className="w-14 h-14 rounded-lg flex items-center justify-center shadow-md" style={{ 
               background: 'linear-gradient(135deg, var(--color-warm-olive) 0%, var(--color-primary-dark) 100%)' 
@@ -103,21 +103,21 @@ export function StatusCard() {
               <div className="absolute inset-0 rounded-full bg-current animate-ping opacity-50"></div>
             </div>
           </div>
-          <div>
-            <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Systemintegritet</h2>
-            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{getConfidenceMessage()}</p>
+          <div className="min-w-0">
+            <h2 className="text-lg sm:text-xl font-bold truncate" style={{ color: 'var(--text-primary)' }}>Systemintegritet</h2>
+            <p className="text-sm break-words" style={{ color: 'var(--text-secondary)' }}>{getConfidenceMessage()}</p>
           </div>
         </div>
         
         {/* Professional Health Metrics */}
-        <div className="text-center px-4 py-2 rounded-lg shadow-sm" style={{ backgroundColor: 'var(--bg-olive-light)' }}>
-          <div className={`text-2xl font-bold`} style={{
+        <div className="text-center px-3 py-2 rounded-lg shadow-sm self-start sm:self-auto whitespace-nowrap" style={{ backgroundColor: 'var(--bg-olive-light)' }}>
+          <div className={`text-xl sm:text-2xl font-bold`} style={{
             color: healthScore > 80 ? 'var(--color-sage)' : 
                    healthScore > 60 ? 'var(--color-warning)' : 'var(--color-danger)'
           }}>
             {healthScore}%
           </div>
-                  <div className="text-xs font-semibold" style={{ color: 'var(--text-tertiary)' }}>{t('status_indicators.operational')}</div>
+          <div className="text-[10px] sm:text-xs font-semibold" style={{ color: 'var(--text-tertiary)' }}>{t('status_indicators.operational')}</div>
         </div>
       </div>
       
@@ -125,11 +125,11 @@ export function StatusCard() {
       <div className="space-y-4">
         
         {/* Network Intelligence Status */}
-        <div className={`group rounded-lg p-5 transition-all duration-300 hover:scale-[1.02] border shadow-sm`} style={{
+        <div className={`group rounded-lg p-5 transition-all duration-300 sm:hover:scale-[1.02] border shadow-sm`} style={{
           backgroundColor: isOnline ? 'var(--bg-olive-light)' : 'rgba(139, 69, 19, 0.05)',
           borderColor: isOnline ? 'var(--color-sage)' : 'var(--color-danger)'
         }}>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-start sm:items-center space-x-4">
             <div className="w-12 h-12 rounded-lg flex items-center justify-center shadow-md" style={{ 
               background: isOnline 
                 ? 'linear-gradient(135deg, var(--color-sage) 0%, var(--color-quaternary) 100%)' 
@@ -141,21 +141,21 @@ export function StatusCard() {
                 <Shield className="w-6 h-6 text-white" />
               )}
             </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <p className="font-bold text-base" style={{ color: 'var(--text-primary)' }}>
+                  <p className="font-bold text-sm sm:text-base" style={{ color: 'var(--text-primary)' }}>
                     {isOnline ? 'Nätverksanslutning aktiv' : 'Säkert offline-läge'}
                   </p>
-                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  <p className="text-xs sm:text-sm break-words" style={{ color: 'var(--text-secondary)' }}>
                     {isOnline 
                       ? 'Externa resurser tillgängliga • Kommunikation säker' 
                       : 'Lokala funktioner operativa • Oberoende drift'
                     }
                   </p>
                 </div>
-                <div className="text-right">
-                  <div className="text-lg font-bold" style={{ 
+                <div className="text-left sm:text-right flex-shrink-0">
+                  <div className="text-base sm:text-lg font-bold" style={{ 
                     color: isOnline ? 'var(--color-sage)' : 'var(--color-danger)' 
                   }}>
                     {isOnline ? t('status_indicators.online') : t('status_indicators.offline')}
@@ -167,7 +167,7 @@ export function StatusCard() {
         </div>
 
         {/* Power Management System */}
-        <div className={`group rounded-lg p-5 transition-all duration-300 hover:scale-[1.02] border shadow-sm`} style={{
+        <div className={`group rounded-lg p-5 transition-all duration-300 sm:hover:scale-[1.02] border shadow-sm`} style={{
           backgroundColor: batteryLevel > 75 ? 'var(--bg-olive-light)' :
                           batteryLevel > 25 ? 'rgba(184, 134, 11, 0.08)' :
                           'rgba(139, 69, 19, 0.05)',
@@ -175,7 +175,7 @@ export function StatusCard() {
                       batteryLevel > 25 ? 'var(--color-warning)' :
                       'var(--color-danger)'
         }}>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-start sm:items-center space-x-4">
             <div className="w-12 h-12 rounded-lg flex items-center justify-center shadow-md" style={{ 
               background: batteryLevel > 75 ? 'linear-gradient(135deg, var(--color-khaki) 0%, var(--color-sage) 100%)' :
                          batteryLevel > 25 ? 'linear-gradient(135deg, var(--color-warning) 0%, #A0760A 100%)' :
@@ -183,20 +183,20 @@ export function StatusCard() {
             }}>
               <Zap className="w-6 h-6 text-white" />
             </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <p className="font-bold text-base" style={{ color: 'var(--text-primary)' }}>
+                  <p className="font-bold text-sm sm:text-base" style={{ color: 'var(--text-primary)' }}>
                     Energireserv: {Math.floor(batteryLevel / 10)} timmar
                   </p>
-                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  <p className="text-xs sm:text-sm break-words" style={{ color: 'var(--text-secondary)' }}>
                     {batteryLevel > 75 ? 'Optimal energinivå • System fullt operativt' :
                      batteryLevel > 25 ? 'Adekvat energireserv • Normal drift' :
                      'Låg energinivå • Rekommenderar laddning'}
                   </p>
                 </div>
-                <div className="text-right">
-                  <div className="text-lg font-bold" style={{
+                <div className="text-left sm:text-right flex-shrink-0">
+                  <div className="text-base sm:text-lg font-bold" style={{
                     color: batteryLevel > 75 ? 'var(--color-sage)' :
                            batteryLevel > 25 ? 'var(--color-warning)' :
                            'var(--color-danger)'
@@ -204,7 +204,7 @@ export function StatusCard() {
                     {batteryLevel.toFixed(0)}%
                   </div>
                   {/* Professional Battery Gauge */}
-                  <div className="w-8 h-3 border rounded-sm mt-1" style={{ borderColor: 'var(--color-muted)' }}>
+                  <div className="w-8 h-3 border rounded-sm mt-1 mx-auto sm:mx-0" style={{ borderColor: 'var(--color-muted)' }}>
                     <div 
                       className="h-full rounded-sm transition-all duration-1000"
                       style={{ 
@@ -222,11 +222,11 @@ export function StatusCard() {
         </div>
 
         {/* Tactical Network Coordination */}
-        <div className={`group rounded-lg p-5 transition-all duration-300 hover:scale-[1.02] border shadow-sm`} style={{
+        <div className={`group rounded-lg p-5 transition-all duration-300 sm:hover:scale-[1.02] border shadow-sm`} style={{
           backgroundColor: isMeshConnected ? 'var(--bg-olive-light)' : 'rgba(112, 124, 95, 0.05)',
           borderColor: isMeshConnected ? 'var(--color-cool-olive)' : 'var(--color-muted)'
         }}>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-start sm:items-center space-x-4">
             <div className="w-12 h-12 rounded-lg flex items-center justify-center shadow-md" style={{ 
               background: isMeshConnected 
                 ? 'linear-gradient(135deg, var(--color-cool-olive) 0%, var(--color-tertiary) 100%)' 
@@ -234,21 +234,21 @@ export function StatusCard() {
             }}>
               <Globe className="w-6 h-6 text-white" />
             </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <p className="font-bold text-base" style={{ color: 'var(--text-primary)' }}>
+                  <p className="font-bold text-sm sm:text-base" style={{ color: 'var(--text-primary)' }}>
                     {isMeshConnected ? 'Taktiskt nätverk aktivt' : 'Nätverk standby-läge'}
                   </p>
-                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  <p className="text-xs sm:text-sm break-words" style={{ color: 'var(--text-secondary)' }}>
                     {isMeshConnected 
                       ? 'Lokal resursdelning operativ • Säker kommunikation' 
                       : 'Närhetsbaserad kommunikation • Aktiveras vid behov'
                     }
                   </p>
                 </div>
-                <div className="text-right">
-                  <div className="text-lg font-bold" style={{ 
+                <div className="text-left sm:text-right flex-shrink-0">
+                  <div className="text-base sm:text-lg font-bold" style={{ 
                     color: isMeshConnected ? 'var(--color-cool-olive)' : 'var(--color-muted)' 
                   }}>
                     {isMeshConnected ? t('status_indicators.active') : t('status_indicators.standby')}

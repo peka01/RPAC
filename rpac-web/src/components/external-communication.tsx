@@ -273,32 +273,32 @@ export function ExternalCommunication() {
   };
 
   return (
-    <div className="bg-white/95 rounded-xl p-6 border shadow-lg resize-y overflow-auto" style={{ 
+    <div className="bg-white/95 rounded-xl p-6 border shadow-lg resize-y overflow-auto overflow-x-hidden" style={{ 
       backgroundColor: 'var(--bg-card)',
       borderColor: 'var(--color-sage)',
       minHeight: '500px',
       height: '600px',
       maxHeight: '800px'
     }}>
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-lg flex items-center justify-center shadow-md" style={{ 
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+        <div className="flex items-center space-x-4 min-w-0">
+          <div className="w-12 h-12 rounded-lg flex items-center justify-center shadow-md flex-shrink-0" style={{ 
             background: 'linear-gradient(135deg, var(--color-sage) 0%, var(--color-quaternary) 100%)' 
           }}>
             <Antenna className="w-6 h-6 text-white" />
           </div>
-          <div>
-            <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-xl font-bold truncate" style={{ color: 'var(--text-primary)' }}>
               {t('professional.external_communications')}
             </h2>
-            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+            <p className="text-sm break-words" style={{ color: 'var(--text-secondary)' }}>
               {t('professional.radio_frequencies')} • {t('professional.government_info')} • {t('professional.web_sources')}
             </p>
           </div>
         </div>
         
-        <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-2 px-3 py-1 rounded text-xs font-semibold" style={{
+        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+          <div className="flex items-center space-x-2 px-3 py-1 rounded text-xs font-semibold whitespace-nowrap" style={{
             backgroundColor: internetStatus === 'online' ? 'var(--bg-olive-light)' : 
                            internetStatus === 'limited' ? 'rgba(184, 134, 11, 0.1)' : 
                            'rgba(139, 69, 19, 0.1)',
@@ -357,11 +357,11 @@ export function ExternalCommunication() {
       {/* Emergency Broadcasts Tab */}
       {activeTab === 'emergency' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
               Aktuella Varningar & Information
             </h3>
-            <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+            <span className="text-sm break-words" style={{ color: 'var(--text-secondary)' }}>
               Senast uppdaterad: {new Date(lastUpdate).toLocaleTimeString('sv-SE')}
             </span>
           </div>
@@ -372,36 +372,36 @@ export function ExternalCommunication() {
               return (
                 <div
                   key={broadcast.id}
-                  className={`border-l-4 p-4 rounded-lg ${getPriorityColor(broadcast.priority)}`}
+                  className={`border-l-4 p-4 rounded-lg overflow-hidden ${getPriorityColor(broadcast.priority)}`}
                 >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center space-x-2">
-                      <PriorityIcon className="w-5 h-5" />
-                      <h4 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2 gap-2">
+                    <div className="flex items-center space-x-2 min-w-0 flex-1">
+                      <PriorityIcon className="w-5 h-5 flex-shrink-0" />
+                      <h4 className="font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
                         {broadcast.title}
                       </h4>
                     </div>
-                    <div className="text-right text-xs" style={{ color: 'var(--text-secondary)' }}>
-                      <div>{broadcast.source}</div>
-                      <div>{new Date(broadcast.timestamp).toLocaleString('sv-SE')}</div>
+                    <div className="text-right text-xs flex-shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                      <div className="truncate">{broadcast.source}</div>
+                      <div className="whitespace-nowrap">{new Date(broadcast.timestamp).toLocaleString('sv-SE')}</div>
                     </div>
                   </div>
                   
-                  <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>
+                  <p className="text-sm mb-3 break-words" style={{ color: 'var(--text-secondary)' }}>
                     {broadcast.content}
                   </p>
                   
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center space-x-4">
-                      <span className="flex items-center space-x-1">
-                        <strong>Område:</strong> {broadcast.area}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-4">
+                      <span className="flex items-center space-x-1 break-words">
+                        <strong>Område:</strong> <span className="break-words">{broadcast.area}</span>
                       </span>
-                      <span className="flex items-center space-x-1">
-                        <strong>Kategori:</strong> {broadcast.category}
+                      <span className="flex items-center space-x-1 break-words">
+                        <strong>Kategori:</strong> <span className="break-words">{broadcast.category}</span>
                       </span>
                     </div>
                     {broadcast.expires && (
-                      <span style={{ color: 'var(--text-secondary)' }}>
+                      <span className="text-right break-words" style={{ color: 'var(--text-secondary)' }}>
                         Gäller till: {new Date(broadcast.expires).toLocaleString('sv-SE')}
                       </span>
                     )}
@@ -426,12 +426,12 @@ export function ExternalCommunication() {
       {/* Radio Tab */}
       {activeTab === 'radio' && (
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
               {t('professional.radio_frequencies')}
             </h3>
             
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
               {/* Volymkontroll */}
               <div className="flex items-center space-x-2">
                 <VolumeX className="w-4 h-4" />
@@ -450,7 +450,7 @@ export function ExternalCommunication() {
               {/* Lyssna-knapp */}
               <button
                 onClick={toggleRadioListening}
-                className={`crisis-button ${isListening ? 'animate-pulse' : ''}`}
+                className={`crisis-button ${isListening ? 'animate-pulse' : ''} whitespace-nowrap`}
                 style={{ 
                   backgroundColor: isListening ? 'var(--color-crisis-red)' : 'var(--color-crisis-green)',
                   color: 'white'
@@ -467,23 +467,23 @@ export function ExternalCommunication() {
               <button
                 key={freq.frequency}
                 onClick={() => setSelectedFrequency(freq.frequency)}
-                className={`text-left p-4 rounded-lg border-2 transition-all ${
+                className={`text-left p-4 rounded-lg border-2 transition-all w-full overflow-hidden ${
                   selectedFrequency === freq.frequency
                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                     : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
                 }`}
               >
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h4 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                <div className="flex items-start justify-between mb-2 min-w-0">
+                  <div className="min-w-0 flex-1 pr-2">
+                    <h4 className="font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
                       {freq.frequency} MHz
                     </h4>
-                    <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+                    <p className="text-sm font-medium break-words" style={{ color: 'var(--text-secondary)' }}>
                       {freq.name}
                     </p>
                   </div>
                   
-                  <div className="flex flex-col items-end space-y-1">
+                  <div className="flex flex-col items-end space-y-1 flex-shrink-0">
                     <div className={`w-3 h-3 rounded-full ${
                       freq.active ? 'bg-green-500' : 'bg-gray-400'
                     }`} />
@@ -504,7 +504,7 @@ export function ExternalCommunication() {
                   </div>
                 </div>
                 
-                <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                <p className="text-xs break-words" style={{ color: 'var(--text-secondary)' }}>
                   {freq.description}
                 </p>
                 
@@ -544,11 +544,11 @@ export function ExternalCommunication() {
       {/* Web Sources Tab */}
       {activeTab === 'web' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
               {t('professional.web_based_sources')}
             </h3>
-            <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+            <span className="text-sm break-words" style={{ color: 'var(--text-secondary)' }}>
               Internet: {internetStatus}
             </span>
           </div>
@@ -559,24 +559,24 @@ export function ExternalCommunication() {
               return (
                 <div
                   key={source.id}
-                  className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+                  className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 overflow-hidden"
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h4 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-3 gap-2">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-semibold break-words" style={{ color: 'var(--text-primary)' }}>
                         {source.name}
                       </h4>
-                      <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                      <p className="text-sm break-words" style={{ color: 'var(--text-secondary)' }}>
                         {source.description}
                       </p>
                     </div>
                     
-                    <div className="flex items-center space-x-1">
+                    <div className="flex items-center space-x-1 flex-shrink-0">
                       <StatusIcon className={`w-4 h-4 ${
                         source.status === 'online' ? 'text-green-500' :
                         source.status === 'limited' ? 'text-yellow-500' : 'text-red-500'
                       }`} />
-                      <span className={`text-xs ${
+                      <span className={`text-xs whitespace-nowrap ${
                         source.status === 'online' ? 'text-green-600' :
                         source.status === 'limited' ? 'text-yellow-600' : 'text-red-600'
                       }`}>
@@ -586,8 +586,8 @@ export function ExternalCommunication() {
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between">
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs ${
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <span className={`inline-block px-2 py-1 rounded-full text-xs break-words ${
                       source.type === 'emergency' ? 'bg-orange-100 text-orange-700' :
                       source.type === 'weather' ? 'bg-blue-100 text-blue-800' :
                       source.type === 'news' ? 'bg-gray-100 text-gray-800' :
@@ -599,7 +599,7 @@ export function ExternalCommunication() {
                     </span>
                     
                     {source.last_updated && (
-                      <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                      <span className="text-xs whitespace-nowrap" style={{ color: 'var(--text-secondary)' }}>
                         {new Date(source.last_updated).toLocaleTimeString('sv-SE')}
                       </span>
                     )}

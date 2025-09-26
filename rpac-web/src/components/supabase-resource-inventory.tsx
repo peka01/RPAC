@@ -483,7 +483,7 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
 
       {/* MSB Info Header */}
       <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-olive-light)' }}>
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-3">
           <div className="flex items-center space-x-3">
             <Shield className="w-6 h-6" style={{ color: 'var(--color-sage)' }} />
             <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
@@ -503,7 +503,7 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
               }
               loadResources();
             }}
-            className="text-xs px-3 py-1 rounded border transition-colors hover:bg-white/20"
+            className="text-xs px-3 py-1 rounded border transition-colors hover:bg-white/20 whitespace-nowrap flex-shrink-0"
             style={{ 
               borderColor: 'var(--color-sage)',
               color: 'var(--color-sage)'

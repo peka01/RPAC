@@ -230,7 +230,7 @@ export function MessagingSystem({ user, communityId }: MessagingSystemProps) {
   });
 
   return (
-    <div className="bg-white/95 rounded-xl border shadow-lg flex flex-col resize-y overflow-auto" style={{ 
+    <div className="bg-white/95 rounded-xl border shadow-lg flex flex-col resize-y overflow-auto overflow-x-hidden" style={{ 
       backgroundColor: 'var(--bg-card)',
       borderColor: 'var(--color-cool-olive)',
       minHeight: '500px',
@@ -238,24 +238,24 @@ export function MessagingSystem({ user, communityId }: MessagingSystemProps) {
       maxHeight: '800px'
     }}>
       {/* Professional Communication Header */}
-      <div className="flex items-center justify-between p-5 border-b" style={{ borderColor: 'var(--color-muted-light)' }}>
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm" style={{ 
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between p-5 border-b gap-4" style={{ borderColor: 'var(--color-muted-light)' }}>
+        <div className="flex items-center space-x-3 min-w-0">
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm flex-shrink-0" style={{ 
             background: 'linear-gradient(135deg, var(--color-cool-olive) 0%, var(--color-tertiary) 100%)' 
           }}>
             <MessageCircle className="w-5 h-5 text-white" />
           </div>
-          <div>
-            <h3 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-lg font-bold truncate" style={{ color: 'var(--text-primary)' }}>
               {t('professional.tactical_communication')}
             </h3>
-            <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{t('professional.secure_messaging')}</p>
+            <p className="text-xs break-words" style={{ color: 'var(--text-tertiary)' }}>{t('professional.secure_messaging')}</p>
           </div>
         </div>
         
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
           {/* Professional Connection Status */}
-          <div className="flex items-center space-x-2 px-2 py-1 rounded text-xs font-semibold" style={{
+          <div className="flex items-center space-x-2 px-2 py-1 rounded text-xs font-semibold whitespace-nowrap" style={{
             backgroundColor: isConnected ? 'var(--bg-olive-light)' : 'rgba(139, 69, 19, 0.1)',
             color: isConnected ? 'var(--color-cool-olive)' : 'var(--color-danger)'
           }}>
@@ -276,7 +276,7 @@ export function MessagingSystem({ user, communityId }: MessagingSystemProps) {
           <button
             onClick={sendEmergencyMessage}
             disabled={emergencyMode}
-            className={`p-2 rounded-lg transition-all duration-300 border ${
+            className={`p-2 rounded-lg transition-all duration-300 border flex-shrink-0 ${
               emergencyMode ? 'animate-pulse' : 'hover:scale-110'
             }`}
             style={{ 
@@ -359,20 +359,20 @@ export function MessagingSystem({ user, communityId }: MessagingSystemProps) {
         {/* Meddelandeområde */}
         <div className="flex-1 flex flex-col">
           {/* Meddelanden */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 messages-container">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-3 messages-container">
             {filteredMessages.map(message => (
               <div key={message.id} className="flex flex-col">
-                <div className={getMessageStyle(message)}>
+                <div className={`${getMessageStyle(message)} break-words`}>
                   {/* Metainformation */}
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs opacity-75">
+                  <div className="flex items-center justify-between mb-1 min-w-0">
+                    <span className="text-xs opacity-75 truncate">
                       {message.sender_name}
                     </span>
-                    <div className="flex items-center space-x-1">
+                    <div className="flex items-center space-x-1 flex-shrink-0">
                       {message.priority === 'emergency' && (
                         <AlertTriangle className="w-3 h-3" />
                       )}
-                      <span className="text-xs opacity-75">
+                      <span className="text-xs opacity-75 whitespace-nowrap">
                         {new Date(message.created_at).toLocaleTimeString('sv-SE', {
                           hour: '2-digit',
                           minute: '2-digit'
@@ -382,13 +382,13 @@ export function MessagingSystem({ user, communityId }: MessagingSystemProps) {
                   </div>
                   
                   {/* Meddelandeinnehåll */}
-                  <p className="text-sm">{message.content}</p>
+                  <p className="text-sm break-words">{message.content}</p>
                   
                   {/* Radio-metadata */}
                   {message.message_type === 'radio_relay' && message.metadata?.radio_frequency && (
                     <div className="mt-1 text-xs opacity-75 flex items-center space-x-1">
-                      <Radio className="w-3 h-3" />
-                      <span>Frekvens: {message.metadata.radio_frequency}</span>
+                      <Radio className="w-3 h-3 flex-shrink-0" />
+                      <span className="break-words">Frekvens: {message.metadata.radio_frequency}</span>
                     </div>
                   )}
                 </div>

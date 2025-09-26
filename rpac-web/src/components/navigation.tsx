@@ -176,11 +176,11 @@ export function Navigation() {
           {/* Professional Header */}
           <div className={`flex items-center justify-between transition-all duration-300 ${isScrolled ? 'h-12' : 'h-16'}`}>
             
-            {/* Authority Logo */}
-            <Link href="/dashboard" className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200">
+            {/* Authority Logo - Mobile Optimized */}
+            <Link href="/dashboard" className="flex items-center space-x-2 sm:space-x-3 hover:opacity-80 transition-opacity duration-200 touch-manipulation">
               <div className="relative">
                 <div className={`flex items-center justify-center rounded-lg shadow-md p-2 transition-all duration-300 ${
-                  isScrolled ? 'w-8 h-8' : 'w-12 h-12'
+                  isScrolled ? 'w-8 h-8' : 'w-10 h-10 sm:w-12 sm:h-12'
                 }`} style={{ 
                   background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)' 
                 }}>
@@ -193,18 +193,26 @@ export function Navigation() {
                   <div className="absolute inset-0 rounded-full animate-pulse opacity-75" style={{ backgroundColor: 'var(--color-success)' }}></div>
                 </div>
               </div>
-              <div>
+              <div className="hidden sm:block">
                 <h1 className={`font-bold transition-all duration-300 ${
                   isScrolled ? 'text-2xl' : 'text-4xl'
                 }`} style={{ color: 'var(--text-primary)' }}>
                   BEREDD
                 </h1>
               </div>
+              {/* Mobile-only title */}
+              <div className="sm:hidden">
+                <h1 className={`font-bold transition-all duration-300 ${
+                  isScrolled ? 'text-xl' : 'text-2xl'
+                }`} style={{ color: 'var(--text-primary)' }}>
+                  BEREDD
+                </h1>
+              </div>
             </Link>
 
-            {/* Inline Navigation Items - Only when scrolled */}
+            {/* Inline Navigation Items - Only when scrolled - Mobile Optimized */}
             {isScrolled && (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1 sm:space-x-2">
                 {isClient && navigation.slice(0, 4).map((item, index) => {
                   const normalizedPathname = pathname.replace(/\/$/, '') || '/';
                   const normalizedHref = item.href.replace(/\/$/, '') || '/';
@@ -216,7 +224,7 @@ export function Navigation() {
                     <Link
                       key={item.name}
                       href={item.href}
-                      className={`flex items-center space-x-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-300 ${
+                      className={`flex items-center space-x-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-300 touch-manipulation ${
                         isActive
                           ? 'shadow-sm'
                           : 'hover:shadow-sm'
@@ -227,17 +235,17 @@ export function Navigation() {
                       }}
                     >
                       <item.icon className="w-3 h-3" />
-                      <span className="hidden lg:inline">{item.name}</span>
+                      <span className="hidden md:inline">{item.name}</span>
                     </Link>
                   );
                 })}
               </div>
             )}
 
-            {/* Professional Status Bar */}
-            <div className="flex items-center space-x-3">
+            {/* Professional Status Bar - Mobile Optimized */}
+            <div className="flex items-center space-x-2 sm:space-x-3">
               
-              {/* Connection Status */}
+              {/* Connection Status - Mobile Optimized */}
               <div className={`flex items-center space-x-2 rounded-lg text-xs transition-all duration-300 ${
                 isScrolled ? 'px-2 py-1' : 'px-3 py-1'
               } ${
@@ -251,17 +259,17 @@ export function Navigation() {
                 {isOnline ? (
                   <>
                     <Wifi className={isScrolled ? "w-3 h-3" : "w-4 h-4"} />
-                    {!isScrolled && <span className="font-semibold">Online</span>}
+                    {!isScrolled && <span className="font-semibold hidden sm:inline">Online</span>}
                   </>
                 ) : (
                   <>
                     <WifiOff className={isScrolled ? "w-3 h-3" : "w-4 h-4"} />
-                    {!isScrolled && <span className="font-semibold">Offline</span>}
+                    {!isScrolled && <span className="font-semibold hidden sm:inline">Offline</span>}
                   </>
                 )}
               </div>
 
-              {/* Crisis Mode Alert */}
+              {/* Crisis Mode Alert - Mobile Optimized */}
               {isCrisisMode && (
                 <div className={`flex items-center space-x-2 rounded-lg text-xs font-semibold animate-pulse transition-all duration-300 ${
                   isScrolled ? 'px-2 py-1' : 'px-3 py-1'
@@ -270,16 +278,16 @@ export function Navigation() {
                   color: 'var(--color-danger)'
                 }}>
                   <AlertTriangle className={isScrolled ? "w-3 h-3" : "w-4 h-4"} />
-                  {!isScrolled && <span>Krisläge</span>}
+                  {!isScrolled && <span className="hidden sm:inline">Krisläge</span>}
                 </div>
               )}
 
-              {/* Professional User Menu */}
+              {/* Professional User Menu - Mobile Optimized */}
               {user && (
                 <div className="relative user-menu-container">
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}
-                    className={`flex items-center space-x-2 rounded-lg transition-all duration-300 border ${
+                    className={`flex items-center space-x-2 rounded-lg transition-all duration-300 border touch-manipulation ${
                       isScrolled ? 'px-2 py-1.5' : 'px-3 py-2'
                     }`}
                     style={{
@@ -294,13 +302,11 @@ export function Navigation() {
                     }}>
                       {(user.user_metadata?.name || user.email || 'V').charAt(0).toUpperCase()}
                     </div>
+                    {/* Hide text on mobile when scrolled, show on larger screens */}
                     {!isScrolled && (
-                      <div className="text-left">
+                      <div className="text-left hidden sm:block">
                         <div className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
                           {getTimeOfDayGreeting()}, {user.user_metadata?.name || user.email?.split('@')[0] || t('dashboard.default_user')}
-                        </div>
-                        <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                          {t('dashboard.status_line')}
                         </div>
                       </div>
                     )}
@@ -310,7 +316,7 @@ export function Navigation() {
                   </button>
                   
                   {showUserMenu && (
-                    <div className="absolute right-0 top-full mt-2 w-48 rounded-lg shadow-lg border py-2 z-50" style={{
+                    <div className="absolute right-0 top-full mt-2 w-48 sm:w-56 rounded-lg shadow-lg border py-2 z-50" style={{
                       backgroundColor: 'var(--bg-card)',
                       borderColor: 'var(--color-muted)'
                     }}>
@@ -319,18 +325,18 @@ export function Navigation() {
                           setShowUserMenu(false);
                           router.push('/settings');
                         }}
-                        className="w-full flex items-center space-x-3 px-4 py-2 text-xs transition-colors hover:bg-gray-50" 
+                        className="w-full flex items-center space-x-3 px-4 py-3 text-sm transition-colors hover:bg-gray-50 touch-manipulation" 
                         style={{ color: 'var(--text-secondary)' }}
                       >
-                        <Settings className="w-3 h-3" />
+                        <Settings className="w-4 h-4" />
                         <span>{t('navigation.settings')}</span>
                       </button>
                       <button
                         onClick={handleSignOut}
-                        className="w-full flex items-center space-x-3 px-4 py-2 text-xs transition-colors hover:bg-gray-50"
+                        className="w-full flex items-center space-x-3 px-4 py-3 text-sm transition-colors hover:bg-gray-50 touch-manipulation"
                         style={{ color: 'var(--text-secondary)' }}
                       >
-                        <LogOut className="w-3 h-3" />
+                        <LogOut className="w-4 h-4" />
                         <span>{t('navigation.sign_out')}</span>
                       </button>
                     </div>
@@ -343,7 +349,7 @@ export function Navigation() {
           {/* Professional Navigation Grid - Hidden when scrolled */}
           {!isScrolled && (
             <div className="pb-4">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 max-w-3xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 max-w-3xl mx-auto px-4 sm:px-0">
               {isClient && navigation.map((item, index) => {
                 const normalizedPathname = pathname.replace(/\/$/, '') || '/';
                 const normalizedHref = item.href.replace(/\/$/, '') || '/';
@@ -364,7 +370,7 @@ export function Navigation() {
                   <Link
                     key={item.name}
                     href={item.href}
-                    className={`group relative overflow-hidden rounded-lg transition-all duration-300 border ${
+                    className={`group relative overflow-hidden rounded-lg transition-all duration-300 border touch-manipulation ${
                       isActive
                         ? 'shadow-md border-2'
                         : 'shadow-sm hover:shadow-md border'
@@ -374,7 +380,7 @@ export function Navigation() {
                       borderColor: isActive ? colors.border : 'var(--color-secondary)'
                     }}
                   >
-                    <div className="relative p-4">
+                    <div className="relative p-4 sm:p-4">
                       <div className="flex items-center justify-between mb-2">
                         <item.icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${
                           isActive ? 'text-white' : ''
