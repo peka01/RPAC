@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { t } from '@/lib/locales';
+import { GeminiAIService } from '@/lib/gemini-ai';
 import { 
   Brain,
   Lightbulb,
@@ -77,8 +78,24 @@ export function AICultivationAdvisor({
     forecast: 'Molnigt med uppehåll'
   };
 
-  // Generate AI-powered cultivation advice
-  const generateAdvice = (): CultivationAdvice[] => {
+  // Generate AI-powered cultivation advice using Gemini AI
+  const generateAdvice = async (): Promise<CultivationAdvice[]> => {
+    try {
+      // Use real Gemini AI for advice generation
+      if (crisisMode) {
+        return await GeminiAIService.getCrisisAdvice(profile);
+      } else {
+        return await GeminiAIService.generateCultivationAdvice(profile, crisisMode);
+      }
+    } catch (error) {
+      console.error('Error generating AI advice:', error);
+      // Fallback to mock advice if AI fails
+      return getFallbackAdvice();
+    }
+  };
+
+  // Fallback advice when AI is unavailable
+  const getFallbackAdvice = (): CultivationAdvice[] => {
     const currentMonth = new Date().getMonth() + 1;
     const currentSeason = currentMonth >= 3 && currentMonth <= 5 ? 'spring' :
                          currentMonth >= 6 && currentMonth <= 8 ? 'summer' :
@@ -315,10 +332,22 @@ export function AICultivationAdvisor({
   };
 
   useEffect(() => {
-    // Generate advice immediately without loading delay for better UX
-    setWeather(mockWeatherData);
-    setAdvice(generateAdvice());
-    setLoading(false);
+    const loadAdvice = async () => {
+      setLoading(true);
+      try {
+        setWeather(mockWeatherData);
+        const aiAdvice = await generateAdvice();
+        setAdvice(aiAdvice);
+      } catch (error) {
+        console.error('Error loading AI advice:', error);
+        // Fallback to mock advice
+        setAdvice(getFallbackAdvice());
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAdvice();
   }, [crisisMode]);
 
   const getAdviceIcon = (advice: CultivationAdvice) => {

@@ -11,6 +11,7 @@ import {
   Download
 } from 'lucide-react';
 import { t } from '@/lib/locales';
+import { GeminiAIService } from '@/lib/gemini-ai';
 
 interface DiagnosisResult {
   plantName: string;
@@ -42,26 +43,41 @@ export function PlantDiagnosis() {
     
     setIsAnalyzing(true);
     
-    // Simulate AI analysis (replace with actual AI service)
-    setTimeout(() => {
-      const mockResult: DiagnosisResult = {
-        plantName: 'Tomat (Solanum lycopersicum)',
-        healthStatus: 'disease',
-        confidence: 87,
-        description: 'Identifierad sjukdom: Bladfläcksjuka (Alternaria solani). Detta är en vanlig svampsjukdom som påverkar tomatplantor.',
-        recommendations: [
-          'Ta bort infekterade blad omedelbart',
-          'Förbättra luftcirkulationen runt plantan',
-          'Vattna vid marknivå, inte på bladen',
-          'Använd fungicid om nödvändigt',
-          'Förhindra framtida utbrott med regelbunden rengöring'
-        ],
-        severity: 'medium'
+    try {
+      // Extract base64 from data URL
+      const base64Data = selectedImage.split(',')[1];
+      
+      // Use real Gemini AI for plant analysis
+      const aiResult = await GeminiAIService.analyzePlantImage(base64Data);
+      
+      // Convert Gemini result to our interface
+      const diagnosisResult: DiagnosisResult = {
+        plantName: aiResult.plantName,
+        healthStatus: aiResult.healthStatus === 'nutrient_deficiency' ? 'nutrient' : aiResult.healthStatus,
+        confidence: Math.round(aiResult.confidence * 100),
+        description: aiResult.description,
+        recommendations: aiResult.recommendations,
+        severity: aiResult.severity
       };
       
-      setResult(mockResult);
+      setResult(diagnosisResult);
+    } catch (error) {
+      console.error('Error analyzing plant with AI:', error);
+      
+      // Fallback to mock result if AI fails
+      const fallbackResult: DiagnosisResult = {
+        plantName: 'Okänd växt',
+        healthStatus: 'healthy',
+        confidence: 0,
+        description: 'Kunde inte analysera bilden. Kontrollera att bilden är tydlig och välbelyst.',
+        recommendations: ['Försök igen med en tydligare bild.', 'Kontakta en växtexpert för vidare analys.'],
+        severity: 'low'
+      };
+      
+      setResult(fallbackResult);
+    } finally {
       setIsAnalyzing(false);
-    }, 3000);
+    }
   };
 
   const getStatusColor = (status: string) => {

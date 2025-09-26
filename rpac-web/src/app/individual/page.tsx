@@ -7,6 +7,7 @@ import { PlantDiagnosis } from '@/components/plant-diagnosis';
 import { PersonalDashboard } from '@/components/personal-dashboard';
 import { CultivationCalendar } from '@/components/cultivation-calendar';
 import { AICultivationAdvisor } from '@/components/ai-cultivation-advisor';
+import { AICultivationPlanner } from '@/components/ai-cultivation-planner';
 import { GardenPlanner } from '@/components/garden-planner';
 import { CultivationReminders } from '@/components/cultivation-reminders';
 import { CrisisCultivation } from '@/components/crisis-cultivation';
@@ -40,6 +41,12 @@ export default function IndividualPage() {
       icon: Sprout,
       description: t('individual.cultivation_description'),
       subsections: [
+        {
+          id: 'ai-planner',
+          title: 'AI Odlings- och planeringscentral',
+          description: 'Personlig odlingsplan baserad på näringsbehov',
+          priority: 'high' as const
+        },
         {
           id: 'calendar',
           title: t('individual.calendar_advisor'),
@@ -174,6 +181,29 @@ export default function IndividualPage() {
               }}>
                 <Sprout className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--color-primary)' }} />
                 <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                  AI Odlings- och planeringscentral
+                </h3>
+                <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+                  Personlig odlingsplan baserad på näringsbehov
+                </p>
+                <button
+                  onClick={() => handleSectionChange('cultivation', 'ai-planner')}
+                  className="px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-md"
+                  style={{ 
+                    backgroundColor: 'var(--color-primary)',
+                    color: 'white'
+                  }}
+                >
+                  Starta AI-planering
+                </button>
+              </div>
+              
+              <div className="text-center p-6 rounded-lg border" style={{ 
+                backgroundColor: 'var(--bg-card)',
+                borderColor: 'var(--color-quaternary)'
+              }}>
+                <Sprout className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--color-primary)' }} />
+                <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
                   {t('individual.calendar_advisor')}
                 </h3>
                 <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
@@ -183,7 +213,7 @@ export default function IndividualPage() {
                   onClick={() => handleSectionChange('cultivation', 'calendar')}
                   className="px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-md"
                   style={{ 
-                    backgroundColor: 'var(--color-primary)',
+                    backgroundColor: 'var(--color-secondary)',
                     color: 'white'
                   }}
                 >
@@ -380,6 +410,22 @@ export default function IndividualPage() {
 
     // Handle subsection navigation for cultivation
     if (activeSection === 'cultivation' && activeSubsection) {
+      if (activeSubsection === 'ai-planner') {
+        return (
+          <div className="modern-card">
+            <AICultivationPlanner 
+              userProfile={{
+                climateZone: 'svealand',
+                experienceLevel: 'beginner',
+                gardenSize: 'medium',
+                preferences: ['potatoes', 'carrots', 'lettuce'],
+                currentCrops: ['tomatoes', 'herbs']
+              }}
+              crisisMode={false}
+            />
+          </div>
+        );
+      }
       if (activeSubsection === 'calendar') {
         return (
           <div className="space-y-8">
