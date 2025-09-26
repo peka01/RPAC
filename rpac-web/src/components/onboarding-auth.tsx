@@ -27,7 +27,7 @@ interface OnboardingStep {
 const onboardingSteps: OnboardingStep[] = [
   {
     id: 'welcome',
-    title: 'Välkommen till Beredd',
+    title: 'Välkommen till Beready',
     description: 'Din trygga stöd när allt annat fallerar. Vi hjälper dig att förbereda dig för oväntade situationer.',
     icon: Shield,
     color: 'var(--color-crisis-green)'

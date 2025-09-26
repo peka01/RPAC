@@ -114,7 +114,6 @@
     "nutrition_calculator": "Näringsberäkning",
     "nutrition_description": "Beräkna kalorier och näring från din odling",
     "guides_coach": "Guider & coach",
-    "guides_description": "Steg-för-steg guider för krisberedskap",
     "status_placeholder": "Din beredskapsstatus uppdateras kontinuerligt",
     "recent_activity": "Senaste aktivitet",
     "activity_placeholder": "Senaste aktiviteter visas här när de sker",
@@ -212,7 +211,7 @@
     "stockholm_winds": "Kraftiga vindar förväntas i Stockholmsregionen"
   },
   "dashboard": {
-    "title": "BEREDD",
+    "title": "BEREADY",
     "good_evening": "God kväll",
     "good_night": "God natt",
     "good_morning": "God morgon",
@@ -270,12 +269,10 @@
     "network_status": "Nätverksstatus",
     "recent_activity": "Senaste aktivitet",
     "manage_coordination": "Hantera koordination",
-    "join_community": "Gå med i samhälle",
-    "status_placeholder": "Din beredskapsstatus uppdateras kontinuerligt",
-    "activity_placeholder": "Senaste aktiviteter visas här när de sker"
+    "join_community": "Gå med i samhälle"
   },
   "onboarding": {
-    "welcome_to_ready": "Välkommen till Beredd",
+    "welcome_to_ready": "Välkommen till Beready",
     "welcome_description": "Din trygga stöd när allt annat fallerar. Vi hjälper dig att förbereda dig för oväntade situationer.",
     "skip": "Hoppa över",
     "previous": "Föregående",
@@ -297,7 +294,7 @@
     "keywords_help": "hjälp"
   },
   "welcome": {
-    "app_title": "Beredd",
+    "app_title": "Beready",
     "tagline": "Ditt trygga stöd när allt annat fallerar",
     "description": "Krisverktyg för beredskap och ömsesidig hjälp",
     "ready_to_start": "Redo att komma igång?",
