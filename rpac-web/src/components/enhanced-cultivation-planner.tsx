@@ -1123,11 +1123,11 @@ export function EnhancedCultivationPlanner({ user }: EnhancedCultivationPlannerP
         nutritionContribution: aiPlan.nutritionContribution || {},
         gapAnalysis: aiPlan.gapAnalysis ? {
           ...aiPlan.gapAnalysis,
-          nutritionalGaps: aiPlan.gapAnalysis.nutritionalGaps?.map(gap => ({
+          nutritionalGaps: aiPlan.gapAnalysis.nutritionalGaps?.map((gap: any) => ({
             ...gap,
             nutrient: `🤖 ${gap.nutrient}`
           })) || [],
-          recommendedPurchases: aiPlan.gapAnalysis.recommendedPurchases?.map(purchase => ({
+          groceryNeeds: aiPlan.gapAnalysis.groceryNeeds?.map((purchase: any) => ({
             ...purchase,
             item: `🤖 ${purchase.item}`
           })) || []
@@ -1154,17 +1154,17 @@ export function EnhancedCultivationPlanner({ user }: EnhancedCultivationPlannerP
         },
         estimatedCost: aiPlan.estimatedCost || calculateSummary().totalCost,
         selfSufficiencyPercent: aiPlan.selfSufficiencyPercent || 30,
-        nextSteps: aiPlan.nextSteps?.map(step => `🤖 ${step}`) || [],
-        recommendations: aiPlan.recommendations?.map(rec => `🤖 ${rec}`) || []
+        nextSteps: aiPlan.nextSteps?.map((step: any) => `🤖 ${step}`) || [],
+        recommendations: aiPlan.recommendations?.map((rec: any) => `🤖 ${rec}`) || []
       };
 
       console.log('Final plan created:', plan);
       console.log('Final plan timeline:', plan.timeline);
       console.log('Final plan gapAnalysis:', plan.gapAnalysis);
       console.log('Final plan nutritionalGaps:', plan.gapAnalysis?.nutritionalGaps);
-      console.log('Final plan recommendedPurchases:', plan.gapAnalysis?.recommendedPurchases);
+      console.log('Final plan groceryNeeds:', plan.gapAnalysis?.groceryNeeds);
       console.log('Final plan nutritionalGaps details:', JSON.stringify(plan.gapAnalysis?.nutritionalGaps, null, 2));
-      console.log('Final plan recommendedPurchases details:', JSON.stringify(plan.gapAnalysis?.recommendedPurchases, null, 2));
+      console.log('Final plan groceryNeeds details:', JSON.stringify(plan.gapAnalysis?.groceryNeeds, null, 2));
       
       setCultivationPlan(plan);
       setCurrentStep('plan');
@@ -2673,8 +2673,8 @@ export function EnhancedCultivationPlanner({ user }: EnhancedCultivationPlannerP
                 </div>
               </h4>
               <div className="space-y-2">
-                {(cultivationPlan.gapAnalysis.recommendedPurchases || cultivationPlan.gapAnalysis.groceryNeeds) && (cultivationPlan.gapAnalysis.recommendedPurchases?.length > 0 || cultivationPlan.gapAnalysis.groceryNeeds?.length > 0) ? (
-                  (cultivationPlan.gapAnalysis.recommendedPurchases || cultivationPlan.gapAnalysis.groceryNeeds).map((item, index) => (
+                {cultivationPlan.gapAnalysis.groceryNeeds && cultivationPlan.gapAnalysis.groceryNeeds.length > 0 ? (
+                  cultivationPlan.gapAnalysis.groceryNeeds.map((item, index) => (
                     <div key={index} className="flex justify-between items-center p-2 rounded" 
                          style={{ backgroundColor: 'var(--bg-olive-light)' }}>
                       <div>
@@ -2683,7 +2683,7 @@ export function EnhancedCultivationPlanner({ user }: EnhancedCultivationPlannerP
                           {item.quantity} {item.unit || getDefaultUnit(item.item)}
                         </span>
                       </div>
-                      <span className="font-medium">{item.cost || item.estimatedCost} kr</span>
+                      <span className="font-medium">{item.estimatedCost} kr</span>
                     </div>
                   ))
                 ) : (
@@ -2708,8 +2708,8 @@ export function EnhancedCultivationPlanner({ user }: EnhancedCultivationPlannerP
                 </div>
               </h4>
               <div className="text-2xl font-bold" style={{ color: 'var(--color-sage)' }}>
-                {cultivationPlan.gapAnalysis.totalCost || cultivationPlan.gapAnalysis.totalEstimatedCost ? 
-                  (cultivationPlan.gapAnalysis.totalCost || cultivationPlan.gapAnalysis.totalEstimatedCost).toLocaleString() + ' kr/vecka' : 
+                {cultivationPlan.gapAnalysis.totalEstimatedCost ?
+                  cultivationPlan.gapAnalysis.totalEstimatedCost.toLocaleString() + ' kr/vecka' :
                   'Kostnad beräknas...'
                 }
               </div>

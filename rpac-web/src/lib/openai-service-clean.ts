@@ -296,10 +296,7 @@ JSON:
    */
   static async generateCultivationPlan(userProfile: UserProfile, nutritionNeeds: any, selectedCrops: any[]): Promise<any> {
     try {
-      console.log('Starting AI cultivation plan generation...');
-      const prompt = `Du är en AI som skapar odlingsplaner. VIKTIGT: Svara ENDAST med JSON, ingen annan text.
-
-Skapa odlingsplan för ${userProfile.householdSize || 3} personer i ${userProfile.climateZone}.
+      const prompt = `Skapa odlingsplan för ${userProfile.householdSize || 3} personer i ${userProfile.climateZone}.
 
 Grödor: ${selectedCrops.map(crop => crop.crop).join(', ')}
 Näring: ${nutritionNeeds.dailyCalories} kcal, ${nutritionNeeds.protein}g protein
@@ -313,7 +310,7 @@ Näringsvärden:
 - Citrus: 50mg C-vitamin/100g
 - Grönsaker: 30mg C-vitamin/100g
 
-Svara ENDAST med JSON i detta format:
+JSON:
 {
   "id": "unique-id",
   "title": "Personlig odlingsplan för familjen",
@@ -365,117 +362,25 @@ Svara ENDAST med JSON i detta format:
       });
 
       const content = response.choices[0]?.message?.content;
-      if (!content || typeof content !== 'string') {
-        console.error('Invalid or missing content from OpenAI:', content);
-        throw new Error('No valid response from OpenAI');
+      if (!content) {
+        throw new Error('No response from OpenAI');
       }
 
       // Parse JSON response
       let jsonData;
       try {
-        console.log('Raw AI response:', content);
-        
-        // Remove any markdown formatting and extract JSON
-        let cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-        
-        // If the response contains text before JSON, extract just the JSON part
-        const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          cleanContent = jsonMatch[0];
-        }
-        
-        console.log('Cleaned content for parsing:', cleanContent);
+        // Remove any markdown formatting
+        const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '');
         jsonData = JSON.parse(cleanContent);
-        console.log('Successfully parsed JSON:', jsonData);
       } catch (parseError) {
         console.error('Failed to parse AI response:', parseError);
-        console.error('Raw content:', content);
-        console.error('Parse error details:', parseError instanceof Error ? parseError.message : String(parseError));
-        
-        // Return a fallback plan if JSON parsing fails
-        return {
-          id: 'fallback-plan',
-          title: 'Personlig odlingsplan för familjen',
-          description: 'En grundläggande odlingsplan baserad på dina valda grödor.',
-          timeline: 'Jan: Planering\nFeb: Beställ frön\nMar: Förbered jord\nApr: Så kalla grödor\nMaj: Plantera värmeälskande\nJun-Jul: Skötsel\nAug-Sep: Skörd\nOkt: Vinterförberedelse',
-          nutritionContribution: {
-            dailyCalories: 2000,
-            protein: 50,
-            carbs: 250,
-            fat: 65
-          },
-          gapAnalysis: {
-            nutritionalGaps: [
-              {nutrient: 'Protein', gap: 15.2},
-              {nutrient: 'Vitamin C', gap: 8.5}
-            ],
-            groceryNeeds: [
-              {item: 'Kött', estimatedCost: 45, quantity: 0.2, unit: 'kg'},
-              {item: 'Citrusfrukter', estimatedCost: 25, quantity: 0.5, unit: 'kg'}
-            ],
-            totalEstimatedCost: 70
-          },
-          nextSteps: [
-            'Beställ frön i januari',
-            'Förbered jord februari-mars',
-            'Så kalla grödor i mars',
-            'Plantera värmeälskande grödor i maj'
-          ],
-          recommendations: [
-            'Börja med potatis och morötter',
-            'Använd kompost för bättre jordkvalitet',
-            'Vattna regelbundet men undvik övervattning',
-            'Rotera grödor årligen'
-          ],
-          selfSufficiencyPercent: 45,
-          estimatedCost: 1200
-        };
+        throw new Error('Invalid JSON response from AI');
       }
 
       return jsonData;
     } catch (error) {
       console.error('OpenAI API error:', error);
-      console.error('Error details:', error instanceof Error ? error.message : String(error));
-      console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace available');
-      
-      // Return fallback plan instead of throwing error
-      return {
-        id: 'error-fallback-plan',
-        title: 'Personlig odlingsplan för familjen',
-        description: 'En grundläggande odlingsplan (AI-tjänsten är tillfälligt otillgänglig).',
-        timeline: 'Jan: Planering\nFeb: Beställ frön\nMar: Förbered jord\nApr: Så kalla grödor\nMaj: Plantera värmeälskande\nJun-Jul: Skötsel\nAug-Sep: Skörd\nOkt: Vinterförberedelse',
-        nutritionContribution: {
-          dailyCalories: 2000,
-          protein: 50,
-          carbs: 250,
-          fat: 65
-        },
-        gapAnalysis: {
-          nutritionalGaps: [
-            {nutrient: 'Protein', gap: 15.2},
-            {nutrient: 'Vitamin C', gap: 8.5}
-          ],
-          groceryNeeds: [
-            {item: 'Kött', estimatedCost: 45, quantity: 0.2, unit: 'kg'},
-            {item: 'Citrusfrukter', estimatedCost: 25, quantity: 0.5, unit: 'kg'}
-          ],
-          totalEstimatedCost: 70
-        },
-        nextSteps: [
-          'Beställ frön i januari',
-          'Förbered jord februari-mars',
-          'Så kalla grödor i mars',
-          'Plantera värmeälskande grödor i maj'
-        ],
-        recommendations: [
-          'Börja med potatis och morötter',
-          'Använd kompost för bättre jordkvalitet',
-          'Vattna regelbundet men undvik övervattning',
-          'Rotera grödor årligen'
-        ],
-        selfSufficiencyPercent: 45,
-        estimatedCost: 1200
-      };
+      throw error;
     }
   }
 }
