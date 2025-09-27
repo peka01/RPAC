@@ -13,7 +13,7 @@ The RPAC application has been successfully migrated from Google Gemini to OpenAI
 Add your OpenAI API key to the `.env.local` file:
 
 ```bash
-NEXT_PUBLIC_OPENAI_API_KEY=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
+NEXT_PUBLIC_OPENAI_API_KEY=your_openai_api_key_here
 ```
 
 ### 2. Configuration File
