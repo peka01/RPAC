@@ -108,16 +108,85 @@ interface CultivationCalendarProps {
   climateZone?: ClimateZone;
   gardenSize?: 'small' | 'medium' | 'large';
   crisisMode?: boolean;
+  aiCalendarItems?: any[];
 }
 
 export function CultivationCalendar({ 
   climateZone = 'svealand', 
   gardenSize = 'medium',
-  crisisMode = false 
+  crisisMode = false,
+  aiCalendarItems = []
 }: CultivationCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
   const [selectedPlant, setSelectedPlant] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'calendar' | 'planning' | 'tips'>('calendar');
+  const [storedCalendarItems, setStoredCalendarItems] = useState<any[]>([]);
+  const [editingItem, setEditingItem] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({ period: '', description: '' });
+
+  // Load AI calendar items from localStorage
+  useEffect(() => {
+    // Check both possible localStorage keys
+    const aiItems = localStorage.getItem('ai-calendar-items');
+    const cultivationItems = localStorage.getItem('cultivationCalendarItems');
+    
+    let items = [];
+    if (aiItems) {
+      try {
+        items = JSON.parse(aiItems);
+      } catch (error) {
+        console.error('Error parsing ai-calendar-items:', error);
+      }
+    }
+    
+    if (cultivationItems) {
+      try {
+        const cultivationItemsParsed = JSON.parse(cultivationItems);
+        items = [...items, ...cultivationItemsParsed];
+      } catch (error) {
+        console.error('Error parsing cultivationCalendarItems:', error);
+      }
+    }
+    
+    setStoredCalendarItems(items);
+  }, []);
+
+  // Use stored items if no props provided
+  const displayCalendarItems = aiCalendarItems.length > 0 ? aiCalendarItems : storedCalendarItems;
+
+  // Edit functions
+  const startEdit = (item: any) => {
+    setEditingItem(item.id);
+    setEditForm({ period: item.period, description: item.description });
+  };
+
+  const saveEdit = () => {
+    if (!editingItem) return;
+    
+    const updatedItems = storedCalendarItems.map(item => 
+      item.id === editingItem 
+        ? { ...item, period: editForm.period, description: editForm.description }
+        : item
+    );
+    
+    setStoredCalendarItems(updatedItems);
+    localStorage.setItem('ai-calendar-items', JSON.stringify(updatedItems));
+    localStorage.setItem('cultivationCalendarItems', JSON.stringify(updatedItems));
+    setEditingItem(null);
+    setEditForm({ period: '', description: '' });
+  };
+
+  const cancelEdit = () => {
+    setEditingItem(null);
+    setEditForm({ period: '', description: '' });
+  };
+
+  const deleteItem = (itemId: string) => {
+    const updatedItems = storedCalendarItems.filter(item => item.id !== itemId);
+    setStoredCalendarItems(updatedItems);
+    localStorage.setItem('ai-calendar-items', JSON.stringify(updatedItems));
+    localStorage.setItem('cultivationCalendarItems', JSON.stringify(updatedItems));
+  };
 
   // Get current season
   const getCurrentSeason = () => {
@@ -197,6 +266,109 @@ export function CultivationCalendar({
           </div>
         )}
       </div>
+
+      {/* AI Calendar Items - Prominent Display */}
+      {displayCalendarItems && displayCalendarItems.length > 0 && (
+        <div className="mb-6 p-4 rounded-lg border-2" style={{ 
+          backgroundColor: 'var(--bg-olive-light)',
+          borderColor: 'var(--color-sage)'
+        }}>
+          <div className="flex items-center space-x-2 mb-3">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--color-sage)' }}>
+              <Calendar className="w-4 h-4 text-white" />
+            </div>
+            <h3 className="font-semibold text-lg" style={{ color: 'var(--text-primary)' }}>
+              Min odlingsplan ({displayCalendarItems.length} aktiviteter)
+            </h3>
+          </div>
+          <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+            Dessa aktiviteter är skräddarsydda för din familj baserat på AI-analys av dina näringsbehov och odlingsförutsättningar.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {displayCalendarItems.map((item, index) => (
+              <div key={item.id} className="flex items-start space-x-3 p-3 rounded-lg border" style={{ 
+                backgroundColor: 'white',
+                borderColor: 'var(--color-sage)'
+              }}>
+                <div className="w-2 h-2 rounded-full mt-2 flex-shrink-0" style={{ backgroundColor: 'var(--color-sage)' }} />
+                <div className="flex-1">
+                  {editingItem === item.id ? (
+                    // Edit mode
+                    <div className="space-y-3">
+                      <input
+                        type="text"
+                        value={editForm.period}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, period: e.target.value }))}
+                        className="w-full px-2 py-1 text-sm border rounded"
+                        placeholder="Period (t.ex. Mars)"
+                      />
+                      <textarea
+                        value={editForm.description}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                        className="w-full px-2 py-1 text-sm border rounded"
+                        placeholder="Beskrivning"
+                        rows={2}
+                      />
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={saveEdit}
+                          className="px-3 py-1 text-xs rounded bg-green-600 text-white hover:bg-green-700"
+                        >
+                          Spara
+                        </button>
+                        <button
+                          onClick={cancelEdit}
+                          className="px-3 py-1 text-xs rounded bg-gray-500 text-white hover:bg-gray-600"
+                        >
+                          Avbryt
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    // View mode
+                    <>
+                      <div className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
+                        {item.period}
+                      </div>
+                      <div className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+                        {item.description}
+                      </div>
+                      <div className="flex items-center space-x-2 mt-2">
+                        <div className="px-2 py-1 rounded text-xs" style={{ 
+                          backgroundColor: 'var(--color-sage)', 
+                          color: 'white' 
+                        }}>
+                          AI-planerad
+                        </div>
+                        <div className="px-2 py-1 rounded text-xs" style={{ 
+                          backgroundColor: 'var(--bg-olive-light)', 
+                          color: 'var(--text-secondary)' 
+                        }}>
+                          Prioritet: {item.priority}
+                        </div>
+                      </div>
+                      <div className="flex space-x-2 mt-2">
+                        <button
+                          onClick={() => startEdit(item)}
+                          className="px-2 py-1 text-xs rounded bg-blue-500 text-white hover:bg-blue-600"
+                        >
+                          Redigera
+                        </button>
+                        <button
+                          onClick={() => deleteItem(item.id)}
+                          className="px-2 py-1 text-xs rounded bg-red-500 text-white hover:bg-red-600"
+                        >
+                          Ta bort
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Navigation Tabs */}
       <div className="flex space-x-1 mb-6 p-1 rounded-lg" style={{ backgroundColor: 'var(--bg-olive-light)' }}>

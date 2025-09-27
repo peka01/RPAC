@@ -132,7 +132,7 @@ const generateGroceryGap = (deficit: number) => {
 ## Integration Points
 
 ### Individual Page Navigation
-- **New subsection**: "AI Odlings- och planeringscentral"
+- **New subsection**: "Min odling"
 - **High priority** placement in cultivation section
 - **Seamless integration** with existing navigation
 - **Consistent styling** with RPAC design system

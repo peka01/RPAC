@@ -197,7 +197,7 @@ export function Navigation() {
                 <h1 className={`font-bold transition-all duration-300 ${
                   isScrolled ? 'text-2xl' : 'text-4xl'
                 }`} style={{ color: 'var(--text-primary)' }}>
-                  BEREADY
+                  BE<span className="mx-1">•</span>READY
                 </h1>
               </div>
               {/* Mobile-only title */}
@@ -205,7 +205,7 @@ export function Navigation() {
                 <h1 className={`font-bold transition-all duration-300 ${
                   isScrolled ? 'text-xl' : 'text-2xl'
                 }`} style={{ color: 'var(--text-primary)' }}>
-                  BEREADY
+                  BE<span className="mx-1">•</span>READY
                 </h1>
               </div>
             </Link>

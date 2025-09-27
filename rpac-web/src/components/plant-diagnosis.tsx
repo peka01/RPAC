@@ -11,7 +11,7 @@ import {
   Download
 } from 'lucide-react';
 import { t } from '@/lib/locales';
-import { GeminiAIService } from '@/lib/gemini-ai';
+import { OpenAIService } from '@/lib/openai-service';
 
 interface DiagnosisResult {
   plantName: string;
@@ -48,7 +48,7 @@ export function PlantDiagnosis() {
       const base64Data = selectedImage.split(',')[1];
       
       // Use real Gemini AI for plant analysis
-      const aiResult = await GeminiAIService.analyzePlantImage(base64Data);
+        const aiResult = await OpenAIService.analyzePlantImage(base64Data);
       
       // Convert Gemini result to our interface
       const diagnosisResult: DiagnosisResult = {

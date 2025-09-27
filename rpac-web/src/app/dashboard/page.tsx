@@ -30,14 +30,35 @@ export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [cultivationPlan, setCultivationPlan] = useState<any>(null);
   const router = useRouter();
 
+
+  // Load cultivation plan from Supabase
+  const loadCultivationPlan = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('cultivation_plans')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (data && !error) {
+        setCultivationPlan(data);
+      }
+    } catch (error) {
+      console.error('Error loading cultivation plan:', error);
+    }
+  };
 
   useEffect(() => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUser(user);
+        await loadCultivationPlan(user.id);
         setLoading(false);
       } else {
         // If no user is authenticated, try to authenticate with demo user
@@ -245,7 +266,7 @@ export default function DashboardPage() {
                 backgroundColor: 'var(--bg-card)',
                 borderColor: 'var(--color-khaki)'
               }}
-              onClick={() => router.push('/individual')}
+              onClick={() => router.push('/individual?section=cultivation&subsection=ai-planner')}
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm" style={{ 
@@ -254,18 +275,50 @@ export default function DashboardPage() {
                   <Leaf className="w-5 h-5 text-white" />
                 </div>
                 <div className="text-right">
-                  <div className="text-lg font-bold" style={{ color: 'var(--color-khaki)' }}>68%</div>
+                  <div className="text-lg font-bold" style={{ color: 'var(--color-khaki)' }}>
+                    {cultivationPlan?.self_sufficiency_percent || '0'}%
+                  </div>
                   <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{t('dashboard.self_sufficiency')}</div>
                 </div>
               </div>
-              <h3 className="text-sm font-bold mb-2" style={{ color: 'var(--text-primary)' }}>{t('dashboard.cultivation_plan')}</h3>
-              <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>{t('dashboard.cultivation_details')}</p>
+              <h3 className="text-sm font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Min odling</h3>
+              <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>
+                {(() => {
+                  if (cultivationPlan) {
+                    const cropCount = cultivationPlan.crops?.length || 0;
+                    const timeline = cultivationPlan.timeline || '12 månader';
+                    
+                    // Format timeline for better display
+                    let timelineDisplay = timeline;
+                    if (timeline.length > 50) {
+                      // Show first part of timeline if it's too long
+                      const firstLine = timeline.split('\n')[0];
+                      timelineDisplay = firstLine.length > 50 ? firstLine.substring(0, 47) + '...' : firstLine;
+                    }
+                    
+                    return `Planerad: ${cropCount} grödor • Skörd: ${timelineDisplay}`;
+                  }
+                  return 'Klicka för att skapa din odlingsplan';
+                })()}
+              </p>
               <div className="flex justify-between items-center">
                 <div className="flex space-x-2 flex-1">
                   <div className="flex-1 rounded-full h-2" style={{ backgroundColor: 'rgba(160, 142, 90, 0.2)' }}>
-                    <div className="h-2 rounded-full" style={{ width: '68%', backgroundColor: 'var(--color-khaki)' }}></div>
+                    <div className="h-2 rounded-full" style={{ 
+                      width: `${cultivationPlan?.self_sufficiency_percent || 0}%`, 
+                      backgroundColor: 'var(--color-khaki)' 
+                    }}></div>
                   </div>
-                  <span className="text-xs font-semibold" style={{ color: 'var(--color-khaki)' }}>{t('dashboard.good_level')}</span>
+                  <span className="text-xs font-semibold" style={{ color: 'var(--color-khaki)' }}>
+                    {(() => {
+                      const percentage = cultivationPlan?.self_sufficiency_percent || 0;
+                      
+                      if (percentage >= 70) return 'Optimal';
+                      if (percentage >= 40) return 'Bra';
+                      if (percentage > 0) return 'Påbörjad';
+                      return 'Planera';
+                    })()}
+                  </span>
                 </div>
                 <span className="text-xs ml-2 group-hover:underline" style={{ color: 'var(--color-khaki)' }}>
                   {t('dashboard.manage')}

@@ -115,7 +115,7 @@ If Gemini AI is unavailable:
 ### Verify Setup
 1. Start the development server: `npm run dev`
 2. Navigate to `/individual`
-3. Go to "AI Odlings- och planeringscentral"
+3. Go to "Min odling"
 4. Try the plant diagnosis feature
 5. Check browser console for any API errors
 

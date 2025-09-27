@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { t } from '@/lib/locales';
-import { GeminiAIService } from '@/lib/gemini-ai';
+import { OpenAIService } from '@/lib/openai-service';
 import { 
   Brain,
   Lightbulb,
@@ -81,11 +81,11 @@ export function AICultivationAdvisor({
   // Generate AI-powered cultivation advice using Gemini AI
   const generateAdvice = async (): Promise<CultivationAdvice[]> => {
     try {
-      // Use real Gemini AI for advice generation
+      // Use real OpenAI AI for advice generation
       if (crisisMode) {
-        return await GeminiAIService.getCrisisAdvice(profile);
+        return await OpenAIService.getCrisisAdvice(profile);
       } else {
-        return await GeminiAIService.generateCultivationAdvice(profile, crisisMode);
+        return await OpenAIService.generateCultivationAdvice(profile, crisisMode);
       }
     } catch (error) {
       console.error('Error generating AI advice:', error);

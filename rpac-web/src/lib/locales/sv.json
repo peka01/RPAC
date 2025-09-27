@@ -26,7 +26,7 @@
     "login_required": "Du måste vara inloggad för att komma åt din personliga sida.",
     "home_overview": "Hemöversikt",
     "personal_resources": "Personliga resurser & verktyg",
-    "cultivation_planning": "Odlings- och planeringscentral",
+    "cultivation_planning": "Min odling",
     "guides_development": "Guider & personlig utveckling",
     "plant_diagnosis": "Växtdiagnos & hälsa",
     "guides": "Steg-för-steg guider",
@@ -432,7 +432,7 @@
   },
   "cultivation": {
     "title": "Odlingskalender",
-    "planning_title": "Odlingsplanering",
+    "planning_title": "Min odling",
     "calendar_title": "Svenska odlingsmånader",
     "my_garden": "Min trädgård",
     "garden_planning": "Trädgårdsplanering",

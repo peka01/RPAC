@@ -94,10 +94,19 @@ export function useUserProfile(user: User | null) {
           .from('user_profiles')
           .select('*')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
-        if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        if (error) {
           console.error('Error loading user profile:', error);
+          console.error('Error code:', error.code);
+          console.error('Error message:', error.message);
+          console.error('Error details:', error.details);
+          
+          // If it's a 406 error, it's likely an RLS issue
+          if (error.code === 'PGRST301' || error.message?.includes('406')) {
+            console.error('❌ RLS Policy Issue: User cannot access user_profiles table');
+            console.error('Please check RLS policies in Supabase dashboard');
+          }
           return;
         }
 
@@ -236,10 +245,38 @@ export function useUserProfile(user: User | null) {
     };
   };
 
+  const refreshProfile = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error refreshing user profile:', error);
+        return;
+      }
+
+      if (data) {
+        setProfile({
+          ...data,
+          created_at: new Date(data.created_at),
+          updated_at: new Date(data.updated_at)
+        });
+      }
+    } catch (error) {
+      console.error('Error refreshing profile:', error);
+    }
+  };
+
   return {
     profile,
     loading,
     updateProfile,
+    refreshProfile,
     getLocationInfo,
     getCultivationContext,
     getCommunityContext

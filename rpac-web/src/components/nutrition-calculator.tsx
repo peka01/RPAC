@@ -695,7 +695,7 @@ export function NutritionCalculator({
           <div className="text-center py-8">
             <Target className="w-12 h-12 mx-auto mb-4" style={{ color: 'var(--color-secondary)' }} />
             <h3 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-              Odlingsplanering kommer snart
+              Min odling kommer snart
             </h3>
             <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
               Här kommer du kunna planera optimal odling för självförsörjning.

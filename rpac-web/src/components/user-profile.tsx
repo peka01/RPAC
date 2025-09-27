@@ -44,41 +44,12 @@ interface UserProfile {
   has_elderly?: boolean;
   has_pets?: boolean;
   pet_types?: string;
-  growing_preferences?: string;
   location_privacy?: string;
   created_at: Date;
   updated_at: Date;
 }
 
-// Swedish county to climate zone mapping
-const countyToClimateZone: Record<string, 'gotaland' | 'svealand' | 'norrland'> = {
-  stockholm: 'svealand',
-  uppsala: 'svealand',
-  sodermanland: 'svealand',
-  ostergotland: 'gotaland',
-  jonkoping: 'gotaland',
-  kronoberg: 'gotaland',
-  kalmar: 'gotaland',
-  blekinge: 'gotaland',
-  skane: 'gotaland',
-  halland: 'gotaland',
-  vastra_gotaland: 'gotaland',
-  varmland: 'svealand',
-  orebro: 'svealand',
-  vastmanland: 'svealand',
-  dalarna: 'svealand',
-  gavleborg: 'svealand',
-  vasternorrland: 'norrland',
-  jamtland: 'norrland',
-  vasterbotten: 'norrland',
-  norrbotten: 'norrland'
-};
 
-const plantPreferences = [
-  'potatoes', 'carrots', 'cabbage', 'onions', 'lettuce', 'radishes',
-  'peas', 'beans', 'tomatoes', 'cucumbers', 'herbs', 'spinach',
-  'kale', 'leeks', 'beets'
-];
 
 interface UserProfileProps {
   user: SupabaseUser;
@@ -95,7 +66,6 @@ export function UserProfile({
 }: UserProfileProps) {
   const [profile, setProfile] = useState<Partial<UserProfile>>(() => {
     // Load additional fields from localStorage on initial state
-    const localGrowingPrefs = typeof window !== 'undefined' ? localStorage.getItem(`user_${user.id}_growing_preferences`) : null;
     const localLocationPrivacy = typeof window !== 'undefined' ? localStorage.getItem(`user_${user.id}_location_privacy`) : null;
     
     return {
@@ -119,7 +89,6 @@ export function UserProfile({
       has_elderly: false,
       has_pets: false,
       pet_types: '',
-      growing_preferences: localGrowingPrefs || '',
       location_privacy: localLocationPrivacy || 'county_only',
       ...initialProfile
     };
@@ -128,17 +97,9 @@ export function UserProfile({
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+
   const [showLocationPicker, setShowLocationPicker] = useState(false);
 
-  // Auto-detect climate zone when county changes
-  useEffect(() => {
-    if (profile.county) {
-      const climateZone = countyToClimateZone[profile.county];
-      if (climateZone) {
-        setProfile(prev => ({ ...prev, climate_zone: climateZone }));
-      }
-    }
-  }, [profile.county]);
 
   // Load profile from Supabase on mount
   useEffect(() => {
@@ -148,9 +109,9 @@ export function UserProfile({
           .from('user_profiles')
           .select('*')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
-        if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        if (error) {
           console.error('Error loading profile:', error);
           return;
         }
@@ -164,13 +125,11 @@ export function UserProfile({
           };
           
           // Load additional fields from localStorage
-          const localGrowingPrefs = localStorage.getItem(`user_${user.id}_growing_preferences`);
           const localLocationPrivacy = localStorage.getItem(`user_${user.id}_location_privacy`);
           
           setProfile(prev => ({ 
             ...prev, 
             ...profileWithDates,
-            growing_preferences: localGrowingPrefs || '',
             location_privacy: localLocationPrivacy || 'county_only'
           }));
         }
@@ -216,7 +175,7 @@ export function UserProfile({
         .from('user_profiles')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       let result;
       if (existingProfile) {
@@ -239,9 +198,6 @@ export function UserProfile({
       if (result.error) throw result.error;
 
       // Save additional fields to localStorage
-      if (profile.growing_preferences) {
-        localStorage.setItem(`user_${user.id}_growing_preferences`, profile.growing_preferences);
-      }
       if (profile.location_privacy) {
         localStorage.setItem(`user_${user.id}_location_privacy`, profile.location_privacy);
       }
@@ -392,7 +348,12 @@ export function UserProfile({
                   className="w-full p-3 border rounded-lg"
                   style={{ borderColor: 'var(--color-secondary)' }}
                 >
-                  {Object.keys(countyToClimateZone).map(county => (
+                  {[
+                    'stockholm', 'uppsala', 'sodermanland', 'ostergotland', 'jonkoping', 
+                    'kronoberg', 'kalmar', 'blekinge', 'skane', 'halland', 'vastra_gotaland',
+                    'varmland', 'orebro', 'vastmanland', 'dalarna', 'gavleborg', 
+                    'vasternorrland', 'jamtland', 'vasterbotten', 'norrbotten'
+                  ].map(county => (
                     <option key={county} value={county}>
                       {t(`profile.counties.${county}`)}
                     </option>
@@ -407,23 +368,6 @@ export function UserProfile({
               )}
             </div>
 
-            {/* Climate Zone (Auto-detected) */}
-            <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-                {t('profile.climate_zone')}
-              </label>
-              <div className="p-3 rounded-lg flex items-center space-x-2" style={{ backgroundColor: 'var(--bg-olive-light)' }}>
-                <span style={{ color: 'var(--text-primary)' }}>
-                  {profile.county ? t(`profile.counties.${profile.county}`) : 'Ingen plats angiven'}
-                </span>
-                <div className="text-xs px-2 py-1 rounded" style={{
-                  backgroundColor: 'var(--color-sage)',
-                  color: 'white'
-                }}>
-                  Auto
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Municipality and Postal Code */}
@@ -460,61 +404,7 @@ export function UserProfile({
           )}
         </div>
 
-        {/* Experience and Garden */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Experience Level */}
-          <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-              {t('profile.experience_level')}
-            </label>
-            {isEditing ? (
-              <select
-                value="beginner"
-                onChange={() => {}}
-                className="w-full p-3 border rounded-lg"
-                style={{ borderColor: 'var(--color-secondary)' }}
-              >
-                <option value="beginner">{t('profile.experience_levels.beginner')}</option>
-                <option value="intermediate">{t('profile.experience_levels.intermediate')}</option>
-                <option value="expert">{t('profile.experience_levels.expert')}</option>
-              </select>
-            ) : (
-              <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-olive-light)' }}>
-                <span style={{ color: 'var(--text-primary)' }}>
-                  {t('profile.experience_levels.beginner')}
-                </span>
-              </div>
-            )}
-          </div>
 
-          {/* Garden Size */}
-          <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-              {t('profile.garden_size')}
-            </label>
-            {isEditing ? (
-              <select
-                value="medium"
-                onChange={() => {}}
-                className="w-full p-3 border rounded-lg"
-                style={{ borderColor: 'var(--color-secondary)' }}
-              >
-                <option value="none">{t('profile.garden_sizes.none')}</option>
-                <option value="balcony">{t('profile.garden_sizes.balcony')}</option>
-                <option value="small">{t('profile.garden_sizes.small')}</option>
-                <option value="medium">{t('profile.garden_sizes.medium')}</option>
-                <option value="large">{t('profile.garden_sizes.large')}</option>
-                <option value="farm">{t('profile.garden_sizes.farm')}</option>
-              </select>
-            ) : (
-              <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-olive-light)' }}>
-                <span style={{ color: 'var(--text-primary)' }}>
-                  {t('profile.garden_sizes.medium')}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
 
         {/* Family Size */}
         <div>
@@ -631,52 +521,6 @@ export function UserProfile({
           )}
         </div>
 
-        {/* Growing Preferences */}
-        <div>
-          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-            {t('profile.growing_preferences')}
-          </label>
-          {isEditing ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {plantPreferences.map(plant => (
-                <label key={plant} className="flex items-center space-x-2 p-2 rounded cursor-pointer hover:bg-gray-50">
-                  <input
-                    type="checkbox"
-                    checked={profile.growing_preferences?.includes(plant) || false}
-                    onChange={(e) => {
-                      const currentPrefs = profile.growing_preferences?.split(',').filter(p => p.trim()) || [];
-                      if (e.target.checked) {
-                        const newPrefs = [...currentPrefs, plant];
-                        setProfile(prev => ({ ...prev, growing_preferences: newPrefs.join(',') }));
-                      } else {
-                        const newPrefs = currentPrefs.filter(p => p !== plant);
-                        setProfile(prev => ({ ...prev, growing_preferences: newPrefs.join(',') }));
-                      }
-                    }}
-                  />
-                  <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                    {t(`cultivation.plants.${plant}`)}
-                  </span>
-                </label>
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {(profile.growing_preferences?.split(',').filter(p => p.trim()) || []).map(plant => (
-                <span 
-                  key={plant}
-                  className="px-2 py-1 rounded text-xs"
-                  style={{
-                    backgroundColor: 'var(--color-sage)',
-                    color: 'white'
-                  }}
-                >
-                  {t(`cultivation.plants.${plant}`)}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
 
         {/* Privacy Settings */}
         <div>

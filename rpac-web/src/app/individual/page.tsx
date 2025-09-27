@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { SupabaseResourceInventory } from '@/components/supabase-resource-inventory';
 import { PlantDiagnosis } from '@/components/plant-diagnosis';
 import { PersonalDashboard } from '@/components/personal-dashboard';
 import { CultivationCalendar } from '@/components/cultivation-calendar';
 import { AICultivationAdvisor } from '@/components/ai-cultivation-advisor';
 import { AICultivationPlanner } from '@/components/ai-cultivation-planner';
+import { EnhancedCultivationPlanner } from '@/components/enhanced-cultivation-planner';
 import { GardenPlanner } from '@/components/garden-planner';
 import { CultivationReminders } from '@/components/cultivation-reminders';
 import { CrisisCultivation } from '@/components/crisis-cultivation';
@@ -24,6 +25,7 @@ export default function IndividualPage() {
   const [activeSection, setActiveSection] = useState('home');
   const [activeSubsection, setActiveSubsection] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const { profile, loading: profileLoading } = useUserProfile(user);
 
@@ -43,7 +45,7 @@ export default function IndividualPage() {
       subsections: [
         {
           id: 'ai-planner',
-          title: 'AI Odlings- och planeringscentral',
+          title: 'Min odling',
           description: 'Personlig odlingsplan baserad på näringsbehov',
           priority: 'high' as const
         },
@@ -120,6 +122,19 @@ export default function IndividualPage() {
     checkUser();
   }, [router]);
 
+  // Handle URL parameters
+  useEffect(() => {
+    const section = searchParams.get('section');
+    const subsection = searchParams.get('subsection');
+    
+    if (section) {
+      setActiveSection(section);
+    }
+    if (subsection) {
+      setActiveSubsection(subsection);
+    }
+  }, [searchParams]);
+
   if (loading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
@@ -147,6 +162,33 @@ export default function IndividualPage() {
     if (subsectionId) {
       setActiveSubsection(subsectionId);
     }
+  };
+
+  // Calculate climate zone from county
+  const getClimateZone = (county: string) => {
+    const countyToClimateZone: Record<string, 'gotaland' | 'svealand' | 'norrland'> = {
+      stockholm: 'svealand',
+      uppsala: 'svealand',
+      sodermanland: 'svealand',
+      ostergotland: 'gotaland',
+      jonkoping: 'gotaland',
+      kronoberg: 'gotaland',
+      kalmar: 'gotaland',
+      blekinge: 'gotaland',
+      skane: 'gotaland',
+      halland: 'gotaland',
+      vastra_gotaland: 'gotaland',
+      varmland: 'svealand',
+      orebro: 'svealand',
+      vastmanland: 'svealand',
+      dalarna: 'svealand',
+      gavleborg: 'svealand',
+      vasternorrland: 'norrland',
+      jamtland: 'norrland',
+      vasterbotten: 'norrland',
+      norrbotten: 'norrland'
+    };
+    return countyToClimateZone[county] || 'svealand';
   };
 
   const renderContent = () => {
@@ -181,7 +223,7 @@ export default function IndividualPage() {
               }}>
                 <Sprout className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--color-primary)' }} />
                 <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                  AI Odlings- och planeringscentral
+                  Min odling
                 </h3>
                 <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
                   Personlig odlingsplan baserad på näringsbehov
@@ -194,7 +236,7 @@ export default function IndividualPage() {
                     color: 'white'
                   }}
                 >
-                  Starta AI-planering
+                  Starta planering
                 </button>
               </div>
               
@@ -413,35 +455,33 @@ export default function IndividualPage() {
       if (activeSubsection === 'ai-planner') {
         return (
           <div className="modern-card">
-            <AICultivationPlanner 
-              userProfile={{
-                climateZone: 'svealand',
-                experienceLevel: 'beginner',
-                gardenSize: 'medium',
-                preferences: ['potatoes', 'carrots', 'lettuce'],
-                currentCrops: ['tomatoes', 'herbs']
-              }}
-              crisisMode={false}
-            />
+            <EnhancedCultivationPlanner user={user} />
           </div>
         );
       }
       if (activeSubsection === 'calendar') {
+        console.log('Profile data:', profile);
+        console.log('County:', profile?.county);
+        const climateZone = profile?.county ? getClimateZone(profile.county) : 'svealand';
+        console.log('Calculated climate zone:', climateZone);
+        const gardenSize = profile?.garden_size || 'medium';
+        const experienceLevel = profile?.experience_level || 'beginner';
+
         return (
           <div className="space-y-8">
             <div className="modern-card">
               <CultivationCalendar 
-                climateZone="svealand"
-                gardenSize="medium"
+                climateZone={climateZone}
+                gardenSize={gardenSize}
                 crisisMode={false}
               />
             </div>
             <div className="modern-card">
               <AICultivationAdvisor 
                 userProfile={{
-                  climateZone: 'svealand',
-                  experienceLevel: 'beginner',
-                  gardenSize: 'medium',
+                  climateZone: climateZone,
+                  experienceLevel: experienceLevel,
+                  gardenSize: gardenSize,
                   preferences: ['potatoes', 'carrots', 'lettuce'],
                   currentCrops: ['tomatoes', 'herbs']
                 }}
@@ -465,7 +505,7 @@ export default function IndividualPage() {
             <div className="modern-card">
               <CultivationReminders 
                 user={user}
-                climateZone="svealand"
+                climateZone={profile?.county ? getClimateZone(profile.county) : 'svealand'}
                 crisisMode={false}
               />
             </div>
@@ -477,7 +517,7 @@ export default function IndividualPage() {
           <div className="modern-card">
             <CultivationReminders 
               user={user}
-              climateZone="svealand"
+              climateZone={profile?.county ? getClimateZone(profile.county) : 'svealand'}
               crisisMode={false}
             />
           </div>

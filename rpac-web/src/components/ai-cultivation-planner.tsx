@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { t } from '@/lib/locales';
-import { GeminiAIService } from '@/lib/gemini-ai';
+import { OpenAIService } from '@/lib/openai-service';
 import { 
   Brain,
   Calculator,
@@ -316,6 +316,11 @@ export function AICultivationPlanner({
   const [selectedCrops, setSelectedCrops] = useState<PlantedCrop[]>([]);
   const [cultivationPlan, setCultivationPlan] = useState<CultivationPlan | null>(null);
   const [loading, setLoading] = useState(false);
+  const [calendarItems, setCalendarItems] = useState<any[]>([]);
+  const [showCalendarSuccess, setShowCalendarSuccess] = useState(false);
+  const [addedItemsCount, setAddedItemsCount] = useState(0);
+  const [editingTimelineItem, setEditingTimelineItem] = useState<string | null>(null);
+  const [editTimelineForm, setEditTimelineForm] = useState({ period: '', description: '' });
 
   // Calculate daily calorie needs
   const calculateDailyCalorieNeeds = () => {
@@ -463,11 +468,11 @@ export function AICultivationPlanner({
       };
       
       // Use real Gemini AI for plan generation
-      const aiPlan = await GeminiAIService.generateCultivationPlan(
-        userProfile,
-        stats,
-        selectedCrops
-      );
+        const aiPlan = await OpenAIService.generateCultivationPlan(
+          userProfile,
+          stats,
+          selectedCrops
+        );
       
       const plan: CultivationPlan = {
         id: 'ai-plan-1',
@@ -511,6 +516,95 @@ export function AICultivationPlanner({
     } finally {
       setLoading(false);
     }
+  };
+
+  // Add timeline item to calendar
+  const addToCalendar = (item: any) => {
+    const calendarItem = {
+      id: `calendar-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      title: `${item.period}: ${item.description}`,
+      period: item.period,
+      description: item.description,
+      date: new Date().toISOString(),
+      type: 'cultivation_task',
+      priority: 'medium',
+      completed: false,
+      source: 'ai_plan'
+    };
+    
+    setCalendarItems(prev => [...prev, calendarItem]);
+    setAddedItemsCount(1);
+    setShowCalendarSuccess(true);
+    
+    // Save to localStorage for persistence across components
+    const updatedItems = [...calendarItems, calendarItem];
+    localStorage.setItem('ai-calendar-items', JSON.stringify(updatedItems));
+    
+    // Hide success message after 3 seconds
+    setTimeout(() => setShowCalendarSuccess(false), 3000);
+    
+    console.log('Added to calendar:', calendarItem);
+  };
+
+  const addAllToCalendar = (timelineItems: any[]) => {
+    const newCalendarItems = timelineItems.map((item, index) => ({
+      id: `calendar-${Date.now()}-${index}-${Math.random().toString(36).substr(2, 9)}`,
+      title: `${item.period}: ${item.description}`,
+      period: item.period,
+      description: item.description,
+      date: new Date().toISOString(),
+      type: 'cultivation_task',
+      priority: 'medium',
+      completed: false,
+      source: 'ai_plan'
+    }));
+    
+    setCalendarItems(prev => [...prev, ...newCalendarItems]);
+    setAddedItemsCount(newCalendarItems.length);
+    setShowCalendarSuccess(true);
+    
+    // Save to localStorage for persistence across components
+    const updatedItems = [...calendarItems, ...newCalendarItems];
+    localStorage.setItem('ai-calendar-items', JSON.stringify(updatedItems));
+    
+    // Hide success message after 3 seconds
+    setTimeout(() => setShowCalendarSuccess(false), 3000);
+    
+    console.log('Added all items to calendar:', newCalendarItems);
+  };
+
+  // Timeline edit functions
+  const startEditTimeline = (item: any) => {
+    setEditingTimelineItem(item.period + item.description);
+    setEditTimelineForm({ period: item.period, description: item.description });
+  };
+
+  const saveEditTimeline = () => {
+    if (!editingTimelineItem) return;
+    
+    // Update the cultivation plan timeline
+    if (cultivationPlan) {
+      const updatedTimeline = cultivationPlan.timeline
+        .split('\n')
+        .map(line => {
+          const match = line.match(/^(.*?):\s*(.*)$/);
+          if (match && match[1] === editTimelineForm.period && match[2] === editTimelineForm.description) {
+            return `${editTimelineForm.period}: ${editTimelineForm.description}`;
+          }
+          return line;
+        })
+        .join('\n');
+      
+      setCultivationPlan(prev => prev ? { ...prev, timeline: updatedTimeline } : null);
+    }
+    
+    setEditingTimelineItem(null);
+    setEditTimelineForm({ period: '', description: '' });
+  };
+
+  const cancelEditTimeline = () => {
+    setEditingTimelineItem(null);
+    setEditTimelineForm({ period: '', description: '' });
   };
 
   const addCrop = (cropType: string) => {
@@ -573,7 +667,7 @@ export function AICultivationPlanner({
           </div>
           <div>
             <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-              AI Odlings- och planeringscentral
+              Min odling
             </h2>
             <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
               Personlig odlingsplan baserad på näringsbehov
@@ -977,7 +1071,7 @@ export function AICultivationPlanner({
           <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-olive-light)' }}>
             <h3 className="font-semibold mb-4 flex items-center space-x-2" style={{ color: 'var(--text-primary)' }}>
               <Calendar className="w-5 h-5" />
-              <span>Din AI-genererade odlingsplan</span>
+              <span>Min odlingsplan</span>
             </h3>
             
             {/* AI Generated Plan Content */}
@@ -1047,12 +1141,172 @@ export function AICultivationPlanner({
               {/* Timeline */}
               {cultivationPlan.timeline && (
                 <div className="p-4 border rounded-lg mb-4" style={{ borderColor: 'var(--color-secondary)' }}>
-                  <h4 className="font-medium mb-3 flex items-center space-x-2" style={{ color: 'var(--text-primary)' }}>
-                    <Calendar className="w-5 h-5" />
-                    <span>Tidslinje</span>
-                  </h4>
-                  <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                    {cultivationPlan.timeline}
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="font-medium flex items-center space-x-2" style={{ color: 'var(--text-primary)' }}>
+            <Calendar className="w-5 h-5" />
+            <span>Tidslinje</span>
+          </h4>
+          {(() => {
+            // Parse timeline to get items for "Add all" button
+            const timelineText = cultivationPlan.timeline;
+            const lines = timelineText.split('\n').filter(line => line.trim());
+            const timelineItems = lines.map(line => {
+              const match = line.match(/^(Januari|Februari|Mars|April|Maj|Juni|Juli|Augusti|September|Oktober|November|December|januari|februari|mars|april|maj|juni|juli|augusti|september|oktober|november|december):\s*(.+)$/);
+              if (match) {
+                return {
+                  period: match[1],
+                  description: match[2].trim()
+                };
+              }
+              return {
+                period: 'Allmänt',
+                description: line.trim()
+              };
+            }).filter(item => item.description && item.description.length > 3);
+            
+            if (timelineItems.length > 0) {
+              return (
+                <button
+                  onClick={() => addAllToCalendar(timelineItems)}
+                  className="px-3 py-1 text-xs rounded-md transition-colors duration-200 hover:shadow-sm flex items-center space-x-1"
+                  style={{ 
+                    backgroundColor: 'var(--color-sage)', 
+                    color: 'white',
+                    border: 'none'
+                  }}
+                  title="Lägg till alla aktiviteter i min odlingskalender"
+                >
+                  <Calendar className="w-3 h-3" />
+                  <span>Lägg till alla</span>
+                </button>
+              );
+            }
+            return null;
+          })()}
+        </div>
+                  {/* Debug: log the entire timeline */}
+                  {console.log('Full timeline:', cultivationPlan.timeline)}
+                  <div className="space-y-3">
+                    {(() => {
+                      // Parse timeline properly
+                      const timelineText = cultivationPlan.timeline;
+                      console.log('Processing timeline:', timelineText);
+                      
+                      // Split by newlines first, then parse each line
+                      const lines = timelineText.split('\n').filter(line => line.trim());
+                      console.log('Timeline lines:', lines);
+                      
+                      const timelineItems = lines.map(line => {
+                        // Look for pattern "Month: Description"
+                        const match = line.match(/^(Januari|Februari|Mars|April|Maj|Juni|Juli|Augusti|September|Oktober|November|December|januari|februari|mars|april|maj|juni|juli|augusti|september|oktober|november|december):\s*(.+)$/);
+                        if (match) {
+                          return {
+                            period: match[1],
+                            description: match[2].trim()
+                          };
+                        }
+                        // Fallback: if no colon, treat as description
+                        return {
+                          period: 'Allmänt',
+                          description: line.trim()
+                        };
+                      }).filter(item => item.description && item.description.length > 3);
+                      
+                      // If no proper timeline items found, create a fallback
+                      if (timelineItems.length === 0) {
+                        return [{
+                          period: 'Planering',
+                          description: 'Kontakta AI-rådgivaren för en personlig odlingsplan'
+                        }];
+                      }
+                      
+                      console.log('Parsed timeline items:', timelineItems);
+                      
+                      console.log('Timeline items:', timelineItems);
+                      
+                      return timelineItems.map((item, index) => {
+                        const itemKey = item.period + item.description;
+                        const isEditing = editingTimelineItem === itemKey;
+                        
+                        return (
+                          <div key={index} className="flex items-start space-x-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-olive-light)' }}>
+                            <div className="w-2 h-2 rounded-full mt-2 flex-shrink-0" style={{ backgroundColor: 'var(--color-sage)' }} />
+                            <div className="flex-1">
+                              {isEditing ? (
+                                // Edit mode
+                                <div className="space-y-3">
+                                  <input
+                                    type="text"
+                                    value={editTimelineForm.period}
+                                    onChange={(e) => setEditTimelineForm(prev => ({ ...prev, period: e.target.value }))}
+                                    className="w-full px-2 py-1 text-sm border rounded"
+                                    placeholder="Period (t.ex. Mars)"
+                                  />
+                                  <textarea
+                                    value={editTimelineForm.description}
+                                    onChange={(e) => setEditTimelineForm(prev => ({ ...prev, description: e.target.value }))}
+                                    className="w-full px-2 py-1 text-sm border rounded"
+                                    placeholder="Beskrivning"
+                                    rows={2}
+                                  />
+                                  <div className="flex space-x-2">
+                                    <button
+                                      onClick={saveEditTimeline}
+                                      className="px-3 py-1 text-xs rounded bg-green-600 text-white hover:bg-green-700"
+                                    >
+                                      Spara
+                                    </button>
+                                    <button
+                                      onClick={cancelEditTimeline}
+                                      className="px-3 py-1 text-xs rounded bg-gray-500 text-white hover:bg-gray-600"
+                                    >
+                                      Avbryt
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                // View mode
+                                <>
+                                  <div className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
+                                    {item.period}
+                                  </div>
+                                  {item.description && (
+                                    <div className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+                                      {item.description}
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                            <div className="flex space-x-1">
+                              {!isEditing && (
+                                <>
+                                  <button
+                                    onClick={() => startEditTimeline(item)}
+                                    className="px-2 py-1 text-xs rounded bg-blue-500 text-white hover:bg-blue-600"
+                                    title="Redigera"
+                                  >
+                                    ✏️
+                                  </button>
+                                  <button
+                                    onClick={() => addToCalendar(item)}
+                                    className="px-3 py-1 text-xs rounded-md transition-colors duration-200 hover:shadow-sm"
+                                    style={{ 
+                                      backgroundColor: 'var(--color-sage)', 
+                                      color: 'white',
+                                      border: 'none'
+                                    }}
+                                    title="Lägg till i min odlingskalender"
+                                  >
+                                    + Kalender
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
                   </div>
                 </div>
               )}
@@ -1075,6 +1329,50 @@ export function AICultivationPlanner({
                 </div>
               )}
             </div>
+
+            {/* Calendar Items Summary */}
+            {calendarItems.length > 0 && (
+              <div className="p-4 border rounded-lg mb-4" style={{ borderColor: 'var(--color-sage)' }}>
+                <h4 className="font-medium mb-3 flex items-center space-x-2" style={{ color: 'var(--text-primary)' }}>
+                  <Calendar className="w-5 h-5" />
+                  <span>Lagt till i min odlingskalender ({calendarItems.length} aktiviteter)</span>
+                </h4>
+                <div className="space-y-2">
+                  {calendarItems.map((item, index) => (
+                    <div key={item.id} className="flex items-center justify-between p-2 rounded" style={{ backgroundColor: 'var(--bg-olive-light)' }}>
+                      <div className="flex-1">
+                        <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                          {item.period}
+                        </div>
+                        <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                          {item.description}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setCalendarItems(prev => prev.filter(calItem => calItem.id !== item.id))}
+                        className="ml-2 px-2 py-1 text-xs rounded hover:bg-red-100"
+                        style={{ color: 'var(--color-secondary)' }}
+                        title="Ta bort från kalender"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Success Notification */}
+            {showCalendarSuccess && (
+              <div className="fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50" style={{ backgroundColor: 'var(--color-sage)', color: 'white' }}>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="w-5 h-5" />
+                  <span>
+                    {addedItemsCount === 1 ? 'Lagt till i odlingskalender!' : `${addedItemsCount} aktiviteter lagda till i odlingskalender!`}
+                  </span>
+                </div>
+              </div>
+            )}
 
             <div className="text-center">
               <button
