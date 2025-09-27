@@ -354,7 +354,7 @@ export class GeminiAIService {
         result = await Promise.race([apiPromise, timeoutPromise]);
         
         console.log('Got response from Gemini API');
-        response = await result.response;
+        response = await (result as any).response;
         console.log('Extracted response object');
         text = response.text();
         console.log('Got text from response:', text.substring(0, 200) + '...');

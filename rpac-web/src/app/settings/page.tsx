@@ -179,7 +179,7 @@ export default function SettingsPage() {
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto mb-4" 
                style={{ borderColor: 'var(--color-sage)' }}></div>
-          <p style={{ color: 'var(--text-secondary)' }}>Laddar inställningar...</p>
+          <p style={{ color: 'var(--text-secondary)' }}>{t('settings.loading_settings')}</p>
         </div>
       </div>
     );
@@ -189,7 +189,7 @@ export default function SettingsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
         <div className="text-center">
-          <p style={{ color: 'var(--text-secondary)' }}>Du måste vara inloggad för att komma åt inställningar.</p>
+          <p style={{ color: 'var(--text-secondary)' }}>{t('settings.login_required')}</p>
         </div>
       </div>
     );
@@ -201,10 +201,10 @@ export default function SettingsPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
-            Inställningar
+            {t('settings.title')}
           </h1>
           <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-            Hantera din profil, säkerhet och preferenser
+            {t('settings.subtitle')}
           </p>
         </div>
 
@@ -285,7 +285,7 @@ export default function SettingsPage() {
                           <option value="norrland">Norrland (Norra Sverige)</option>
                         </select>
                         <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                          Auto-detekterat från: {profile?.county || 'Okänd plats'}
+                          {t('profile.auto_detected_from')}: {profile?.county || t('profile.unknown_location')}
                         </span>
                       </div>
                     </div>

@@ -35,13 +35,32 @@ Engelska bara för externa anslutningar eller som reservalternativ.
 - Modulär kod för framtida integration.
 - Följ prioriteringar och milstolpar från roadmap.md.
 
+## Latest Development Patterns (2025-01-27)
+
+### Enhanced Cultivation Planning System ✅ COMPLETED
+- **5-Step Progressive Flow**: Profile → Nutrition → Crops → Plan → Gaps analysis
+- **AI Integration**: OpenAI GPT-4 for personalized cultivation plan generation
+- **Plan Management**: Save, load, edit, and delete multiple named plans
+- **Real-time Calculations**: Live updates of space, cost, and nutrition
+- **URL Parameter Handling**: useSearchParams for direct navigation to specific sections
+- **Dual Storage Strategy**: Supabase + localStorage for offline capability and performance
+- **Error Recovery**: Graceful fallbacks when AI services are unavailable
+- **Backward Compatibility**: Support for legacy data formats during system evolution
+
+### Key Technical Achievements
+- **Database Integration**: Full Supabase integration with RLS policies and foreign keys
+- **Component Architecture**: Modular design with clear separation of concerns
+- **State Management**: Efficient React state updates with proper dependencies
+- **Performance Optimization**: Smart useEffect dependencies and component key props
+- **Swedish Localization**: All text properly externalized to t() function system
+
 ## Current Development Focus
 
 Se `/docs/roadmap.md` för:
 - Aktuella prioriteringar och Sprint-fokus
 - Implementerade funktioner vs planerade
 - Tekniska milstolpar och leveranser
-- Nuvarande fokus: Odlingskalender & kommunikation
+- Nuvarande fokus: Enhanced Cultivation Planning & AI Integration ✅ COMPLETED
 
 ## Mobile-First Design Requirements
 

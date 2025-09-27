@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useUserProfile } from '@/lib/useUserProfile';
 import { OpenAIService } from '@/lib/openai-service';
 import { supabase } from '@/lib/supabase';
+import { t } from '@/lib/locales';
 import { 
   Brain,
   Calculator,
@@ -377,7 +378,7 @@ export function EnhancedCultivationPlanner({ user }: EnhancedCultivationPlannerP
     if (currentStep === 'crops') {
       const loadCrops = async () => {
         // Start with pre-added crops
-        setCropRecommendations(cropLibrary.preAdded);
+        setCropRecommendations(cropLibrary.preAdded as CropRecommendation[]);
         
         // Load climate-based recommendations and filter out duplicates
         const climateCrops = await getCropRecommendations();
@@ -423,34 +424,51 @@ export function EnhancedCultivationPlanner({ user }: EnhancedCultivationPlannerP
       
       Anpassa data för svenska förhållanden och ge realistiska värden.`;
 
-      const response = await OpenAIService.generateCultivationAdvice(prompt);
+      // Use real OpenAI AI for cultivation advice
+      const response = await OpenAIService.generateCultivationPlan(userProfile, nutritionNeeds, selectedCropData);
       
       // Parse the AI response
       let nutritionData;
       try {
-        // Ensure response is a string
-        const responseStr = typeof response === 'string' ? response : String(response);
-        
-        // Try to extract JSON from the response
-        const jsonMatch = responseStr.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          nutritionData = JSON.parse(jsonMatch[0]);
-        } else {
-          throw new Error('No JSON found in response');
-        }
+        // The response is already a parsed object from the AI service
+        nutritionData = response;
       } catch (parseError) {
         console.error('Error parsing AI response:', parseError);
         // Fallback to default values
         nutritionData = {
-          crop: cropName,
-          suitability: 'good',
-          season: ['maj', 'juni', 'juli', 'augusti'],
-          yield: 4,
-          nutritionValue: { calories: 30, protein: 1.5, vitaminC: 20 },
-          difficulty: 'intermediate',
-          localTips: ['Anpassa för svenska förhållanden'],
-          spaceRequired: 4.0, // 4m² for 10 plants (0.4m² per plant)
-          costPerM2: 70
+          id: 'fallback-plan',
+          title: `Personlig odlingsplan för ${nutritionProfile.householdSize} personer`,
+          description: 'En grundläggande odlingsplan anpassad för din familj.',
+          timeline: 'Januari: Planering och förberedelser\nFebruari: Beställ frön och jord\nMars: Förbered jorden och såbäddar\nApril: Så kalla grödor\nMaj: Plantera värmeälskande grödor\nJuni-Juli: Skötsel och vattning\nAugusti-September: Skörd',
+          nutritionContribution: {
+            dailyCalories: nutritionNeeds.dailyCalories * 0.3,
+            protein: nutritionNeeds.protein * 0.3,
+            carbs: nutritionNeeds.carbohydrates * 0.3,
+            fat: nutritionNeeds.fat * 0.3
+          },
+          gapAnalysis: {
+            nutritionalGaps: [
+              { nutrient: 'Protein', gap: 15.2 },
+              { nutrient: 'Vitamin C', gap: 8.5 }
+            ],
+            recommendedPurchases: [
+              { item: 'Kött', cost: 120, quantity: 2 },
+              { item: 'Mjölkprodukter', cost: 15, quantity: 5 }
+            ],
+            totalCost: 530
+          },
+          nextSteps: [
+            'Beställ frön och jord i januari',
+            'Förbered odlingsbäddar i februari-mars',
+            'Börja såning av kalla grödor i mars',
+            'Plantera värmeälskande grödor i maj'
+          ],
+          recommendations: [
+            'Börja med enkla grödor som potatis och morötter',
+            'Använd kompost för bättre jordkvalitet',
+            'Vattna regelbundet men undvik övervattning',
+            'Rotera grödor årligen för bättre jordkvalitet'
+          ]
         };
       }
 
@@ -637,7 +655,7 @@ export function EnhancedCultivationPlanner({ user }: EnhancedCultivationPlannerP
         // Load the plan data into the form
         if (latestPlan.crops && Array.isArray(latestPlan.crops)) {
           // Handle both old format (objects) and new format (strings)
-          const cropNames = latestPlan.crops.map(crop => 
+          const cropNames = latestPlan.crops.map((crop: any) =>
             typeof crop === 'string' ? crop : crop.crop || crop.name || crop
           ).filter(Boolean);
           setSelectedCrops(cropNames);
@@ -645,7 +663,7 @@ export function EnhancedCultivationPlanner({ user }: EnhancedCultivationPlannerP
           // Also load crop recommendations to show the selected crops properly
           const loadCropsForPlan = async () => {
             // Start with pre-added crops
-            setCropRecommendations(cropLibrary.preAdded);
+            setCropRecommendations(cropLibrary.preAdded as CropRecommendation[]);
             
             // Load climate-based recommendations
             const climateCrops = await getCropRecommendations();
@@ -1093,50 +1111,118 @@ export function EnhancedCultivationPlanner({ user }: EnhancedCultivationPlannerP
         budget: cultivationProfile?.budget || 'medium',
         goals: cultivationProfile?.goals || [],
         preferences: cultivationProfile?.preferences || [],
-        challenges: cultivationProfile?.challenges || []
+        challenges: cultivationProfile?.challenges || [],
+        currentCrops: selectedCrops
       };
 
       // Use AI to generate comprehensive plan with selected crops
+      console.log('Generating AI plan with:', { userProfile, nutritionNeeds, selectedCropData });
       const aiPlan = await OpenAIService.generateCultivationPlan(
         userProfile,
         nutritionNeeds,
         selectedCropData
       );
+      console.log('AI plan generated:', aiPlan);
+      console.log('AI plan gapAnalysis:', aiPlan.gapAnalysis);
+      console.log('AI plan timeline:', aiPlan.timeline);
+      console.log('AI plan title:', aiPlan.title);
+
+      if (!aiPlan) {
+        console.error('AI plan generation failed, using fallback');
+        // Use fallback plan
+        const plan: CultivationPlan = {
+          id: 'fallback-plan-' + Date.now(),
+          title: `Personlig odlingsplan för ${nutritionProfile.householdSize} personer`,
+          description: 'En grundläggande odlingsplan anpassad för din familj.',
+          timeline: 'Januari: Planering och förberedelser\nFebruari: Beställ frön och jord\nMars: Förbered jorden och såbäddar\nApril: Så kalla grödor\nMaj: Plantera värmeälskande grödor\nJuni-Juli: Skötsel och vattning\nAugusti-September: Skörd',
+          crops: selectedCropData,
+          nutritionContribution: {},
+          gapAnalysis: {
+            nutritionalGaps: [
+              { nutrient: 'Protein', gap: 15.2 },
+              { nutrient: 'Vitamin C', gap: 8.5 }
+            ],
+            groceryNeeds: [
+              { item: 'Kött/Fisk', quantity: 2, unit: 'kg/vecka', estimatedCost: 200 },
+              { item: 'Mjölkprodukter', quantity: 3, unit: 'liter/vecka', estimatedCost: 150 }
+            ],
+            totalEstimatedCost: 530,
+            costBreakdown: [
+              { category: 'Protein', cost: 200 },
+              { category: 'Dairy', cost: 150 }
+            ]
+          },
+          estimatedCost: calculateSummary().totalCost,
+          selfSufficiencyPercent: 30,
+          nextSteps: [
+            'Beställ frön och jord i januari',
+            'Förbered odlingsbäddar i februari-mars',
+            'Börja såning av kalla grödor i mars',
+            'Plantera värmeälskande grödor i maj'
+          ],
+          recommendations: [
+            'Börja med enkla grödor som potatis och morötter',
+            'Använd kompost för bättre jordkvalitet',
+            'Vattna regelbundet men undvik övervattning',
+            'Rotera grödor årligen för bättre jordkvalitet'
+          ]
+        };
+        setCultivationPlan(plan);
+        return;
+      }
 
       const plan: CultivationPlan = {
         id: aiPlan.id || 'plan-' + Date.now(),
-        title: aiPlan.title || `Personlig odlingsplan för ${nutritionProfile.householdSize} personer`,
-        description: aiPlan.description || 'En skräddarsydd odlingsplan baserad på din familj och lokala förhållanden.',
-        timeline: aiPlan.timeline || 'Planering pågår...',
-        crops: selectedCrops,
+        title: aiPlan.title ? `🤖 ${aiPlan.title}` : `📋 Personlig odlingsplan för ${nutritionProfile.householdSize} personer`,
+        description: aiPlan.description ? `🤖 AI-genererad: ${aiPlan.description}` : '📋 En skräddarsydd odlingsplan baserad på din familj och lokala förhållanden.',
+        timeline: aiPlan.timeline ? `🤖 AI-genererad tidslinje:\n${aiPlan.timeline}` : '📋 Planering pågår...',
+        crops: selectedCropData,
         nutritionContribution: aiPlan.nutritionContribution || {},
-        gapAnalysis: aiPlan.gapAnalysis || {
+        gapAnalysis: aiPlan.gapAnalysis ? {
+          ...aiPlan.gapAnalysis,
+          nutritionalGaps: aiPlan.gapAnalysis.nutritionalGaps?.map(gap => ({
+            ...gap,
+            nutrient: `🤖 ${gap.nutrient}`
+          })) || [],
+          recommendedPurchases: aiPlan.gapAnalysis.recommendedPurchases?.map(purchase => ({
+            ...purchase,
+            item: `🤖 ${purchase.item}`
+          })) || []
+        } : {
           nutritionalGaps: [
-            { nutrient: 'Protein', gap: 15.2 },
-            { nutrient: 'Vitamin C', gap: 8.5 },
-            { nutrient: 'Kalcium', gap: 12.1 },
-            { nutrient: 'Järn', gap: 3.2 }
+            { nutrient: '📋 Protein', gap: 15.2 },
+            { nutrient: '📋 Vitamin C', gap: 8.5 },
+            { nutrient: '📋 Kalcium', gap: 12.1 },
+            { nutrient: '📋 Järn', gap: 3.2 }
           ],
           groceryNeeds: [
-            { item: 'Kött/Fisk', quantity: 2, unit: 'kg/vecka', estimatedCost: 200 },
-            { item: 'Mjölkprodukter', quantity: 3, unit: 'liter/vecka', estimatedCost: 150 },
-            { item: 'Frukt', quantity: 1.5, unit: 'kg/vecka', estimatedCost: 100 },
-            { item: 'Kornprodukter', quantity: 2, unit: 'kg/vecka', estimatedCost: 80 }
+            { item: '📋 Kött/Fisk', quantity: 2, unit: 'kg/vecka', estimatedCost: 200 },
+            { item: '📋 Mjölkprodukter', quantity: 3, unit: 'liter/vecka', estimatedCost: 150 },
+            { item: '📋 Frukt', quantity: 1.5, unit: 'kg/vecka', estimatedCost: 100 },
+            { item: '📋 Kornprodukter', quantity: 2, unit: 'kg/vecka', estimatedCost: 80 }
           ],
           totalEstimatedCost: 530,
           costBreakdown: [
-            { category: 'Protein', cost: 200 },
-            { category: 'Dairy', cost: 150 },
-            { category: 'Fruits', cost: 100 },
-            { category: 'Grains', cost: 80 }
+            { category: '📋 Protein', cost: 200 },
+            { category: '📋 Dairy', cost: 150 },
+            { category: '📋 Fruits', cost: 100 },
+            { category: '📋 Grains', cost: 80 }
           ]
         },
         estimatedCost: aiPlan.estimatedCost || calculateSummary().totalCost,
         selfSufficiencyPercent: aiPlan.selfSufficiencyPercent || 30,
-        nextSteps: aiPlan.nextSteps || [],
-        recommendations: aiPlan.recommendations || []
+        nextSteps: aiPlan.nextSteps?.map(step => `🤖 ${step}`) || [],
+        recommendations: aiPlan.recommendations?.map(rec => `🤖 ${rec}`) || []
       };
 
+      console.log('Final plan created:', plan);
+      console.log('Final plan timeline:', plan.timeline);
+      console.log('Final plan gapAnalysis:', plan.gapAnalysis);
+      console.log('Final plan nutritionalGaps:', plan.gapAnalysis?.nutritionalGaps);
+      console.log('Final plan recommendedPurchases:', plan.gapAnalysis?.recommendedPurchases);
+      console.log('Final plan nutritionalGaps details:', JSON.stringify(plan.gapAnalysis?.nutritionalGaps, null, 2));
+      console.log('Final plan recommendedPurchases details:', JSON.stringify(plan.gapAnalysis?.recommendedPurchases, null, 2));
+      
       setCultivationPlan(plan);
       setCurrentStep('plan');
       
@@ -1215,7 +1301,7 @@ export function EnhancedCultivationPlanner({ user }: EnhancedCultivationPlannerP
                     <button
                       onClick={() => {
                         // Handle both old format (objects) and new format (strings) for crops
-                        const cropNames = (plan.crops || []).map(crop => 
+                        const cropNames = (plan.crops || []).map((crop: any) =>
                           typeof crop === 'string' ? crop : crop.crop || crop.name || crop
                         ).filter(Boolean);
                         
@@ -1452,11 +1538,10 @@ export function EnhancedCultivationPlanner({ user }: EnhancedCultivationPlannerP
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div>Vitamin A: {calculateNutritionNeeds().vitamins.A} μg</div>
               <div>Vitamin C: {calculateNutritionNeeds().vitamins.C} mg</div>
-              <div>Vitamin D: {calculateNutritionNeeds().vitamins.D} μg</div>
-              <div>Vitamin E: {calculateNutritionNeeds().vitamins.E} mg</div>
+              <div>Vitamin K: {calculateNutritionNeeds().vitamins.K} μg</div>
               <div>Kalcium: {calculateNutritionNeeds().minerals.calcium} mg</div>
               <div>Järn: {calculateNutritionNeeds().minerals.iron} mg</div>
-              <div>Zink: {calculateNutritionNeeds().minerals.zinc} mg</div>
+              <div>Magnesium: {calculateNutritionNeeds().minerals.magnesium} mg</div>
               <div>Folat: {calculateNutritionNeeds().vitamins.folate} μg</div>
             </div>
           </div>
@@ -1626,6 +1711,52 @@ export function EnhancedCultivationPlanner({ user }: EnhancedCultivationPlannerP
   };
 
   // Crop icon mapping
+  const getDefaultUnit = (itemName: string): string => {
+    const unitMap: Record<string, string> = {
+      'Kött': 'kg',
+      'Fisk': 'kg', 
+      'Kyckling': 'kg',
+      'Korv': 'kg',
+      'Skinka': 'kg',
+      'Mjölkprodukter': 'liter',
+      'Mjölk': 'liter',
+      'Yoghurt': 'liter',
+      'Ost': 'kg',
+      'Smör': 'kg',
+      'Frukt': 'kg',
+      'Äpplen': 'kg',
+      'Bananer': 'kg',
+      'Apelsiner': 'kg',
+      'Grönsaker': 'kg',
+      'Morötter': 'kg',
+      'Potatis': 'kg',
+      'Lök': 'kg',
+      'Kornprodukter': 'kg',
+      'Bröd': 'kg',
+      'Pasta': 'kg',
+      'Ris': 'kg',
+      'Havregryn': 'kg',
+      'C-vitamin tillskott': 'förpackning',
+      'Vitaminer': 'förpackning',
+      'Tillskott': 'förpackning'
+    };
+    
+    // Check for exact matches first
+    if (unitMap[itemName]) {
+      return unitMap[itemName];
+    }
+    
+    // Check for partial matches
+    for (const [key, unit] of Object.entries(unitMap)) {
+      if (itemName.toLowerCase().includes(key.toLowerCase())) {
+        return unit;
+      }
+    }
+    
+    // Default to 'st' for items not in the map
+    return 'st';
+  };
+
   const getCropIcon = (cropName: string): string => {
     const iconMap: Record<string, string> = {
       'Potatis': '🥔',
@@ -2068,7 +2199,7 @@ export function EnhancedCultivationPlanner({ user }: EnhancedCultivationPlannerP
                   <div className="mt-3">
                     <p className="text-xs text-gray-600 mb-2">{crop.localTips[0]}</p>
                     <button
-                      onClick={() => addCropFromLibrary(crop)}
+                      onClick={() => addCropFromLibrary(crop as CropRecommendation)}
                       disabled={isAlreadyAdded}
                       className={`w-full py-2 px-3 rounded-lg font-medium transition-all duration-200 ${
                         isAlreadyAdded
@@ -2553,6 +2684,20 @@ export function EnhancedCultivationPlanner({ user }: EnhancedCultivationPlannerP
                 </div>
               </h4>
               <div className="space-y-2">
+                {(() => {
+                  console.log('Rendering gap analysis:', cultivationPlan.gapAnalysis);
+                  console.log('Nutritional gaps:', cultivationPlan.gapAnalysis?.nutritionalGaps);
+                  console.log('Nutritional gaps details:', JSON.stringify(cultivationPlan.gapAnalysis?.nutritionalGaps, null, 2));
+                  console.log('Gap analysis length check:', cultivationPlan.gapAnalysis?.nutritionalGaps?.length);
+                  return null;
+                })()}
+                {(() => {
+                  const hasGaps = cultivationPlan.gapAnalysis.nutritionalGaps && cultivationPlan.gapAnalysis.nutritionalGaps.length > 0;
+                  console.log('Condition check - hasGaps:', hasGaps);
+                  console.log('Condition check - nutritionalGaps exists:', !!cultivationPlan.gapAnalysis.nutritionalGaps);
+                  console.log('Condition check - nutritionalGaps length:', cultivationPlan.gapAnalysis.nutritionalGaps?.length);
+                  return null;
+                })()}
                 {cultivationPlan.gapAnalysis.nutritionalGaps && cultivationPlan.gapAnalysis.nutritionalGaps.length > 0 ? (
                   cultivationPlan.gapAnalysis.nutritionalGaps.map((gap, index) => (
                     <div key={index} className="flex justify-between items-center p-2 rounded" 
@@ -2585,17 +2730,17 @@ export function EnhancedCultivationPlanner({ user }: EnhancedCultivationPlannerP
                 </div>
               </h4>
               <div className="space-y-2">
-                {cultivationPlan.gapAnalysis.groceryNeeds && cultivationPlan.gapAnalysis.groceryNeeds.length > 0 ? (
-                  cultivationPlan.gapAnalysis.groceryNeeds.map((item, index) => (
+                {(cultivationPlan.gapAnalysis.recommendedPurchases || cultivationPlan.gapAnalysis.groceryNeeds) && (cultivationPlan.gapAnalysis.recommendedPurchases?.length > 0 || cultivationPlan.gapAnalysis.groceryNeeds?.length > 0) ? (
+                  (cultivationPlan.gapAnalysis.recommendedPurchases || cultivationPlan.gapAnalysis.groceryNeeds).map((item, index) => (
                     <div key={index} className="flex justify-between items-center p-2 rounded" 
                          style={{ backgroundColor: 'var(--bg-olive-light)' }}>
                       <div>
                         <span className="font-medium">{item.item}</span>
                         <span className="text-sm ml-2" style={{ color: 'var(--text-secondary)' }}>
-                          {item.quantity} {item.unit}
+                          {item.quantity} {item.unit || getDefaultUnit(item.item)}
                         </span>
                       </div>
-                      <span className="font-medium">{item.estimatedCost} kr</span>
+                      <span className="font-medium">{item.cost || item.estimatedCost} kr</span>
                     </div>
                   ))
                 ) : (
@@ -2620,8 +2765,8 @@ export function EnhancedCultivationPlanner({ user }: EnhancedCultivationPlannerP
                 </div>
               </h4>
               <div className="text-2xl font-bold" style={{ color: 'var(--color-sage)' }}>
-                {cultivationPlan.gapAnalysis.totalEstimatedCost ? 
-                  cultivationPlan.gapAnalysis.totalEstimatedCost.toLocaleString() + ' kr/vecka' : 
+                {cultivationPlan.gapAnalysis.totalCost || cultivationPlan.gapAnalysis.totalEstimatedCost ? 
+                  (cultivationPlan.gapAnalysis.totalCost || cultivationPlan.gapAnalysis.totalEstimatedCost).toLocaleString() + ' kr/vecka' : 
                   'Kostnad beräknas...'
                 }
               </div>
@@ -2903,7 +3048,7 @@ export function EnhancedCultivationPlanner({ user }: EnhancedCultivationPlannerP
                         }))}
                         className="w-full px-3 py-2 border rounded-lg"
                         rows={3}
-                        placeholder="Beskriv eventuella särskilda behov"
+                        placeholder={t('cultivation_planning.enter_plan_name')}
                       />
                     </div>
                   </div>

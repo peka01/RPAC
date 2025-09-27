@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { SupabaseResourceInventory } from '@/components/supabase-resource-inventory';
 import { PlantDiagnosis } from '@/components/plant-diagnosis';
@@ -19,7 +19,7 @@ import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { t } from '@/lib/locales';
 import { Home, Sprout, BookOpen } from 'lucide-react';
 
-export default function IndividualPage() {
+function IndividualPageContent() {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState('home');
@@ -464,8 +464,8 @@ export default function IndividualPage() {
         console.log('County:', profile?.county);
         const climateZone = profile?.county ? getClimateZone(profile.county) : 'svealand';
         console.log('Calculated climate zone:', climateZone);
-        const gardenSize = profile?.garden_size || 'medium';
-        const experienceLevel = profile?.experience_level || 'beginner';
+        const gardenSize = 'medium'; // Default value since garden_size is in cultivation_profiles table
+        const experienceLevel = 'beginner'; // Default value since experience_level is in cultivation_profiles table
 
         return (
           <div className="space-y-8">
@@ -693,6 +693,14 @@ export default function IndividualPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function IndividualPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <IndividualPageContent />
+    </Suspense>
   );
 }
 

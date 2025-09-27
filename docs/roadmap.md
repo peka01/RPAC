@@ -33,6 +33,12 @@
   - **Crisis Cultivation Mode** - Akut matproduktion för kriser
   - **Nutrition Calculator** - Självförsörjningsanalys med kaloriberäkningar
   - **Location-based Personalization** - Anpassning efter klimat, trädgårdsstorlek, erfarenhet
+  - **Enhanced Cultivation Planner** ✅ **NEW**: 5-step AI-powered planning system
+  - **Plan Management** ✅ **NEW**: Save, load, edit, and delete multiple named plans
+  - **Real-time Calculations** ✅ **NEW**: Live updates of space, cost, and nutrition
+  - **Crop Amount Controls** ✅ **NEW**: Dynamic quantity adjustment with immediate feedback
+  - **Gap Analysis** ✅ **NEW**: AI-driven nutritional gap identification and grocery recommendations
+  - **URL Parameter Navigation** ✅ **NEW**: Direct links to specific planning sections
 - **Lokaliseringsstöd**: Svenska t() funktioner
 - **PWA-grund**: Manifest och grundläggande offline-stöd
 - **UX Breakthrough** ✅: Perfekt balans mellan semi-militär visuell design och vardaglig svensk text
@@ -50,9 +56,10 @@
 - **Code Cleanup**: Alla migrationskomponenter och temporära filer borttagna
 
 ### 🎯 Nästa prioritet
-- **Real AI-integration**: Ersätta mock-implementationer med OpenAI GPT-4
+- **Real AI-integration**: Ersätta mock-implementationer med OpenAI GPT-4 (DELVIS KLAR - Enhanced Cultivation Planner använder OpenAI)
 - **Push-notifikationer**: För kritiska varningar och odlingsråd
 - **Community Hub**: Fullständig integration med Supabase backend
+- **Dashboard Integration**: Förbättra kopplingen mellan dashboard och cultivation planning
 
 ## Utvecklingsfaser
 

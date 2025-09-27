@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { t } from '@/lib/locales';
-import { OpenAIService } from '@/lib/openai-service';
+// import { OpenAIService } from '@/lib/openai-service'; // TODO: Implement OpenAI service
 import { 
   Brain,
   Lightbulb,
@@ -78,15 +78,12 @@ export function AICultivationAdvisor({
     forecast: 'Molnigt med uppehåll'
   };
 
-  // Generate AI-powered cultivation advice using Gemini AI
+  // Generate AI-powered cultivation advice using fallback for now
   const generateAdvice = async (): Promise<CultivationAdvice[]> => {
     try {
-      // Use real OpenAI AI for advice generation
-      if (crisisMode) {
-        return await OpenAIService.getCrisisAdvice(profile);
-      } else {
-        return await OpenAIService.generateCultivationAdvice(profile, crisisMode);
-      }
+      // TODO: Implement real OpenAI AI for advice generation
+      // For now, use fallback advice
+      return getFallbackAdvice();
     } catch (error) {
       console.error('Error generating AI advice:', error);
       // Fallback to mock advice if AI fails

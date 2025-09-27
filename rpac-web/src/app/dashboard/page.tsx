@@ -76,7 +76,7 @@ export default function DashboardPage() {
               password: 'demo123',
               options: {
                 data: {
-                  name: 'Demo Användare'
+                  name: t('dashboard.demo_user')
                 }
               }
             });
@@ -276,7 +276,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="text-right">
                   <div className="text-lg font-bold" style={{ color: 'var(--color-khaki)' }}>
-                    {cultivationPlan?.self_sufficiency_percent || '0'}%
+                    {cultivationPlan?.selfSufficiencyPercent || '0'}%
                   </div>
                   <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{t('dashboard.self_sufficiency')}</div>
                 </div>
@@ -286,7 +286,7 @@ export default function DashboardPage() {
                 {(() => {
                   if (cultivationPlan) {
                     const cropCount = cultivationPlan.crops?.length || 0;
-                    const timeline = cultivationPlan.timeline || '12 månader';
+                    const timeline = cultivationPlan.timeline || t('dashboard.timeline_default');
                     
                     // Format timeline for better display
                     let timelineDisplay = timeline;
@@ -296,16 +296,16 @@ export default function DashboardPage() {
                       timelineDisplay = firstLine.length > 50 ? firstLine.substring(0, 47) + '...' : firstLine;
                     }
                     
-                    return `Planerad: ${cropCount} grödor • Skörd: ${timelineDisplay}`;
+                    return t('dashboard.planned_crops', { count: cropCount, timeline: timelineDisplay });
                   }
-                  return 'Klicka för att skapa din odlingsplan';
+                  return t('dashboard.click_to_create_plan');
                 })()}
               </p>
               <div className="flex justify-between items-center">
                 <div className="flex space-x-2 flex-1">
                   <div className="flex-1 rounded-full h-2" style={{ backgroundColor: 'rgba(160, 142, 90, 0.2)' }}>
                     <div className="h-2 rounded-full" style={{ 
-                      width: `${cultivationPlan?.self_sufficiency_percent || 0}%`, 
+                      width: `${cultivationPlan?.selfSufficiencyPercent || 0}%`, 
                       backgroundColor: 'var(--color-khaki)' 
                     }}></div>
                   </div>
@@ -313,10 +313,10 @@ export default function DashboardPage() {
                     {(() => {
                       const percentage = cultivationPlan?.self_sufficiency_percent || 0;
                       
-                      if (percentage >= 70) return 'Optimal';
-                      if (percentage >= 40) return 'Bra';
-                      if (percentage > 0) return 'Påbörjad';
-                      return 'Planera';
+              if (percentage >= 70) return t('dashboard.status_optimal');
+              if (percentage >= 40) return t('dashboard.status_good');
+              if (percentage > 0) return t('dashboard.status_started');
+              return t('dashboard.status_plan');
                     })()}
                   </span>
                 </div>

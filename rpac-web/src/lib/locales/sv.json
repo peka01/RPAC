@@ -269,7 +269,15 @@
     "network_status": "Nätverksstatus",
     "recent_activity": "Senaste aktivitet",
     "manage_coordination": "Hantera koordination",
-    "join_community": "Gå med i samhälle"
+    "join_community": "Gå med i samhälle",
+    "demo_user": "Demo Användare",
+    "timeline_default": "12 månader",
+    "planned_crops": "Planerad: {count} grödor • Skörd: {timeline}",
+    "click_to_create_plan": "Klicka för att skapa din odlingsplan",
+    "status_optimal": "Optimal",
+    "status_good": "Bra",
+    "status_started": "Påbörjad",
+    "status_plan": "Planera"
   },
   "onboarding": {
     "welcome_to_ready": "Välkommen till Beready",
@@ -567,6 +575,8 @@
     "save_profile": "Spara profil",
     "profile_saved": "Profilen sparades",
     "edit_profile": "Redigera profil",
+    "auto_detected_from": "Baserat på din plats:",
+    "unknown_location": "Okänd plats",
     "counties": {
       "stockholm": "Stockholm",
       "uppsala": "Uppsala", 
@@ -602,6 +612,147 @@
       "large": "Stor trädgård",
       "farm": "Gård/mark"
     }
+  },
+  "settings": {
+    "title": "Inställningar",
+    "subtitle": "Hantera din profil, säkerhet och preferenser",
+    "loading_settings": "Laddar inställningar...",
+    "login_required": "Du måste vara inloggad för att komma åt inställningar.",
+    "tabs": {
+      "profile": "Profil",
+      "cultivation": "Odlingsprofil",
+      "security": "Säkerhet",
+      "notifications": "Notifieringar",
+      "privacy": "Integritet",
+      "preferences": "Inställningar"
+    },
+    "cultivation_profile": {
+      "title": "Odlingsprofil",
+      "description": "Ange dina odlingsförutsättningar för personlig planering",
+      "climate_zones": {
+        "gotaland": "Götaland (Sydligaste Sverige)",
+        "svealand": "Svealand (Mellersta Sverige)",
+        "norrland": "Norrland (Nordligaste Sverige)"
+      },
+      "experience_levels": {
+        "beginner": "Nybörjare",
+        "intermediate": "Mellannivå",
+        "advanced": "Avancerad"
+      },
+      "garden_sizes": {
+        "small": "Liten (balkong/fönster)",
+        "medium": "Medelstor (kolonilott)",
+        "large": "Stor (större trädgård)"
+      },
+      "garden_types": {
+        "outdoor": "Utomhus",
+        "greenhouse": "Växthus",
+        "mixed": "Blandat"
+      },
+      "soil_types": {
+        "sandy": "Sandjord",
+        "clay": "Lerjord",
+        "loamy": "Lerjord",
+        "unknown": "Okänd"
+      },
+      "sun_conditions": {
+        "full_sun": "Full sol (6+ timmar)",
+        "partial_sun": "Delvis sol (3-6 timmar)",
+        "shade": "Skugga (mindre än 3 timmar)"
+      },
+      "water_access": {
+        "excellent": "Utmärkt (kranvatten nära)",
+        "good": "Bra (vattentank/brunn)",
+        "limited": "Begränsad (regnvattensamling)"
+      },
+      "time_available": {
+        "limited": "Begränsad (1-3 timmar)",
+        "moderate": "Måttlig (3-8 timmar)",
+        "extensive": "Omfattande (8+ timmar)"
+      },
+      "budget": {
+        "low": "Låg (0-2000 kr)",
+        "medium": "Medium (2000-5000 kr)",
+        "high": "Hög (5000+ kr)"
+      },
+      "goals": {
+        "self_sufficiency": "Självförsörjning",
+        "healthy_food": "Hälsosam mat",
+        "cost_saving": "Kostnadsbesparing",
+        "hobby": "Hobby & avkoppling",
+        "eco_friendly": "Miljövänlig livsstil",
+        "crisis_preparedness": "Krisberedskap"
+      }
+    },
+    "security": {
+      "title": "Säkerhet & Lösenord",
+      "current_password": "Nuvarande lösenord",
+      "new_password": "Nytt lösenord",
+      "confirm_password": "Bekräfta nytt lösenord",
+      "update_password": "Uppdatera lösenord",
+      "updating": "Uppdaterar..."
+    },
+    "notifications": {
+      "email_updates": "Få uppdateringar via e-post",
+      "browser_notifications": "Få notifieringar i webbläsaren",
+      "sms_alerts": "Få viktiga meddelanden via SMS",
+      "security_alerts": "Viktiga säkerhetsmeddelanden"
+    },
+    "privacy": {
+      "profile_visibility": "Låt andra användare se din profil",
+      "location_sharing": "Dela din plats med andra användare"
+    },
+    "preferences": {
+      "title": "Applikationsinställningar",
+      "themes": {
+        "light": "Ljust",
+        "dark": "Mörkt",
+        "system": "System"
+      },
+      "language": "Språk",
+      "save_settings": "Spara inställningar",
+      "saving": "Sparar..."
+    }
+  },
+  "ai_services": {
+    "unknown_plant": "Okänd växt",
+    "analysis_failed": "Kunde inte analysera bilden korrekt.",
+    "contact_expert": "Kontakta en växtexpert för vidare analys.",
+    "image_analysis_failed": "Kunde inte analysera bilden. Kontrollera att bilden är tydlig och välbelyst.",
+    "try_again": "Försök igen med en tydligare bild.",
+    "plant_name": "växtens namn",
+    "health_status": "frisk|sjukdom|skadedjur|näringsbrist",
+    "recommendations": "rekommendation1",
+    "severity": "låg|medium|hög",
+    "advice_title": "Rådets titel",
+    "advice_description": "Beskrivning av rådet",
+    "priority": "high|medium|low",
+    "monthly_format": "OBS: Varje månad måste vara på sin egen rad med format \"Månad: Beskrivning\"",
+    "plan_description": "Detaljerad beskrivning av planen",
+    "timeline": "Januari: Planering och förberedelser\\nFebruari: Beställ frön och jord\\nMars: Förbered jorden och såbäddar\\nApril: Så morötter, kål och potatis\\nMaj: Plantera ut tomater\\nJuni: Vattna och sköta regelbundet\\nJuli: Skörda tidiga grödor\\nAugusti: Höstskörd av tomater\\nSeptember: Skörda potatis och morötter\\nOktober: Förbered för vinter",
+    "next_steps": "steg1",
+    "plan_recommendations": "rek1",
+    "mock_plan": "AI-genererad odlingsplan (mock data på grund av API-problem)",
+    "mock_timeline": {
+      "march": "Mars: Förbered jord och såbäddar",
+      "april": "April: Så kalla grödor (sallad, morötter)",
+      "may": "Maj: Plantera tomater och andra värmeälskande grödor",
+      "june_july": "Juni-Juli: Skötsel och vattning",
+      "august_september": "Augusti-September: Skörd"
+    },
+    "mock_recommendations": {
+      "compost": "Använd kompost för bättre jordkvalitet",
+      "watering": "Vattna regelbundet men undvik övervattning",
+      "rotation": "Rotera grödor årligen för bättre jordkvalitet"
+    }
+  },
+  "cultivation_reminders": {
+    "placeholder": "Vad ska du komma ihåg?"
+  },
+  "ai_cultivation_planner": {
+    "add_all_to_calendar": "Lägg till alla aktiviteter i min odlingskalender",
+    "add_to_calendar": "Lägg till i min odlingskalender",
+    "remove_from_calendar": "Ta bort från kalender"
   },
   "nutrition": {
     "title": "Näringsberäkning",
@@ -656,6 +807,158 @@
     "calorie_density": "Kaloritäthet",
     "storage_value": "Lagringsvärde",
     "crisis_priority": "Krisprioritet"
+  },
+  "cultivation_planning": {
+    "title": "Min odling",
+    "profile_step": "Profil",
+    "nutrition_step": "Näring",
+    "crops_step": "Grödor",
+    "plan_step": "Plan",
+    "gaps_step": "Gap-analys",
+    "family_location": "Familj & plats",
+    "location": "PLATS",
+    "family_size": "Familjestorlek",
+    "climate_zone": "Klimatzon",
+    "nutrition_needs": "Näringsbehov",
+    "daily_calories": "Dagliga kalorier",
+    "vitamins_minerals": "Vitaminer & mineraler (dagligt behov)",
+    "next_crops": "Nästa: Grödval",
+    "select_crops": "Välj grödor",
+    "pre_added_crops": "Fördefinierade grödor",
+    "climate_recommended": "Rekommenderade grödor - Baserat på din plats",
+    "add_from_list": "Lägg till från lista",
+    "add_custom": "Lägg till egen gröda",
+    "crop_library": "Grödbibliotek",
+    "add_crop": "Lägg till gröda",
+    "search_crops": "Sök grödor...",
+    "selected_crops": "Valda grödor",
+    "amount": "Antal",
+    "space": "Utrymme",
+    "cost": "Kostnad",
+    "suggested_amount": "Föreslaget antal",
+    "space_required": "Utrymme krävs",
+    "cost_per_m2": "Kostnad per m²",
+    "nutrition_value": "Näringsvärde",
+    "local_tips": "Lokala tips",
+    "difficulty": "Svårighetsgrad",
+    "suitability": "Lämplighet",
+    "season": "Säsong",
+    "generate_plan": "Generera odlingsplan",
+    "personal_plan": "Din odlingsplan",
+    "plan_summary": "Sammanfattning",
+    "total_space": "Total utrymme",
+    "total_cost": "Total kostnad",
+    "estimated_cost": "Uppskattad kostnad",
+    "self_sufficiency": "Självförsörjning",
+    "timeline": "Tidslinje",
+    "next_steps": "Nästa steg",
+    "gap_analysis": "Gap-analys & Kostnadsuppskattning",
+    "nutrition_gaps": "Näringsgap som behöver fyllas",
+    "recommended_purchases": "Rekommenderade inköp",
+    "total_cost_estimation": "Total Kostnadsuppskattning",
+    "save_plan": "Spara plan",
+    "edit_plan": "Redigera plan",
+    "view_plan": "Visa plan",
+    "delete_plan": "Ta bort plan",
+    "plan_name": "Planens namn",
+    "enter_plan_name": "t.ex. Vårplan 2024, Familjens odling...",
+    "save_plan_modal": "Spara odlingsplan",
+    "plan_saved": "Plan sparad",
+    "plan_deleted": "Plan borttagen",
+    "saved_plans": "Sparade planer",
+    "no_saved_plans": "Inga sparade planer än",
+    "loading_plan": "Laddar plan...",
+    "saving_plan": "Sparar plan...",
+    "error_saving": "Fel vid sparande",
+    "error_loading": "Fel vid laddning",
+    "success": "Lyckades",
+    "error": "Fel",
+    "close": "Stäng",
+    "cancel": "Avbryt",
+    "confirm_delete": "Bekräfta borttagning",
+    "delete_plan_confirm": "Är du säker på att du vill ta bort denna plan?",
+    "plan_location_info": "Platsinformation",
+    "selected_crops_section": "Valda grödor",
+    "add_all_to_calendar": "Lägg till alla i kalender",
+    "add_to_calendar": "Lägg till i kalender",
+    "monthly_plan": "Månadsvis Odlingsplan",
+    "add_all_to_calendar_button": "Lägg till alla i kalender",
+    "crop_icons": {
+      "potatis": "🥔",
+      "morötter": "🥕", 
+      "kål": "🥬",
+      "tomater": "🍅",
+      "lök": "🧅",
+      "sallad": "🥗",
+      "gurkor": "🥒",
+      "rädisor": "🌶️",
+      "ärtor": "🫛",
+      "bönor": "🫘",
+      "spenat": "🥬",
+      "kålrötter": "🥬",
+      "rödbetor": "🍠",
+      "pumpa": "🎃",
+      "körvel": "🌿",
+      "persilja": "🌿"
+    },
+    "tooltips": {
+      "nutrition_gaps": "Identifierar näringsämnen som saknas i din odlingsplan och behöver kompletteras med köpt mat",
+      "recommended_purchases": "Föreslagna matvaror för att fylla näringsgapen, med kostnadsuppskattning",
+      "total_cost_estimation": "Uppskattad veckokostnad för att fylla näringsgapen med köpt mat (inkluderar inte odlingsutrustning)"
+    },
+    "crop_data": {
+      "potatis": {
+        "local_tips": {
+          "0": "Sätt potatis i april-maj när jorden är varm",
+          "1": "Högsta skörd i september-oktober"
+        }
+      },
+      "morötter": {
+        "local_tips": ["Så direkt i marken från mars", "Fördelar att så i flera omgångar"]
+      },
+      "kål": {
+        "local_tips": ["Plantera ut i maj-juni", "Vattna regelbundet för god skörd"]
+      },
+      "tomater": {
+        "local_tips": ["Kräver växthus eller skyddad plats", "Börja inomhus i mars"]
+      },
+      "lök": {
+        "local_tips": ["Sätt löksets i mars-april", "Lätt att odla och förvara"]
+      },
+      "sallad": {
+        "local_tips": ["Så kontinuerligt från mars", "Snabbväxande och lättodlad"]
+      },
+      "gurkor": {
+        "local_tips": ["Kräver mycket vatten", "Bäst i växthus eller skyddad plats"]
+      },
+      "rädisor": {
+        "local_tips": ["Så kontinuerligt från mars", "Snabbväxande, redo på 3-4 veckor"]
+      },
+      "ärtor": {
+        "local_tips": ["Så tidigt i mars-april", "Frosthärdiga och lättodlade"]
+      },
+      "bönor": {
+        "local_tips": ["Så efter frost i maj", "Kräver stöd för klättrande sorter"]
+      },
+      "spenat": {
+        "local_tips": ["Så kontinuerligt från mars", "Frosthärdig och snabbväxande"]
+      },
+      "kålrötter": {
+        "local_tips": ["Så i april-maj", "Kräver mycket vatten för god skörd"]
+      },
+      "rödbetor": {
+        "local_tips": ["Så i april-maj", "Lätt att odla och förvara"]
+      },
+      "pumpa": {
+        "local_tips": ["Så i maj", "Stor skörd, bra för förvaring"]
+      },
+      "körvel": {
+        "local_tips": ["Så kontinuerligt från mars", "Krydda och grönsak"]
+      },
+      "persilja": {
+        "local_tips": ["Flerårig krydda", "Så i mars-april"]
+      }
+    }
   },
   "msb": {
     "official_guidance": "Officiella MSB-riktlinjer",

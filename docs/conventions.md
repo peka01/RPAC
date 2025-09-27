@@ -169,6 +169,10 @@ We design for humans in crisis with clarity and reliability. Visual design uses 
 - **Component Key Props** - Prevents React re-mounting and UI flashing
 - **Smart useEffect Dependencies** - Performance optimization that actually works
 - **Location-based Personalization** - Profile data enhances every feature contextually
+- **URL Parameter Handling** - useSearchParams for direct navigation to specific sections
+- **Dual Storage Strategy** - Supabase + localStorage for offline capability and performance
+- **AI Error Recovery** - Graceful fallbacks when AI services are unavailable
+- **Backward Compatibility** - Support for legacy data formats during system evolution
 
 ### ✅ Proven Content Organization
 - **Hemöversikt First** - Personal dashboard at top of Individual page feels right
@@ -181,6 +185,15 @@ We design for humans in crisis with clarity and reliability. Visual design uses 
 - **Zero Learning Curve** - Intuitive navigation through emoji and clear structure
 - **Stress-Adaptive** - Information hierarchy that works under pressure
 - **Swedish Communication Culture** - Direct but caring tone that builds confidence
+
+### ✅ Enhanced Cultivation Planning Patterns (NEW)
+- **5-Step Progressive Flow** - Profile → Nutrition → Crops → Plan → Gaps analysis
+- **Real-time Calculations** - Live updates of space, cost, and nutrition as users adjust
+- **AI-Powered Personalization** - OpenAI GPT-4 integration for contextual recommendations
+- **Plan Management System** - Save, load, edit, and delete multiple named plans
+- **Crop Amount Controls** - Dynamic quantity adjustment with immediate feedback
+- **Gap Analysis Intelligence** - AI-driven identification of nutritional needs and grocery recommendations
+- **URL Parameter Navigation** - Direct links to specific planning sections for bookmarking and sharing
 
 **MANDATE**: Use these proven patterns for all future development. They work!
 

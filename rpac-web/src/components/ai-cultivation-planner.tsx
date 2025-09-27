@@ -94,6 +94,8 @@ interface CultivationPlan {
   estimatedCost: number;
   timeline: string;
   priority: 'high' | 'medium' | 'low';
+  nextSteps?: string[];
+  recommendations?: string[];
 }
 
 interface AICultivationPlannerProps {
@@ -1174,7 +1176,7 @@ export function AICultivationPlanner({
                     color: 'white',
                     border: 'none'
                   }}
-                  title="Lägg till alla aktiviteter i min odlingskalender"
+                  title={t('ai_cultivation_planner.add_all_to_calendar')}
                 >
                   <Calendar className="w-3 h-3" />
                   <span>Lägg till alla</span>
@@ -1185,7 +1187,7 @@ export function AICultivationPlanner({
           })()}
         </div>
                   {/* Debug: log the entire timeline */}
-                  {console.log('Full timeline:', cultivationPlan.timeline)}
+                  {(() => { console.log('Full timeline:', cultivationPlan.timeline); return null; })()}
                   <div className="space-y-3">
                     {(() => {
                       // Parse timeline properly
@@ -1217,14 +1219,26 @@ export function AICultivationPlanner({
                         return [{
                           period: 'Planering',
                           description: 'Kontakta AI-rådgivaren för en personlig odlingsplan'
-                        }];
+                        }].map((item, index): JSX.Element => (
+                          <div key={index} className="flex items-start space-x-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-olive-light)' }}>
+                            <div className="w-2 h-2 rounded-full mt-2 flex-shrink-0" style={{ backgroundColor: 'var(--color-sage)' }} />
+                            <div className="flex-1">
+                              <div className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
+                                {item.period}
+                              </div>
+                              <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                                {item.description}
+                              </div>
+                            </div>
+                          </div>
+                        ));
                       }
                       
                       console.log('Parsed timeline items:', timelineItems);
                       
                       console.log('Timeline items:', timelineItems);
                       
-                      return timelineItems.map((item, index) => {
+                      return timelineItems.map((item, index): JSX.Element => {
                         const itemKey = item.period + item.description;
                         const isEditing = editingTimelineItem === itemKey;
                         
@@ -1296,7 +1310,7 @@ export function AICultivationPlanner({
                                       color: 'white',
                                       border: 'none'
                                     }}
-                                    title="Lägg till i min odlingskalender"
+                                    title={t('ai_cultivation_planner.add_to_calendar')}
                                   >
                                     + Kalender
                                   </button>
@@ -1352,7 +1366,7 @@ export function AICultivationPlanner({
                         onClick={() => setCalendarItems(prev => prev.filter(calItem => calItem.id !== item.id))}
                         className="ml-2 px-2 py-1 text-xs rounded hover:bg-red-100"
                         style={{ color: 'var(--color-secondary)' }}
-                        title="Ta bort från kalender"
+                        title={t('ai_cultivation_planner.remove_from_calendar')}
                       >
                         ✕
                       </button>

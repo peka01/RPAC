@@ -437,7 +437,7 @@ export function CultivationReminders({
                   onChange={(e) => setNewReminder(prev => ({ ...prev, message: e.target.value }))}
                   className="w-full p-2 border rounded"
                   style={{ borderColor: 'var(--color-secondary)' }}
-                  placeholder="Vad ska du komma ihåg?"
+                  placeholder={t('cultivation_reminders.placeholder')}
                 />
               </div>
               

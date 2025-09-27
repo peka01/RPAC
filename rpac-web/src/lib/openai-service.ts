@@ -19,16 +19,21 @@ export interface PlantDiagnosisResult {
 
 export interface CultivationAdvice {
   id: string;
+  type: 'recommendation' | 'warning' | 'tip' | 'seasonal';
+  priority: 'high' | 'medium' | 'low';
   title: string;
   description: string;
-  priority: 'high' | 'medium' | 'low';
-  category: 'planting' | 'maintenance' | 'harvest' | 'preparation';
-  season: 'spring' | 'summer' | 'autumn' | 'winter' | 'all';
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
-  estimatedTime: string;
-  tools: string[];
-  steps: string[];
-  tips: string[];
+  action?: string;
+  timeframe?: string;
+  icon: string;
+  plant?: string;
+  category?: string;
+  season?: string;
+  difficulty?: string;
+  estimatedTime?: string;
+  tools?: string[];
+  steps?: string[];
+  tips?: string[];
 }
 
 export interface UserProfile {
@@ -91,23 +96,17 @@ export class OpenAIService {
             content: [
               {
                 type: "text",
-                text: `Analysera denna växtbild och ge en detaljerad diagnos på svenska. Identifiera:
-                1. Växtens namn
-                2. Hälsostatus (frisk, sjukdom, skadedjur, näringsbrist)
-                3. Förtroende (0-1)
-                4. Beskrivning av problemet
-                5. Rekommendationer för behandling
-                6. Allvarlighetsgrad (låg, medium, hög)
-                
-                Svara med JSON-format:
-                {
-                  "plantName": "växtens namn",
-                  "healthStatus": "frisk|sjukdom|skadedjur|näringsbrist",
-                  "confidence": 0.85,
-                  "description": "beskrivning",
-                  "recommendations": ["rekommendation1", "rekommendation2"],
-                  "severity": "låg|medium|hög"
-                }`
+                text: `Analysera växtbild. Identifiera: namn, hälsostatus, förtroende, beskrivning, rekommendationer, allvarlighetsgrad.
+
+JSON:
+{
+  "plantName": "växtens namn",
+  "healthStatus": "frisk|sjukdom|skadedjur|näringsbrist",
+  "confidence": 0.85,
+  "description": "kort beskrivning",
+  "recommendations": ["rekommendation1", "rekommendation2"],
+  "severity": "låg|medium|hög"
+}`
               },
               {
                 type: "image_url",
@@ -118,8 +117,8 @@ export class OpenAIService {
             ]
           }
         ],
-        max_tokens: 1000,
-        temperature: 0.3
+        max_tokens: 500,
+        temperature: 0.2
       });
 
       const content = response.choices[0]?.message?.content;
@@ -384,6 +383,8 @@ export class OpenAIService {
     return [
       {
         id: 'fallback-1',
+        type: 'recommendation',
+        icon: '🌱',
         title: 'Förbered jorden',
         description: 'Börja med att förbereda jorden för odling genom att rensa ogräs och lägga till kompost.',
         priority: 'high',
@@ -397,6 +398,8 @@ export class OpenAIService {
       },
       {
         id: 'fallback-2',
+        type: 'recommendation',
+        icon: '🌾',
         title: 'Välj lämpliga grödor',
         description: 'Välj grödor som passar din klimatzon och erfarenhetsnivå.',
         priority: 'medium',
@@ -409,6 +412,102 @@ export class OpenAIService {
         tips: ['Börja med enkla grödor', 'Följ såinstruktioner']
       }
     ];
+  }
+
+  /**
+   * Generate comprehensive cultivation plan using AI
+   */
+  static async generateCultivationPlan(userProfile: UserProfile, nutritionNeeds: any, selectedCrops: any[]): Promise<any> {
+    try {
+      const prompt = `Skapa odlingsplan för ${userProfile.householdSize || 3} personer i ${userProfile.climateZone}.
+
+Grödor: ${selectedCrops.map(crop => crop.crop).join(', ')}
+Näring: ${nutritionNeeds.dailyCalories} kcal, ${nutritionNeeds.protein}g protein
+Erfarenhet: ${userProfile.experienceLevel}, Storlek: ${userProfile.gardenSize}
+
+Näringsvärden:
+- Kött: 20g protein/100g
+- Fisk: 18g protein/100g  
+- Mjölk: 3g protein/100ml
+- Ägg: 6g protein/st
+- Citrus: 50mg C-vitamin/100g
+- Grönsaker: 30mg C-vitamin/100g
+
+JSON:
+{
+  "id": "unique-id",
+  "title": "Personlig odlingsplan för familjen",
+  "description": "Kort beskrivning av planen",
+  "timeline": "Jan: Planering\\nFeb: Beställ frön\\nMar: Förbered jord\\nApr: Så kalla grödor\\nMaj: Plantera värmeälskande\\nJun-Jul: Skötsel\\nAug-Sep: Skörd\\nOkt: Vinterförberedelse",
+  "nutritionContribution": {
+    "dailyCalories": 2000,
+    "protein": 50,
+    "carbs": 250,
+    "fat": 65
+  },
+  "gapAnalysis": {
+    "nutritionalGaps": [
+      {"nutrient": "Protein", "gap": 15.2},
+      {"nutrient": "Vitamin C", "gap": 8.5}
+    ],
+    "recommendedPurchases": [
+      {"item": "Kött", "cost": 45, "quantity": 0.2, "unit": "kg"},
+      {"item": "Citrusfrukter", "cost": 25, "quantity": 0.5, "unit": "kg"}
+    ],
+    "totalCost": 70
+  },
+  "nextSteps": [
+    "Beställ frön i jan",
+    "Förbered jord feb-mar",
+    "Så kalla grödor mar",
+    "Plantera värmeälskande maj"
+  ],
+  "recommendations": [
+    "Börja med potatis/morötter",
+    "Använd kompost",
+    "Vattna regelbundet",
+    "Rotera grödor årligen"
+  ]
+}`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        temperature: 0.2,
+        max_tokens: 500
+      });
+
+      const content = response.choices[0]?.message?.content;
+      if (!content) {
+        throw new Error('No response from OpenAI');
+      }
+
+      // Parse JSON response
+      let jsonData;
+      try {
+        // Try to extract JSON from markdown code blocks
+        const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) || content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          jsonData = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+        } else {
+          jsonData = JSON.parse(content);
+        }
+      } catch (parseError) {
+        console.error('Error parsing AI response:', parseError);
+        // Return fallback data
+        return this.getFallbackPlan(userProfile, nutritionNeeds);
+      }
+
+      return jsonData;
+    } catch (error) {
+      console.error('Error generating cultivation plan:', error);
+      return this.getFallbackPlan(userProfile, nutritionNeeds);
+    }
   }
 
   /**
