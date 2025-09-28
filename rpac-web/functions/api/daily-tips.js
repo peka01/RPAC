@@ -1,5 +1,15 @@
 // Cloudflare Pages Function for OpenAI daily tips
 export async function onRequest(context) {
+  // Handle GET requests for testing
+  if (context.request.method === 'GET') {
+    return new Response(JSON.stringify({ 
+      message: "Daily tips function is working",
+      method: "GET",
+      timestamp: new Date().toISOString()
+    }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
   const { request, env } = context;
   
   try {
