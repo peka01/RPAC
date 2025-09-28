@@ -98,25 +98,28 @@ export class OpenAIService {
             content: [
               {
                 type: "text",
-                text: `Du är en expert på svenska växter och växtsjukdomar. Analysera denna växtbild och identifiera:
+                text: `Du är en expert på svenska växter och växtsjukdomar med fokus på svenska trädgårdsförhållanden. Analysera denna växtbild och identifiera:
 
 1. ALLA objekt i bilden (växter, verktyg, jord, krukor, skadedjur, etc.)
 2. EXAKT växtidentifiering med både svenska namn och latinska vetenskapliga namn
 3. Hälsostatus (frisk, sjukdom, skadedjur, näringsbrist)
 4. Specifika problem eller sjukdomar
 5. Allvarlighetsgrad
-6. Praktiska rekommendationer på svenska
+6. Praktiska rekommendationer på svenska med svenska måttenheter
 
 VIKTIGT: 
 - Ge EXAKT identifiering med latinska vetenskapliga namn
 - Identifiera och beskriv ALLA synliga objekt i bilden för att ge en komplett analys
 - Om du är osäker på arten, ange det och ge den närmaste möjliga identifieringen
+- Använd svenska växtnamn och måttenheter (meter, liter, kilogram)
+- Fokusera på svenska trädgårdsförhållanden och klimat
 
 Fokusera på vanliga svenska trädgårdsväxter som:
 - Potatis (Solanum tuberosum), morötter (Daucus carota), kål (Brassica oleracea), sallat (Lactuca sativa), spenat (Spinacia oleracea)
 - Tomater (Solanum lycopersicum), gurkor (Cucumis sativus), paprika (Capsicum annuum)
 - Jordgubbar (Fragaria × ananassa), hallon (Rubus idaeus), vinbär (Ribes rubrum)
 - Örter som persilja (Petroselinum crispum), basilika (Ocimum basilicum), timjan (Thymus vulgaris)
+- Svenska trädgårdsväxter: äpplen (Malus domestica), päron (Pyrus communis), plommon (Prunus domestica)
 
 Svara ENDAST med JSON i detta format:
 {
@@ -124,8 +127,8 @@ Svara ENDAST med JSON i detta format:
   "scientificName": "latinska vetenskapliga namnet",
   "healthStatus": "frisk|sjukdom|skadedjur|näringsbrist",
   "confidence": 0.85,
-  "description": "detaljerad beskrivning av ALLA objekt du ser i bilden",
-  "recommendations": ["praktisk rekommendation 1", "praktisk rekommendation 2"],
+  "description": "detaljerad beskrivning av ALLA objekt du ser i bilden på svenska",
+  "recommendations": ["praktisk rekommendation 1 på svenska", "praktisk rekommendation 2 på svenska"],
   "severity": "låg|medium|hög"
 }`
               },
@@ -359,6 +362,126 @@ Svara på svenska med praktiska råd baserat på diagnosen. Var hjälpsam och ge
     } catch (error) {
       console.error('OpenAI conversation error:', error);
       return 'Ursäkta, jag kunde inte svara på din fråga just nu. Försök igen eller kontakta en växtexpert för vidare hjälp.';
+    }
+  }
+
+  /**
+   * Generate daily preparedness tips using OpenAI
+   */
+  static async generateDailyPreparednessTips(profile: UserProfile): Promise<CultivationAdvice[]> {
+    try {
+      const prompt = `Skapa 3-5 dagliga beredskapstips för en familj i Sverige. 
+
+      Användarprofil:
+      - Klimatzon: ${profile.climateZone}
+      - Erfarenhet: ${profile.experienceLevel}
+      - Trädgårdsstorlek: ${profile.gardenSize}
+      - Föredragna grödor: ${profile.preferences.join(', ')}
+      - Nuvarande grödor: ${profile.currentCrops.join(', ')}
+      - Hushållsstorlek: ${profile.householdSize || 2}
+      
+      Skapa praktiska, dagliga tips på svenska. Svara med JSON-format:
+      [
+        {
+          "id": "unique-id",
+          "type": "tip|warning|reminder|achievement",
+          "priority": "high|medium|low",
+          "title": "Tipset titel",
+          "description": "Beskrivning av tipset",
+          "action": "Åtgärd att vidta",
+          "timeframe": "När att göra",
+          "icon": "emoji",
+          "category": "preparedness|cultivation|weather|safety",
+          "difficulty": "beginner|intermediate|advanced",
+          "estimatedTime": "Tidsuppskattning",
+          "tools": ["verktyg1", "verktyg2"],
+          "steps": ["steg1", "steg2"],
+          "tips": ["tips1", "tips2"]
+        }
+      ]`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        max_tokens: 2000,
+        temperature: 0.7
+      });
+
+      const content = response.choices[0]?.message?.content;
+      if (!content) {
+        throw new Error('No response from OpenAI');
+      }
+
+      // Parse JSON response
+      const jsonMatch = content.match(/\[[\s\S]*\]/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        return Array.isArray(parsed) ? parsed : [];
+      }
+
+      throw new Error('Invalid JSON response');
+    } catch (error) {
+      console.error('OpenAI daily tips error:', error);
+      return this.getFallbackAdvice();
+    }
+  }
+
+  /**
+   * Generate personal coach response using OpenAI
+   */
+  static async generatePersonalCoachResponse(context: {
+    userProfile: UserProfile;
+    userQuestion: string;
+    chatHistory: any[];
+  }): Promise<string> {
+    try {
+      const prompt = `Du är en personlig AI-coach för krisberedskap och självförsörjning i Sverige. 
+
+      Användarprofil:
+      - Klimatzon: ${context.userProfile.climateZone}
+      - Erfarenhet: ${context.userProfile.experienceLevel}
+      - Trädgårdsstorlek: ${context.userProfile.gardenSize}
+      - Föredragna grödor: ${context.userProfile.preferences.join(', ')}
+      - Nuvarande grödor: ${context.userProfile.currentCrops.join(', ')}
+      - Hushållsstorlek: ${context.userProfile.householdSize || 2}
+
+      Användarens fråga: ${context.userQuestion}
+
+      Svara på svenska med:
+      - Praktiska, konkreta råd anpassade för svenska förhållanden
+      - Fokus på krisberedskap och självförsörjning enligt MSB-riktlinjer
+      - Använd svenska växtnamn och måttenheter (meter, liter, kilogram)
+      - Vara hjälpsam och stödjande i svensk kriskommunikationsstil
+      - Ge specifika åtgärder när möjligt med svenska myndighetsreferenser
+      - Håll svaret koncist men informativt (max 300 ord)
+      - Använd svenska krisberedskapsterminologi och MSB-rekommendationer`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        max_tokens: 500,
+        temperature: 0.7
+      });
+
+      const content = response.choices[0]?.message?.content;
+      if (!content) {
+        throw new Error('No response from OpenAI');
+      }
+
+      return content;
+    } catch (error) {
+      console.error('OpenAI personal coach error:', error);
+      return 'Ursäkta, jag kunde inte svara på din fråga just nu. Försök igen eller kontakta en expert för vidare hjälp.';
     }
   }
 

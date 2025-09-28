@@ -43,8 +43,60 @@ export class WeatherService {
         return this.weatherCache.data;
       }
 
-      // For now, return mock data since SMHI API requires more complex setup
-      // In production, this would call the actual SMHI API
+      // Try to get real weather data from SMHI API
+      try {
+        const smhiResponse = await fetch(
+          `https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/${longitude}/lat/${latitude}/data.json`
+        );
+        
+        if (smhiResponse.ok) {
+          const smhiData = await smhiResponse.json();
+          const currentTime = new Date();
+          const currentHour = currentTime.getHours();
+          
+          // Find the closest time forecast
+          const timeSeries = smhiData.timeSeries || [];
+          const closestForecast = timeSeries.find((item: any) => {
+            const forecastTime = new Date(item.validTime);
+            const timeDiff = Math.abs(forecastTime.getTime() - currentTime.getTime());
+            return timeDiff < 3 * 60 * 60 * 1000; // Within 3 hours
+          }) || timeSeries[0];
+
+          if (closestForecast) {
+            const parameters = closestForecast.parameters || [];
+            const getParameter = (name: string) => {
+              const param = parameters.find((p: any) => p.name === name);
+              return param ? param.values[0] : null;
+            };
+
+            const realWeather: WeatherData = {
+              temperature: getParameter('t') || this.getRandomTemperature(),
+              humidity: getParameter('r') || this.getRandomHumidity(),
+              rainfall: getParameter('pmean') || this.getRandomRainfall(),
+              forecast: this.getRandomForecast(),
+              windSpeed: getParameter('ws') || this.getRandomWindSpeed(),
+              windDirection: this.getRandomWindDirection(),
+              pressure: getParameter('msl') || this.getRandomPressure(),
+              uvIndex: this.getRandomUVIndex(),
+              sunrise: '06:30',
+              sunset: '18:45',
+              lastUpdated: new Date().toISOString()
+            };
+
+            // Cache the result
+            this.weatherCache = {
+              data: realWeather,
+              timestamp: Date.now()
+            };
+
+            return realWeather;
+          }
+        }
+      } catch (smhiError) {
+        console.log('SMHI API not available, using fallback data:', smhiError);
+      }
+
+      // Fallback to mock data if SMHI API fails
       const mockWeather: WeatherData = {
         temperature: this.getRandomTemperature(),
         humidity: this.getRandomHumidity(),

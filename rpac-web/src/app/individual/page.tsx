@@ -12,6 +12,7 @@ import { EnhancedCultivationPlanner } from '@/components/enhanced-cultivation-pl
 import { GardenPlanner } from '@/components/garden-planner';
 import { CultivationReminders } from '@/components/cultivation-reminders';
 import { CrisisCultivation } from '@/components/crisis-cultivation';
+import { PersonalAICoach } from '@/components/personal-ai-coach';
 import { useUserProfile } from '@/lib/useUserProfile';
 import { supabase } from '@/lib/supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
@@ -42,6 +43,12 @@ function IndividualPageContent() {
       icon: Sprout,
       description: t('individual.cultivation_description'),
       subsections: [
+        {
+          id: 'ai-coach',
+          title: 'AI-coach',
+          description: 'Personlig AI-coach för beredskap och odling',
+          priority: 'high' as const
+        },
         {
           id: 'ai-planner',
           title: 'Min odling',
@@ -423,6 +430,24 @@ function IndividualPageContent() {
 
     // Handle subsection navigation for cultivation
     if (activeSection === 'cultivation' && activeSubsection) {
+      if (activeSubsection === 'ai-coach') {
+        return (
+          <div className="space-y-6">
+            <div className="modern-card p-8">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+                  🤖 Personlig AI-coach
+                </h2>
+                <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
+                  Få personliga råd och tips för din beredskap och odling
+                </p>
+              </div>
+              <PersonalAICoach user={user} userProfile={profile} />
+            </div>
+          </div>
+        );
+      }
+      
       if (activeSubsection === 'ai-planner') {
         return (
           <div className="space-y-6">
