@@ -6,7 +6,7 @@ export async function onRequestPost(context) {
     const body = await request.json();
     const { userProfile, userQuestion, chatHistory } = body;
 
-    if (!env.OPENAI_API_KEY) {
+    if (!env.NEXT_PUBLIC_OPENAI_API_KEY) {
       return new Response(JSON.stringify({
         error: 'OpenAI API key not configured'
       }), {
@@ -51,7 +51,7 @@ Du svarar alltid på svenska och ger konkreta, praktiska råd. Fokusera på kris
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${env.OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${env.NEXT_PUBLIC_OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
