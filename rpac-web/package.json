@@ -7,7 +7,8 @@
     "build": "next build",
     "build:static": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "export": "next build && next export"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
