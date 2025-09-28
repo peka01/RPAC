@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { t } from '@/lib/locales';
-import { OpenAIService } from '@/lib/openai-service-server';
+import { SecureOpenAIService } from '@/lib/openai-client-secure';
 import { WeatherService } from '@/lib/weather-service';
 import { useUserProfile } from '@/lib/useUserProfile';
 import type { User } from '@supabase/supabase-js';
@@ -133,7 +133,7 @@ export function AICultivationAdvisor({
   const generateAdvice = async (): Promise<CultivationAdvice[]> => {
     try {
       // Use real OpenAI AI for advice generation
-      const aiAdvice = await OpenAIService.generateCultivationAdvice(profile, crisisMode);
+      const aiAdvice = await SecureOpenAIService.generateDailyPreparednessTips(profile);
       return aiAdvice;
     } catch (error) {
       console.error('Error generating AI advice:', error);

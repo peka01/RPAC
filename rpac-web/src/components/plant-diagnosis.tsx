@@ -15,7 +15,7 @@ import {
   User
 } from 'lucide-react';
 import { t } from '@/lib/locales';
-import { OpenAIService } from '@/lib/openai-service-server';
+import { SecureOpenAIService } from '@/lib/openai-client-secure';
 
 interface DiagnosisResult {
   plantName: string;
@@ -86,7 +86,7 @@ export function PlantDiagnosis() {
       const base64Data = selectedImage.split(',')[1];
       
       // Use real Gemini AI for plant analysis
-        const aiResult = await OpenAIService.analyzePlantImage(base64Data);
+        const aiResult = await SecureOpenAIService.analyzePlantImage(base64Data);
       
       // Convert AI result to our interface
       const diagnosisResult: DiagnosisResult = {
@@ -146,7 +146,11 @@ export function PlantDiagnosis() {
       };
 
       // Get AI response for the conversation
-      const aiResponse = await OpenAIService.generateConversationResponse(context);
+      const aiResponse = await SecureOpenAIService.generatePersonalCoachResponse({
+        userProfile: { climateZone: 'svealand', experienceLevel: 'beginner', gardenSize: 'medium', preferences: [], currentCrops: [] },
+        userQuestion: newMessage.trim(),
+        chatHistory: messages.slice(-5)
+      });
       
       const aiMessage: ChatMessage = {
         id: `ai-${Date.now()}`,

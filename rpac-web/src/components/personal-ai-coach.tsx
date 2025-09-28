@@ -13,7 +13,7 @@ import {
   Loader2,
   Sparkles
 } from 'lucide-react';
-import { OpenAIService } from '@/lib/openai-service-server';
+import { SecureOpenAIService } from '@/lib/openai-client-secure';
 import { WeatherService, WeatherData, WeatherForecast } from '@/lib/weather-service';
 import { t } from '@/lib/locales';
 
@@ -156,7 +156,7 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
   // Generate daily AI tips based on current profile
   const generateDailyTips = async (): Promise<DailyTip[]> => {
     try {
-      const aiTips = await OpenAIService.generateDailyPreparednessTips(profile);
+      const aiTips = await SecureOpenAIService.generateDailyPreparednessTips(profile);
       return aiTips;
     } catch (error) {
       console.error('Error generating AI tips:', error);
@@ -290,7 +290,7 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
 
     try {
       // Get AI response for the conversation
-      const aiResponse = await OpenAIService.generatePersonalCoachResponse({
+      const aiResponse = await SecureOpenAIService.generatePersonalCoachResponse({
         userProfile: profile,
         userQuestion: newMessage.trim(),
         chatHistory: chatMessages.slice(-5) // Last 5 messages for context

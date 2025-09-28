@@ -94,6 +94,11 @@ export class OpenAIService {
       });
 
       if (!response.ok) {
+        // Handle 405 Method Not Allowed specifically
+        if (response.status === 405) {
+          console.warn('API route not available (405), using fallback advice');
+          return this.getFallbackAdvice();
+        }
         throw new Error(`API error: ${response.status}`);
       }
 
@@ -123,6 +128,11 @@ export class OpenAIService {
       });
 
       if (!response.ok) {
+        // Handle 405 Method Not Allowed specifically
+        if (response.status === 405) {
+          console.warn('API route not available (405), using fallback response');
+          return 'Jag kan tyvärr inte svara på din fråga just nu eftersom AI-tjänsten inte är tillgänglig. Kontrollera väderprognosen på SMHI.se och se till att ha tillräckligt med förnödenheter hemma.';
+        }
         throw new Error(`API error: ${response.status}`);
       }
 
@@ -155,6 +165,23 @@ export class OpenAIService {
       });
 
       if (!response.ok) {
+        // Handle 405 Method Not Allowed specifically
+        if (response.status === 405) {
+          console.warn('API route not available (405), using fallback diagnosis');
+          return {
+            plantName: 'AI-diagnos inte tillgänglig',
+            scientificName: 'Unknown',
+            healthStatus: 'healthy',
+            confidence: 0,
+            description: 'Jag kan tyvärr inte analysera din växtbild just nu. Kontakta en lokal trädgårdsexpert eller använd växtidentifieringsappar som PlantNet.',
+            recommendations: [
+              'Ta en tydlig bild av växten i dagsljus',
+              'Kontrollera jordens fuktighet',
+              'Undersök bladens färg och form noggrant'
+            ],
+            severity: 'medium'
+          };
+        }
         throw new Error(`API error: ${response.status}`);
       }
 
