@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { t } from '@/lib/locales';
-// import { OpenAIService } from '@/lib/openai-service'; // TODO: Implement OpenAI service
+import { OpenAIService } from '@/lib/openai-service';
+import { WeatherService } from '@/lib/weather-service';
 import { 
   Brain,
   Lightbulb,
@@ -70,20 +71,15 @@ export function AICultivationAdvisor({
     ...userProfile
   };
 
-  // Mock weather data (in production, this would come from SMHI API)
-  const mockWeatherData: WeatherCondition = {
-    temperature: 18,
-    humidity: 65,
-    rainfall: 'Lätt regn förväntas',
-    forecast: 'Molnigt med uppehåll'
-  };
+  // Get real weather data from WeatherService
+  const [weatherData, setWeatherData] = useState<WeatherCondition | null>(null);
 
-  // Generate AI-powered cultivation advice using fallback for now
+  // Generate AI-powered cultivation advice using real OpenAI integration
   const generateAdvice = async (): Promise<CultivationAdvice[]> => {
     try {
-      // TODO: Implement real OpenAI AI for advice generation
-      // For now, use fallback advice
-      return getFallbackAdvice();
+      // Use real OpenAI AI for advice generation
+      const aiAdvice = await OpenAIService.generateCultivationAdvice(profile, crisisMode);
+      return aiAdvice;
     } catch (error) {
       console.error('Error generating AI advice:', error);
       // Fallback to mock advice if AI fails
@@ -332,18 +328,33 @@ export function AICultivationAdvisor({
     const loadAdvice = async () => {
       setLoading(true);
       try {
-        setWeather(mockWeatherData);
+        // Load real weather data
+        const weather = await WeatherService.getCurrentWeather();
+        setWeather({
+          temperature: weather.temperature,
+          humidity: weather.humidity,
+          rainfall: weather.rainfall,
+          forecast: weather.forecast
+        });
+        
+        // Generate AI advice
         const aiAdvice = await generateAdvice();
         setAdvice(aiAdvice);
       } catch (error) {
         console.error('Error loading AI advice:', error);
-        // Fallback to mock advice
+        // Fallback to mock data
+        setWeather({
+          temperature: 18,
+          humidity: 65,
+          rainfall: 'Lätt regn förväntas',
+          forecast: 'Molnigt med uppehåll'
+        });
         setAdvice(getFallbackAdvice());
       } finally {
         setLoading(false);
       }
     };
-
+    
     loadAdvice();
   }, [crisisMode]);
 

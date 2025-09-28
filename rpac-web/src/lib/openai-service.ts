@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { config } from './config';
+import { swedishPlantDatabase, getPlantById, getDiseaseInfo, getPestInfo } from './swedish-plant-database';
 
 // Initialize OpenAI
 console.log('OpenAI API Key:', config.openai.apiKey ? 'Present' : 'Missing');
@@ -10,6 +11,7 @@ const openai = new OpenAI({
 
 export interface PlantDiagnosisResult {
   plantName: string;
+  scientificName: string;
   healthStatus: 'healthy' | 'disease' | 'pest' | 'nutrient_deficiency';
   confidence: number;
   description: string;
@@ -84,7 +86,7 @@ export class OpenAIService {
   }
 
   /**
-   * Analyze plant image for diseases, pests, and health issues
+   * Analyze plant image for diseases, pests, and health issues using OpenAI Vision API
    */
   static async analyzePlantImage(imageBase64: string): Promise<PlantDiagnosisResult> {
     try {
@@ -96,29 +98,49 @@ export class OpenAIService {
             content: [
               {
                 type: "text",
-                text: `Analysera växtbild. Identifiera: namn, hälsostatus, förtroende, beskrivning, rekommendationer, allvarlighetsgrad.
+                text: `Du är en expert på svenska växter och växtsjukdomar. Analysera denna växtbild och identifiera:
 
-JSON:
+1. ALLA objekt i bilden (växter, verktyg, jord, krukor, skadedjur, etc.)
+2. EXAKT växtidentifiering med både svenska namn och latinska vetenskapliga namn
+3. Hälsostatus (frisk, sjukdom, skadedjur, näringsbrist)
+4. Specifika problem eller sjukdomar
+5. Allvarlighetsgrad
+6. Praktiska rekommendationer på svenska
+
+VIKTIGT: 
+- Ge EXAKT identifiering med latinska vetenskapliga namn
+- Identifiera och beskriv ALLA synliga objekt i bilden för att ge en komplett analys
+- Om du är osäker på arten, ange det och ge den närmaste möjliga identifieringen
+
+Fokusera på vanliga svenska trädgårdsväxter som:
+- Potatis (Solanum tuberosum), morötter (Daucus carota), kål (Brassica oleracea), sallat (Lactuca sativa), spenat (Spinacia oleracea)
+- Tomater (Solanum lycopersicum), gurkor (Cucumis sativus), paprika (Capsicum annuum)
+- Jordgubbar (Fragaria × ananassa), hallon (Rubus idaeus), vinbär (Ribes rubrum)
+- Örter som persilja (Petroselinum crispum), basilika (Ocimum basilicum), timjan (Thymus vulgaris)
+
+Svara ENDAST med JSON i detta format:
 {
-  "plantName": "växtens namn",
+  "plantName": "svenska växtnamnet",
+  "scientificName": "latinska vetenskapliga namnet",
   "healthStatus": "frisk|sjukdom|skadedjur|näringsbrist",
   "confidence": 0.85,
-  "description": "kort beskrivning",
-  "recommendations": ["rekommendation1", "rekommendation2"],
+  "description": "detaljerad beskrivning av ALLA objekt du ser i bilden",
+  "recommendations": ["praktisk rekommendation 1", "praktisk rekommendation 2"],
   "severity": "låg|medium|hög"
 }`
               },
               {
                 type: "image_url",
                 image_url: {
-                  url: `data:image/jpeg;base64,${imageBase64}`
+                  url: `data:image/jpeg;base64,${imageBase64}`,
+                  detail: "high"
                 }
               }
             ]
           }
         ],
-        max_tokens: 500,
-        temperature: 0.2
+        max_tokens: 800,
+        temperature: 0.1
       });
 
       const content = response.choices[0]?.message?.content;
@@ -130,12 +152,38 @@ JSON:
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
+        
+        // Try to match with Swedish plant database for more accurate recommendations
+        const plantName = parsed.plantName || 'Okänd växt';
+        const matchedPlant = swedishPlantDatabase.find(plant => 
+          plant.name.toLowerCase().includes(plantName.toLowerCase()) ||
+          plant.scientificName.toLowerCase().includes(plantName.toLowerCase())
+        );
+        
+        let enhancedRecommendations = parsed.recommendations || [];
+        
+        // If we found a matching plant, enhance recommendations with database knowledge
+        if (matchedPlant && parsed.healthStatus !== 'healthy') {
+          const diseaseInfo = matchedPlant.commonDiseases.find(disease => 
+            disease.name.toLowerCase().includes(parsed.description?.toLowerCase() || '')
+          );
+          
+          if (diseaseInfo) {
+            enhancedRecommendations = [
+              ...enhancedRecommendations,
+              ...diseaseInfo.solutions.slice(0, 2), // Add top 2 solutions from database
+              ...diseaseInfo.prevention.slice(0, 1) // Add 1 prevention tip
+            ];
+          }
+        }
+        
         return {
-          plantName: parsed.plantName || 'Okänd växt',
+          plantName: plantName,
+          scientificName: parsed.scientificName || 'Okänd art',
           healthStatus: parsed.healthStatus || 'healthy',
           confidence: parsed.confidence || 0.5,
           description: parsed.description || 'Kunde inte analysera bilden',
-          recommendations: parsed.recommendations || [],
+          recommendations: enhancedRecommendations,
           severity: parsed.severity || 'low'
         };
       }
@@ -145,6 +193,7 @@ JSON:
       console.error('OpenAI plant analysis error:', error);
       return {
         plantName: 'Okänd växt',
+        scientificName: 'Okänd art',
         healthStatus: 'healthy',
         confidence: 0,
         description: 'Kunde inte analysera bilden. Kontrollera att bilden är tydlig och välbelyst.',
@@ -263,6 +312,53 @@ JSON:
     } catch (error) {
       console.error('OpenAI crisis advice error:', error);
       return this.getFallbackAdvice();
+    }
+  }
+
+  /**
+   * Generate conversation response for plant diagnosis chat
+   */
+  static async generateConversationResponse(context: {
+    plantName: string;
+    healthStatus: string;
+    description: string;
+    recommendations: string[];
+    userQuestion: string;
+  }): Promise<string> {
+    try {
+      const prompt = `Du är en expert på svenska växter och växtsjukdomar. En användare har fått en växtdiagnos och ställer nu en följdfråga.
+
+Växtdiagnos:
+- Växt: ${context.plantName}
+- Hälsostatus: ${context.healthStatus}
+- Beskrivning: ${context.description}
+- Rekommendationer: ${context.recommendations.join(', ')}
+
+Användarens fråga: ${context.userQuestion}
+
+Svara på svenska med praktiska råd baserat på diagnosen. Var hjälpsam och ge specifika tips för denna växt och situation. Håll svaret kort och användbart (max 200 ord).`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        max_tokens: 300,
+        temperature: 0.7
+      });
+
+      const content = response.choices[0]?.message?.content;
+      if (!content) {
+        throw new Error('No response from OpenAI');
+      }
+
+      return content;
+    } catch (error) {
+      console.error('OpenAI conversation error:', error);
+      return 'Ursäkta, jag kunde inte svara på din fråga just nu. Försök igen eller kontakta en växtexpert för vidare hjälp.';
     }
   }
 
