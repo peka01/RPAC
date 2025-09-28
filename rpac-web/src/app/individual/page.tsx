@@ -17,7 +17,7 @@ import { useUserProfile } from '@/lib/useUserProfile';
 import { supabase } from '@/lib/supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { t } from '@/lib/locales';
-import { Home, Sprout, BookOpen } from 'lucide-react';
+import { Home, Sprout, BookOpen, Bot } from 'lucide-react';
 
 function IndividualPageContent() {
   const [user, setUser] = useState<SupabaseUser | null>(null);
@@ -43,12 +43,6 @@ function IndividualPageContent() {
       icon: Sprout,
       description: t('individual.cultivation_description'),
       subsections: [
-        {
-          id: 'ai-coach',
-          title: 'AI-coach',
-          description: 'Personlig AI-coach för beredskap och odling',
-          priority: 'high' as const
-        },
         {
           id: 'ai-planner',
           title: 'Min odling',
@@ -100,10 +94,10 @@ function IndividualPageContent() {
           priority: 'high' as const
         },
         {
-          id: 'guides',
-          title: t('individual.guides_coach'),
-          description: t('individual.guides_description'),
-          priority: 'low' as const
+          id: 'ai-coach',
+          title: 'Personlig AI-coach',
+          description: 'Få personliga råd och tips för din beredskap och odling',
+          priority: 'high' as const
         }
       ]
     }
@@ -399,27 +393,26 @@ function IndividualPageContent() {
                 </button>
               </div>
               
-              
               <div className="text-center p-6 rounded-lg border" style={{ 
                 backgroundColor: 'var(--bg-card)',
                 borderColor: 'var(--color-quaternary)'
               }}>
-                <BookOpen className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--color-primary)' }} />
+                <Bot className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--color-sage)' }} />
                 <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                  {t('individual.guides_coach')}
+                  Personlig AI-coach
                 </h3>
                 <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
-                  {t('individual.guides_description')}
+                  Få personliga råd och tips för din beredskap och odling
                 </p>
                 <button
-                  onClick={() => handleSectionChange('resources', 'guides')}
+                  onClick={() => handleSectionChange('resources', 'ai-coach')}
                   className="px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-md"
                   style={{ 
-                    backgroundColor: 'var(--color-warning)',
+                    backgroundColor: 'var(--color-sage)',
                     color: 'white'
                   }}
                 >
-                  Guider & coach
+                  Starta AI-coach
                 </button>
               </div>
             </div>
@@ -430,24 +423,6 @@ function IndividualPageContent() {
 
     // Handle subsection navigation for cultivation
     if (activeSection === 'cultivation' && activeSubsection) {
-      if (activeSubsection === 'ai-coach') {
-        return (
-          <div className="space-y-6">
-            <div className="modern-card p-8">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
-                  🤖 Personlig AI-coach
-                </h2>
-                <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-                  Få personliga råd och tips för din beredskap och odling
-                </p>
-              </div>
-              <PersonalAICoach user={user} userProfile={profile} />
-            </div>
-          </div>
-        );
-      }
-      
       if (activeSubsection === 'ai-planner') {
         return (
           <div className="space-y-6">
@@ -541,13 +516,7 @@ function IndividualPageContent() {
             </div>
             <div className="modern-card">
               <AICultivationAdvisor 
-                userProfile={{
-                  climateZone: climateZone,
-                  experienceLevel: experienceLevel,
-                  gardenSize: gardenSize,
-                  preferences: ['potatoes', 'carrots', 'lettuce'],
-                  currentCrops: ['tomatoes', 'herbs']
-                }}
+                user={user}
                 crisisMode={false}
               />
             </div>
@@ -615,52 +584,10 @@ function IndividualPageContent() {
           </div>
         );
       }
-      if (activeSubsection === 'guides') {
+      if (activeSubsection === 'ai-coach') {
         return (
-          <div className="space-y-8">
-            <div className="crisis-card">
-              <div className="p-8">
-                <h3 className="text-2xl font-bold mb-6" style={{ color: 'var(--text-primary)' }}>
-                  {t('individual.guides')}
-                </h3>
-                <p className="text-lg mb-6" style={{ color: 'var(--text-secondary)' }}>
-                  {t('individual.guides_description')}
-                </p>
-                <div className="space-y-4">
-                  <button className="crisis-button w-full text-left p-4 text-lg" style={{ backgroundColor: 'var(--color-crisis-green)', color: 'white' }}>
-                    {t('individual.basic_preparedness')}
-                  </button>
-                  <button className="crisis-button w-full text-left p-4 text-lg" style={{ backgroundColor: 'var(--color-crisis-blue)', color: 'white' }}>
-                    {t('individual.gardening_guide')}
-                  </button>
-                  <button className="crisis-button w-full text-left p-4 text-lg" style={{ backgroundColor: 'var(--color-crisis-brown)', color: 'white' }}>
-                    {t('individual.home_defense')}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="crisis-card">
-              <div className="p-8">
-                <h3 className="text-2xl font-bold mb-6" style={{ color: 'var(--text-primary)' }}>
-                  {t('individual.personal_coach')}
-                </h3>
-                <p className="text-lg mb-6" style={{ color: 'var(--text-secondary)' }}>
-                  {t('individual.coach_description')}
-                </p>
-                <div className="space-y-4">
-                  <button className="crisis-button w-full text-left p-4 text-lg" style={{ backgroundColor: 'var(--color-crisis-orange)', color: 'white' }}>
-                    {t('individual.get_personal_advice')}
-                  </button>
-                  <button className="crisis-button w-full text-left p-4 text-lg" style={{ backgroundColor: 'var(--color-crisis-blue)', color: 'white' }}>
-                    {t('individual.analyze_preparedness')}
-                  </button>
-                  <button className="crisis-button w-full text-left p-4 text-lg" style={{ backgroundColor: 'var(--color-crisis-green)', color: 'white' }}>
-                    {t('individual.set_preparedness_goals')}
-                  </button>
-                </div>
-              </div>
-            </div>
+          <div className="space-y-6">
+            <PersonalAICoach user={user} userProfile={profile || {}} />
           </div>
         );
       }

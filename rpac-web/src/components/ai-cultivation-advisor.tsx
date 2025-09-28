@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { t } from '@/lib/locales';
 import { OpenAIService } from '@/lib/openai-service';
 import { WeatherService } from '@/lib/weather-service';
+import { useUserProfile } from '@/lib/useUserProfile';
+import type { User } from '@supabase/supabase-js';
 import { 
   Brain,
   Lightbulb,
@@ -45,31 +47,84 @@ interface UserProfile {
   gardenSize: 'small' | 'medium' | 'large';
   preferences: string[];
   currentCrops: string[];
+  householdSize?: number;
+  hasChildren?: boolean;
+  hasElderly?: boolean;
+  hasPets?: boolean;
+  petTypes?: string;
+  medicalConditions?: string;
+  allergies?: string;
+  specialNeeds?: string;
+  county?: string;
+  city?: string;
+  postalCode?: string;
+  address?: string;
 }
 
 interface AICultivationAdvisorProps {
-  userProfile?: Partial<UserProfile>;
+  user: User | null;
   crisisMode?: boolean;
 }
 
 export function AICultivationAdvisor({ 
-  userProfile = {}, 
+  user, 
   crisisMode = false 
 }: AICultivationAdvisorProps) {
   const [advice, setAdvice] = useState<CultivationAdvice[]>([]);
   const [weather, setWeather] = useState<WeatherCondition | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedAdvice, setSelectedAdvice] = useState<string | null>(null);
+  
+  // Get user profile from database
+  const { profile: userProfile } = useUserProfile(user);
 
-  // Default user profile
+  // Default user profile for AI service
   const profile: UserProfile = {
-    climateZone: 'svealand',
-    experienceLevel: 'beginner',
-    gardenSize: 'medium',
+    climateZone: userProfile?.county ? getClimateZone(userProfile.county) : 'svealand',
+    experienceLevel: 'beginner' as const,
+    gardenSize: 'medium' as const,
     preferences: ['potatoes', 'carrots', 'lettuce'],
     currentCrops: ['tomatoes', 'herbs'],
-    ...userProfile
+    householdSize: userProfile?.household_size || 2,
+    hasChildren: userProfile?.has_children || false,
+    hasElderly: userProfile?.has_elderly || false,
+    hasPets: userProfile?.has_pets || false,
+    petTypes: userProfile?.pet_types || '',
+    medicalConditions: userProfile?.medical_conditions || '',
+    allergies: userProfile?.allergies || '',
+    specialNeeds: userProfile?.special_needs || '',
+    county: userProfile?.county || 'stockholm',
+    city: userProfile?.city || '',
+    postalCode: userProfile?.postal_code || '',
+    address: userProfile?.address || ''
   };
+
+  // Helper function to map Swedish counties to climate zones
+  function getClimateZone(county: string): 'gotaland' | 'svealand' | 'norrland' {
+    const countyToClimateZone: Record<string, 'gotaland' | 'svealand' | 'norrland'> = {
+      stockholm: 'svealand',
+      uppsala: 'svealand',
+      sodermanland: 'svealand',
+      ostergotland: 'gotaland',
+      jonkoping: 'gotaland',
+      kronoberg: 'gotaland',
+      kalmar: 'gotaland',
+      blekinge: 'gotaland',
+      skane: 'gotaland',
+      halland: 'gotaland',
+      vastra_gotaland: 'gotaland',
+      varmland: 'svealand',
+      orebro: 'svealand',
+      vastmanland: 'svealand',
+      dalarna: 'svealand',
+      gavleborg: 'svealand',
+      vasternorrland: 'norrland',
+      jamtland: 'norrland',
+      vasterbotten: 'norrland',
+      norrbotten: 'norrland'
+    };
+    return countyToClimateZone[county.toLowerCase()] || 'svealand';
+  }
 
   // Get real weather data from WeatherService
   const [weatherData, setWeatherData] = useState<WeatherCondition | null>(null);
@@ -328,8 +383,11 @@ export function AICultivationAdvisor({
     const loadAdvice = async () => {
       setLoading(true);
       try {
-        // Load real weather data
-        const weather = await WeatherService.getCurrentWeather();
+        // Load real weather data for user's location
+        const weather = await WeatherService.getCurrentWeather(undefined, undefined, {
+          county: userProfile?.county,
+          city: userProfile?.city
+        });
         setWeather({
           temperature: weather.temperature,
           humidity: weather.humidity,

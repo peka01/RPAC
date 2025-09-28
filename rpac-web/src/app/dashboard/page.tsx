@@ -23,6 +23,7 @@ import { ResourceSummaryCard } from '@/components/resource-summary-card';
 import { CommunityCoordinationSummary } from '@/components/community-coordination-summary';
 import { MessagingSystem } from '@/components/messaging-system';
 import { ExternalCommunication } from '@/components/external-communication';
+import { WeatherCard } from '@/components/weather-card';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 
@@ -325,6 +326,13 @@ export default function DashboardPage() {
                 </span>
               </div>
             </div>
+
+            {/* Weather Card */}
+            {user && (
+              <div className="lg:col-span-2 xl:col-span-1">
+                <WeatherCard user={user} />
+              </div>
+            )}
           </div>
 
           {/* Advanced Communication Hub - Enhanced & Resizable */}

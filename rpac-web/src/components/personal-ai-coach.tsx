@@ -14,32 +14,26 @@ import {
   Sparkles
 } from 'lucide-react';
 import { OpenAIService } from '@/lib/openai-service';
+import { WeatherService, WeatherData, WeatherForecast } from '@/lib/weather-service';
 import { t } from '@/lib/locales';
 
 interface PersonalAICoachProps {
   user?: any;
-  userProfile?: {
-    climateZone?: string;
-    experienceLevel?: string;
-    gardenSize?: string;
-    preferences?: string[];
-    currentCrops?: string[];
-    householdSize?: number;
-  };
+  userProfile?: any;
 }
 
 interface DailyTip {
   id: string;
-  type: 'tip' | 'warning' | 'reminder' | 'achievement';
+  type: 'tip' | 'warning' | 'reminder' | 'achievement' | 'recommendation' | 'seasonal';
   priority: 'high' | 'medium' | 'low';
   title: string;
   description: string;
   action?: string;
   timeframe?: string;
   icon: string;
-  category: string;
-  difficulty: string;
-  estimatedTime: string;
+  category?: string;
+  difficulty?: string;
+  estimatedTime?: string;
   tools?: string[];
   steps?: string[];
   tips?: string[];
@@ -59,19 +53,107 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [selectedTip, setSelectedTip] = useState<string | null>(null);
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [forecastData, setForecastData] = useState<WeatherForecast[]>([]);
+  const [extremeWeatherWarnings, setExtremeWeatherWarnings] = useState<string[]>([]);
 
-  // Default user profile
-  const profile = {
-    climateZone: 'svealand',
-    experienceLevel: 'beginner',
-    gardenSize: 'medium',
-    preferences: ['potatoes', 'carrots', 'lettuce'],
-    currentCrops: ['tomatoes', 'herbs'],
-    householdSize: 2,
-    ...userProfile
+  // Load weather data and forecast for user's location
+  const loadWeatherData = async () => {
+    try {
+      // Load current weather
+      const weather = await WeatherService.getCurrentWeather(undefined, undefined, {
+        county: userProfile?.county,
+        city: userProfile?.city
+      });
+      setWeatherData(weather);
+      
+      // Load forecast data
+      const forecast = await WeatherService.getWeatherForecast(undefined, undefined, {
+        county: userProfile?.county,
+        city: userProfile?.city
+      });
+      setForecastData(forecast);
+      
+      // Generate extreme weather warnings
+      const warnings = WeatherService.getExtremeWeatherWarnings(forecast);
+      setExtremeWeatherWarnings(warnings);
+    } catch (error) {
+      console.error('Error loading weather data:', error);
+    }
   };
 
-  // Generate daily AI tips
+  // Map database profile to AI coach format with weather context
+  const profile = {
+    climateZone: userProfile?.county ? getClimateZone(userProfile.county) : 'svealand',
+    experienceLevel: 'beginner' as const, // Default, could be added to user profile later
+    gardenSize: 'medium' as const, // Default, could be added to user profile later
+    preferences: ['potatoes', 'carrots', 'lettuce'], // Default, could be added to user profile later
+    currentCrops: ['tomatoes', 'herbs'], // Default, could be added to user profile later
+    householdSize: userProfile?.household_size || 2,
+    hasChildren: userProfile?.has_children || false,
+    hasElderly: userProfile?.has_elderly || false,
+    hasPets: userProfile?.has_pets || false,
+    petTypes: userProfile?.pet_types || '',
+    medicalConditions: userProfile?.medical_conditions || '',
+    allergies: userProfile?.allergies || '',
+    specialNeeds: userProfile?.special_needs || '',
+    county: userProfile?.county || 'stockholm',
+    city: userProfile?.city || '',
+    postalCode: userProfile?.postal_code || '',
+    address: userProfile?.address || '',
+    // Weather context for AI
+    weather: weatherData ? {
+      temperature: weatherData.temperature,
+      humidity: weatherData.humidity,
+      rainfall: weatherData.rainfall,
+      forecast: weatherData.forecast,
+      windSpeed: weatherData.windSpeed,
+      windDirection: weatherData.windDirection,
+      pressure: weatherData.pressure,
+      uvIndex: weatherData.uvIndex,
+      sunrise: weatherData.sunrise,
+      sunset: weatherData.sunset
+    } : null,
+    // Forecast context for AI
+    forecast: forecastData.length > 0 ? forecastData.map(day => ({
+      date: day.date,
+      temperature: day.temperature,
+      weather: day.weather,
+      rainfall: day.rainfall,
+      windSpeed: day.windSpeed
+    })) : [],
+    // Extreme weather warnings
+    extremeWeatherWarnings: extremeWeatherWarnings
+  };
+
+  // Helper function to map Swedish counties to climate zones
+  function getClimateZone(county: string): 'gotaland' | 'svealand' | 'norrland' {
+    const countyToClimateZone: Record<string, 'gotaland' | 'svealand' | 'norrland'> = {
+      stockholm: 'svealand',
+      uppsala: 'svealand',
+      sodermanland: 'svealand',
+      ostergotland: 'gotaland',
+      jonkoping: 'gotaland',
+      kronoberg: 'gotaland',
+      kalmar: 'gotaland',
+      blekinge: 'gotaland',
+      skane: 'gotaland',
+      halland: 'gotaland',
+      vastra_gotaland: 'gotaland',
+      varmland: 'svealand',
+      orebro: 'svealand',
+      vastmanland: 'svealand',
+      dalarna: 'svealand',
+      gavleborg: 'svealand',
+      vasternorrland: 'norrland',
+      jamtland: 'norrland',
+      vasterbotten: 'norrland',
+      norrbotten: 'norrland'
+    };
+    return countyToClimateZone[county.toLowerCase()] || 'svealand';
+  }
+
+  // Generate daily AI tips based on current profile
   const generateDailyTips = async (): Promise<DailyTip[]> => {
     try {
       const aiTips = await OpenAIService.generateDailyPreparednessTips(profile);
@@ -81,6 +163,29 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
       return getFallbackTips();
     }
   };
+
+  // Load weather data when component mounts or user profile changes
+  useEffect(() => {
+    loadWeatherData();
+  }, [userProfile?.county, userProfile?.city]);
+
+  // Regenerate tips when profile, weather, or forecast changes
+  useEffect(() => {
+    const fetchDailyTips = async () => {
+      setIsLoading(true);
+      try {
+        const aiTips = await generateDailyTips();
+        setDailyTips(aiTips);
+      } catch (error) {
+        console.error('Error generating AI tips:', error);
+        setDailyTips(getFallbackTips());
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDailyTips();
+  }, [userProfile, weatherData, forecastData, extremeWeatherWarnings]); // Re-run when weather data changes
 
   // Fallback tips when AI is unavailable
   const getFallbackTips = (): DailyTip[] => {
@@ -215,23 +320,6 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
     }
   };
 
-  // Load daily tips on component mount
-  useEffect(() => {
-    const loadTips = async () => {
-      setIsLoading(true);
-      try {
-        const tips = await generateDailyTips();
-        setDailyTips(tips);
-      } catch (error) {
-        console.error('Error loading tips:', error);
-        setDailyTips(getFallbackTips());
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadTips();
-  }, [profile.climateZone, profile.experienceLevel]);
 
   const getTipIcon = (tip: DailyTip) => {
     switch (tip.type) {
@@ -295,6 +383,27 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
         </p>
       </div>
 
+      {/* Extreme Weather Warnings */}
+      {extremeWeatherWarnings.length > 0 && (
+        <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-r-lg" style={{
+          backgroundColor: 'var(--color-crisis-red)',
+          borderColor: 'var(--color-crisis-red)',
+          color: 'white'
+        }}>
+          <div className="flex items-center mb-2">
+            <AlertTriangle className="w-5 h-5 mr-2" />
+            <h3 className="font-bold text-lg">Väderprognos - Viktiga varningar</h3>
+          </div>
+          <div className="space-y-2">
+            {extremeWeatherWarnings.map((warning, index) => (
+              <div key={index} className="text-sm font-medium">
+                {warning}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Daily Tips Section */}
       <div className="modern-card">
         <div className="p-6">
@@ -319,7 +428,8 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
                       selectedTip === tip.id ? 'ring-2' : ''
                     }`}
                     style={{ 
-                      ringColor: selectedTip === tip.id ? 'var(--color-sage)' : 'transparent' 
+                      borderColor: selectedTip === tip.id ? 'var(--color-sage)' : 'transparent',
+                      borderWidth: selectedTip === tip.id ? '2px' : '0px'
                     }}
                     onClick={() => setSelectedTip(selectedTip === tip.id ? null : tip.id)}
                   >
@@ -480,8 +590,7 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
               disabled={isTyping}
               className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
               style={{ 
-                borderColor: 'var(--color-khaki)', 
-                focusRingColor: 'var(--color-sage)' 
+                borderColor: 'var(--color-khaki)'
               }}
             />
             <button 

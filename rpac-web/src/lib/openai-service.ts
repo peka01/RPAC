@@ -40,13 +40,33 @@ export interface CultivationAdvice {
 
 export interface UserProfile {
   climateZone: string;
-  experienceLevel: 'beginner' | 'intermediate' | 'advanced';
+  experienceLevel: 'beginner' | 'intermediate' | 'advanced' | 'expert';
   gardenSize: 'small' | 'medium' | 'large';
   preferences: string[];
   currentCrops: string[];
   householdSize?: number;
   hasChildren?: boolean;
   hasElderly?: boolean;
+  weather?: {
+    temperature: number;
+    humidity: number;
+    rainfall: string;
+    forecast: string;
+    windSpeed: number;
+    windDirection: string;
+    pressure: number;
+    uvIndex: number;
+    sunrise: string;
+    sunset: string;
+  } | null;
+  forecast?: Array<{
+    date: string;
+    temperature: { min: number; max: number };
+    weather: string;
+    rainfall: number;
+    windSpeed: number;
+  }>;
+  extremeWeatherWarnings?: string[];
 }
 
 export class OpenAIService {
@@ -370,6 +390,29 @@ Svara på svenska med praktiska råd baserat på diagnosen. Var hjälpsam och ge
    */
   static async generateDailyPreparednessTips(profile: UserProfile): Promise<CultivationAdvice[]> {
     try {
+      const weatherContext = profile.weather ? `
+      Aktuellt väder:
+      - Temperatur: ${profile.weather.temperature}°C
+      - Luftfuktighet: ${profile.weather.humidity}%
+      - Nederbörd: ${profile.weather.rainfall}
+      - Väderlek: ${profile.weather.forecast}
+      - Vind: ${profile.weather.windSpeed} m/s ${profile.weather.windDirection}
+      - Tryck: ${profile.weather.pressure} hPa
+      - UV-index: ${profile.weather.uvIndex}
+      - Soluppgång: ${profile.weather.sunrise}
+      - Solnedgång: ${profile.weather.sunset}
+      ` : '';
+
+      const forecastContext = profile.forecast && profile.forecast.length > 0 ? `
+      Väderprognos (nästa ${profile.forecast.length} dagar):
+      ${profile.forecast.map(day => `- ${new Date(day.date).toLocaleDateString('sv-SE', { weekday: 'long' })}: ${day.temperature.min}°C - ${day.temperature.max}°C, ${day.weather}, ${day.rainfall}mm regn, ${day.windSpeed} m/s vind`).join('\n')}
+      ` : '';
+
+      const warningsContext = profile.extremeWeatherWarnings && profile.extremeWeatherWarnings.length > 0 ? `
+      EXTREMA VÄDERVIKTIGA VARNINGAR:
+      ${profile.extremeWeatherWarnings.join('\n')}
+      ` : '';
+
       const prompt = `Skapa 3-5 dagliga beredskapstips för en familj i Sverige. 
 
       Användarprofil:
@@ -379,8 +422,11 @@ Svara på svenska med praktiska råd baserat på diagnosen. Var hjälpsam och ge
       - Föredragna grödor: ${profile.preferences.join(', ')}
       - Nuvarande grödor: ${profile.currentCrops.join(', ')}
       - Hushållsstorlek: ${profile.householdSize || 2}
+      ${weatherContext}
+      ${forecastContext}
+      ${warningsContext}
       
-      Skapa praktiska, dagliga tips på svenska. Svara med JSON-format:
+      Skapa praktiska, dagliga tips på svenska som tar hänsyn till aktuellt väder och kommande väderförhållanden. Fokusera särskilt på frostvarningar och extrema väderförhållanden. Svara med JSON-format:
       [
         {
           "id": "unique-id",
@@ -440,6 +486,29 @@ Svara på svenska med praktiska råd baserat på diagnosen. Var hjälpsam och ge
     chatHistory: any[];
   }): Promise<string> {
     try {
+      const weatherContext = context.userProfile.weather ? `
+      Aktuellt väder:
+      - Temperatur: ${context.userProfile.weather.temperature}°C
+      - Luftfuktighet: ${context.userProfile.weather.humidity}%
+      - Nederbörd: ${context.userProfile.weather.rainfall}
+      - Väderlek: ${context.userProfile.weather.forecast}
+      - Vind: ${context.userProfile.weather.windSpeed} m/s ${context.userProfile.weather.windDirection}
+      - Tryck: ${context.userProfile.weather.pressure} hPa
+      - UV-index: ${context.userProfile.weather.uvIndex}
+      - Soluppgång: ${context.userProfile.weather.sunrise}
+      - Solnedgång: ${context.userProfile.weather.sunset}
+      ` : '';
+
+      const forecastContext = context.userProfile.forecast && context.userProfile.forecast.length > 0 ? `
+      Väderprognos (nästa ${context.userProfile.forecast.length} dagar):
+      ${context.userProfile.forecast.map(day => `- ${new Date(day.date).toLocaleDateString('sv-SE', { weekday: 'long' })}: ${day.temperature.min}°C - ${day.temperature.max}°C, ${day.weather}, ${day.rainfall}mm regn, ${day.windSpeed} m/s vind`).join('\n')}
+      ` : '';
+
+      const warningsContext = context.userProfile.extremeWeatherWarnings && context.userProfile.extremeWeatherWarnings.length > 0 ? `
+      EXTREMA VÄDERVIKTIGA VARNINGAR:
+      ${context.userProfile.extremeWeatherWarnings.join('\n')}
+      ` : '';
+
       const prompt = `Du är en personlig AI-coach för krisberedskap och självförsörjning i Sverige. 
 
       Användarprofil:
@@ -449,6 +518,9 @@ Svara på svenska med praktiska råd baserat på diagnosen. Var hjälpsam och ge
       - Föredragna grödor: ${context.userProfile.preferences.join(', ')}
       - Nuvarande grödor: ${context.userProfile.currentCrops.join(', ')}
       - Hushållsstorlek: ${context.userProfile.householdSize || 2}
+      ${weatherContext}
+      ${forecastContext}
+      ${warningsContext}
 
       Användarens fråga: ${context.userQuestion}
 
@@ -459,7 +531,9 @@ Svara på svenska med praktiska råd baserat på diagnosen. Var hjälpsam och ge
       - Vara hjälpsam och stödjande i svensk kriskommunikationsstil
       - Ge specifika åtgärder när möjligt med svenska myndighetsreferenser
       - Håll svaret koncist men informativt (max 300 ord)
-      - Använd svenska krisberedskapsterminologi och MSB-rekommendationer`;
+      - Använd svenska krisberedskapsterminologi och MSB-rekommendationer
+      - Fokusera särskilt på kommande väderförhållanden och extrema väderhändelser
+      - Ge konkreta råd baserat på väderprognos och varningar`;
 
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
