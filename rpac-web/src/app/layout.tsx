@@ -4,6 +4,7 @@ import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Navigation } from '@/components/navigation';
 import { t } from '@/lib/locales';
+import '@/lib/env-test'; // Test environment variables
 
 const inter = Inter({ subsets: ['latin'] });
 

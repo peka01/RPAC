@@ -1,4 +1,5 @@
 import { swedishPlantDatabase, getPlantById, getDiseaseInfo, getPestInfo } from './swedish-plant-database';
+import { getOpenAIApiKey, initializeRuntimeConfig } from './runtime-config';
 
 export interface PlantDiagnosisResult {
   plantName: string;
@@ -98,9 +99,19 @@ export class SecureOpenAIService {
       throw new Error('Rate limit exceeded. Please wait before making another request.');
     }
 
-    // Check if API key is available
-    const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+    // Initialize runtime config if not already done
+    initializeRuntimeConfig();
+    
+    // Get API key from runtime configuration
+    const apiKey = getOpenAIApiKey();
+    
     if (!apiKey) {
+      console.error('OpenAI API key not found. Environment check:', {
+        hasProcessEnv: !!process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+        hasWindow: typeof window !== 'undefined',
+        availableKeys: Object.keys(process.env).filter(k => k.includes('OPENAI')),
+        runtimeConfig: getOpenAIApiKey()
+      });
       throw new Error('OpenAI API key not configured');
     }
 
