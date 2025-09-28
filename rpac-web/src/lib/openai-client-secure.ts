@@ -69,7 +69,7 @@ export class SecureOpenAIService {
     }
 
     try {
-      const response = await fetch(`/functions/openai/${endpoint}`, {
+      const response = await fetch(`/api/${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

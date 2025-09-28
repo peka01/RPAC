@@ -1,5 +1,5 @@
-// Cloudflare Function for OpenAI coach responses
-export async function onRequestPost(context) {
+// Cloudflare Pages Function for OpenAI coach responses
+export async function onRequest(context) {
   const { request, env } = context;
   
   try {
