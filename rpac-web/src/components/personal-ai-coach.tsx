@@ -293,7 +293,11 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
       const aiResponse = await SecureOpenAIService.generatePersonalCoachResponse({
         userProfile: profile,
         userQuestion: newMessage.trim(),
-        chatHistory: chatMessages.slice(-5) // Last 5 messages for context
+        chatHistory: chatMessages.slice(-5).map(msg => ({
+          sender: msg.type,
+          message: msg.content,
+          timestamp: msg.timestamp.toISOString()
+        })) // Last 5 messages for context
       });
       
       const aiMessage: ChatMessage = {

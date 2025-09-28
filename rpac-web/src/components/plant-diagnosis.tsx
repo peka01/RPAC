@@ -149,7 +149,11 @@ export function PlantDiagnosis() {
       const aiResponse = await SecureOpenAIService.generatePersonalCoachResponse({
         userProfile: { climateZone: 'svealand', experienceLevel: 'beginner', gardenSize: 'medium', preferences: [], currentCrops: [] },
         userQuestion: newMessage.trim(),
-        chatHistory: messages.slice(-5)
+        chatHistory: messages.slice(-5).map(msg => ({
+          sender: msg.type,
+          message: msg.content,
+          timestamp: msg.timestamp.toISOString()
+        }))
       });
       
       const aiMessage: ChatMessage = {

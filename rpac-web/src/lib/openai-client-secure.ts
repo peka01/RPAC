@@ -1,5 +1,4 @@
 import { swedishPlantDatabase, getPlantById, getDiseaseInfo, getPestInfo } from './swedish-plant-database';
-import { APIKeyManager } from './api-key-manager';
 
 export interface PlantDiagnosisResult {
   plantName: string;
@@ -20,7 +19,6 @@ export interface CultivationAdvice {
   action?: string;
   timeframe?: string;
   icon: string;
-  plant?: string;
   category?: string;
   season?: string;
   difficulty?: string;
@@ -31,289 +29,119 @@ export interface CultivationAdvice {
 }
 
 export interface UserProfile {
-  climateZone: string;
-  experienceLevel: 'beginner' | 'intermediate' | 'advanced' | 'expert';
-  gardenSize: 'small' | 'medium' | 'large';
-  preferences: string[];
-  currentCrops: string[];
-  householdSize?: number;
-  hasChildren?: boolean;
-  hasElderly?: boolean;
-  weather?: {
-    temperature: number;
-    humidity: number;
-    rainfall: string;
-    forecast: string;
-    windSpeed: number;
-    windDirection: string;
-    pressure: number;
-    uvIndex: number;
-    sunrise: string;
-    sunset: string;
-  } | null;
-  forecast?: Array<{
-    date: string;
-    temperature: { min: number; max: number };
-    weather: string;
-    rainfall: number;
-    windSpeed: number;
-  }>;
-  extremeWeatherWarnings?: string[];
+  climateZone?: 'gotaland' | 'svealand' | 'norrland';
+  experienceLevel?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  gardenSize?: 'small' | 'medium' | 'large';
+  county?: string;
+  city?: string;
+  preferences?: string[];
+  currentCrops?: string[];
 }
 
 export class SecureOpenAIService {
-  private static readonly RATE_LIMIT_KEY = 'openai_rate_limit';
-  private static readonly RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
-  private static readonly MAX_REQUESTS_PER_WINDOW = 5;
-
   /**
-   * Check rate limiting to prevent abuse
+   * Rate limiting check (5 requests per minute)
    */
   private static checkRateLimit(): boolean {
     const now = Date.now();
-    const stored = localStorage.getItem(this.RATE_LIMIT_KEY);
-    
-    if (!stored) {
-      localStorage.setItem(this.RATE_LIMIT_KEY, JSON.stringify([now]));
-      return true;
-    }
+    const oneMinuteAgo = now - 60 * 1000;
+    const requests = JSON.parse(localStorage.getItem('openai_requests') || '[]');
 
-    const requests: number[] = JSON.parse(stored);
-    const validRequests = requests.filter(time => now - time < this.RATE_LIMIT_WINDOW);
-    
-    if (validRequests.length >= this.MAX_REQUESTS_PER_WINDOW) {
+    const recentRequests = requests.filter((timestamp: number) => timestamp > oneMinuteAgo);
+
+    if (recentRequests.length >= 5) {
+      console.warn('OpenAI API rate limit exceeded. Please wait a moment.');
       return false;
     }
 
-    validRequests.push(now);
-    localStorage.setItem(this.RATE_LIMIT_KEY, JSON.stringify(validRequests));
+    recentRequests.push(now);
+    localStorage.setItem('openai_requests', JSON.stringify(recentRequests));
     return true;
   }
 
   /**
-   * Secure API call with rate limiting and error handling
+   * Call Cloudflare Function with rate limiting
    */
-  private static async makeSecureAPICall(messages: any[], maxTokens: number = 1000): Promise<string> {
+  private static async callCloudflareFunction(endpoint: string, body: any): Promise<any> {
     // Check rate limiting
     if (!this.checkRateLimit()) {
       throw new Error('Rate limit exceeded. Please wait before making another request.');
     }
 
-    // Get API key from user configuration
-    const apiKey = APIKeyManager.getAPIKey();
-    
-    if (!apiKey) {
-      console.error('OpenAI API key not configured. Please add your API key in Settings.');
-      throw new Error('OpenAI API key not configured. Please add your API key in Settings.');
-    }
-
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const response = await fetch(`/functions/openai/${endpoint}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages,
-          max_tokens: maxTokens,
-          temperature: 0.7,
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {
-        if (response.status === 429) {
-          throw new Error('Rate limit exceeded. Please try again later.');
-        }
-        if (response.status === 401) {
-          throw new Error('Invalid API key. Please check your configuration.');
-        }
-        throw new Error(`API error: ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(errorData.error || `API error: ${response.status}`);
       }
 
-      const data = await response.json();
-      return data.choices[0]?.message?.content || 'No response generated';
+      return await response.json();
     } catch (error) {
-      console.error('OpenAI API error:', error);
+      console.error('Cloudflare Function call failed:', error);
       throw error;
     }
   }
 
   /**
-   * Generate daily preparedness tips with security measures
+   * Generate daily preparedness tips using Cloudflare Functions
    */
-  static async generateDailyPreparednessTips(profile: UserProfile): Promise<CultivationAdvice[]> {
+  static async generateDailyPreparednessTips(userProfile: UserProfile): Promise<CultivationAdvice[]> {
     try {
-      const weatherContext = profile.weather ? `
-      Aktuellt väder:
-      - Temperatur: ${profile.weather.temperature}°C
-      - Luftfuktighet: ${profile.weather.humidity}%
-      - Nederbörd: ${profile.weather.rainfall}
-      - Väderlek: ${profile.weather.forecast}
-      - Vind: ${profile.weather.windSpeed} m/s ${profile.weather.windDirection}
-      ` : '';
-
-      const forecastContext = profile.forecast && profile.forecast.length > 0 ? `
-      Väderprognos (nästa ${profile.forecast.length} dagar):
-      ${profile.forecast.map((day: any) => `- ${new Date(day.date).toLocaleDateString('sv-SE', { weekday: 'long' })}: ${day.temperature.min}°C - ${day.temperature.max}°C, ${day.weather}`).join('\n')}
-      ` : '';
-
-      const warningsContext = profile.extremeWeatherWarnings && profile.extremeWeatherWarnings.length > 0 ? `
-      EXTREMA VÄDERVIKTIGA VARNINGAR:
-      ${profile.extremeWeatherWarnings.join('\n')}
-      ` : '';
-
-      const messages = [
-        {
-          role: 'system',
-          content: 'Du är en svensk krisberedskapsexpert och odlingsexpert. Ge praktiska, säkra råd på svenska för svenska familjer. Fokusera på MSB:s rekommendationer och svenska förhållanden.'
-        },
-        {
-          role: 'user',
-          content: `Skapa 3-5 dagliga beredskapstips för en familj i Sverige.
-
-          Användarprofil:
-          - Klimatzon: ${profile.climateZone}
-          - Erfarenhet: ${profile.experienceLevel}
-          - Trädgårdsstorlek: ${profile.gardenSize}
-          - Föredragna grödor: ${profile.preferences.join(', ')}
-          - Nuvarande grödor: ${profile.currentCrops.join(', ')}
-          - Hushållsstorlek: ${profile.householdSize || 2}
-          ${weatherContext}
-          ${forecastContext}
-          ${warningsContext}
-          
-          Svara med JSON-format:
-          [
-            {
-              "id": "unique-id",
-              "type": "tip|warning|reminder|achievement",
-              "priority": "high|medium|low",
-              "title": "Tipset titel",
-              "description": "Beskrivning av tipset",
-              "action": "Åtgärd att vidta",
-              "timeframe": "När att göra",
-              "icon": "emoji",
-              "category": "preparedness|cultivation|weather|safety",
-              "difficulty": "beginner|intermediate|advanced",
-              "estimatedTime": "Tidsuppskattning",
-              "tools": ["verktyg1", "verktyg2"],
-              "steps": ["steg1", "steg2"],
-              "tips": ["tips1", "tips2"]
-            }
-          ]`
-        }
-      ];
-
-      const response = await this.makeSecureAPICall(messages, 2000);
-      
-      try {
-        const tips = JSON.parse(response);
-        return Array.isArray(tips) ? tips : this.getFallbackAdvice();
-      } catch (parseError) {
-        console.error('Failed to parse AI response:', parseError);
-        return this.getFallbackAdvice();
-      }
+      const result = await this.callCloudflareFunction('daily-tips', { userProfile });
+      return result;
     } catch (error) {
-      console.error('Daily tips generation error:', error);
+      console.error('Error generating daily tips:', error);
       return this.getFallbackAdvice();
     }
   }
 
   /**
-   * Generate personal coach response with security measures
+   * Generate personal coach response using Cloudflare Functions
    */
-  static async generatePersonalCoachResponse(context: {
+  static async generatePersonalCoachResponse({
+    userProfile,
+    userQuestion,
+    chatHistory = []
+  }: {
     userProfile: UserProfile;
     userQuestion: string;
-    chatHistory: any[];
+    chatHistory?: Array<{ sender: string; message: string; timestamp: string }>;
   }): Promise<string> {
     try {
-      const weatherContext = context.userProfile.weather ? `
-      Aktuellt väder: ${context.userProfile.weather.temperature}°C, ${context.userProfile.weather.forecast}
-      ` : '';
-
-      const messages = [
-        {
-          role: 'system',
-          content: 'Du är en svensk krisberedskapsexpert och personlig coach. Svara på svenska med praktiska råd baserat på MSB:s rekommendationer. Håll svaret koncist (max 300 ord).'
-        },
-        {
-          role: 'user',
-          content: `Användarprofil:
-          - Klimatzon: ${context.userProfile.climateZone}
-          - Erfarenhet: ${context.userProfile.experienceLevel}
-          - Trädgårdsstorlek: ${context.userProfile.gardenSize}
-          ${weatherContext}
-          
-          Fråga: ${context.userQuestion}
-          
-          Ge ett praktiskt svar på svenska med fokus på svenska förhållanden och MSB:s rekommendationer.`
-        }
-      ];
-
-      return await this.makeSecureAPICall(messages, 500);
+      const result = await this.callCloudflareFunction('coach-response', {
+        userProfile,
+        userQuestion,
+        chatHistory
+      });
+      return result.response;
     } catch (error) {
-      console.error('Personal coach error:', error);
-      return 'Jag kan tyvärr inte svara på din fråga just nu. Kontrollera väderprognosen på SMHI.se och se till att ha tillräckligt med förnödenheter hemma.';
+      console.error('Error generating coach response:', error);
+      return 'Jag beklagar, men jag kunde inte generera ett svar just nu. Försök igen senare.';
     }
   }
 
   /**
-   * Analyze plant image with security measures
+   * Analyze plant image using Cloudflare Functions
    */
-  static async analyzePlantImage(imageBase64: string, userProfile?: UserProfile): Promise<PlantDiagnosisResult> {
+  static async analyzePlantImage(
+    imageData: string,
+    userProfile: UserProfile = { climateZone: 'svealand', experienceLevel: 'beginner', gardenSize: 'medium' }
+  ): Promise<PlantDiagnosisResult> {
     try {
-      const messages = [
-        {
-          role: 'system',
-          content: 'Du är en svensk växtexpert. Analysera växtbilder och ge diagnoser på svenska. Fokusera på svenska växter och odlingsförhållanden.'
-        },
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: `Analysera denna växtbild och identifiera eventuella problem. Fokusera på svenska växter och odlingsförhållanden.
-              
-              Användarprofil:
-              - Klimatzon: ${userProfile?.climateZone || 'svealand'}
-              - Erfarenhet: ${userProfile?.experienceLevel || 'beginner'}
-              - Trädgårdsstorlek: ${userProfile?.gardenSize || 'medium'}
-              
-              Svara med JSON-format:
-              {
-                "plantName": "Växtens namn",
-                "scientificName": "Vetenskapligt namn",
-                "healthStatus": "healthy|disease|pest|nutrient_deficiency",
-                "confidence": 0.85,
-                "description": "Beskrivning av växtens tillstånd",
-                "recommendations": ["Rekommendation 1", "Rekommendation 2"],
-                "severity": "low|medium|high"
-              }`
-            },
-            {
-              type: 'image_url',
-              image_url: {
-                url: `data:image/jpeg;base64,${imageBase64}`
-              }
-            }
-          ]
-        }
-      ];
-
-      const response = await this.makeSecureAPICall(messages, 1000);
-      
-      try {
-        const diagnosis = JSON.parse(response);
-        return diagnosis;
-      } catch (parseError) {
-        console.error('Failed to parse plant diagnosis:', parseError);
-        return this.getFallbackDiagnosis();
-      }
+      const result = await this.callCloudflareFunction('plant-diagnosis', {
+        imageData,
+        userProfile
+      });
+      return result;
     } catch (error) {
-      console.error('Plant diagnosis error:', error);
+      console.error('Error analyzing plant image:', error);
       return this.getFallbackDiagnosis();
     }
   }
@@ -321,29 +149,24 @@ export class SecureOpenAIService {
   /**
    * Fallback advice when AI is unavailable
    */
-  private static getFallbackAdvice(): CultivationAdvice[] {
-    const currentMonth = new Date().getMonth() + 1;
-    const season = currentMonth >= 3 && currentMonth <= 5 ? 'spring' : 
-                  currentMonth >= 6 && currentMonth <= 8 ? 'summer' : 
-                  currentMonth >= 9 && currentMonth <= 11 ? 'autumn' : 'winter';
-
+  static getFallbackAdvice(): CultivationAdvice[] {
     return [
       {
         id: 'fallback-1',
         type: 'tip',
-        priority: 'medium',
-        title: 'Kontrollera väderprognosen',
-        description: 'Titta på väderprognosen för de kommande dagarna för att planera din odling.',
-        action: 'Kontrollera SMHI:s väderprognos',
-        timeframe: 'Dagligen',
-        icon: '🌤️',
-        category: 'weather',
-        season: season,
+        priority: 'high',
+        title: 'Kontrollera dina förnödenheter',
+        description: 'Se till att du har tillräckligt med mat och vatten för minst 3 dagar.',
+        action: 'Inventera ditt förråd',
+        timeframe: 'Veckovis',
+        icon: '🚨',
+        category: 'preparedness',
+        season: 'all',
         difficulty: 'beginner',
-        estimatedTime: '5 minuter',
-        tools: ['Internetanslutning', 'SMHI-app'],
-        steps: ['Öppna SMHI:s webbplats', 'Kontrollera 5-dagars prognos', 'Planera odlingsaktiviteter'],
-        tips: ['Fokusera på frostvarningar under våren', 'Undvik vattning vid regnprognos']
+        estimatedTime: '30 minuter',
+        tools: ['Förteckning över förnödenheter'],
+        steps: ['Kontrollera matförråd', 'Kontrollera vattenförråd', 'Uppdatera beredskapslista'],
+        tips: ['Fokusera på icke-perishable mat', 'Ha minst 3 liter vatten per person per dag']
       },
       {
         id: 'fallback-2',
@@ -361,6 +184,23 @@ export class SecureOpenAIService {
         tools: ['Förteckning över förnödenheter'],
         steps: ['Inventera matförråd', 'Kontrollera vattenförråd', 'Uppdatera beredskapslista'],
         tips: ['Fokusera på icke-perishable mat', 'Ha minst 3 liter vatten per person per dag']
+      },
+      {
+        id: 'fallback-3',
+        type: 'tip',
+        priority: 'medium',
+        title: 'Plantera för säsongen',
+        description: 'Kontrollera vilka grönsaker som kan planteras nu baserat på din klimatzon.',
+        action: 'Kontrollera odlingskalender',
+        timeframe: 'Månadsvis',
+        icon: '🌱',
+        category: 'cultivation',
+        season: 'spring',
+        difficulty: 'beginner',
+        estimatedTime: '1 timme',
+        tools: ['Odlingskalender', 'Frön', 'Jord'],
+        steps: ['Kontrollera väderprognos', 'Förbered jord', 'Plantera frön'],
+        tips: ['Börja med enkla grönsaker som sallad', 'Kontrollera frostvarningar']
       }
     ];
   }
@@ -368,19 +208,19 @@ export class SecureOpenAIService {
   /**
    * Fallback diagnosis when AI is unavailable
    */
-  private static getFallbackDiagnosis(): PlantDiagnosisResult {
+  static getFallbackDiagnosis(): PlantDiagnosisResult {
     return {
-      plantName: 'AI-diagnos inte tillgänglig',
-      scientificName: 'Unknown',
+      plantName: 'Okänd växt',
+      scientificName: 'Plant species',
       healthStatus: 'healthy',
-      confidence: 0,
-      description: 'Jag kan tyvärr inte analysera din växtbild just nu. Kontakta en lokal trädgårdsexpert eller använd växtidentifieringsappar som PlantNet.',
+      confidence: 0.5,
+      description: 'Jag kunde inte analysera bilden just nu. Försök igen senare eller kontakta en lokal odlingsexpert.',
       recommendations: [
-        'Ta en tydlig bild av växten i dagsljus',
-        'Kontrollera jordens fuktighet',
-        'Undersök bladens färg och form noggrant'
+        'Kontrollera regelbundet för skadedjur',
+        'Se till att växten får tillräckligt med vatten',
+        'Kontrollera att jorden har bra dränering'
       ],
-      severity: 'medium'
+      severity: 'low'
     };
   }
 }
