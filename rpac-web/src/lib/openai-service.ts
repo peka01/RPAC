@@ -1,13 +1,4 @@
-import OpenAI from 'openai';
-import { config } from './config';
 import { swedishPlantDatabase, getPlantById, getDiseaseInfo, getPestInfo } from './swedish-plant-database';
-
-// Initialize OpenAI
-console.log('OpenAI API Key:', config.openai.apiKey ? 'Present' : 'Missing');
-const openai = new OpenAI({
-  apiKey: config.openai.apiKey,
-  dangerouslyAllowBrowser: true // Required for client-side usage
-});
 
 export interface PlantDiagnosisResult {
   plantName: string;
