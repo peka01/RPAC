@@ -11,13 +11,23 @@ const getOpenAI = () => {
   });
 };
 
+export async function GET() {
+  return NextResponse.json({ message: 'Plant diagnosis API is working' });
+}
+
 export async function POST(request: NextRequest) {
   try {
     if (!process.env.NEXT_PUBLIC_OPENAI_API_KEY) {
-      return NextResponse.json(
-        { error: 'OpenAI API key not configured' },
-        { status: 500 }
-      );
+      return NextResponse.json({
+        diagnosis: 'AI-diagnos inte tillgänglig',
+        description: 'Jag kan tyvärr inte analysera din växtbild just nu. Kontakta en lokal trädgårdsexpert eller använd växtidentifieringsappar som PlantNet.',
+        recommendations: [
+          'Ta en tydlig bild av växten i dagsljus',
+          'Kontrollera jordens fuktighet',
+          'Undersök bladens färg och form noggrant'
+        ],
+        severity: 'medium'
+      });
     }
 
     const { imageBase64, userProfile } = await request.json();

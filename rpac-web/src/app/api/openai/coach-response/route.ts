@@ -11,13 +11,21 @@ const getOpenAI = () => {
   });
 };
 
+export async function GET() {
+  return NextResponse.json({ message: 'Coach response API is working' });
+}
+
 export async function POST(request: NextRequest) {
   try {
     if (!process.env.NEXT_PUBLIC_OPENAI_API_KEY) {
-      return NextResponse.json(
-        { error: 'OpenAI API key not configured' },
-        { status: 500 }
-      );
+      return NextResponse.json({
+        response: 'Jag kan tyvärr inte svara på din fråga just nu eftersom AI-tjänsten inte är tillgänglig. Försök igen senare eller kontakta en expert för vidare hjälp.',
+        suggestions: [
+          'Kontrollera väderprognosen på SMHI.se',
+          'Se till att ha tillräckligt med förnödenheter hemma',
+          'Plantera grödor som passar din klimatzon'
+        ]
+      });
     }
 
     const { userProfile, userQuestion, chatHistory } = await request.json();

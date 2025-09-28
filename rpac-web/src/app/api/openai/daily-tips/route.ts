@@ -11,13 +11,49 @@ const getOpenAI = () => {
   });
 };
 
+export async function GET() {
+  return NextResponse.json({ message: 'Daily tips API is working' });
+}
+
 export async function POST(request: NextRequest) {
+  console.log('Daily tips API route called');
   try {
     if (!process.env.NEXT_PUBLIC_OPENAI_API_KEY) {
-      return NextResponse.json(
-        { error: 'OpenAI API key not configured' },
-        { status: 500 }
-      );
+      console.log('OpenAI API key not configured - returning fallback tips');
+      return NextResponse.json([
+        {
+          id: 'fallback-1',
+          type: 'tip',
+          priority: 'medium',
+          title: 'Kontrollera väderprognosen',
+          description: 'Kolla SMHI:s väderprognos för de kommande dagarna, särskilt för frostvarningar.',
+          action: 'Besök smhi.se eller använd väderappen',
+          timeframe: 'Dagligen',
+          icon: '🌤️',
+          category: 'weather',
+          difficulty: 'beginner',
+          estimatedTime: '2 minuter',
+          tools: ['Smartphone', 'Internet'],
+          steps: ['Öppna SMHI:s webbplats', 'Kontrollera 5-dagars prognos', 'Notera extrema väderhändelser'],
+          tips: ['Sätt på notifieringar för vädervarningar', 'Kontrollera särskilt på morgonen']
+        },
+        {
+          id: 'fallback-2',
+          type: 'reminder',
+          priority: 'high',
+          title: 'Förbered för kriser',
+          description: 'Se till att ha tillräckligt med mat, vatten och mediciner hemma.',
+          action: 'Kontrollera förråd och fyll på vid behov',
+          timeframe: 'Veckovis',
+          icon: '🏠',
+          category: 'preparedness',
+          difficulty: 'beginner',
+          estimatedTime: '30 minuter',
+          tools: ['Lista', 'Pengar'],
+          steps: ['Inventera nuvarande förråd', 'Identifiera brister', 'Handla saknade varor'],
+          tips: ['Fokusera på icke-förderbara varor', 'Inkludera mediciner och hygienartiklar']
+        }
+      ]);
     }
 
     const { profile } = await request.json();
