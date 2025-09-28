@@ -26,6 +26,7 @@ import {
   Sun as SunIcon
 } from 'lucide-react';
 import { UserProfile } from '@/components/user-profile';
+import { APIKeySettings } from '@/components/api-key-settings';
 import { useUserProfile } from '@/lib/useUserProfile';
 import { supabase } from '@/lib/supabase';
 import { t } from '@/lib/locales';
@@ -145,6 +146,7 @@ export default function SettingsPage() {
   const tabs = [
     { id: 'profile', label: 'Profil', icon: User },
     { id: 'cultivation', label: 'Odlingsprofil', icon: Sprout },
+    { id: 'api', label: 'AI & API', icon: SettingsIcon },
     { id: 'security', label: 'Säkerhet', icon: Lock },
     { id: 'notifications', label: 'Notifieringar', icon: Bell },
     { id: 'privacy', label: 'Integritet', icon: Shield },
@@ -538,6 +540,13 @@ export default function SettingsPage() {
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* API Key Tab */}
+            {activeTab === 'api' && (
+              <div className="space-y-6">
+                <APIKeySettings />
               </div>
             )}
 
