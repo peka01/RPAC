@@ -179,7 +179,7 @@ export function Navigation() {
             <Link href="/dashboard" className="flex items-center space-x-2 sm:space-x-3 hover:opacity-80 transition-opacity duration-200 touch-manipulation">
               <div className="relative">
                 <img 
-                  src="/beready-logo.png" 
+                  src="/beready-logo2.png" 
                   alt="BE READY" 
                   className={`transition-all duration-300 ${
                     isScrolled ? 'h-8 w-auto' : 'h-10 w-auto sm:h-12'

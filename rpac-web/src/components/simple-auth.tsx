@@ -168,7 +168,7 @@ export function SimpleAuth() {
         >
           <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white p-1">
             <img 
-              src="/beready-logo.png" 
+              src="/beready-logo2.png" 
               alt="BE READY" 
               className="h-6 w-auto"
             />
@@ -302,7 +302,7 @@ export function SimpleAuth() {
         <div className="text-center mb-6">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center bg-white p-3">
             <img 
-              src="/beready-logo.png" 
+              src="/beready-logo2.png" 
               alt="BE READY" 
               className="h-10 w-auto"
             />

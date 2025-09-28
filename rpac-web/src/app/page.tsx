@@ -129,7 +129,7 @@ export default function LoginPage() {
           <div className="text-center">
             <div className="flex justify-center mb-4">
               <img 
-                src="/beready-logo.png" 
+                src="/beready-logo2.png" 
                 alt="BE READY" 
                 className="h-16 w-auto"
               />
@@ -169,7 +169,7 @@ export default function LoginPage() {
                style={{ backgroundColor: 'var(--color-primary)', color: 'white' }}>
             <div className="flex justify-center">
               <img 
-                src="/beready-logo.png" 
+                src="/beready-logo2.png" 
                 alt="BE READY" 
                 className="h-10 w-auto"
               />

@@ -88,7 +88,7 @@ export function WelcomeScreen() {
             <div className="relative mb-8">
               <div className="w-32 h-32 mx-auto rounded-3xl flex items-center justify-center shadow-2xl bg-white p-6">
                 <img 
-                  src="/beready-logo.png" 
+                  src="/beready-logo2.png" 
                   alt="BE READY" 
                   className="h-20 w-auto"
                 />
