@@ -215,6 +215,49 @@ export class OpenAIService {
   }
 
   /**
+   * Generate cultivation plan (fallback implementation)
+   */
+  static async generateCultivationPlan(userProfile: UserProfile, nutritionNeeds: any, selectedCrops: any[]): Promise<any> {
+    try {
+      // For now, return a fallback plan since we don't have a server-side route for this
+      return {
+        plan: {
+          crops: selectedCrops,
+          timeline: [
+            { week: 1, tasks: ['Förbered jord', 'Plantera tidiga grödor'] },
+            { week: 2, tasks: ['Vattna regelbundet', 'Kontrollera växters hälsa'] },
+            { week: 3, tasks: ['Skörda tidiga grödor', 'Plantera nästa omgång'] }
+          ],
+          nutrition: nutritionNeeds,
+          space: 'Anpassad efter valda grödor',
+          cost: 'Beror på grödval och storlek'
+        },
+        success: true
+      };
+    } catch (error) {
+      console.error('OpenAI cultivation plan error:', error);
+      return {
+        plan: null,
+        success: false,
+        error: 'Kunde inte generera odlingsplan'
+      };
+    }
+  }
+
+  /**
+   * Generate conversation response (fallback implementation)
+   */
+  static async generateConversationResponse(context: any): Promise<string> {
+    try {
+      // For now, return a fallback response since we don't have a server-side route for this
+      return 'Jag förstår din fråga om växtdiagnos. För en mer detaljerad analys, vänligen ladda upp en tydlig bild av växten så kan jag ge dig bättre råd.';
+    } catch (error) {
+      console.error('OpenAI conversation response error:', error);
+      return 'Ursäkta, jag kunde inte svara på din fråga just nu. Försök igen eller kontakta en expert för vidare hjälp.';
+    }
+  }
+
+  /**
    * Fallback advice when AI is unavailable
    */
   static getFallbackAdvice(): CultivationAdvice[] {

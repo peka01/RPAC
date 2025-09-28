@@ -15,7 +15,7 @@ import {
   User
 } from 'lucide-react';
 import { t } from '@/lib/locales';
-import { OpenAIService } from '@/lib/openai-service';
+import { OpenAIService } from '@/lib/openai-service-server';
 
 interface DiagnosisResult {
   plantName: string;

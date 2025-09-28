@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     const forecastContext = profile.forecast && profile.forecast.length > 0 ? `
     Väderprognos (nästa ${profile.forecast.length} dagar):
-    ${profile.forecast.map(day => `- ${new Date(day.date).toLocaleDateString('sv-SE', { weekday: 'long' })}: ${day.temperature.min}°C - ${day.temperature.max}°C, ${day.weather}, ${day.rainfall}mm regn, ${day.windSpeed} m/s vind`).join('\n')}
+    ${profile.forecast.map((day: any) => `- ${new Date(day.date).toLocaleDateString('sv-SE', { weekday: 'long' })}: ${day.temperature.min}°C - ${day.temperature.max}°C, ${day.weather}, ${day.rainfall}mm regn, ${day.windSpeed} m/s vind`).join('\n')}
     ` : '';
 
     const warningsContext = profile.extremeWeatherWarnings && profile.extremeWeatherWarnings.length > 0 ? `
