@@ -15,7 +15,6 @@ import {
   Shield,
   MessageCircle
 } from 'lucide-react';
-import { RPACLogo } from './rpac-logo';
 import { t } from '@/lib/locales';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -179,34 +178,19 @@ export function Navigation() {
             {/* Authority Logo - Mobile Optimized */}
             <Link href="/dashboard" className="flex items-center space-x-2 sm:space-x-3 hover:opacity-80 transition-opacity duration-200 touch-manipulation">
               <div className="relative">
-                <div className={`flex items-center justify-center rounded-lg shadow-md p-2 transition-all duration-300 ${
-                  isScrolled ? 'w-8 h-8' : 'w-10 h-10 sm:w-12 sm:h-12'
-                }`} style={{ 
-                  background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)' 
-                }}>
-                  <RPACLogo size={isScrolled ? "sm" : "md"} className="text-white" />
-                </div>
+                <img 
+                  src="/beready-logo.png" 
+                  alt="BE READY" 
+                  className={`transition-all duration-300 ${
+                    isScrolled ? 'h-8 w-auto' : 'h-10 w-auto sm:h-12'
+                  }`}
+                />
                 {/* Professional status indicator */}
                 <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full transition-all duration-500 ${
                   communityPulse ? 'scale-110' : 'scale-100'
                 }`} style={{ backgroundColor: 'var(--color-success)' }}>
                   <div className="absolute inset-0 rounded-full animate-pulse opacity-75" style={{ backgroundColor: 'var(--color-success)' }}></div>
                 </div>
-              </div>
-              <div className="hidden sm:block">
-                <h1 className={`font-bold transition-all duration-300 ${
-                  isScrolled ? 'text-2xl' : 'text-4xl'
-                }`} style={{ color: 'var(--text-primary)' }}>
-                  BE<span className="mx-1">•</span>READY
-                </h1>
-              </div>
-              {/* Mobile-only title */}
-              <div className="sm:hidden">
-                <h1 className={`font-bold transition-all duration-300 ${
-                  isScrolled ? 'text-xl' : 'text-2xl'
-                }`} style={{ color: 'var(--text-primary)' }}>
-                  BE<span className="mx-1">•</span>READY
-                </h1>
               </div>
             </Link>
 

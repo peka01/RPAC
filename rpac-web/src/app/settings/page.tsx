@@ -25,7 +25,6 @@ import {
   Droplets,
   Sun as SunIcon
 } from 'lucide-react';
-import { RPACLogo } from '@/components/rpac-logo';
 import { UserProfile } from '@/components/user-profile';
 import { useUserProfile } from '@/lib/useUserProfile';
 import { supabase } from '@/lib/supabase';

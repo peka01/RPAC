@@ -18,7 +18,6 @@ import {
   ChevronDown,
   Settings
 } from 'lucide-react';
-import { RPACLogo } from './rpac-logo';
 
 interface OnboardingStep {
   id: string;
@@ -168,7 +167,11 @@ export function SimpleAuth() {
           className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
         >
           <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white p-1">
-            <RPACLogo size="sm" className="text-green-700" />
+            <img 
+              src="/beready-logo.png" 
+              alt="BE READY" 
+              className="h-6 w-auto"
+            />
           </div>
           <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
             {user.name}
@@ -298,7 +301,11 @@ export function SimpleAuth() {
         {/* Header */}
         <div className="text-center mb-6">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center bg-white p-3">
-            <RPACLogo size="lg" className="text-green-700" />
+            <img 
+              src="/beready-logo.png" 
+              alt="BE READY" 
+              className="h-10 w-auto"
+            />
           </div>
           <h3 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
             {isSignUp ? t('auth.create_account') : t('auth.welcome_back')}

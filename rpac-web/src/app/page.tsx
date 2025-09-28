@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { t } from '@/lib/locales';
-import { RPACLogo } from '@/components/rpac-logo';
 import { User, LogIn, UserPlus, X, AlertTriangle } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -129,7 +128,11 @@ export default function LoginPage() {
         <div className="max-w-md w-full space-y-8 p-8">
           <div className="text-center">
             <div className="flex justify-center mb-4">
-              <RPACLogo size="xl" />
+              <img 
+                src="/beready-logo.png" 
+                alt="BE READY" 
+                className="h-16 w-auto"
+              />
             </div>
             <h2 className="text-3xl font-bold mb-8" style={{ color: 'var(--text-primary)' }}>
               {t('dashboard.title')}
@@ -165,7 +168,11 @@ export default function LoginPage() {
           <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center p-3" 
                style={{ backgroundColor: 'var(--color-primary)', color: 'white' }}>
             <div className="flex justify-center">
-              <RPACLogo size="lg" />
+              <img 
+                src="/beready-logo.png" 
+                alt="BE READY" 
+                className="h-10 w-auto"
+              />
             </div>
           </div>
           <h3 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>

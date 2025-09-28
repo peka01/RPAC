@@ -10,7 +10,6 @@ import {
   CheckCircle,
   Globe
 } from 'lucide-react';
-import { RPACLogo } from './rpac-logo';
 import { t } from '@/lib/locales';
 
 interface Feature {
@@ -88,7 +87,11 @@ export function WelcomeScreen() {
           <div className="mb-16">
             <div className="relative mb-8">
               <div className="w-32 h-32 mx-auto rounded-3xl flex items-center justify-center shadow-2xl bg-white p-6">
-                <RPACLogo size="xl" className="text-green-700" />
+                <img 
+                  src="/beready-logo.png" 
+                  alt="BE READY" 
+                  className="h-20 w-auto"
+                />
               </div>
               <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full animate-bounce"></div>
               <div className="absolute -bottom-2 -left-2 w-6 h-6 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full animate-pulse"></div>
