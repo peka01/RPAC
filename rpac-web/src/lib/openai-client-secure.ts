@@ -60,7 +60,7 @@ export class SecureOpenAIService {
   }
 
   /**
-   * Call Cloudflare Function with rate limiting
+   * Call Cloudflare Function with rate limiting and fallback
    */
   private static async callCloudflareFunction(endpoint: string, body: any): Promise<any> {
     // Check rate limiting
@@ -78,14 +78,34 @@ export class SecureOpenAIService {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `API error: ${response.status}`);
+        // If Cloudflare Functions fail, throw error to trigger fallback
+        throw new Error(`Cloudflare Function error: ${response.status}`);
       }
 
       return await response.json();
     } catch (error) {
-      console.error('Cloudflare Function call failed:', error);
-      throw error;
+      console.warn('Cloudflare Function call failed, using fallback:', error);
+      // Return fallback data instead of throwing
+      return this.getFallbackResponse(endpoint, body);
+    }
+  }
+
+  /**
+   * Get fallback response when Cloudflare Functions fail
+   */
+  private static getFallbackResponse(endpoint: string, body: any): any {
+    switch (endpoint) {
+      case 'daily-tips':
+        return this.getFallbackAdvice();
+      case 'coach-response':
+        return {
+          response: 'Jag beklagar, men AI-tjänsten är inte tillgänglig just nu. Försök igen senare eller kontakta support.',
+          timestamp: new Date().toISOString()
+        };
+      case 'plant-diagnosis':
+        return this.getFallbackDiagnosis();
+      default:
+        return [];
     }
   }
 
