@@ -251,6 +251,31 @@ export function ExternalCommunication() {
     }
   };
 
+  const getPriorityStyle = (priority: EmergencyBroadcast['priority']) => {
+    switch (priority) {
+      case 'critical': return {
+        backgroundColor: 'var(--color-warning-critical-bg)',
+        borderLeftColor: 'var(--color-warning-critical)',
+        color: 'var(--color-warning-critical)'
+      };
+      case 'emergency': return {
+        backgroundColor: 'var(--color-warning-warning-bg)',
+        borderLeftColor: 'var(--color-warning-warning)',
+        color: 'var(--color-warning-warning)'
+      };
+      case 'warning': return {
+        backgroundColor: 'var(--color-warning-warning-bg)',
+        borderLeftColor: 'var(--color-warning-warning)',
+        color: 'var(--color-warning-warning)'
+      };
+      default: return {
+        backgroundColor: 'var(--color-warning-info-bg)',
+        borderLeftColor: 'var(--color-warning-info)',
+        color: 'var(--color-warning-info)'
+      };
+    }
+  };
+
   const getPriorityIcon = (priority: EmergencyBroadcast['priority']) => {
     switch (priority) {
       case 'critical':
@@ -369,15 +394,26 @@ export function ExternalCommunication() {
           <div className="space-y-3">
             {emergencyBroadcasts.map(broadcast => {
               const PriorityIcon = getPriorityIcon(broadcast.priority);
+              const priorityStyle = getPriorityStyle(broadcast.priority);
               return (
                 <div
                   key={broadcast.id}
-                  className={`border-l-4 p-4 rounded-lg overflow-hidden ${getPriorityColor(broadcast.priority)}`}
+                  className="border-l-4 p-4 rounded-lg overflow-hidden"
+                  style={{
+                    backgroundColor: priorityStyle.backgroundColor,
+                    borderLeftColor: priorityStyle.borderLeftColor
+                  }}
                 >
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2 gap-2">
                     <div className="flex items-center space-x-2 min-w-0 flex-1">
-                      <PriorityIcon className="w-5 h-5 flex-shrink-0" />
-                      <h4 className="font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+                      <PriorityIcon 
+                        className="w-5 h-5 flex-shrink-0" 
+                        style={{ color: priorityStyle.color }}
+                      />
+                      <h4 
+                        className="font-semibold truncate"
+                        style={{ color: priorityStyle.color }}
+                      >
                         {broadcast.title}
                       </h4>
                     </div>

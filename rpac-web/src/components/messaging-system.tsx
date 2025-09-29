@@ -202,7 +202,7 @@ export function MessagingSystem({ user, communityId }: MessagingSystemProps) {
 
     switch (message.priority) {
       case 'emergency':
-        return `${baseStyle} bg-red-600 text-white border-2 border-red-800`;
+        return `${baseStyle} border-l-4`; // Use border-left instead of solid background
       case 'high':
         return `${baseStyle} ${isOwn ? 'bg-orange-600 text-white' : 'bg-orange-100 text-orange-900'}`;
       case 'medium':
@@ -360,40 +360,60 @@ export function MessagingSystem({ user, communityId }: MessagingSystemProps) {
         <div className="flex-1 flex flex-col">
           {/* Meddelanden */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-3 messages-container">
-            {filteredMessages.map(message => (
-              <div key={message.id} className="flex flex-col">
-                <div className={`${getMessageStyle(message)} break-words`}>
-                  {/* Metainformation */}
-                  <div className="flex items-center justify-between mb-1 min-w-0">
-                    <span className="text-xs opacity-75 truncate">
-                      {message.sender_name}
-                    </span>
-                    <div className="flex items-center space-x-1 flex-shrink-0">
-                      {message.priority === 'emergency' && (
-                        <AlertTriangle className="w-3 h-3" />
-                      )}
-                      <span className="text-xs opacity-75 whitespace-nowrap">
-                        {new Date(message.created_at).toLocaleTimeString('sv-SE', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
+            {filteredMessages.map(message => {
+              const isEmergency = message.priority === 'emergency';
+              const messageStyle = getMessageStyle(message);
+              
+              return (
+                <div key={message.id} className="flex flex-col">
+                  <div 
+                    className={`${messageStyle} break-words`}
+                    style={isEmergency ? {
+                      backgroundColor: 'var(--color-warning-critical-bg)',
+                      borderLeftColor: 'var(--color-warning-critical)',
+                      color: 'var(--color-warning-critical)'
+                    } : {}}
+                  >
+                    {/* Metainformation */}
+                    <div className="flex items-center justify-between mb-1 min-w-0">
+                      <span className="text-xs opacity-75 truncate">
+                        {message.sender_name}
                       </span>
+                      <div className="flex items-center space-x-1 flex-shrink-0">
+                        {isEmergency && (
+                          <AlertTriangle 
+                            className="w-3 h-3" 
+                            style={{ color: 'var(--color-warning-critical)' }}
+                          />
+                        )}
+                        <span className="text-xs opacity-75 whitespace-nowrap">
+                          {new Date(message.created_at).toLocaleTimeString('sv-SE', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      </div>
                     </div>
+                    
+                    {/* Meddelandeinnehåll */}
+                    <p 
+                      className="text-sm break-words"
+                      style={isEmergency ? { color: 'var(--color-warning-critical)' } : {}}
+                    >
+                      {message.content}
+                    </p>
+                  
+                    {/* Radio-metadata */}
+                    {message.message_type === 'radio_relay' && message.metadata?.radio_frequency && (
+                      <div className="mt-1 text-xs opacity-75 flex items-center space-x-1">
+                        <Radio className="w-3 h-3 flex-shrink-0" />
+                        <span className="break-words">Frekvens: {message.metadata.radio_frequency}</span>
+                      </div>
+                    )}
                   </div>
-                  
-                  {/* Meddelandeinnehåll */}
-                  <p className="text-sm break-words">{message.content}</p>
-                  
-                  {/* Radio-metadata */}
-                  {message.message_type === 'radio_relay' && message.metadata?.radio_frequency && (
-                    <div className="mt-1 text-xs opacity-75 flex items-center space-x-1">
-                      <Radio className="w-3 h-3 flex-shrink-0" />
-                      <span className="break-words">Frekvens: {message.metadata.radio_frequency}</span>
-                    </div>
-                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
             <div ref={messagesEndRef} />
           </div>
 

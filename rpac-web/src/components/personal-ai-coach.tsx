@@ -348,10 +348,22 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
   const getPriorityBadge = (priority: string) => {
     const getBadgeStyle = (priority: string) => {
       switch (priority) {
-        case 'high': return { backgroundColor: 'var(--color-crisis-red)', color: 'white' };
-        case 'medium': return { backgroundColor: 'var(--color-crisis-orange)', color: 'white' };
-        case 'low': return { backgroundColor: 'var(--color-crisis-grey)', color: 'white' };
-        default: return { backgroundColor: 'var(--color-crisis-grey)', color: 'white' };
+        case 'high': return { 
+          backgroundColor: 'var(--color-warning-critical-bg)', 
+          color: 'var(--color-warning-critical)' 
+        };
+        case 'medium': return { 
+          backgroundColor: 'var(--color-warning-warning-bg)', 
+          color: 'var(--color-warning-warning)' 
+        };
+        case 'low': return { 
+          backgroundColor: 'var(--color-warning-info-bg)', 
+          color: 'var(--color-warning-info)' 
+        };
+        default: return { 
+          backgroundColor: 'var(--color-warning-info-bg)', 
+          color: 'var(--color-warning-info)' 
+        };
       }
     };
 
@@ -389,22 +401,38 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
 
       {/* Extreme Weather Warnings */}
       {extremeWeatherWarnings.length > 0 && (
-        <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-r-lg" style={{
-          backgroundColor: 'var(--color-crisis-red)',
-          borderColor: 'var(--color-crisis-red)',
-          color: 'white'
-        }}>
-          <div className="flex items-center mb-2">
-            <AlertTriangle className="w-5 h-5 mr-2" />
-            <h3 className="font-bold text-lg">Väderprognos - Viktiga varningar</h3>
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2 mb-3">
+            <AlertTriangle className="w-5 h-5" style={{ color: 'var(--color-warning-warning)' }} />
+            <h3 className="font-semibold text-lg" style={{ color: 'var(--text-primary)' }}>
+              Väderprognos - Viktiga varningar
+            </h3>
           </div>
-          <div className="space-y-2">
-            {extremeWeatherWarnings.map((warning, index) => (
-              <div key={index} className="text-sm font-medium">
-                {warning}
+          {extremeWeatherWarnings.map((warning, index) => (
+            <div 
+              key={index}
+              className="border-l-4 p-4 rounded-r-lg"
+              style={{
+                backgroundColor: 'var(--color-warning-warning-bg)',
+                borderLeftColor: 'var(--color-warning-warning)'
+              }}
+            >
+              <div className="flex items-start space-x-3">
+                <AlertTriangle 
+                  className="w-5 h-5 flex-shrink-0 mt-0.5" 
+                  style={{ color: 'var(--color-warning-warning)' }}
+                />
+                <div className="flex-1">
+                  <p 
+                    className="text-sm font-medium leading-relaxed"
+                    style={{ color: 'var(--color-warning-warning)' }}
+                  >
+                    {warning}
+                  </p>
+                </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       )}
 

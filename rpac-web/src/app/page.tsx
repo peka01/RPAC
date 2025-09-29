@@ -134,9 +134,6 @@ export default function LoginPage() {
                 className="h-16 w-auto"
               />
             </div>
-            <h2 className="text-3xl font-bold mb-8" style={{ color: 'var(--text-primary)' }}>
-              {t('dashboard.title')}
-            </h2>
             <button
               onClick={() => setShowModal(true)}
               className="modern-button flex items-center space-x-2 px-6 py-3 text-white mx-auto"

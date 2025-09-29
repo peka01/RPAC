@@ -26,6 +26,8 @@ export interface WeatherForecast {
   weather: string;
   rainfall: number;
   windSpeed: number;
+  minTempTime?: string;
+  maxTempTime?: string;
 }
 
 export class WeatherService {
@@ -240,47 +242,85 @@ export class WeatherService {
           const smhiData = await smhiResponse.json();
           const timeSeries = smhiData.timeSeries || [];
           
-          // Get forecast for next 5 days
+          // Get forecast for next 5 days with hourly data
           const forecast: WeatherForecast[] = [];
           const today = new Date();
           
           for (let i = 0; i < 5; i++) {
             const targetDate = new Date(today);
             targetDate.setDate(today.getDate() + i);
-            targetDate.setHours(12, 0, 0, 0); // Midday
+            const targetDateStr = targetDate.toISOString().split('T')[0];
             
-            // Find forecast closest to target date
-            const dayForecast = timeSeries.find((item: any) => {
+            // Get all hourly data for this day
+            const dayData = timeSeries.filter((item: any) => {
               const forecastTime = new Date(item.validTime);
-              const timeDiff = Math.abs(forecastTime.getTime() - targetDate.getTime());
-              return timeDiff < 12 * 60 * 60 * 1000; // Within 12 hours
+              const forecastDateStr = forecastTime.toISOString().split('T')[0];
+              return forecastDateStr === targetDateStr;
             });
             
-            if (dayForecast) {
-              const parameters = dayForecast.parameters || [];
-              const getParameter = (name: string) => {
-                const param = parameters.find((p: any) => p.name === name);
-                return param ? param.values[0] : null;
-              };
+            if (dayData.length > 0) {
+              // Find min/max temperatures and their times
+              let minTemp = Infinity;
+              let maxTemp = -Infinity;
+              let minTempTime = '';
+              let maxTempTime = '';
+              let totalRainfall = 0;
+              let maxWindSpeed = 0;
+              let weatherDescription = '';
               
-              const temp = getParameter('t') || this.getRandomTemperature();
-              const windSpeed = getParameter('ws') || this.getRandomWindSpeed();
-              const rainfall = getParameter('pmean') || Math.random() * 10;
+              dayData.forEach((item: any) => {
+                const parameters = item.parameters || [];
+                const getParameter = (name: string) => {
+                  const param = parameters.find((p: any) => p.name === name);
+                  return param ? param.values[0] : null;
+                };
+                
+                const temp = getParameter('t');
+                const windSpeed = getParameter('ws') || 0;
+                const rainfall = getParameter('pmean') || 0;
+                
+                if (temp !== null) {
+                  if (temp < minTemp) {
+                    minTemp = temp;
+                    minTempTime = new Date(item.validTime).toLocaleTimeString('sv-SE', { 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    });
+                  }
+                  if (temp > maxTemp) {
+                    maxTemp = temp;
+                    maxTempTime = new Date(item.validTime).toLocaleTimeString('sv-SE', { 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    });
+                  }
+                }
+                
+                totalRainfall += rainfall || 0;
+                maxWindSpeed = Math.max(maxWindSpeed, windSpeed || 0);
+                
+                // Use midday weather description
+                if (new Date(item.validTime).getHours() === 12) {
+                  weatherDescription = this.getWeatherDescription(temp || 15, rainfall || 0, windSpeed || 0);
+                }
+              });
               
               forecast.push({
-                date: targetDate.toISOString().split('T')[0],
+                date: targetDateStr,
                 temperature: {
-                  min: temp - 5,
-                  max: temp + 5
+                  min: Math.round(minTemp),
+                  max: Math.round(maxTemp)
                 },
-                weather: this.getWeatherDescription(temp, rainfall, windSpeed),
-                rainfall: rainfall,
-                windSpeed: windSpeed
+                weather: weatherDescription || this.getRandomForecast(),
+                rainfall: Math.round(totalRainfall * 10) / 10,
+                windSpeed: Math.round(maxWindSpeed * 10) / 10,
+                minTempTime: minTempTime,
+                maxTempTime: maxTempTime
               });
             } else {
               // Fallback to mock data
               forecast.push({
-                date: targetDate.toISOString().split('T')[0],
+                date: targetDateStr,
                 temperature: {
                   min: this.getRandomTemperature() - 5,
                   max: this.getRandomTemperature() + 5
@@ -298,7 +338,7 @@ export class WeatherService {
         console.log('SMHI forecast API not available, using fallback data:', smhiError);
       }
       
-      // Fallback to mock forecast data
+      // Fallback to mock forecast data with some frost warnings for testing
       const forecast: WeatherForecast[] = [];
       const today = new Date();
       
@@ -306,15 +346,21 @@ export class WeatherService {
         const date = new Date(today);
         date.setDate(today.getDate() + i);
         
+        // Generate some frost warnings for testing (especially for days 2-3)
+        const baseTemp = this.getRandomTemperature();
+        const minTemp = i === 2 ? Math.random() * 2 - 2 : baseTemp - 5; // Day 3 gets frost
+        const maxTemp = baseTemp + 5;
+        
         forecast.push({
           date: date.toISOString().split('T')[0],
           temperature: {
-            min: this.getRandomTemperature() - 5,
-            max: this.getRandomTemperature() + 5
+            min: Math.round(minTemp),
+            max: Math.round(maxTemp)
           },
           weather: this.getRandomForecast(),
           rainfall: Math.random() * 10,
-          windSpeed: this.getRandomWindSpeed()
+          windSpeed: this.getRandomWindSpeed(),
+          minTempTime: minTemp < 2 ? '06:00' : undefined
         });
       }
 
@@ -333,18 +379,27 @@ export class WeatherService {
     const currentMonth = new Date().getMonth() + 1;
     const isGrowingSeason = currentMonth >= 3 && currentMonth <= 10;
     
+    // Debug logging
+    console.log('Weather warnings - forecast data:', forecast);
+    console.log('Current month:', currentMonth, 'Growing season:', isGrowingSeason);
+    
     forecast.forEach((day, index) => {
       const date = new Date(day.date);
       const dayName = index === 0 ? 'Idag' : 
                      index === 1 ? 'Imorgon' : 
                      date.toLocaleDateString('sv-SE', { weekday: 'long' });
       
+      console.log(`Day ${index}: ${dayName}, min temp: ${day.temperature.min}°C, max temp: ${day.temperature.max}°C`);
+      
       // Frost warnings (critical for cultivation)
       if (day.temperature.min < 2) {
+        // Use actual time from SMHI API if available, otherwise use fallback
+        const timeOfMinTemp = day.minTempTime || this.getTimeOfMinimumTemperature(day);
+        
         if (isGrowingSeason) {
-          warnings.push(`❄️ FROSTVARNING ${dayName}: ${Math.round(day.temperature.min)}°C - Skydda känsliga växter!`);
+          warnings.push(`❄️ FROSTVARNING ${dayName} ${timeOfMinTemp}: ${Math.round(day.temperature.min)}°C - Skydda känsliga växter!`);
         } else {
-          warnings.push(`❄️ Kyla ${dayName}: ${Math.round(day.temperature.min)}°C - Förbered för kalla nätter`);
+          warnings.push(`❄️ Kyla ${dayName} ${timeOfMinTemp}: ${Math.round(day.temperature.min)}°C - Förbered för kalla nätter`);
         }
       }
       
@@ -370,6 +425,36 @@ export class WeatherService {
     });
     
     return warnings;
+  }
+
+  /**
+   * Determine when the minimum temperature typically occurs
+   */
+  private static getTimeOfMinimumTemperature(day: WeatherForecast): string {
+    const currentHour = new Date().getHours();
+    const month = new Date().getMonth() + 1;
+    
+    // In winter months (Dec-Feb), minimum temperature often occurs in early morning
+    if (month === 12 || month <= 2) {
+      return 'tidig morgon';
+    }
+    
+    // In spring/autumn, minimum temperature typically occurs just before dawn
+    if (month >= 3 && month <= 5) {
+      return 'gryning';
+    }
+    
+    if (month >= 9 && month <= 11) {
+      return 'gryning';
+    }
+    
+    // In summer, minimum temperature usually occurs just before sunrise
+    if (month >= 6 && month <= 8) {
+      return 'tidig morgon';
+    }
+    
+    // Default fallback
+    return 'tidig morgon';
   }
 
   /**

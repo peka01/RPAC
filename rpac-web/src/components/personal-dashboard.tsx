@@ -271,17 +271,40 @@ export function PersonalDashboard({ user }: PersonalDashboardProps = {}) {
 
       {/* Critical Alerts - Priority Display */}
       {criticalAlerts.length > 0 && (
-        <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-r-lg">
+        <div 
+          className="border-l-4 p-4 rounded-r-lg"
+          style={{
+            backgroundColor: 'var(--color-warning-critical-bg)',
+            borderLeftColor: 'var(--color-warning-critical)'
+          }}
+        >
           <div className="flex items-center mb-2">
-            <AlertTriangle className="w-5 h-5 text-red-400 mr-2" />
-            <h3 className="font-semibold text-red-800">{t('individual.critical_alerts')}</h3>
-              </div>
+            <AlertTriangle 
+              className="w-5 h-5 mr-2" 
+              style={{ color: 'var(--color-warning-critical)' }}
+            />
+            <h3 
+              className="font-semibold"
+              style={{ color: 'var(--color-warning-critical)' }}
+            >
+              {t('individual.critical_alerts')}
+            </h3>
+          </div>
           <div className="space-y-2">
             {criticalAlerts.slice(0, 2).map((alert, index) => (
-              <p key={index} className="text-sm text-red-700">{alert}</p>
+              <p 
+                key={index} 
+                className="text-sm"
+                style={{ color: 'var(--color-warning-critical)' }}
+              >
+                {alert}
+              </p>
             ))}
             {criticalAlerts.length > 2 && (
-              <p className="text-sm text-red-600 font-medium">
+              <p 
+                className="text-sm font-medium"
+                style={{ color: 'var(--color-warning-critical)' }}
+              >
                 +{criticalAlerts.length - 2} {t('individual.more_warnings')}
               </p>
             )}

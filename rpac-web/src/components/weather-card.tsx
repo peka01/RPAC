@@ -11,7 +11,10 @@ import {
   Thermometer,
   Eye,
   Sunrise,
-  Sunset
+  Sunset,
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { WeatherService, WeatherData, WeatherForecast } from '@/lib/weather-service';
 import { useUserProfile } from '@/lib/useUserProfile';
@@ -26,6 +29,7 @@ export function WeatherCard({ user }: WeatherCardProps) {
   const [forecast, setForecast] = useState<WeatherForecast[]>([]);
   const [extremeWeatherWarnings, setExtremeWeatherWarnings] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAllWarnings, setShowAllWarnings] = useState(false);
   const { profile } = useUserProfile(user);
 
   useEffect(() => {
@@ -205,16 +209,54 @@ export function WeatherCard({ user }: WeatherCardProps) {
 
       {/* Extreme Weather Warnings */}
       {extremeWeatherWarnings.length > 0 && (
-        <div className="mb-4 p-2 rounded" style={{ 
-          backgroundColor: 'var(--color-crisis-red)', 
-          color: 'white' 
-        }}>
-          <div className="text-xs font-bold mb-1">⚠️ Viktiga varningar:</div>
-          {extremeWeatherWarnings.slice(0, 2).map((warning, index) => (
-            <div key={index} className="text-xs">{warning}</div>
+        <div className="mb-4 space-y-2">
+          <div className="flex items-center space-x-2">
+            <AlertTriangle className="w-4 h-4" style={{ color: 'var(--color-warning-warning)' }} />
+            <div className="text-sm font-semibold" style={{ color: 'var(--color-warning-warning)' }}>
+              Viktiga vädervarningar:
+            </div>
+          </div>
+          {(showAllWarnings ? extremeWeatherWarnings : extremeWeatherWarnings.slice(0, 2)).map((warning, index) => (
+            <div 
+              key={index}
+              className="border-l-4 p-3 rounded-r-lg"
+              style={{
+                backgroundColor: 'var(--color-warning-warning-bg)',
+                borderLeftColor: 'var(--color-warning-warning)'
+              }}
+            >
+              <div className="flex items-start space-x-2">
+                <AlertTriangle 
+                  className="w-4 h-4 flex-shrink-0 mt-0.5" 
+                  style={{ color: 'var(--color-warning-warning)' }}
+                />
+                <p 
+                  className="text-sm font-medium"
+                  style={{ color: 'var(--color-warning-warning)' }}
+                >
+                  {warning}
+                </p>
+              </div>
+            </div>
           ))}
           {extremeWeatherWarnings.length > 2 && (
-            <div className="text-xs">+{extremeWeatherWarnings.length - 2} fler varningar</div>
+            <button
+              onClick={() => setShowAllWarnings(!showAllWarnings)}
+              className="flex items-center space-x-1 text-sm font-medium hover:underline"
+              style={{ color: 'var(--color-warning-warning)' }}
+            >
+              {showAllWarnings ? (
+                <>
+                  <ChevronUp className="w-4 h-4" />
+                  <span>Visa färre varningar</span>
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-4 h-4" />
+                  <span>+{extremeWeatherWarnings.length - 2} fler varningar</span>
+                </>
+              )}
+            </button>
           )}
         </div>
       )}
