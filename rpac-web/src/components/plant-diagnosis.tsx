@@ -92,11 +92,14 @@ export function PlantDiagnosis() {
       const diagnosisResult: DiagnosisResult = {
         plantName: aiResult.plantName,
         scientificName: aiResult.scientificName,
-        healthStatus: aiResult.healthStatus === 'nutrient_deficiency' ? 'nutrient' : aiResult.healthStatus,
+        healthStatus: aiResult.healthStatus === 'nutrient_deficiency' ? 'nutrient' : 
+                     aiResult.healthStatus === 'healthy' ? 'healthy' :
+                     aiResult.healthStatus === 'disease' ? 'disease' :
+                     aiResult.healthStatus === 'pest' ? 'pest' : 'healthy',
         confidence: Math.round(aiResult.confidence * 100),
         description: aiResult.description,
         recommendations: aiResult.recommendations,
-        severity: aiResult.severity
+        severity: aiResult.severity || 'low'
       };
       
       setResult(diagnosisResult);

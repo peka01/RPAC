@@ -54,7 +54,7 @@ interface UserProfile {
   petTypes?: string;
   medicalConditions?: string;
   allergies?: string;
-  specialNeeds?: string;
+  specialNeeds?: string[];
   county?: string;
   city?: string;
   postalCode?: string;
@@ -92,7 +92,7 @@ export function AICultivationAdvisor({
     petTypes: userProfile?.pet_types || '',
     medicalConditions: userProfile?.medical_conditions || '',
     allergies: userProfile?.allergies || '',
-    specialNeeds: userProfile?.special_needs || '',
+    specialNeeds: userProfile?.special_needs ? [userProfile.special_needs] : [],
     county: userProfile?.county || 'stockholm',
     city: userProfile?.city || '',
     postalCode: userProfile?.postal_code || '',

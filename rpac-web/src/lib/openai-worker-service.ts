@@ -20,19 +20,24 @@ export interface UserProfile {
 
 export interface CultivationAdvice {
   id: string;
+  type: 'recommendation' | 'warning' | 'tip' | 'seasonal';
+  priority: 'high' | 'medium' | 'low';
+  plant?: string;
   title: string;
   description: string;
-  priority: 'high' | 'medium' | 'low';
-  category: string;
+  action?: string;
+  timeframe?: string;
   icon: string;
 }
 
 export interface PlantDiagnosisResult {
   plantName: string;
+  scientificName: string;
   healthStatus: string;
   description: string;
   recommendations: string[];
   confidence: number;
+  severity?: 'low' | 'medium' | 'high';
 }
 
 /**
@@ -168,10 +173,13 @@ Svara med JSON-array med tips:
 [
   {
     "id": "tip-1",
+    "type": "recommendation/warning/tip/seasonal",
+    "priority": "high/medium/low",
+    "plant": "växtnamn (valfritt)",
     "title": "Tips titel",
     "description": "Detaljerad beskrivning",
-    "priority": "high/medium/low",
-    "category": "odling/beredskap/väder",
+    "action": "Konkret åtgärd (valfritt)",
+    "timeframe": "Tidsram (valfritt)",
     "icon": "🌱"
   }
 ]`;
@@ -246,10 +254,12 @@ Användarprofil:
 Svara med JSON:
 {
   "plantName": "Växtnamn",
-  "healthStatus": "Frisk/Sjuk/Behöver vård",
+  "scientificName": "Vetenskapligt namn",
+  "healthStatus": "healthy/disease/pest/nutrient_deficiency",
   "description": "Detaljerad beskrivning av växtens tillstånd",
   "recommendations": ["Råd 1", "Råd 2", "Råd 3"],
-  "confidence": 0.85
+  "confidence": 0.85,
+  "severity": "low/medium/high"
 }`;
 
     try {
@@ -278,26 +288,32 @@ Svara med JSON:
     return [
       {
         id: 'fallback-1',
+        type: 'warning',
         title: 'Kontrollera väderprognosen',
         description: 'Se till att ha tillräckligt med förnödenheter hemma baserat på väderprognosen.',
         priority: 'high',
-        category: 'beredskap',
+        action: 'Kontrollera SMHI.se för väderprognos',
+        timeframe: 'Dagligen',
         icon: '🌤️'
       },
       {
         id: 'fallback-2',
+        type: 'tip',
         title: 'Vattna regelbundet',
         description: 'Håll jorden fuktig men inte våt för optimal växttillväxt.',
         priority: 'medium',
-        category: 'odling',
+        action: 'Vattna tidigt på morgonen',
+        timeframe: 'Dagligen',
         icon: '💧'
       },
       {
         id: 'fallback-3',
+        type: 'recommendation',
         title: 'Plantera för säsongen',
         description: 'Följ säsongens odlingskalender för bästa resultat.',
         priority: 'medium',
-        category: 'odling',
+        action: 'Kontrollera odlingskalender',
+        timeframe: 'Månadsvis',
         icon: '📅'
       }
     ];
@@ -309,6 +325,7 @@ Svara med JSON:
   private static getFallbackPlantDiagnosis(): PlantDiagnosisResult {
     return {
       plantName: 'Okänd växt',
+      scientificName: 'Species unknown',
       healthStatus: 'Behöver närmare undersökning',
       description: 'Jag kunde inte analysera växten just nu. Kontakta en lokal växtexpert för vidare hjälp.',
       recommendations: [
@@ -316,7 +333,8 @@ Svara med JSON:
         'Se till att växten får tillräckligt med ljus',
         'Kontakta en växtexpert för vidare hjälp'
       ],
-      confidence: 0.3
+      confidence: 0.3,
+      severity: 'low'
     };
   }
 }
