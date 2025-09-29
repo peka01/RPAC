@@ -269,9 +269,9 @@ export function CultivationReminders({
       backgroundColor: 'var(--bg-card)',
       borderColor: crisisMode ? 'var(--color-warm-olive)' : 'var(--color-sage)'
     }}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-3">
+      {/* Header - Mobile Optimized */}
+      <div className="mb-6">
+        <div className="flex items-center space-x-3 mb-4">
           <div className="w-12 h-12 rounded-lg flex items-center justify-center shadow-sm" style={{ 
             background: `linear-gradient(135deg, ${crisisMode ? 'var(--color-warm-olive)' : 'var(--color-sage)'} 0%, var(--color-secondary) 100%)` 
           }}>
@@ -287,36 +287,41 @@ export function CultivationReminders({
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
+        {/* Mobile-First Button Layout - Full Width */}
+        <div className="grid grid-cols-1 sm:flex sm:flex-row gap-3 sm:gap-2">
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className="p-2 rounded-lg border hover:shadow-sm transition-all duration-200"
+            className="flex items-center justify-center p-4 rounded-xl border-2 hover:shadow-lg transition-all duration-200 min-h-[52px] font-semibold w-full sm:w-auto"
             style={{ 
               backgroundColor: 'var(--bg-card)',
               borderColor: 'var(--color-secondary)',
               color: 'var(--text-secondary)'
             }}
           >
-            <Settings className="w-4 h-4" />
+            <Settings className="w-6 h-6" />
+            <span className="ml-3 text-base font-bold">Inställningar</span>
           </button>
           
           <button
-            onClick={() => setNewReminder({})}
-            className="flex items-center space-x-2 px-3 py-2 rounded-lg border hover:shadow-sm transition-all duration-200"
+            onClick={(e) => {
+              e.preventDefault();
+              setNewReminder({});
+            }}
+            className="flex items-center justify-center space-x-3 px-6 py-4 rounded-xl border-2 hover:shadow-lg transition-all duration-200 min-h-[52px] font-bold text-lg w-full sm:w-auto"
             style={{ 
               backgroundColor: 'var(--color-sage)',
               borderColor: 'var(--color-sage)',
               color: 'white'
             }}
           >
-            <Plus className="w-4 h-4" />
-            <span className="text-sm">Lägg till</span>
+            <Plus className="w-6 h-6" />
+            <span className="text-base font-bold">Lägg till påminnelse</span>
           </button>
         </div>
       </div>
 
-      {/* Filter Buttons */}
-      <div className="flex space-x-2 mb-6">
+      {/* Filter Buttons - Mobile Optimized */}
+      <div className="grid grid-cols-2 sm:flex sm:space-x-2 gap-3 sm:gap-2 mb-6">
         {[
           { id: 'pending', label: 'Väntande', count: pendingCount },
           { id: 'overdue', label: 'Försenade', count: overdueCount },
@@ -326,15 +331,16 @@ export function CultivationReminders({
           <button
             key={filterOption.id}
             onClick={() => setFilter(filterOption.id as any)}
-            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-              filter === filterOption.id ? 'shadow-sm' : 'hover:shadow-sm'
+            className={`flex items-center justify-center px-4 py-4 sm:px-3 sm:py-2 rounded-xl text-base sm:text-sm font-semibold transition-all duration-200 min-h-[52px] sm:min-h-[44px] ${
+              filter === filterOption.id ? 'shadow-lg scale-105' : 'hover:shadow-md hover:scale-102'
             }`}
             style={{
               backgroundColor: filter === filterOption.id ? 'var(--color-sage)' : 'var(--bg-olive-light)',
               color: filter === filterOption.id ? 'white' : 'var(--text-primary)'
             }}
           >
-            {filterOption.label} ({filterOption.count})
+            <span className="truncate font-medium">{filterOption.label}</span>
+            <span className="ml-2 text-sm sm:text-xs opacity-90 font-bold">({filterOption.count})</span>
           </button>
         ))}
       </div>
@@ -349,67 +355,92 @@ export function CultivationReminders({
           return (
             <div
               key={reminder.id}
-              className={`p-4 rounded-lg border transition-all duration-200 ${
-                reminder.is_completed ? 'opacity-60' : ''
+              className={`p-5 sm:p-4 rounded-xl border-2 transition-all duration-200 ${
+                reminder.is_completed ? 'opacity-60' : 'hover:shadow-lg'
               }`}
               style={{ 
                 backgroundColor: isReminderOverdue ? 'rgba(184, 134, 11, 0.1)' : 'var(--bg-card)',
                 borderColor: isReminderOverdue ? 'var(--color-warm-olive)' : 'var(--color-secondary)'
               }}
             >
-              <div className="flex items-start space-x-3">
-                <button
-                  onClick={() => toggleReminder(reminder.id)}
-                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
-                    reminder.is_completed ? 'shadow-sm' : 'hover:shadow-sm'
-                  }`}
-                  style={{
-                    backgroundColor: reminder.is_completed ? priorityColor : 'transparent',
-                    borderColor: priorityColor
-                  }}
-                >
-                  {reminder.is_completed && <CheckCircle className="w-4 h-4 text-white" />}
-                </button>
+              <div className="flex items-start space-x-4 sm:space-x-3">
+                <div className="flex flex-col items-center">
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      toggleReminder(reminder.id);
+                    }}
+                    className={`w-14 h-14 sm:w-10 sm:h-10 rounded-lg border-2 flex items-center justify-center transition-all duration-300 min-h-[56px] min-w-[56px] sm:min-h-[40px] sm:min-w-[40px] ${
+                      reminder.is_completed 
+                        ? 'shadow-lg scale-105 bg-green-500 border-green-600' 
+                        : 'hover:shadow-md hover:scale-102 bg-white border-gray-300 hover:border-green-400 hover:bg-green-50'
+                    }`}
+                    title={reminder.is_completed ? 'Markera som ofullständig' : 'Markera som klar'}
+                  >
+                    {reminder.is_completed ? (
+                      <CheckCircle className="w-8 h-8 sm:w-6 sm:h-6 text-white animate-pulse" />
+                    ) : (
+                      <div className="relative">
+                        <CheckCircle className="w-8 h-8 sm:w-6 sm:h-6 text-gray-300" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-4 h-4 sm:w-3 sm:h-3 rounded-full border-2 border-gray-400 opacity-50"></div>
+                        </div>
+                      </div>
+                    )}
+                  </button>
+                  <span className="text-xs font-medium mt-2 text-center px-2 py-1 rounded-full" style={{ 
+                    color: reminder.is_completed ? 'var(--color-green)' : 'var(--text-secondary)',
+                    backgroundColor: reminder.is_completed ? 'rgba(34, 197, 94, 0.1)' : 'transparent'
+                  }}>
+                    {reminder.is_completed ? '✓ Klar' : ''}
+                  </span>
+                </div>
 
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <TypeIcon className="w-4 h-4" style={{ color: priorityColor }} />
-                    <h3 className={`font-semibold text-sm ${reminder.is_completed ? 'line-through' : ''}`}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start space-x-3 mb-3">
+                    <TypeIcon className="w-6 h-6 sm:w-4 sm:h-4 flex-shrink-0 mt-1" style={{ color: priorityColor }} />
+                    <h3 className={`font-bold text-lg sm:text-sm leading-relaxed ${reminder.is_completed ? 'line-through' : ''}`}
                         style={{ color: 'var(--text-primary)' }}>
                       {reminder.message}
                     </h3>
                   </div>
                   
                   
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4 text-xs">
-                      <div className="flex items-center space-x-1">
-                        <Calendar className="w-3 h-3" style={{ color: 'var(--text-tertiary)' }} />
-                        <span style={{ 
-                          color: isReminderOverdue ? 'var(--color-warm-olive)' : 'var(--text-tertiary)' 
-                        }}>
-                          {new Date(reminder.reminder_date).toLocaleDateString('sv-SE')}
-                          {reminder.reminder_time && ` kl ${reminder.reminder_time}`}
-                          {isReminderOverdue && ' (försenad)'}
-                        </span>
-                      </div>
-                      
+                  {/* Mobile-optimized date and actions layout */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+                    <div className="flex items-center space-x-2 text-sm">
+                      <Calendar className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-tertiary)' }} />
+                      <span className="font-medium" style={{ 
+                        color: isReminderOverdue ? 'var(--color-warm-olive)' : 'var(--text-tertiary)' 
+                      }}>
+                        {new Date(reminder.reminder_date).toLocaleDateString('sv-SE')}
+                        {reminder.reminder_time && ` kl ${reminder.reminder_time}`}
+                        {isReminderOverdue && ' (försenad)'}
+                      </span>
                     </div>
 
-                    <div className="flex items-center space-x-1">
+                    <div className="flex items-center space-x-3">
                       <button
-                        onClick={() => setEditingReminder(reminder)}
-                        className="p-1 rounded hover:bg-blue-50 transition-colors duration-200"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setEditingReminder(reminder);
+                        }}
+                        className="flex items-center justify-center px-4 py-3 sm:px-2 sm:py-1 rounded-xl hover:bg-blue-50 transition-all duration-200 min-h-[48px] min-w-[48px] sm:min-h-[36px] sm:min-w-[36px] border border-blue-200 hover:border-blue-300"
                         title="Redigera påminnelse"
                       >
-                        <Edit className="w-3 h-3 text-blue-500" />
+                        <Edit className="w-5 h-5 sm:w-4 sm:h-4 text-blue-600" />
+                        <span className="ml-2 sm:hidden text-sm font-semibold text-blue-600">Redigera</span>
                       </button>
                       <button
-                        onClick={() => deleteReminder(reminder.id)}
-                        className="p-1 rounded hover:bg-red-50 transition-colors duration-200"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          deleteReminder(reminder.id);
+                        }}
+                        className="flex items-center justify-center px-4 py-3 sm:px-2 sm:py-1 rounded-xl hover:bg-red-50 transition-all duration-200 min-h-[48px] min-w-[48px] sm:min-h-[36px] sm:min-w-[36px] border border-red-200 hover:border-red-300"
                         title="Ta bort påminnelse"
                       >
-                        <Trash2 className="w-3 h-3 text-red-500" />
+                        <Trash2 className="w-5 h-5 sm:w-4 sm:h-4 text-red-600" />
+                        <span className="ml-2 sm:hidden text-sm font-semibold text-red-600">Ta bort</span>
                       </button>
                     </div>
                   </div>
@@ -526,7 +557,10 @@ export function CultivationReminders({
                   Avbryt
                 </button>
                 <button
-                  onClick={() => updateReminder(editingReminder)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    updateReminder(editingReminder);
+                  }}
                   className="px-4 py-2 rounded text-sm text-white"
                   style={{ backgroundColor: 'var(--color-sage)' }}
                   disabled={!editingReminder.message || !editingReminder.reminder_date}
@@ -599,45 +633,45 @@ export function CultivationReminders({
         </div>
       )}
 
-      {/* Add Reminder Modal */}
+      {/* Add Reminder Modal - Mobile Optimized */}
       {newReminder && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full" style={{ backgroundColor: 'var(--bg-card)' }}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+          <div className="bg-white rounded-lg p-4 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto" style={{ backgroundColor: 'var(--bg-card)' }}>
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <h3 className="text-lg sm:text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
                 Ny påminnelse
               </h3>
               <button
                 onClick={() => setNewReminder(null)}
-                className="text-gray-500 hover:text-gray-700"
+                className="flex items-center justify-center w-8 h-8 sm:w-6 sm:h-6 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 transition-colors min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0"
               >
-                ×
+                <span className="text-xl sm:text-lg">×</span>
               </button>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-4 sm:space-y-4">
               <div>
-                <label className="block text-sm mb-2" style={{ color: 'var(--text-primary)' }}>
+                <label className="block text-sm sm:text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
                   Titel
                 </label>
                 <input
                   type="text"
                   value={newReminder.message || ''}
                   onChange={(e) => setNewReminder(prev => ({ ...prev, message: e.target.value }))}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-3 sm:p-2 border rounded-lg text-base sm:text-sm min-h-[44px]"
                   style={{ borderColor: 'var(--color-secondary)' }}
                   placeholder={t('cultivation_reminders.placeholder')}
                 />
               </div>
               
               <div>
-                <label className="block text-sm mb-2" style={{ color: 'var(--text-primary)' }}>
+                <label className="block text-sm sm:text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
                   Typ
                 </label>
                 <select
                   value={newReminder.reminder_type || 'general'}
                   onChange={(e) => setNewReminder(prev => ({ ...prev, reminder_type: e.target.value }))}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-3 sm:p-2 border rounded-lg text-base sm:text-sm min-h-[44px]"
                   style={{ borderColor: 'var(--color-secondary)' }}
                 >
                   <option value="general">Allmän</option>
@@ -651,20 +685,20 @@ export function CultivationReminders({
               </div>
               
               <div>
-                <label className="block text-sm mb-2" style={{ color: 'var(--text-primary)' }}>
+                <label className="block text-sm sm:text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
                   Tid (valfritt)
                 </label>
                 <input
                   type="time"
                   value={newReminder.reminder_time || ''}
                   onChange={(e) => setNewReminder(prev => ({ ...prev, reminder_time: e.target.value }))}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-3 sm:p-2 border rounded-lg text-base sm:text-sm min-h-[44px]"
                   style={{ borderColor: 'var(--color-secondary)' }}
                 />
               </div>
               
               <div>
-                <label className="block text-sm mb-2" style={{ color: 'var(--text-primary)' }}>
+                <label className="block text-sm sm:text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
                   Datum
                 </label>
                 <input
@@ -674,22 +708,26 @@ export function CultivationReminders({
                     ...prev, 
                     reminder_date: new Date(e.target.value).toISOString() 
                   }))}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-3 sm:p-2 border rounded-lg text-base sm:text-sm min-h-[44px]"
                   style={{ borderColor: 'var(--color-secondary)' }}
                 />
               </div>
               
-              <div className="flex justify-end space-x-2">
+              {/* Mobile-optimized action buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 sm:justify-end">
                 <button
                   onClick={() => setNewReminder(null)}
-                  className="px-4 py-2 border rounded text-sm"
+                  className="flex items-center justify-center px-4 py-3 sm:py-2 border rounded-lg text-sm font-medium min-h-[44px] transition-all duration-200 active:scale-95"
                   style={{ borderColor: 'var(--color-secondary)', color: 'var(--text-secondary)' }}
                 >
                   Avbryt
                 </button>
                 <button
-                  onClick={() => addReminder(newReminder)}
-                  className="px-4 py-2 rounded text-sm text-white"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    addReminder(newReminder);
+                  }}
+                  className="flex items-center justify-center px-4 py-3 sm:py-2 rounded-lg text-sm font-medium text-white min-h-[44px] transition-all duration-200 active:scale-95"
                   style={{ backgroundColor: 'var(--color-sage)' }}
                   disabled={!newReminder.message || !newReminder.reminder_date}
                 >

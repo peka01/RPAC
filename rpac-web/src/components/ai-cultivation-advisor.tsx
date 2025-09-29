@@ -436,23 +436,6 @@ export function AICultivationAdvisor({
     }
   };
 
-  const getPriorityBadge = (priority: string) => {
-    const colors = {
-      high: 'var(--color-warm-olive)',
-      medium: 'var(--color-sage)',
-      low: 'var(--color-cool-olive)'
-    };
-    const labels = {
-      high: 'Viktigt',
-      medium: 'Medel',
-      low: 'Tips'
-    };
-    
-    return {
-      color: colors[priority as keyof typeof colors],
-      label: labels[priority as keyof typeof labels]
-    };
-  };
 
   if (loading) {
     return (
@@ -543,7 +526,6 @@ export function AICultivationAdvisor({
         {advice.map((item) => {
           const Icon = getAdviceIcon(item);
           const adviceColor = getAdviceColor(item);
-          const priority = getPriorityBadge(item.priority);
           const isExpanded = selectedAdvice === item.id;
 
           return (
@@ -593,17 +575,6 @@ export function AICultivationAdvisor({
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2">
-                  <span 
-                    className="text-xs px-2 py-1 rounded-full font-medium"
-                    style={{
-                      backgroundColor: `${priority.color}20`,
-                      color: priority.color
-                    }}
-                  >
-                    {priority.label}
-                  </span>
-                </div>
               </div>
 
               {/* Expanded content */}

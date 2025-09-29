@@ -18,6 +18,7 @@ import { SecureOpenAIService } from '@/lib/openai-worker-service';
 import { WeatherService, WeatherData, WeatherForecast } from '@/lib/weather-service';
 import { RemindersContextService, type RemindersContext } from '@/lib/reminders-context-service-enhanced';
 import { TipHistoryService } from '@/lib/tip-history-service';
+import { SuccessNotification } from './success-notification';
 import { t } from '@/lib/locales';
 
 interface PersonalAICoachProps {
@@ -61,6 +62,13 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
   const [forecastData, setForecastData] = useState<WeatherForecast[]>([]);
   const [extremeWeatherWarnings, setExtremeWeatherWarnings] = useState<string[]>([]);
   const [remindersContext, setRemindersContext] = useState<RemindersContext | null>(null);
+  
+  // UX Feedback states
+  const [showSuccessNotification, setShowSuccessNotification] = useState(false);
+  const [savedTipTitle, setSavedTipTitle] = useState('');
+  const [savedTips, setSavedTips] = useState<Set<string>>(new Set());
+  const [completedTips, setCompletedTips] = useState<Set<string>>(new Set());
+  const [notificationActionType, setNotificationActionType] = useState<'saved' | 'completed'>('saved');
 
   // Load weather data and forecast for user's location
   const loadWeatherData = async () => {
@@ -200,33 +208,51 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
     }
   };
 
-  // Save tip to reminders
-  const saveTipToReminders = async (tip: DailyTip) => {
+  // Save/unsave tip to reminders (toggleable)
+  const toggleTipInReminders = async (tip: DailyTip) => {
     if (!user?.id) return;
     
-    try {
-      const result = await RemindersContextService.saveTipToReminders(user.id, {
-        id: tip.id,
-        title: tip.title,
-        description: tip.description,
-        action: tip.action,
-        timeframe: tip.timeframe,
-        priority: tip.priority,
-        category: tip.category
-      });
+    const isCurrentlySaved = savedTips.has(tip.id);
 
-      if (result.success) {
-        // Mark tip as saved in history
-        TipHistoryService.markTipAsSaved(tip.id);
-        // Reload reminders context to update the AI tips
-        await loadRemindersContext();
-        // Show success feedback (could be a toast notification)
-        console.log('Tip saved to reminders successfully');
+    try {
+      if (isCurrentlySaved) {
+        // Unsave the tip
+        setSavedTips(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(tip.id);
+          return newSet;
+        });
+        console.log('Tip removed from reminders');
       } else {
-        console.error('Failed to save tip to reminders:', result.error);
+        // Save the tip
+        const result = await RemindersContextService.saveTipToReminders(user.id, {
+          id: tip.id,
+          title: tip.title,
+          description: tip.description,
+          action: tip.action,
+          timeframe: tip.timeframe,
+          priority: tip.priority,
+          category: tip.category
+        });
+
+        if (result.success) {
+          // Mark tip as saved in history
+          TipHistoryService.markTipAsSaved(tip.id);
+          // Mark tip as saved in local state
+          setSavedTips(prev => new Set([...prev, tip.id]));
+          // Set saved tip title for notification
+          setSavedTipTitle(tip.title);
+          // Set notification action type
+          setNotificationActionType('saved');
+          // Show success notification
+          setShowSuccessNotification(true);
+          console.log('Tip saved to reminders successfully');
+        } else {
+          console.error('Failed to save tip to reminders:', result.error);
+        }
       }
     } catch (error) {
-      console.error('Error saving tip to reminders:', error);
+      console.error('Error toggling tip in reminders:', error);
     }
   };
 
@@ -242,6 +268,14 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
   // Mark tip as completed
   const markTipAsCompleted = (tip: DailyTip) => {
     TipHistoryService.markTipAsCompleted(tip.id);
+    // Mark tip as completed in local state
+    setCompletedTips(prev => new Set([...prev, tip.id]));
+    // Set completed tip title for notification
+    setSavedTipTitle(tip.title);
+    // Set notification action type
+    setNotificationActionType('completed');
+    // Show success notification
+    setShowSuccessNotification(true);
     // Regenerate tips to show new ones
     const fetchDailyTips = async () => {
       setIsLoading(true);
@@ -258,6 +292,11 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
     fetchDailyTips();
   };
 
+  // Navigation functions
+  const handleSuccessNotificationClose = () => {
+    setShowSuccessNotification(false);
+  };
+
   // Load weather data when component mounts or user profile changes
   useEffect(() => {
     loadWeatherData();
@@ -268,7 +307,7 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
     loadRemindersContext();
   }, [user?.id]);
 
-  // Regenerate tips when profile, weather, forecast, or reminders context changes
+  // Regenerate tips when profile, weather, or forecast changes (but NOT when reminders context changes)
   useEffect(() => {
     const fetchDailyTips = async () => {
       setIsLoading(true);
@@ -284,7 +323,7 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
     };
 
     fetchDailyTips();
-  }, [userProfile, weatherData, forecastData, extremeWeatherWarnings, remindersContext]); // Re-run when any context changes
+  }, [userProfile, weatherData, forecastData, extremeWeatherWarnings]); // Removed remindersContext to prevent unnecessary regeneration
 
   // Fallback tips when AI is unavailable
   const getFallbackTips = (): DailyTip[] => {
@@ -444,46 +483,6 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
     }
   };
 
-  const getPriorityBadge = (priority: string) => {
-    const getBadgeStyle = (priority: string) => {
-      switch (priority) {
-        case 'high': return { 
-          backgroundColor: 'var(--color-warning-critical-bg)', 
-          color: 'var(--color-warning-critical)' 
-        };
-        case 'medium': return { 
-          backgroundColor: 'var(--color-warning-warning-bg)', 
-          color: 'var(--color-warning-warning)' 
-        };
-        case 'low': return { 
-          backgroundColor: 'var(--color-warning-info-bg)', 
-          color: 'var(--color-warning-info)' 
-        };
-        default: return { 
-          backgroundColor: 'var(--color-warning-info-bg)', 
-          color: 'var(--color-warning-info)' 
-        };
-      }
-    };
-
-    const getBadgeText = (priority: string) => {
-      switch (priority) {
-        case 'high': return 'Hög prioritet';
-        case 'medium': return 'Medium prioritet';
-        case 'low': return 'Låg prioritet';
-        default: return 'Okänd prioritet';
-      }
-    };
-
-    return (
-      <span 
-        className="px-2 py-1 text-xs rounded"
-        style={getBadgeStyle(priority)}
-      >
-        {getBadgeText(priority)}
-      </span>
-    );
-  };
 
   return (
     <div className="space-y-6">
@@ -549,98 +548,127 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
               <span className="ml-2" style={{ color: 'var(--color-khaki)' }}>Laddar personliga tips...</span>
             </div>
           ) : (
-            <div className="grid gap-4">
+            <div className="grid gap-4 sm:gap-5 lg:gap-6">
               {dailyTips.map((tip) => {
                 const IconComponent = getTipIcon(tip);
                 const relatedReminder = getRelatedReminder(tip);
                 return (
                   <div 
                     key={tip.id} 
-                    className={`modern-card cursor-pointer transition-all hover:shadow-md ${
-                      selectedTip === tip.id ? 'ring-2' : ''
+                    className={`modern-card cursor-pointer transition-all hover:shadow-lg rounded-xl border-2 ${
+                      selectedTip === tip.id ? 'ring-2 shadow-xl' : 'hover:shadow-md'
                     }`}
                     style={{ 
-                      borderColor: selectedTip === tip.id ? 'var(--color-sage)' : 'transparent',
-                      borderWidth: selectedTip === tip.id ? '2px' : '0px'
+                      borderColor: selectedTip === tip.id ? 'var(--color-sage)' : 'var(--color-secondary)',
+                      borderWidth: selectedTip === tip.id ? '2px' : '1px'
                     }}
                     onClick={() => setSelectedTip(selectedTip === tip.id ? null : tip.id)}
                   >
-                    <div className="p-4">
-                      <div className="flex items-start gap-3">
+                    <div className="p-4 sm:p-5 lg:p-6">
+                      <div className="flex items-start gap-3 sm:gap-4 lg:gap-4">
                         <div 
-                          className="p-2 rounded-full"
+                          className="p-2 sm:p-3 lg:p-3 rounded-full flex-shrink-0"
                           style={{ backgroundColor: getTipColor(tip) + '20' }}
                         >
-                          <IconComponent className="h-5 w-5" style={{ color: getTipColor(tip) }} />
+                          <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 lg:h-6 lg:w-6" style={{ color: getTipColor(tip) }} />
                         </div>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="font-semibold" style={{ color: 'var(--color-dark-green)' }}>{tip.title}</h3>
-                            {getPriorityBadge(tip.priority)}
+                        <div className="flex-1 min-w-0">
+                          <div className="mb-2 sm:mb-3 lg:mb-3">
+                            <h3 className="font-bold text-base sm:text-lg lg:text-lg leading-tight" style={{ color: 'var(--color-dark-green)' }}>{tip.title}</h3>
                           </div>
-                          <p className="text-sm mb-2" style={{ color: 'var(--color-khaki)' }}>{tip.description}</p>
+                          <p className="text-sm sm:text-base lg:text-base mb-3 sm:mb-4 lg:mb-4 leading-relaxed" style={{ color: 'var(--color-khaki)' }}>{tip.description}</p>
                           
                           {/* Reminder relationship indicator */}
                           {relatedReminder && (
-                            <div className="flex items-center gap-2 mb-2 p-2 rounded" style={{ backgroundColor: 'var(--bg-olive-light)' }}>
-                              <Bell className="w-4 h-4" style={{ color: 'var(--color-sage)' }} />
-                              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                            <div className="flex items-start gap-2 mb-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-olive-light)' }}>
+                              <Bell className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--color-sage)' }} />
+                              <span className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                                 Relaterat till: {relatedReminder.message}
                               </span>
                             </div>
                           )}
                           
-                          <div className="flex items-center gap-4 text-xs" style={{ color: 'var(--color-khaki)' }}>
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {tip.timeframe}
+                          <div className="flex flex-col sm:flex-row sm:items-center lg:flex-row lg:items-center gap-2 sm:gap-3 lg:gap-4 text-xs sm:text-sm lg:text-sm mb-3 sm:mb-4 lg:mb-4" style={{ color: 'var(--color-khaki)' }}>
+                            <span className="flex items-center gap-2">
+                              <Clock className="h-3 w-3 sm:h-4 sm:w-4 lg:h-4 lg:w-4 flex-shrink-0" />
+                              <span className="font-medium">{tip.timeframe}</span>
                             </span>
-                            <span className="flex items-center gap-1">
-                              <TrendingUp className="h-3 w-3" />
-                              {tip.estimatedTime}
+                            <span className="flex items-center gap-2">
+                              <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 lg:h-4 lg:w-4 flex-shrink-0" />
+                              <span className="font-medium">{tip.estimatedTime}</span>
                             </span>
                           </div>
-                          <div className="flex items-center gap-2 mt-2">
-                            {tip.action && (
+                          
+                          {/* Action Buttons */}
+                          <div className="flex flex-col sm:flex-row lg:flex-row gap-3 sm:gap-3 lg:gap-3">
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleTipInReminders(tip);
+                              }}
+                              className="flex items-center justify-center gap-2 px-4 py-3 sm:px-4 sm:py-3 lg:px-4 lg:py-3 text-sm sm:text-sm lg:text-sm rounded-lg border-2 font-bold transition-all duration-200 active:scale-95 min-h-[48px] sm:min-h-[48px] lg:min-h-[48px] w-full sm:w-auto lg:w-auto"
+                              style={{ 
+                                backgroundColor: savedTips.has(tip.id) 
+                                  ? 'var(--bg-green-light)' 
+                                  : 'white',
+                                borderColor: savedTips.has(tip.id) 
+                                  ? 'var(--color-green)' 
+                                  : 'var(--color-sage)',
+                                color: 'var(--text-primary)'
+                              }}
+                            >
+                              {savedTips.has(tip.id) ? (
+                                <>
+                                  <CheckCircle className="w-4 h-4 sm:w-4 sm:h-4 lg:w-4 lg:h-4 flex-shrink-0" />
+                                  <span className="truncate font-bold">Ta bort</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Bell className="w-4 h-4 sm:w-4 sm:h-4 lg:w-4 lg:h-4 flex-shrink-0" />
+                                  <span className="truncate font-bold">Spara till påminnelser</span>
+                                </>
+                              )}
+                            </button>
+                            
+                            {/* Mark as Done Button */}
+                            <div className="relative w-full sm:w-auto lg:w-auto">
                               <button 
-                                className="px-3 py-1 text-sm text-white rounded"
-                                style={{ backgroundColor: getTipColor(tip) }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  markTipAsCompleted(tip);
+                                }}
+                                disabled={completedTips.has(tip.id)}
+                                className={`flex items-center justify-center gap-2 px-4 py-3 sm:px-4 sm:py-3 lg:px-4 lg:py-3 text-sm sm:text-sm lg:text-sm rounded-lg border-2 font-bold transition-all duration-200 active:scale-95 min-h-[48px] sm:min-h-[48px] lg:min-h-[48px] w-full ${
+                                  completedTips.has(tip.id) 
+                                    ? 'opacity-60 cursor-not-allowed shadow-lg' 
+                                    : 'hover:shadow-xl hover:scale-105'
+                                }`}
+                                style={{ 
+                                  backgroundColor: completedTips.has(tip.id) 
+                                    ? 'var(--color-green)' 
+                                    : 'white',
+                                  borderColor: completedTips.has(tip.id) 
+                                    ? 'var(--color-green)' 
+                                    : 'var(--color-sage)',
+                                  color: completedTips.has(tip.id) 
+                                    ? 'white' 
+                                    : 'var(--text-primary)'
+                                }}
+                                title={completedTips.has(tip.id) ? 'Denna tip är redan markerad som klar' : 'Klicka för att markera denna tip som klar'}
                               >
-                                {tip.action}
+                                {completedTips.has(tip.id) ? (
+                                  <>
+                                    <CheckCircle className="w-4 h-4 sm:w-4 sm:h-4 lg:w-4 lg:h-4 flex-shrink-0" />
+                                    <span className="truncate font-bold">✅ Klar!</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <CheckCircle className="w-4 h-4 sm:w-4 sm:h-4 lg:w-4 lg:h-4 flex-shrink-0" />
+                                    <span className="truncate font-bold">Markera som klar</span>
+                                  </>
+                                )}
                               </button>
-                            )}
-                            
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                saveTipToReminders(tip);
-                              }}
-                              className="flex items-center gap-1 px-3 py-1 text-sm rounded border hover:shadow-sm transition-all duration-200"
-                              style={{ 
-                                backgroundColor: 'var(--bg-olive-light)',
-                                borderColor: 'var(--color-sage)',
-                                color: 'var(--text-primary)'
-                              }}
-                            >
-                              <Bell className="w-4 h-4" />
-                              <span>Spara till påminnelser</span>
-                            </button>
-                            
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                markTipAsCompleted(tip);
-                              }}
-                              className="flex items-center gap-1 px-3 py-1 text-sm rounded border hover:shadow-sm transition-all duration-200"
-                              style={{ 
-                                backgroundColor: 'var(--bg-green-light)',
-                                borderColor: 'var(--color-green)',
-                                color: 'var(--text-primary)'
-                              }}
-                            >
-                              <CheckCircle className="w-4 h-4" />
-                              <span>Markera som klar</span>
-                            </button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -781,6 +809,15 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
           </div>
         </div>
       </div>
+
+      {/* UX Feedback Components */}
+      <SuccessNotification
+        isVisible={showSuccessNotification}
+        onClose={handleSuccessNotificationClose}
+        tipTitle={savedTipTitle}
+        onNavigateToReminders={() => {}}
+        actionType={notificationActionType}
+      />
     </div>
   );
 }

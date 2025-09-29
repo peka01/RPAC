@@ -27,7 +27,6 @@ export interface CultivationAdvice {
   plant?: string;
   title: string;
   description: string;
-  action?: string;
   timeframe?: string;
   icon: string;
 }
@@ -247,7 +246,6 @@ Svara med JSON-array med tips:
     "plant": "växtnamn (valfritt)",
     "title": "Tips titel",
     "description": "Detaljerad beskrivning",
-    "action": "Konkret åtgärd (valfritt)",
     "timeframe": "Tidsram (valfritt)",
     "icon": "🌱",
     "relatedReminder": "ID till relaterad påminnelse (valfritt)"
@@ -375,7 +373,6 @@ Svara med JSON:
         title: 'Kontrollera väderprognosen',
         description: 'Se till att ha tillräckligt med förnödenheter hemma baserat på väderprognosen.',
         priority: 'high',
-        action: 'Kontrollera SMHI.se för väderprognos',
         timeframe: 'Dagligen',
         icon: '🌤️'
       },
@@ -385,7 +382,6 @@ Svara med JSON:
         title: 'Vattna regelbundet',
         description: 'Håll jorden fuktig men inte våt för optimal växttillväxt.',
         priority: 'medium',
-        action: 'Vattna tidigt på morgonen',
         timeframe: 'Dagligen',
         icon: '💧'
       },
@@ -395,7 +391,6 @@ Svara med JSON:
         title: 'Plantera för säsongen',
         description: 'Följ säsongens odlingskalender för bästa resultat.',
         priority: 'medium',
-        action: 'Kontrollera odlingskalender',
         timeframe: 'Månadsvis',
         icon: '📅'
       }
