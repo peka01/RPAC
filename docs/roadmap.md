@@ -24,10 +24,13 @@
 - **Session Management**: Persistent login across browser sessions
 - **Security**: RLS policies för dataskydd
 
-#### **Individuell nivå (KOMPLETT)** ✅ **BREAKTHROUGH ACHIEVED**:
+#### **Individuell nivå (FULLSTÄNDIGT KOMPLETT)** ✅ **BREAKTHROUGH ACHIEVED**:
 - **Personal Dashboard**: Beredskapspoäng och övergripande status
 - **Enhanced Cultivation Planner**: 5-step AI-powered planning system med OpenAI GPT-4
 - **Plan Management**: Save, load, edit, and delete multiple named cultivation plans
+- **Påminnelser-system**: Full CRUD-funktionalitet med redigering och datumhantering
+- **Tip Deduplication**: Intelligent förhindring av upprepade AI-tips
+- **Reminders-Aware AI**: AI som känner till användarens påminnelser och anpassar råd
 - **Real-time Calculations**: Live updates of space, cost, and nutrition analysis
 - **Crop Amount Controls**: Dynamic quantity adjustment with immediate feedback
 - **Gap Analysis**: AI-driven nutritional gap identification and grocery recommendations

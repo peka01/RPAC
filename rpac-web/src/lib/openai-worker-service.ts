@@ -3,6 +3,8 @@
  * This service replaces all direct OpenAI calls with calls to our Cloudflare Worker
  */
 
+import type { RemindersContext } from './reminders-context-service';
+
 const WORKER_API_URL = 'https://api.beready.se';
 
 export interface UserProfile {
@@ -160,7 +162,15 @@ Skapa en detaljerad odlingsplan med följande struktur (svara endast med JSON):
   /**
    * Generate daily preparedness tips using AI
    */
-  static async generateDailyPreparednessTips(profile: UserProfile): Promise<CultivationAdvice[]> {
+  static async generateDailyPreparednessTips(
+    profile: UserProfile, 
+    remindersContext?: RemindersContext,
+    tipHistory?: {
+      recentlyShownTips: string[];
+      savedToRemindersTips: string[];
+      completedTips: string[];
+    }
+  ): Promise<CultivationAdvice[]> {
     // Get current date and season
     const now = new Date();
     const currentDate = now.toLocaleDateString('sv-SE');
@@ -168,6 +178,40 @@ Skapa en detaljerad odlingsplan med följande struktur (svara endast med JSON):
     const currentSeason = currentMonth >= 3 && currentMonth <= 5 ? 'vår' :
                          currentMonth >= 6 && currentMonth <= 8 ? 'sommar' :
                          currentMonth >= 9 && currentMonth <= 11 ? 'höst' : 'vinter';
+
+    // Build reminders context for AI
+    const remindersContextText = remindersContext ? `
+ANVÄNDARENS PÅMINNELSER:
+- Väntande påminnelser: ${remindersContext.reminderStats.totalPending}
+- Försenade påminnelser: ${remindersContext.reminderStats.totalOverdue}
+- Genomförda denna vecka: ${remindersContext.reminderStats.completedThisWeek}
+- Genomförandegrad: ${remindersContext.reminderStats.completionRate}%
+
+FÖRSENADE UPPGIFTER (kräver omedelbar uppmärksamhet):
+${remindersContext.overdueReminders.map(r => 
+  `- ${r.message} (försenad sedan ${new Date(r.reminder_date).toLocaleDateString('sv-SE')})`
+).join('\n')}
+
+KOMMANDE UPPGIFTER (nästa 7 dagar):
+${remindersContext.upcomingReminders.map(r => 
+  `- ${r.message} (${new Date(r.reminder_date).toLocaleDateString('sv-SE')})`
+).join('\n')}
+
+GENOMFÖRDA IDAG:
+${remindersContext.completedToday.map(r => 
+  `- ${r.message} (klar)`
+).join('\n')}
+` : '';
+
+    // Build tip history context for AI
+    const tipHistoryText = tipHistory ? `
+TIPS HISTORIK (undvik att upprepa dessa):
+- Nyligen visade tips (senaste 7 dagarna): ${tipHistory.recentlyShownTips.join(', ') || 'Inga'}
+- Tips sparade till påminnelser: ${tipHistory.savedToRemindersTips.join(', ') || 'Inga'}
+- Genomförda tips: ${tipHistory.completedTips.join(', ') || 'Inga'}
+
+VIKTIGT: Generera INTE tips som redan har visats nyligen eller som användaren redan har sparat till påminnelser.
+` : '';
 
     const prompt = `Som svensk beredskapsexpert, ge 3 dagliga tips för beredskap och odling baserat på:
 
@@ -182,20 +226,31 @@ Användarprofil:
 - Trädgårdsstorlek: ${profile.gardenSize || 'medium'}
 - Krisläge: ${profile.crisisMode ? 'Ja' : 'Nej'}
 
-VIKTIGT: Ge råd som är relevanta för ${currentSeason} (månad ${currentMonth}). Fokusera på vad som är viktigt att göra just nu i ${currentSeason}.
+${remindersContextText}
+
+${tipHistoryText}
+
+VIKTIGT: 
+1. Om det finns försenade påminnelser, ge tips som hjälper användaren att komma ikapp
+2. Om användaren har hög genomförandegrad, ge avancerade tips
+3. Om användaren har låg genomförandegrad, fokusera på enkla, motiverande tips
+4. Anpassa tips baserat på kommande påminnelser
+5. Ge råd som är relevanta för ${currentSeason} (månad ${currentMonth})
+6. UNDVIK att upprepa tips som redan har visats nyligen eller sparats till påminnelser
 
 Svara med JSON-array med tips:
 [
   {
     "id": "tip-1",
-    "type": "recommendation/warning/tip/seasonal",
+    "type": "recommendation/warning/tip/seasonal/reminder_followup",
     "priority": "high/medium/low",
     "plant": "växtnamn (valfritt)",
     "title": "Tips titel",
     "description": "Detaljerad beskrivning",
     "action": "Konkret åtgärd (valfritt)",
     "timeframe": "Tidsram (valfritt)",
-    "icon": "🌱"
+    "icon": "🌱",
+    "relatedReminder": "ID till relaterad påminnelse (valfritt)"
   }
 ]`;
 

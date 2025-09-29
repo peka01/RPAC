@@ -23,13 +23,15 @@ Denna mapp innehåller all projektdokumentation för **RPAC** (Resilience & Prep
 - **[`/rpac-web/SUPABASE_SETUP.md`](../rpac-web/SUPABASE_SETUP.md)** - Databas och autentisering
 - **[`/rpac-web/DATABASE_SETUP.md`](../rpac-web/DATABASE_SETUP.md)** - Schema och datastruktur
 
-## 🎯 Projektfokus (September 2025)
+## 🎯 Projektfokus (Januari 2025)
 
 ### Nuvarande Status
 - ✅ **Kommunikationssystem** - Real-time meddelanden och extern kommunikation
-- ⭐️ **Odlingskalender & Planering** - Högsta nuvarande prioritet
-- 🔄 **Supabase-migrering** - Från localStorage till produktion
-- 🤖 **AI-integration** - Cloudflare Worker API med OpenAI GPT-3.5-turbo
+- ✅ **Odlingskalender & Planering** - Komplett med AI-integration
+- ✅ **Supabase-migrering** - Fullständig databasintegration
+- ✅ **AI-integration** - Cloudflare Worker API med OpenAI GPT-4
+- ✅ **Påminnelser-system** - Full CRUD-funktionalitet med AI-kontext
+- ✅ **Tip Deduplication** - Intelligent förhindring av upprepade tips
 
 ### Utvecklingsfaser
 - **Fas 1**: Stabilisering & Individnivå (MVP)

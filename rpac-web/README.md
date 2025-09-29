@@ -49,12 +49,16 @@ RPAC är en modern, web-först applikation för krisberedskap och ömsesidig hj�
 
 ## 🎯 Funktioner
 
-### Individnivå
+### Individnivå ✅ FULLY IMPLEMENTED
 - **Personlig Dashboard** - Översikt av beredskap och resurser
 - **AI-odlingsguide** - Platsbaserade odlingsplaner via Cloudflare Worker API
 - **Växtdiagnos** - AI-driven växtanalys med svenska optimering
 - **Resursinventering** - Mat, vatten, medicin, energi
 - **Personlig Coach** - AI-driven beredskapsstöd med svenska kontext
+- **Påminnelser** - Full CRUD-funktionalitet med redigering och datumhantering
+- **Tip Deduplication** - Intelligent förhindring av upprepade AI-tips
+- **Reminders-Aware AI** - AI som känner till användarens påminnelser och anpassar råd
+- **Väderintegration** - SMHI API för väderdata, prognoser och extrema varningar
 
 ### Lokalt Samhälle
 - **Resursdelning** - Transparent resursinventering

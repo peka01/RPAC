@@ -2,6 +2,46 @@
 
 ## Development History
 
+### 2025-01-28 - REMINDERS-AWARE AI & TIP DEDUPLICATION ✅
+**MAJOR ENHANCEMENT**: Complete reminders integration with AI advisor and intelligent tip deduplication system!
+
+#### Reminders-Aware AI Integration
+- **Contextual Intelligence**: AI now knows about user's pending, overdue, and completed reminders
+- **Personalized Guidance**: Tips adapt based on user's actual cultivation schedule and completion patterns
+- **Priority Awareness**: Overdue reminders get immediate attention in AI recommendations
+- **Motivational Adaptation**: High performers get advanced tips, struggling users get simple, encouraging guidance
+- **Seamless Integration**: Works with existing "Påminnelser" system without disrupting current functionality
+
+#### Enhanced Reminders System (Full CRUD)
+- **Complete CRUD Operations**: Create, Read, Update, Delete reminders with full database integration
+- **Advanced Date Management**: Native HTML5 date picker with optional time specification
+- **Reminder Types**: 7 different types (Sådd, Plantering, Vattning, Gödsling, Skörd, Underhåll, Allmän)
+- **Edit Functionality**: Full edit modal with pre-populated data and real-time updates
+- **Visual Indicators**: Different icons for different reminder types with color coding
+- **Mobile Optimization**: Touch-friendly interface with 44px minimum touch targets
+
+#### Tip Deduplication System
+- **Tip History Tracking**: localStorage-based tracking of all shown, saved, and completed tips
+- **Smart AI Context**: AI receives tip history and avoids repeating recent tips
+- **User Control**: "Spara till påminnelser" and "Markera som klar" buttons prevent tip repetition
+- **Automatic Cleanup**: 30-day history with automatic old entry removal
+- **Fresh Tips**: AI generates new, relevant tips each time without duplicates
+
+#### Technical Implementations
+- **RemindersContextService**: Loads and formats reminders data for AI context
+- **TipHistoryService**: Manages tip history with localStorage persistence
+- **Enhanced AI Prompts**: Include reminders context and tip history
+- **Database Integration**: All operations sync with Supabase
+- **Smart Filtering**: AI avoids previously shown, saved, or completed tips
+
+#### Key Features Implemented
+- **Reminders Context**: AI considers user's actual cultivation schedule
+- **Tip History**: Prevents duplicate tip generation
+- **Edit Reminders**: Full editing capabilities with date/time management
+- **Save to Reminders**: Tips can be saved directly to reminders system
+- **Mark as Done**: Users can mark tips as completed
+- **Visual Relationships**: Tips show when related to existing reminders
+
 ### 2025-01-28 - ENHANCED WEATHER INTEGRATION & AI COACH OPTIMIZATION ✅
 **MAJOR ENHANCEMENT**: Advanced weather integration with forecast data, extreme weather warnings, and modern UI design!
 

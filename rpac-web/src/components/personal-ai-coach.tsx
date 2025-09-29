@@ -11,10 +11,13 @@ import {
   MessageSquare,
   Send,
   Loader2,
-  Sparkles
+  Sparkles,
+  Bell
 } from 'lucide-react';
 import { SecureOpenAIService } from '@/lib/openai-worker-service';
 import { WeatherService, WeatherData, WeatherForecast } from '@/lib/weather-service';
+import { RemindersContextService, type RemindersContext } from '@/lib/reminders-context-service-enhanced';
+import { TipHistoryService } from '@/lib/tip-history-service';
 import { t } from '@/lib/locales';
 
 interface PersonalAICoachProps {
@@ -37,6 +40,7 @@ interface DailyTip {
   tools?: string[];
   steps?: string[];
   tips?: string[];
+  relatedReminder?: string;
 }
 
 interface ChatMessage {
@@ -56,6 +60,7 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [forecastData, setForecastData] = useState<WeatherForecast[]>([]);
   const [extremeWeatherWarnings, setExtremeWeatherWarnings] = useState<string[]>([]);
+  const [remindersContext, setRemindersContext] = useState<RemindersContext | null>(null);
 
   // Load weather data and forecast for user's location
   const loadWeatherData = async () => {
@@ -153,10 +158,41 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
     return countyToClimateZone[county.toLowerCase()] || 'svealand';
   }
 
-  // Generate daily AI tips based on current profile
+  // Load reminders context for AI
+  const loadRemindersContext = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const context = await RemindersContextService.getUserRemindersContext(user.id);
+      setRemindersContext(context);
+    } catch (error) {
+      console.error('Error loading reminders context:', error);
+    }
+  };
+
+  // Generate daily AI tips based on current profile and reminders context
   const generateDailyTips = async (): Promise<DailyTip[]> => {
     try {
-      const aiTips = await SecureOpenAIService.generateDailyPreparednessTips(profile);
+      // Get tip history to avoid duplicates
+      const recentlyShownTips = TipHistoryService.getRecentlyShownTips(7);
+      const savedToRemindersTips = TipHistoryService.getSavedToRemindersTips();
+      const completedTips = TipHistoryService.getCompletedTips();
+      
+      const aiTips = await SecureOpenAIService.generateDailyPreparednessTips(
+        profile, 
+        remindersContext || undefined,
+        {
+          recentlyShownTips,
+          savedToRemindersTips,
+          completedTips
+        }
+      );
+      
+      // Add new tips to history
+      aiTips.forEach(tip => {
+        TipHistoryService.addTipToHistory(tip);
+      });
+      
       return aiTips;
     } catch (error) {
       console.error('Error generating AI tips:', error);
@@ -164,12 +200,75 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
     }
   };
 
+  // Save tip to reminders
+  const saveTipToReminders = async (tip: DailyTip) => {
+    if (!user?.id) return;
+    
+    try {
+      const result = await RemindersContextService.saveTipToReminders(user.id, {
+        id: tip.id,
+        title: tip.title,
+        description: tip.description,
+        action: tip.action,
+        timeframe: tip.timeframe,
+        priority: tip.priority,
+        category: tip.category
+      });
+
+      if (result.success) {
+        // Mark tip as saved in history
+        TipHistoryService.markTipAsSaved(tip.id);
+        // Reload reminders context to update the AI tips
+        await loadRemindersContext();
+        // Show success feedback (could be a toast notification)
+        console.log('Tip saved to reminders successfully');
+      } else {
+        console.error('Failed to save tip to reminders:', result.error);
+      }
+    } catch (error) {
+      console.error('Error saving tip to reminders:', error);
+    }
+  };
+
+  // Check if tip is related to an existing reminder
+  const getRelatedReminder = (tip: DailyTip) => {
+    if (!remindersContext || !tip.relatedReminder) return null;
+    
+    return remindersContext.pendingReminders.find(r => r.id === tip.relatedReminder) ||
+           remindersContext.overdueReminders.find(r => r.id === tip.relatedReminder) ||
+           remindersContext.upcomingReminders.find(r => r.id === tip.relatedReminder);
+  };
+
+  // Mark tip as completed
+  const markTipAsCompleted = (tip: DailyTip) => {
+    TipHistoryService.markTipAsCompleted(tip.id);
+    // Regenerate tips to show new ones
+    const fetchDailyTips = async () => {
+      setIsLoading(true);
+      try {
+        const aiTips = await generateDailyTips();
+        setDailyTips(aiTips);
+      } catch (error) {
+        console.error('Error generating AI tips:', error);
+        setDailyTips(getFallbackTips());
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchDailyTips();
+  };
+
   // Load weather data when component mounts or user profile changes
   useEffect(() => {
     loadWeatherData();
   }, [userProfile?.county, userProfile?.city]);
 
-  // Regenerate tips when profile, weather, or forecast changes
+  // Load reminders context when user changes
+  useEffect(() => {
+    loadRemindersContext();
+  }, [user?.id]);
+
+  // Regenerate tips when profile, weather, forecast, or reminders context changes
   useEffect(() => {
     const fetchDailyTips = async () => {
       setIsLoading(true);
@@ -185,7 +284,7 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
     };
 
     fetchDailyTips();
-  }, [userProfile, weatherData, forecastData, extremeWeatherWarnings]); // Re-run when weather data changes
+  }, [userProfile, weatherData, forecastData, extremeWeatherWarnings, remindersContext]); // Re-run when any context changes
 
   // Fallback tips when AI is unavailable
   const getFallbackTips = (): DailyTip[] => {
@@ -453,6 +552,7 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
             <div className="grid gap-4">
               {dailyTips.map((tip) => {
                 const IconComponent = getTipIcon(tip);
+                const relatedReminder = getRelatedReminder(tip);
                 return (
                   <div 
                     key={tip.id} 
@@ -479,6 +579,17 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
                             {getPriorityBadge(tip.priority)}
                           </div>
                           <p className="text-sm mb-2" style={{ color: 'var(--color-khaki)' }}>{tip.description}</p>
+                          
+                          {/* Reminder relationship indicator */}
+                          {relatedReminder && (
+                            <div className="flex items-center gap-2 mb-2 p-2 rounded" style={{ backgroundColor: 'var(--bg-olive-light)' }}>
+                              <Bell className="w-4 h-4" style={{ color: 'var(--color-sage)' }} />
+                              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                                Relaterat till: {relatedReminder.message}
+                              </span>
+                            </div>
+                          )}
+                          
                           <div className="flex items-center gap-4 text-xs" style={{ color: 'var(--color-khaki)' }}>
                             <span className="flex items-center gap-1">
                               <Clock className="h-3 w-3" />
@@ -489,14 +600,48 @@ export function PersonalAICoach({ user, userProfile = {} }: PersonalAICoachProps
                               {tip.estimatedTime}
                             </span>
                           </div>
-                          {tip.action && (
+                          <div className="flex items-center gap-2 mt-2">
+                            {tip.action && (
+                              <button 
+                                className="px-3 py-1 text-sm text-white rounded"
+                                style={{ backgroundColor: getTipColor(tip) }}
+                              >
+                                {tip.action}
+                              </button>
+                            )}
+                            
                             <button 
-                              className="mt-2 px-3 py-1 text-sm text-white rounded"
-                              style={{ backgroundColor: getTipColor(tip) }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                saveTipToReminders(tip);
+                              }}
+                              className="flex items-center gap-1 px-3 py-1 text-sm rounded border hover:shadow-sm transition-all duration-200"
+                              style={{ 
+                                backgroundColor: 'var(--bg-olive-light)',
+                                borderColor: 'var(--color-sage)',
+                                color: 'var(--text-primary)'
+                              }}
                             >
-                              {tip.action}
+                              <Bell className="w-4 h-4" />
+                              <span>Spara till påminnelser</span>
                             </button>
-                          )}
+                            
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                markTipAsCompleted(tip);
+                              }}
+                              className="flex items-center gap-1 px-3 py-1 text-sm rounded border hover:shadow-sm transition-all duration-200"
+                              style={{ 
+                                backgroundColor: 'var(--bg-green-light)',
+                                borderColor: 'var(--color-green)',
+                                color: 'var(--text-primary)'
+                              }}
+                            >
+                              <CheckCircle className="w-4 h-4" />
+                              <span>Markera som klar</span>
+                            </button>
+                          </div>
                         </div>
                       </div>
                       

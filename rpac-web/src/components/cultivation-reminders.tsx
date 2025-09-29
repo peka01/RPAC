@@ -66,6 +66,7 @@ export function CultivationReminders({
   });
   const [showSettings, setShowSettings] = useState(false);
   const [newReminder, setNewReminder] = useState<Partial<CultivationReminder> | null>(null);
+  const [editingReminder, setEditingReminder] = useState<CultivationReminder | null>(null);
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed' | 'overdue'>('pending');
 
   // Generate Swedish seasonal reminders - temporarily disabled
@@ -131,36 +132,108 @@ export function CultivationReminders({
   };
 
   // Toggle reminder completion
-  const toggleReminder = (id: string) => {
-    setReminders(prev => prev.map(reminder => {
-      if (reminder.id === id) {
-        return { ...reminder, is_completed: !reminder.is_completed };
+  const toggleReminder = async (id: string) => {
+    const reminder = reminders.find(r => r.id === id);
+    if (!reminder) return;
+
+    try {
+      const { error } = await supabase
+        .from('cultivation_reminders')
+        .update({ 
+          is_completed: !reminder.is_completed,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error updating reminder:', error);
+        return;
       }
-      return reminder;
-    }));
+
+      setReminders(prev => prev.map(r => {
+        if (r.id === id) {
+          return { ...r, is_completed: !r.is_completed, updated_at: new Date().toISOString() };
+        }
+        return r;
+      }));
+    } catch (error) {
+      console.error('Error toggling reminder:', error);
+    }
   };
 
   // Delete reminder
-  const deleteReminder = (id: string) => {
-    setReminders(prev => prev.filter(r => r.id !== id));
+  const deleteReminder = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('cultivation_reminders')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error deleting reminder:', error);
+        return;
+      }
+
+      setReminders(prev => prev.filter(r => r.id !== id));
+    } catch (error) {
+      console.error('Error deleting reminder:', error);
+    }
   };
 
   // Add new reminder
-  const addReminder = (reminder: Partial<CultivationReminder>) => {
-    const newRem: CultivationReminder = {
-      id: `custom-${Date.now()}`,
-      user_id: user.id,
-      reminder_type: 'general',
-      reminder_date: new Date().toISOString(),
-      message: 'Ny påminnelse',
-      is_completed: false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      ...reminder
-    };
-    
-    setReminders(prev => [...prev, newRem]);
-    setNewReminder(null);
+  const addReminder = async (reminder: Partial<CultivationReminder>) => {
+    try {
+      const newReminder = {
+        user_id: user.id,
+        reminder_type: reminder.reminder_type || 'general',
+        reminder_date: reminder.reminder_date || new Date().toISOString(),
+        message: reminder.message || 'Ny påminnelse',
+        is_completed: false
+      };
+
+      const { data, error } = await supabase
+        .from('cultivation_reminders')
+        .insert(newReminder)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error adding reminder:', error);
+        return;
+      }
+
+      setReminders(prev => [...prev, data]);
+      setNewReminder(null);
+    } catch (error) {
+      console.error('Error adding reminder:', error);
+    }
+  };
+
+  // Update existing reminder
+  const updateReminder = async (updatedReminder: CultivationReminder) => {
+    try {
+      const { error } = await supabase
+        .from('cultivation_reminders')
+        .update({
+          message: updatedReminder.message,
+          reminder_date: updatedReminder.reminder_date,
+          reminder_type: updatedReminder.reminder_type,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', updatedReminder.id);
+
+      if (error) {
+        console.error('Error updating reminder:', error);
+        return;
+      }
+
+      setReminders(prev => prev.map(r => 
+        r.id === updatedReminder.id ? { ...updatedReminder, updated_at: new Date().toISOString() } : r
+      ));
+      setEditingReminder(null);
+    } catch (error) {
+      console.error('Error updating reminder:', error);
+    }
   };
 
   const getTypeIcon = (type: string) => {
@@ -316,18 +389,29 @@ export function CultivationReminders({
                           color: isReminderOverdue ? 'var(--color-warm-olive)' : 'var(--text-tertiary)' 
                         }}>
                           {new Date(reminder.reminder_date).toLocaleDateString('sv-SE')}
+                          {reminder.reminder_time && ` kl ${reminder.reminder_time}`}
                           {isReminderOverdue && ' (försenad)'}
                         </span>
                       </div>
                       
                     </div>
 
-                    <button
-                      onClick={() => deleteReminder(reminder.id)}
-                      className="p-1 rounded hover:bg-red-50 transition-colors duration-200"
-                    >
-                      <Trash2 className="w-3 h-3 text-red-500" />
-                    </button>
+                    <div className="flex items-center space-x-1">
+                      <button
+                        onClick={() => setEditingReminder(reminder)}
+                        className="p-1 rounded hover:bg-blue-50 transition-colors duration-200"
+                        title="Redigera påminnelse"
+                      >
+                        <Edit className="w-3 h-3 text-blue-500" />
+                      </button>
+                      <button
+                        onClick={() => deleteReminder(reminder.id)}
+                        className="p-1 rounded hover:bg-red-50 transition-colors duration-200"
+                        title="Ta bort påminnelse"
+                      >
+                        <Trash2 className="w-3 h-3 text-red-500" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -347,6 +431,111 @@ export function CultivationReminders({
              filter === 'completed' ? 'Inga påminnelser är markerade som klara.' :
              'Lägg till din första påminnelse för att komma igång.'}
           </p>
+        </div>
+      )}
+
+      {/* Edit Reminder Modal */}
+      {editingReminder && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full" style={{ backgroundColor: 'var(--bg-card)' }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+                Redigera påminnelse
+              </h3>
+              <button
+                onClick={() => setEditingReminder(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm mb-2" style={{ color: 'var(--text-primary)' }}>
+                  Meddelande
+                </label>
+                <input
+                  type="text"
+                  value={editingReminder.message}
+                  onChange={(e) => setEditingReminder(prev => prev ? { ...prev, message: e.target.value } : null)}
+                  className="w-full p-2 border rounded"
+                  style={{ borderColor: 'var(--color-secondary)' }}
+                  placeholder="Påminnelsens titel..."
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm mb-2" style={{ color: 'var(--text-primary)' }}>
+                  Typ
+                </label>
+                <select
+                  value={editingReminder.reminder_type}
+                  onChange={(e) => setEditingReminder(prev => prev ? { ...prev, reminder_type: e.target.value } : null)}
+                  className="w-full p-2 border rounded"
+                  style={{ borderColor: 'var(--color-secondary)' }}
+                >
+                  <option value="general">Allmän</option>
+                  <option value="sowing">Sådd</option>
+                  <option value="planting">Plantering</option>
+                  <option value="watering">Vattning</option>
+                  <option value="fertilizing">Gödsling</option>
+                  <option value="harvesting">Skörd</option>
+                  <option value="maintenance">Underhåll</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm mb-2" style={{ color: 'var(--text-primary)' }}>
+                  Datum
+                </label>
+                <input
+                  type="date"
+                  value={editingReminder.reminder_date ? editingReminder.reminder_date.split('T')[0] : ''}
+                  onChange={(e) => setEditingReminder(prev => prev ? { 
+                    ...prev, 
+                    reminder_date: new Date(e.target.value).toISOString() 
+                  } : null)}
+                  className="w-full p-2 border rounded"
+                  style={{ borderColor: 'var(--color-secondary)' }}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm mb-2" style={{ color: 'var(--text-primary)' }}>
+                  Tid (valfritt)
+                </label>
+                <input
+                  type="time"
+                  value={editingReminder.reminder_time || ''}
+                  onChange={(e) => setEditingReminder(prev => prev ? { 
+                    ...prev, 
+                    reminder_time: e.target.value 
+                  } : null)}
+                  className="w-full p-2 border rounded"
+                  style={{ borderColor: 'var(--color-secondary)' }}
+                />
+              </div>
+              
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={() => setEditingReminder(null)}
+                  className="px-4 py-2 border rounded text-sm"
+                  style={{ borderColor: 'var(--color-secondary)', color: 'var(--text-secondary)' }}
+                >
+                  Avbryt
+                </button>
+                <button
+                  onClick={() => updateReminder(editingReminder)}
+                  className="px-4 py-2 rounded text-sm text-white"
+                  style={{ backgroundColor: 'var(--color-sage)' }}
+                  disabled={!editingReminder.message || !editingReminder.reminder_date}
+                >
+                  Spara ändringar
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -443,14 +632,34 @@ export function CultivationReminders({
               
               <div>
                 <label className="block text-sm mb-2" style={{ color: 'var(--text-primary)' }}>
-                  Beskrivning
+                  Typ
                 </label>
-                <textarea
-                  value=""
-                  onChange={() => {}}
-                  className="w-full p-2 border rounded h-20"
+                <select
+                  value={newReminder.reminder_type || 'general'}
+                  onChange={(e) => setNewReminder(prev => ({ ...prev, reminder_type: e.target.value }))}
+                  className="w-full p-2 border rounded"
                   style={{ borderColor: 'var(--color-secondary)' }}
-                  placeholder="Detaljer om uppgiften..."
+                >
+                  <option value="general">Allmän</option>
+                  <option value="sowing">Sådd</option>
+                  <option value="planting">Plantering</option>
+                  <option value="watering">Vattning</option>
+                  <option value="fertilizing">Gödsling</option>
+                  <option value="harvesting">Skörd</option>
+                  <option value="maintenance">Underhåll</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm mb-2" style={{ color: 'var(--text-primary)' }}>
+                  Tid (valfritt)
+                </label>
+                <input
+                  type="time"
+                  value={newReminder.reminder_time || ''}
+                  onChange={(e) => setNewReminder(prev => ({ ...prev, reminder_time: e.target.value }))}
+                  className="w-full p-2 border rounded"
+                  style={{ borderColor: 'var(--color-secondary)' }}
                 />
               </div>
               
