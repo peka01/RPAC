@@ -161,13 +161,28 @@ Skapa en detaljerad odlingsplan med följande struktur (svara endast med JSON):
    * Generate daily preparedness tips using AI
    */
   static async generateDailyPreparednessTips(profile: UserProfile): Promise<CultivationAdvice[]> {
+    // Get current date and season
+    const now = new Date();
+    const currentDate = now.toLocaleDateString('sv-SE');
+    const currentMonth = now.getMonth() + 1;
+    const currentSeason = currentMonth >= 3 && currentMonth <= 5 ? 'vår' :
+                         currentMonth >= 6 && currentMonth <= 8 ? 'sommar' :
+                         currentMonth >= 9 && currentMonth <= 11 ? 'höst' : 'vinter';
+
     const prompt = `Som svensk beredskapsexpert, ge 3 dagliga tips för beredskap och odling baserat på:
+
+AKTUELL TIDSPUNKT:
+- Datum: ${currentDate}
+- Månad: ${currentMonth}
+- Säsong: ${currentSeason}
 
 Användarprofil:
 - Klimatzon: ${profile.climateZone || 'svealand'}
 - Erfarenhetsnivå: ${profile.experienceLevel || 'beginner'}
 - Trädgårdsstorlek: ${profile.gardenSize || 'medium'}
 - Krisläge: ${profile.crisisMode ? 'Ja' : 'Nej'}
+
+VIKTIGT: Ge råd som är relevanta för ${currentSeason} (månad ${currentMonth}). Fokusera på vad som är viktigt att göra just nu i ${currentSeason}.
 
 Svara med JSON-array med tips:
 [
@@ -215,7 +230,20 @@ Svara med JSON-array med tips:
     userQuestion: string;
     chatHistory?: Array<{ sender: string; message: string; timestamp: string }>;
   }): Promise<string> {
+    // Get current date and season
+    const now = new Date();
+    const currentDate = now.toLocaleDateString('sv-SE');
+    const currentMonth = now.getMonth() + 1;
+    const currentSeason = currentMonth >= 3 && currentMonth <= 5 ? 'vår' :
+                         currentMonth >= 6 && currentMonth <= 8 ? 'sommar' :
+                         currentMonth >= 9 && currentMonth <= 11 ? 'höst' : 'vinter';
+
     const prompt = `Som svensk beredskapsexpert och personlig coach, svara på användarens fråga:
+
+AKTUELL TIDSPUNKT:
+- Datum: ${currentDate}
+- Månad: ${currentMonth}
+- Säsong: ${currentSeason}
 
 Användarprofil:
 - Klimatzon: ${userProfile.climateZone || 'svealand'}
@@ -227,7 +255,7 @@ Användarens fråga: ${userQuestion}
 
 Chatthistorik: ${chatHistory.map(msg => `${msg.sender}: ${msg.message}`).join('\n')}
 
-Svara på svenska med praktiska råd och tips för beredskap och odling.`;
+Svara på svenska med praktiska råd och tips för beredskap och odling. Tänk på att det är ${currentSeason} (månad ${currentMonth}) när du ger råd.`;
 
     try {
       return await callWorkerAPI(prompt);

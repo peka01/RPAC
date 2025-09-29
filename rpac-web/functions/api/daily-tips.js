@@ -17,13 +17,28 @@ export async function onRequest(context) {
     const body = await request.json();
     const { userProfile } = body;
 
+    // Get current date and season
+    const now = new Date();
+    const currentDate = now.toLocaleDateString('sv-SE');
+    const currentMonth = now.getMonth() + 1;
+    const currentSeason = currentMonth >= 3 && currentMonth <= 5 ? 'vår' :
+                         currentMonth >= 6 && currentMonth <= 8 ? 'sommar' :
+                         currentMonth >= 9 && currentMonth <= 11 ? 'höst' : 'vinter';
+
     const prompt = `Som svensk krisberedskaps- och odlingsexpert, ge 3-5 dagliga råd baserat på användarens profil:
+
+AKTUELL TIDSPUNKT:
+- Datum: ${currentDate}
+- Månad: ${currentMonth}
+- Säsong: ${currentSeason}
 
 Användarprofil:
 - Klimatzon: ${userProfile?.climateZone || 'svealand'}
 - Erfarenhet: ${userProfile?.experienceLevel || 'beginner'}
 - Trädgårdsstorlek: ${userProfile?.gardenSize || 'medium'}
 - Plats: ${userProfile?.county || 'okänd'} ${userProfile?.city || ''}
+
+VIKTIGT: Ge råd som är relevanta för ${currentSeason} (månad ${currentMonth}). Fokusera på vad som är viktigt att göra just nu i ${currentSeason}.
 
 Svara med JSON-array med tips:
 [

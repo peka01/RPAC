@@ -22,7 +22,20 @@ export async function onRequest(context) {
       ? chatHistory.map(msg => `${msg.sender}: ${msg.message}`).join('\n')
       : '';
 
-    const prompt = `Som svensk krisberedskaps- och odlingsexpert, svara på användarens fråga:
+            // Get current date and season
+            const now = new Date();
+            const currentDate = now.toLocaleDateString('sv-SE');
+            const currentMonth = now.getMonth() + 1;
+            const currentSeason = currentMonth >= 3 && currentMonth <= 5 ? 'vår' :
+                                 currentMonth >= 6 && currentMonth <= 8 ? 'sommar' :
+                                 currentMonth >= 9 && currentMonth <= 11 ? 'höst' : 'vinter';
+
+            const prompt = `Som svensk krisberedskaps- och odlingsexpert, svara på användarens fråga:
+
+AKTUELL TIDSPUNKT:
+- Datum: ${currentDate}
+- Månad: ${currentMonth}
+- Säsong: ${currentSeason}
 
 Användarprofil:
 - Klimatzon: ${userProfile?.climateZone || 'svealand'}
@@ -35,7 +48,7 @@ ${chatHistoryText}
 
 Användarens fråga: ${userQuestion}
 
-Svara på svenska med praktiska råd för beredskap och odling.`;
+Svara på svenska med praktiska råd för beredskap och odling. Tänk på att det är ${currentSeason} (månad ${currentMonth}) när du ger råd.`;
 
     // Call the Cloudflare Worker API
     const workerResponse = await fetch('https://api.beready.se', {

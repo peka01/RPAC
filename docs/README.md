@@ -29,7 +29,7 @@ Denna mapp innehåller all projektdokumentation för **RPAC** (Resilience & Prep
 - ✅ **Kommunikationssystem** - Real-time meddelanden och extern kommunikation
 - ⭐️ **Odlingskalender & Planering** - Högsta nuvarande prioritet
 - 🔄 **Supabase-migrering** - Från localStorage till produktion
-- 🤖 **AI-integration** - OpenAI GPT-4 och Computer Vision
+- 🤖 **AI-integration** - Cloudflare Worker API med OpenAI GPT-3.5-turbo
 
 ### Utvecklingsfaser
 - **Fas 1**: Stabilisering & Individnivå (MVP)

@@ -25,7 +25,7 @@ RPAC (Resilience & Preparedness AI Companion) har omorienterats till en **web-f�
 │  │                                                             │
 │  │ • Vercel (Hosting)    • Cloudflare (CDN)   • Global Edge  │
 │  │ • PWA Support        • Offline Capability  • Auto-scaling │
-│  │ • Crisis Mode        • Swedish Localization • AI Integration│
+│  │ • Crisis Mode        • Swedish Localization • AI Worker   │
 │  └─────────────────────────────────────────────────────────────┤
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -125,7 +125,8 @@ RPAC (Resilience & Preparedness AI Companion) har omorienterats till en **web-f�
 ## AI och Automatisering
 
 ### 🤖 **AI-integration**
-- **OpenAI GPT-4**: Naturlig språkbehandling på svenska
+- **Cloudflare Worker API**: Säker OpenAI GPT-3.5-turbo integration via `api.beready.se`
+- **Swedish Language Optimization**: Alla AI-prompts optimerade för svenska kontext
 - **Computer Vision**: Växtdiagnos och bildanalys
 - **Predictive Analytics**: Förutsägelse av krisbehov
 - **Automated Responses**: Intelligenta svar på kriser
@@ -179,7 +180,7 @@ RPAC:s nya web-först arkitektur kombinerar **moderna webbteknologier**, **globa
 ### 🚀 **Senaste Förbättringar** (2025-01-28)
 - **Phase 1 Complete**: Fullständig individuell beredskapssystem med AI-integration
 - **Supabase Migration**: Komplett migrering från localStorage till production-ready backend
-- **Enhanced Cultivation Planning**: 5-step AI-powered planning system med OpenAI GPT-4
+- **Enhanced Cultivation Planning**: 5-step AI-powered planning system med Cloudflare Worker API
 - **Communication System**: Real-time messaging och extern kommunikation
 - **MSB Integration**: Officiell svensk krisberedskap enligt "Om krisen eller kriget kommer"
 - **UX Breakthrough**: Perfekt balans mellan professionell design och varm svensk kommunikation
@@ -200,7 +201,7 @@ RPAC:s nya web-först arkitektur kombinerar **moderna webbteknologier**, **globa
 - **Phase 4 (Advanced Features)**: 📋 **FUTURE** - IoT, AR/VR, advanced AI features planned
 
 ### 🔧 **Next Technical Priorities**
-1. **Complete AI Integration** - Replace remaining mock implementations with OpenAI GPT-4
+1. **Complete AI Integration** - All components now use Cloudflare Worker API at `api.beready.se`
 2. **Community Hub Integration** - Full geographic and resource sharing functionality
 3. **Push Notifications** - Critical alerts and cultivation reminders
 4. **Regional Coordination** - Cross-community resource sharing and crisis coordination

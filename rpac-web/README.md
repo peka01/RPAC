@@ -19,7 +19,7 @@ RPAC är en modern, web-först applikation för krisberedskap och ömsesidig hj�
 - **Row Level Security** - Dataskydd med RLS-policies
 - **Foreign Key Constraints** - Dataintegritet och referential integrity
 - **Vercel** - Global hosting och deployment
-- **Cloudflare** - CDN och edge computing
+- **Cloudflare** - CDN, edge computing och AI Worker API
 
 ### Features ✅ IMPLEMENTED
 - **Progressive Web App (PWA)** - App-liknande upplevelse
@@ -51,10 +51,10 @@ RPAC är en modern, web-först applikation för krisberedskap och ömsesidig hj�
 
 ### Individnivå
 - **Personlig Dashboard** - Översikt av beredskap och resurser
-- **AI-odlingsguide** - Platsbaserade odlingsplaner
-- **Växtdiagnos** - AI-driven växtanalys
+- **AI-odlingsguide** - Platsbaserade odlingsplaner via Cloudflare Worker API
+- **Växtdiagnos** - AI-driven växtanalys med svenska optimering
 - **Resursinventering** - Mat, vatten, medicin, energi
-- **Personlig Coach** - AI-driven beredskapsstöd
+- **Personlig Coach** - AI-driven beredskapsstöd med svenska kontext
 
 ### Lokalt Samhälle
 - **Resursdelning** - Transparent resursinventering
