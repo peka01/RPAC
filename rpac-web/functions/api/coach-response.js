@@ -1,4 +1,5 @@
 // Cloudflare Pages Function for OpenAI coach responses
+// Now uses the Cloudflare Worker API at api.beready.se
 export async function onRequest(context) {
   // Handle GET requests for testing
   if (context.request.method === 'GET') {
@@ -10,26 +11,18 @@ export async function onRequest(context) {
       headers: { 'Content-Type': 'application/json' }
     });
   }
-  const { request, env } = context;
+  const { request } = context;
   
   try {
     const body = await request.json();
     const { userProfile, userQuestion, chatHistory } = body;
 
-    if (!env.NEXT_PUBLIC_OPENAI_API_KEY) {
-      return new Response(JSON.stringify({
-        error: 'OpenAI API key not configured'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
+    // Build conversation context for the Worker API
+    const chatHistoryText = chatHistory && chatHistory.length > 0 
+      ? chatHistory.map(msg => `${msg.sender}: ${msg.message}`).join('\n')
+      : '';
 
-    // Build conversation context
-    const messages = [
-      {
-        role: 'system',
-        content: `Du är en svensk krisberedskaps- och odlingsexpert som fungerar som en personlig coach. Du ger praktiska råd på svenska för beredskap och odling.
+    const prompt = `Som svensk krisberedskaps- och odlingsexpert, svara på användarens fråga:
 
 Användarprofil:
 - Klimatzon: ${userProfile?.climateZone || 'svealand'}
@@ -37,47 +30,28 @@ Användarprofil:
 - Trädgårdsstorlek: ${userProfile?.gardenSize || 'medium'}
 - Plats: ${userProfile?.county || 'okänd'} ${userProfile?.city || ''}
 
-Du svarar alltid på svenska och ger konkreta, praktiska råd. Fokusera på krisberedskap och odling.`
-      }
-    ];
+Chatthistorik:
+${chatHistoryText}
 
-    // Add chat history
-    if (chatHistory && chatHistory.length > 0) {
-      chatHistory.forEach(msg => {
-        messages.push({
-          role: msg.sender === 'user' ? 'user' : 'assistant',
-          content: msg.message
-        });
-      });
-    }
+Användarens fråga: ${userQuestion}
 
-    // Add current question
-    messages.push({
-      role: 'user',
-      content: userQuestion
-    });
+Svara på svenska med praktiska råd för beredskap och odling.`;
 
-    // Create OpenAI API request
-    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Call the Cloudflare Worker API
+    const workerResponse = await fetch('https://api.beready.se', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${env.NEXT_PUBLIC_OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: messages,
-        max_tokens: 1000,
-        temperature: 0.7
-      })
+      body: JSON.stringify({ prompt })
     });
 
-    if (!openaiResponse.ok) {
-      throw new Error(`OpenAI API error: ${openaiResponse.status}`);
+    if (!workerResponse.ok) {
+      throw new Error(`Worker API error: ${workerResponse.status}`);
     }
 
-    const data = await openaiResponse.json();
-    const content = data.choices[0]?.message?.content;
+    const workerData = await workerResponse.json();
+    const content = workerData.choices[0]?.message?.content || 'Jag kunde inte svara på din fråga just nu.';
 
     return new Response(JSON.stringify({
       response: content,

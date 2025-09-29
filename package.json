@@ -1,0 +1,22 @@
+{
+  "name": "openai-cloudflare-worker",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker for OpenAI Chat Completions API",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler publish",
+    "secret:put": "wrangler secret put OPENAI_API_KEY"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  },
+  "keywords": [
+    "cloudflare",
+    "worker",
+    "openai",
+    "api"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

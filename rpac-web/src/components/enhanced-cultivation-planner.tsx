@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useUserProfile } from '@/lib/useUserProfile';
-import { OpenAIService } from '@/lib/openai-service-server';
+import { OpenAIService } from '@/lib/openai-worker-service';
 import { supabase } from '@/lib/supabase';
 import { t } from '@/lib/locales';
 import { 

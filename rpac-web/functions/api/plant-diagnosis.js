@@ -1,4 +1,5 @@
 // Cloudflare Pages Function for OpenAI plant diagnosis
+// Now uses the Cloudflare Worker API at api.beready.se
 export async function onRequest(context) {
   // Handle GET requests for testing
   if (context.request.method === 'GET') {
@@ -10,72 +11,47 @@ export async function onRequest(context) {
       headers: { 'Content-Type': 'application/json' }
     });
   }
-  const { request, env } = context;
+  const { request } = context;
   
   try {
     const body = await request.json();
     const { imageData, userProfile } = body;
 
-    if (!env.NEXT_PUBLIC_OPENAI_API_KEY) {
-      return new Response(JSON.stringify({
-        error: 'OpenAI API key not configured'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
-    // Create OpenAI API request with image
-    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${env.NEXT_PUBLIC_OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: `Analysera denna växtbild och ge en diagnos på svenska. Fokusera på svenska växter och odlingsförhållanden.
+    const prompt = `Som svensk växtexpert, analysera denna växtbild och ge diagnos:
 
 Användarprofil:
 - Klimatzon: ${userProfile?.climateZone || 'svealand'}
 - Erfarenhet: ${userProfile?.experienceLevel || 'beginner'}
 - Trädgårdsstorlek: ${userProfile?.gardenSize || 'medium'}
 
-Ge en strukturerad analys med:
-1. Växtidentifiering (svenskt namn)
-2. Hälsostatus (frisk/sjuk)
-3. Eventuella problem (sjukdomar, skadedjur, näringsbrist)
-4. Konkreta åtgärdsförslag
-5. Förebyggande råd
+Svara med JSON:
+{
+  "plantName": "Växtnamn",
+  "scientificName": "Vetenskapligt namn",
+  "healthStatus": "healthy/disease/pest/nutrient_deficiency",
+  "confidence": 0.85,
+  "description": "Detaljerad beskrivning av växtens tillstånd",
+  "recommendations": ["Råd 1", "Råd 2", "Råd 3"],
+  "severity": "low/medium/high"
+}
 
-Använd svenska termer och fokusera på svenska odlingsförhållanden.`
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: `data:image/jpeg;base64,${imageData}`
-                }
-              }
-            ]
-          }
-        ],
-        max_tokens: 1000,
-        temperature: 0.7
-      })
+Fokusera på svenska växter och odlingsförhållanden.`;
+
+    // Call the Cloudflare Worker API
+    const workerResponse = await fetch('https://api.beready.se', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ prompt })
     });
 
-    if (!openaiResponse.ok) {
-      throw new Error(`OpenAI API error: ${openaiResponse.status}`);
+    if (!workerResponse.ok) {
+      throw new Error(`Worker API error: ${workerResponse.status}`);
     }
 
-    const data = await openaiResponse.json();
-    const content = data.choices[0]?.message?.content;
+    const workerData = await workerResponse.json();
+    const content = workerData.choices[0]?.message?.content;
 
     // Parse the response into structured diagnosis
     const diagnosis = parseDiagnosisFromContent(content);

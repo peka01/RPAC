@@ -1,4 +1,5 @@
 // Cloudflare Pages Function for OpenAI daily tips
+// Now uses the Cloudflare Worker API at api.beready.se
 export async function onRequest(context) {
   // Handle GET requests for testing
   if (context.request.method === 'GET') {
@@ -10,34 +11,13 @@ export async function onRequest(context) {
       headers: { 'Content-Type': 'application/json' }
     });
   }
-  const { request, env } = context;
+  const { request } = context;
   
   try {
     const body = await request.json();
     const { userProfile } = body;
 
-    if (!env.NEXT_PUBLIC_OPENAI_API_KEY) {
-      return new Response(JSON.stringify({
-        error: 'OpenAI API key not configured'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
-    // Create OpenAI API request
-    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${env.NEXT_PUBLIC_OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          {
-            role: 'system',
-            content: `Du är en svensk krisberedskaps- och odlingsexpert. Ge personliga råd baserat på användarens profil och aktuell väderdata. Fokusera på praktiska, svenska råd för beredskap och odling.
+    const prompt = `Som svensk krisberedskaps- och odlingsexpert, ge 3-5 dagliga råd baserat på användarens profil:
 
 Användarprofil:
 - Klimatzon: ${userProfile?.climateZone || 'svealand'}
@@ -45,24 +25,42 @@ Användarprofil:
 - Trädgårdsstorlek: ${userProfile?.gardenSize || 'medium'}
 - Plats: ${userProfile?.county || 'okänd'} ${userProfile?.city || ''}
 
-Ge 3-5 konkreta, praktiska råd för idag. Använd svenska termer och fokusera på krisberedskap och odling.`
-          },
-          {
-            role: 'user',
-            content: 'Ge mig dagliga råd för beredskap och odling baserat på min profil.'
-          }
-        ],
-        max_tokens: 1000,
-        temperature: 0.7
-      })
+Svara med JSON-array med tips:
+[
+  {
+    "id": "tip-1",
+    "type": "tip",
+    "priority": "high/medium/low",
+    "title": "Tips titel",
+    "description": "Detaljerad beskrivning",
+    "action": "Konkret åtgärd",
+    "timeframe": "Dagligen",
+    "icon": "🌱",
+    "category": "cultivation/preparedness",
+    "season": "all",
+    "difficulty": "beginner",
+    "estimatedTime": "15 minuter",
+    "tools": ["verktyg1", "verktyg2"],
+    "steps": ["steg1", "steg2"],
+    "tips": ["tips1", "tips2"]
+  }
+]`;
+
+    // Call the Cloudflare Worker API
+    const workerResponse = await fetch('https://api.beready.se', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ prompt })
     });
 
-    if (!openaiResponse.ok) {
-      throw new Error(`OpenAI API error: ${openaiResponse.status}`);
+    if (!workerResponse.ok) {
+      throw new Error(`Worker API error: ${workerResponse.status}`);
     }
 
-    const data = await openaiResponse.json();
-    const content = data.choices[0]?.message?.content;
+    const workerData = await workerResponse.json();
+    const content = workerData.choices[0]?.message?.content;
 
     // Parse the response into structured tips
     const tips = parseTipsFromContent(content);

@@ -1,150 +1,232 @@
-# Deployment Guide - Cloudflare Pages
-
-This guide explains how to deploy the RPAC web application to Cloudflare Pages using GitHub Actions.
+# Cloudflare Worker Deployment Guide
 
 ## Prerequisites
 
-1. **Cloudflare Account**: You need a Cloudflare account with Pages enabled
-2. **GitHub Repository**: Your code should be in a GitHub repository
-3. **Required Secrets**: You need to set up the following secrets in your GitHub repository
+1. **Node.js** (version 18 or higher)
+2. **Wrangler CLI** - Cloudflare's command-line tool
+3. **Cloudflare account** with Workers enabled
+4. **OpenAI API key** (already stored as `OPENAI_API_KEY` secret)
 
-## Required GitHub Secrets
+## Installation
 
-Set these secrets in your GitHub repository settings (`Settings` → `Secrets and variables` → `Actions`):
+1. **Install Wrangler globally:**
+   ```bash
+   npm install -g wrangler
+   ```
 
-### Cloudflare Secrets
-- `CLOUDFLARE_API_TOKEN`: Your Cloudflare API token with Pages permissions
-- `CLOUDFLARE_ACCOUNT_ID`: Your Cloudflare Account ID
+2. **Install project dependencies:**
+   ```bash
+   npm install
+   ```
 
-### Application Secrets
-- `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
+3. **Login to Cloudflare:**
+   ```bash
+   wrangler login
+   ```
+   This will open your browser to authenticate with Cloudflare.
 
-## Getting Cloudflare Credentials
+## Configuration
 
-### 1. Get Cloudflare API Token
-1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com/profile/api-tokens)
-2. Click "Create Token"
-3. Use "Custom token" template
-4. Set permissions:
-   - `Account:Cloudflare Pages:Edit`
-   - `Zone:Zone:Read` (if using custom domains)
-5. Account Resources: Include your account
-6. Zone Resources: Include all zones (if using custom domains)
-7. Copy the generated token
+1. **Update worker name in `wrangler.toml`:**
+   ```toml
+   name = "your-unique-worker-name"
+   ```
 
-### 2. Get Cloudflare Account ID
-1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com/)
-2. Select any domain from your account
-3. In the right sidebar, find "Account ID"
-4. Copy the Account ID
+2. **Verify your OpenAI API key is set:**
+   ```bash
+   wrangler secret list
+   ```
+   You should see `OPENAI_API_KEY` in the list.
 
-## Deployment Process
+3. **If you need to update the API key:**
+   ```bash
+   wrangler secret put OPENAI_API_KEY
+   ```
+   Enter your OpenAI API key when prompted.
 
-### Automatic Deployment
-The deployment happens automatically when you:
-- Push to the `main` or `master` branch
-- Create a pull request to `main` or `master`
+## Local Development
 
-The workflow will automatically create the Cloudflare Pages project if it doesn't exist.
+1. **Start local development server:**
+   ```bash
+   wrangler dev
+   ```
+   This will start a local server (usually at `http://localhost:8787`)
 
-### Manual Deployment
-You can also trigger deployment manually:
-1. Go to your GitHub repository
-2. Click on "Actions" tab
-3. Select "Deploy to Cloudflare Pages" workflow
-4. Click "Run workflow"
+2. **Test your worker locally:**
+   ```bash
+   curl -X POST http://localhost:8787 \
+     -H "Content-Type: application/json" \
+     -d '{"prompt": "Hello, how are you?"}'
+   ```
 
-### Creating the Project Manually (Alternative)
-If you prefer to create the Cloudflare Pages project manually:
+## Deployment
 
-1. **Go to Cloudflare Dashboard**
-   - Visit [https://dash.cloudflare.com/pages](https://dash.cloudflare.com/pages)
+1. **Deploy to Cloudflare:**
+   ```bash
+   wrangler publish
+   ```
 
-2. **Create New Project**
-   - Click "Create a project"
-   - Choose "Connect to Git"
-   - Select your GitHub repository
-   - Set project name: `rpac-web`
-   - Set production branch: `main`
+2. **Your worker will be available at:**
+   `https://your-worker-name.your-subdomain.workers.dev`
 
-3. **Configure Build Settings**
-   - Framework preset: `Next.js (Static HTML Export)`
-   - Build command: `cd rpac-web && npm run build`
-   - Build output directory: `rpac-web/out`
-   - Root directory: `/`
+## Custom Domain Setup
 
-4. **Environment Variables**
-   - Add your environment variables in the project settings
+### Option 1: Workers Routes (Recommended for scaling)
 
-## Build Configuration
+1. **Go to Cloudflare Dashboard** → Workers & Pages → Routes
+2. **Add a new route:**
+   - Pattern: `api.yourdomain.com/*`
+   - Worker: Select your deployed worker
+3. **Update your DNS:**
+   - Add a CNAME record: `api` → `your-worker-name.your-subdomain.workers.dev`
 
-The application is configured for static export with the following settings:
+### Option 2: Custom Domain (Alternative)
 
-- **Output**: Static export (`output: 'export'`)
-- **Trailing Slash**: Enabled for better routing
-- **Images**: Unoptimized (required for static export)
-- **Build Directory**: `rpac-web/out`
+1. **In Cloudflare Dashboard** → Workers & Pages → Custom Domains
+2. **Add custom domain:** `api.yourdomain.com`
+3. **Follow the DNS setup instructions**
 
-## Environment Variables
+## Testing the Deployed Worker
 
-Make sure to set these environment variables in your Cloudflare Pages project:
+```bash
+curl -X POST https://api.yourdomain.com \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "What is the weather like today?"}'
+```
 
-1. Go to your Cloudflare Pages project
-2. Navigate to `Settings` → `Environment variables`
-3. Add the following variables:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+## Frontend Integration
 
-## Custom Domain (Optional)
+### JavaScript Example
 
-To use a custom domain:
+```javascript
+async function callOpenAI(prompt) {
+  try {
+    const response = await fetch('https://api.yourdomain.com', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ prompt: prompt })
+    });
 
-1. In Cloudflare Pages, go to your project
-2. Click on "Custom domains"
-3. Add your domain
-4. Follow the DNS configuration instructions
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error calling OpenAI API:', error);
+    throw error;
+  }
+}
+
+// Usage example
+callOpenAI("Explain quantum computing in simple terms")
+  .then(response => {
+    console.log('AI Response:', response.choices[0].message.content);
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
+```
+
+### React Example
+
+```jsx
+import { useState } from 'react';
+
+function AIComponent() {
+  const [prompt, setPrompt] = useState('');
+  const [response, setResponse] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      const result = await fetch('https://api.yourdomain.com', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+      
+      const data = await result.json();
+      setResponse(data.choices[0].message.content);
+    } catch (error) {
+      console.error('Error:', error);
+      setResponse('Error: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="Enter your prompt..."
+        />
+        <button type="submit" disabled={loading}>
+          {loading ? 'Sending...' : 'Send'}
+        </button>
+      </form>
+      {response && <div>{response}</div>}
+    </div>
+  );
+}
+```
+
+## Monitoring and Debugging
+
+1. **View logs:**
+   ```bash
+   wrangler tail
+   ```
+
+2. **Check worker status:**
+   ```bash
+   wrangler whoami
+   ```
+
+3. **Update worker:**
+   ```bash
+   wrangler publish
+   ```
+
+## Security Notes
+
+- ✅ API key is stored as a Cloudflare secret (never exposed to browser)
+- ✅ CORS is properly configured for cross-origin requests
+- ✅ Input validation prevents malformed requests
+- ✅ Error handling prevents sensitive information leakage
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Build Failures**: Check that all environment variables are set correctly
-2. **404 Errors**: Ensure `trailingSlash: true` is set in Next.js config
-3. **API Errors**: Verify Supabase credentials are correct
-4. **Deployment Timeout**: Large builds may timeout; consider optimizing bundle size
-5. **GitHub Permissions Error**: If you see "Resource not accessible by integration", the workflow has been updated to handle this automatically
+1. **"Worker not found" error:**
+   - Check your worker name in `wrangler.toml`
+   - Ensure you're logged in: `wrangler whoami`
 
-### GitHub Permissions Issue
-If you encounter a "Resource not accessible by integration" error:
+2. **"OpenAI API error" responses:**
+   - Verify your API key: `wrangler secret list`
+   - Check OpenAI account has sufficient credits
 
-**Solution 1: Use the Updated Workflow (Recommended)**
-- The workflow has been updated to remove the GitHub deployment integration
-- This eliminates the permission issue while still deploying to Cloudflare Pages
+3. **CORS errors in browser:**
+   - Ensure your domain is properly configured
+   - Check that the worker is responding to OPTIONS requests
 
-**Solution 2: Enable GitHub Deployments (Optional)**
-If you want GitHub deployment status integration:
-1. Go to your repository Settings → Actions → General
-2. Under "Workflow permissions", select "Read and write permissions"
-3. Check "Allow GitHub Actions to create and approve pull requests"
+4. **"Method not allowed" errors:**
+   - Ensure you're sending POST requests
+   - Check Content-Type header is `application/json`
 
-### Build Logs
-- Check GitHub Actions logs for build issues
-- Check Cloudflare Pages logs for runtime issues
+### Getting Help
 
-## Local Development
-
-To test the static build locally:
-
-```bash
-cd rpac-web
-npm run build
-npx serve out
-```
-
-## Support
-
-For issues with:
-- **Cloudflare Pages**: Check [Cloudflare Pages documentation](https://developers.cloudflare.com/pages/)
-- **GitHub Actions**: Check [GitHub Actions documentation](https://docs.github.com/en/actions)
-- **Next.js Static Export**: Check [Next.js documentation](https://nextjs.org/docs/advanced-features/static-html-export)
+- Check Cloudflare Workers documentation
+- Review OpenAI API documentation
+- Use `wrangler tail` to see real-time logs

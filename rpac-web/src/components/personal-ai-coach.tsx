@@ -13,7 +13,7 @@ import {
   Loader2,
   Sparkles
 } from 'lucide-react';
-import { SecureOpenAIService } from '@/lib/openai-client-secure';
+import { SecureOpenAIService } from '@/lib/openai-worker-service';
 import { WeatherService, WeatherData, WeatherForecast } from '@/lib/weather-service';
 import { t } from '@/lib/locales';
 

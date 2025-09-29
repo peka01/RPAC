@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { t } from '@/lib/locales';
-import { OpenAIService } from '@/lib/openai-service-server';
+import { OpenAIService } from '@/lib/openai-worker-service';
 import { 
   Brain,
   Calculator,
