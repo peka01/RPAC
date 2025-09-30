@@ -42,14 +42,15 @@ export interface PlantDiagnosisResult {
 }
 
 /**
- * Call the internal AI API (server-side)
+ * Call the Cloudflare Worker API directly
  */
 async function callWorkerAPI(prompt: string): Promise<string> {
   try {
-    const response = await fetch('/api/ai', {
+    const response = await fetch('https://api.beready.se', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'User-Agent': 'RPAC-Client/1.0'
       },
       body: JSON.stringify({ prompt, type: 'general' }),
     });
@@ -60,7 +61,7 @@ async function callWorkerAPI(prompt: string): Promise<string> {
     }
 
     const data = await response.json();
-    return data.response || 'No response generated';
+    return data.choices?.[0]?.message?.content || data.response || 'No response generated';
   } catch (error) {
     console.error('AI API call failed:', error);
     throw error;
@@ -314,25 +315,51 @@ Svara på svenska med praktiska råd och tips för beredskap och odling. Tänk p
   }
 
   /**
-   * Analyze plant image using AI (server-side)
+   * Analyze plant image using Cloudflare Worker API
    */
   static async analyzePlantImage(
     imageData: string,
     userProfile: UserProfile = { climateZone: 'svealand', experienceLevel: 'beginner', gardenSize: 'medium' }
   ): Promise<PlantDiagnosisResult> {
     try {
-      const response = await fetch('/api/ai/plant-diagnosis', {
+      const prompt = `Som svensk växtexpert, analysera denna växtbild och ge diagnos:
+
+Användarprofil:
+- Klimatzon: ${userProfile.climateZone || 'svealand'}
+- Erfarenhetsnivå: ${userProfile.experienceLevel || 'beginner'}
+- Trädgårdsstorlek: ${userProfile.gardenSize || 'medium'}
+
+Analysera:
+1. Växtens art och vetenskapliga namn
+2. Hälsotillstånd (frisk, sjukdom, skadedjur, näringsbrist)
+3. Beskrivning av problem/status
+4. Konkreta rekommendationer för behandling
+5. Allvarlighetsgrad (låg, medium, hög)
+6. Tillförlitlighet (0-1)
+
+Svara med JSON:
+{
+  "plantName": "Växtnamn",
+  "scientificName": "Vetenskapligt namn",
+  "healthStatus": "healthy/disease/pest/nutrient_deficiency",
+  "description": "Detaljerad beskrivning av växtens tillstånd",
+  "recommendations": ["Råd 1", "Råd 2", "Råd 3"],
+  "confidence": 0.85,
+  "severity": "low/medium/high"
+}
+Fokusera på svenska växter och odlingsförhållanden.`;
+
+      const response = await fetch('https://api.beready.se', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'User-Agent': 'RPAC-PlantDiagnosis/1.0'
         },
         body: JSON.stringify({ 
-          imageData,
-          userProfile: {
-            climateZone: userProfile.climateZone,
-            experienceLevel: userProfile.experienceLevel,
-            gardenSize: userProfile.gardenSize
-          }
+          prompt,
+          type: 'plant-diagnosis',
+          imageData: imageData,
+          userProfile: userProfile
         }),
       });
 
@@ -341,15 +368,40 @@ Svara på svenska med praktiska råd och tips för beredskap och odling. Tänk p
         throw new Error(errorData.error || `Plant diagnosis API error: ${response.status}`);
       }
 
-      const result = await response.json();
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content || data.response;
+
+      // Try to parse the response into structured diagnosis
+      let diagnosis;
+      try {
+        // Remove any markdown formatting
+        const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+        diagnosis = JSON.parse(cleanContent);
+      } catch (parseError) {
+        console.error('Failed to parse AI response:', parseError);
+        // Return a fallback diagnosis
+        diagnosis = {
+          plantName: "Okänd växt",
+          scientificName: "Species unknown",
+          healthStatus: "healthy",
+          description: "Jag kunde inte analysera bilden just nu. Kontrollera att bilden är tydlig och välbelyst.",
+          recommendations: [
+            "Försök igen med en tydligare bild",
+            "Kontakta en växtexpert för vidare analys"
+          ],
+          confidence: 0.3,
+          severity: "low"
+        };
+      }
+
       return {
-        plantName: result.plantName,
-        scientificName: result.scientificName,
-        healthStatus: result.healthStatus,
-        description: result.description,
-        recommendations: result.recommendations,
-        confidence: result.confidence,
-        severity: result.severity
+        plantName: diagnosis.plantName,
+        scientificName: diagnosis.scientificName,
+        healthStatus: diagnosis.healthStatus,
+        description: diagnosis.description,
+        recommendations: diagnosis.recommendations,
+        confidence: diagnosis.confidence,
+        severity: diagnosis.severity
       };
     } catch (error) {
       console.error('Error analyzing plant:', error);
