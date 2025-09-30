@@ -34,7 +34,8 @@ if (typeof window === 'undefined') {
   try {
     validateConfig();
   } catch (error) {
-    console.error('Configuration validation failed:', error.message);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown configuration error';
+    console.error('Configuration validation failed:', errorMessage);
   }
 }
 

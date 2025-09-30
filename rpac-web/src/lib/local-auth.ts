@@ -104,7 +104,7 @@ class LocalAuth {
     }
     
     // Demo users with proper authentication
-    const demoUsers = {
+    const demoUsers: Record<string, string> = {
       'demo@rpac.se': 'demo123456',
       'test@rpac.se': 'test123456',
       'admin@rpac.se': 'admin123456'
