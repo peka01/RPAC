@@ -659,8 +659,11 @@ export function EnhancedCultivationPlanner({ user }: EnhancedCultivationPlannerP
       
       if (error) throw error;
 
-      // Also save to localStorage for dashboard
-      localStorage.setItem('cultivationPlan', JSON.stringify(plan));
+      // Also save to secure storage for dashboard
+      if (typeof window !== 'undefined') {
+        const { SecureStorage } = await import('@/lib/secure-storage');
+        SecureStorage.setItem('cultivationPlan', plan);
+      }
       
       // Reload saved plans
       await loadSavedPlans();

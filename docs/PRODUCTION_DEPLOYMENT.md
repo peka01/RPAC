@@ -1,27 +1,51 @@
 # Production Deployment Guide - RPAC
 
+## 🔒 Security-First Deployment
+
+This deployment guide includes comprehensive security measures implemented in RPAC. All security vulnerabilities have been addressed with production-ready solutions.
+
 ## Environment Variables Setup
 
 ### Required Environment Variables
 
 For production deployment, you need to set up the following environment variables:
 
-#### 1. OpenAI API Key
+#### 1. Supabase Configuration (Required)
 ```bash
-NEXT_PUBLIC_OPENAI_API_KEY=your_openai_api_key_here
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+NEXT_PUBLIC_DEMO_MODE=false
 ```
 
-**Important**: This must be set as a **repository secret** in GitHub with the name `NEXT_PUBLIC_OPENAI_API_KEY` because it's used in server-side API routes.
-
-#### 2. Supabase Configuration
+#### 2. Security Configuration (Required)
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=https://dsoujjudzrrtkkqwhpge.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzb3VqanVkenJydGtrcXdocGdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2NTY3NjYsImV4cCI6MjA3NDIzMjc2Nn0.v95nh5WQWzrndcbElsmqTUVnO-jnuDtM1YcPUZNsHRA
+# Encryption key for sensitive localStorage data (MUST be 32+ characters, random)
+NEXT_PUBLIC_ENCRYPTION_KEY=your_secure_random_encryption_key_here
 ```
 
-#### 3. Optional: Gemini API Key
+#### 3. AI Configuration (Optional - Uses Production API)
 ```bash
-GEMINI_API_KEY=your_gemini_api_key_here
+# Note: AI features now use production api.beready.se by default
+# These are only needed if you want to override the production API
+OPENAI_API_KEY=your_openai_api_key_here  # Optional
+GEMINI_API_KEY=your_gemini_api_key_here  # Optional
+```
+
+### 🔒 Security Environment Variables
+
+**CRITICAL**: The `NEXT_PUBLIC_ENCRYPTION_KEY` must be:
+- At least 32 characters long
+- Cryptographically random
+- Different for each environment (dev/staging/prod)
+- Never committed to version control
+
+**Generate a secure key**:
+```bash
+# Using Node.js
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+
+# Using OpenSSL
+openssl rand -hex 32
 ```
 
 ## GitHub Repository Secrets Setup
@@ -76,25 +100,74 @@ The application now uses server-side API routes for OpenAI calls to keep the API
 - [ ] Verify error handling for missing API key
 - [ ] Check console for any remaining client-side API key references
 
+## 🔒 Security Deployment Checklist
+
+### Pre-Deployment Security Verification
+
+#### 1. Environment Security
+- [ ] **Encryption Key**: Strong, random 32+ character encryption key set
+- [ ] **Supabase RLS**: Row Level Security policies configured
+- [ ] **API Keys**: No hardcoded secrets in codebase
+- [ ] **HTTPS**: SSL/TLS enabled in production
+- [ ] **Security Headers**: CSP, HSTS, and other headers configured
+
+#### 2. Code Security
+- [ ] **Input Validation**: All user inputs validated with Zod schemas
+- [ ] **HTML Sanitization**: XSS protection implemented
+- [ ] **Rate Limiting**: API abuse protection active
+- [ ] **Error Handling**: No sensitive data in error messages
+- [ ] **Client-Side Security**: Sensitive data encrypted in localStorage
+
+#### 3. Database Security
+- [ ] **RLS Policies**: Proper access control configured
+- [ ] **Data Encryption**: Sensitive fields encrypted at rest
+- [ ] **Backup Security**: Encrypted backups configured
+- [ ] **Audit Logging**: Security events logged
+
+### Security Monitoring
+
+#### Production Security Monitoring
+```bash
+# Monitor for security events
+- Failed authentication attempts
+- Rate limit violations
+- Input validation failures
+- Encryption/decryption errors
+- API abuse patterns
+```
+
+#### Security Headers Verification
+```bash
+# Verify security headers are present
+curl -I https://your-domain.com | grep -E "(X-Frame-Options|X-Content-Type-Options|Strict-Transport-Security|Content-Security-Policy)"
+```
+
 ## Troubleshooting
 
 ### Common Issues:
 
-#### 1. "OpenAI API Key: Missing" Error
-**Cause**: API key not properly configured as repository secret
+#### 1. "Encryption Key: Missing" Error
+**Cause**: `NEXT_PUBLIC_ENCRYPTION_KEY` not configured
 **Solution**: 
-- Verify the secret is named exactly `NEXT_PUBLIC_OPENAI_API_KEY`
-- Check that Vercel is pulling from GitHub secrets
-- Redeploy the application after adding the secret
+- Generate a secure 32+ character random key
+- Set as environment variable in production
+- Restart application after setting
 
-#### 2. 401 Unauthorized Errors
-**Cause**: Invalid or expired API key
+#### 2. "Invalid Image Format" Error
+**Cause**: Image validation failing in plant diagnosis
 **Solution**:
-- Verify the API key is correct in GitHub secrets
-- Check that the API key has sufficient credits
-- Ensure the API key has the correct permissions
+- Check that images are valid JPEG/PNG format
+- Verify image data is properly base64 encoded
+- Ensure image size is within limits
 
-#### 3. CORS Errors
+#### 3. Rate Limit Exceeded
+**Cause**: Too many API requests
+**Solution**:
+- Wait for rate limit window to reset
+- Implement client-side request queuing
+- Consider upgrading rate limits if needed
+
+#### 4. CORS Errors
 **Cause**: API routes not properly configured
 **Solution**:
 - Verify all API routes are in the correct directory structure

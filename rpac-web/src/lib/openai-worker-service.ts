@@ -42,32 +42,27 @@ export interface PlantDiagnosisResult {
 }
 
 /**
- * Call the Cloudflare Worker API
+ * Call the internal AI API (server-side)
  */
 async function callWorkerAPI(prompt: string): Promise<string> {
   try {
-    const response = await fetch(WORKER_API_URL, {
+    const response = await fetch('/api/ai', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ prompt }),
+      body: JSON.stringify({ prompt, type: 'general' }),
     });
 
     if (!response.ok) {
-      throw new Error(`Worker API error: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `API error: ${response.status}`);
     }
 
     const data = await response.json();
-    
-    // Extract the AI response from OpenAI's format
-    if (data.choices && data.choices.length > 0) {
-      return data.choices[0].message.content;
-    }
-    
-    throw new Error('No response from AI');
+    return data.response || 'No response generated';
   } catch (error) {
-    console.error('Worker API call failed:', error);
+    console.error('AI API call failed:', error);
     throw error;
   }
 }
@@ -319,43 +314,43 @@ Svara på svenska med praktiska råd och tips för beredskap och odling. Tänk p
   }
 
   /**
-   * Analyze plant image using AI
+   * Analyze plant image using AI (server-side)
    */
   static async analyzePlantImage(
     imageData: string,
     userProfile: UserProfile = { climateZone: 'svealand', experienceLevel: 'beginner', gardenSize: 'medium' }
   ): Promise<PlantDiagnosisResult> {
-    const prompt = `Som svensk växtexpert, analysera denna växtbild och ge diagnos:
-
-Användarprofil:
-- Klimatzon: ${userProfile.climateZone}
-- Erfarenhetsnivå: ${userProfile.experienceLevel}
-- Trädgårdsstorlek: ${userProfile.gardenSize}
-
-Svara med JSON:
-{
-  "plantName": "Växtnamn",
-  "scientificName": "Vetenskapligt namn",
-  "healthStatus": "healthy/disease/pest/nutrient_deficiency",
-  "description": "Detaljerad beskrivning av växtens tillstånd",
-  "recommendations": ["Råd 1", "Råd 2", "Råd 3"],
-  "confidence": 0.85,
-  "severity": "low/medium/high"
-}`;
-
     try {
-      const response = await callWorkerAPI(prompt);
-      
-      let result;
-      try {
-        const cleanContent = response.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-        result = JSON.parse(cleanContent);
-      } catch (parseError) {
-        console.error('Failed to parse plant analysis:', parseError);
-        return this.getFallbackPlantDiagnosis();
+      const response = await fetch('/api/ai/plant-diagnosis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          imageData,
+          userProfile: {
+            climateZone: userProfile.climateZone,
+            experienceLevel: userProfile.experienceLevel,
+            gardenSize: userProfile.gardenSize
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Plant diagnosis API error: ${response.status}`);
       }
 
-      return result;
+      const result = await response.json();
+      return {
+        plantName: result.plantName,
+        scientificName: result.scientificName,
+        healthStatus: result.healthStatus,
+        description: result.description,
+        recommendations: result.recommendations,
+        confidence: result.confidence,
+        severity: result.severity
+      };
     } catch (error) {
       console.error('Error analyzing plant:', error);
       return this.getFallbackPlantDiagnosis();

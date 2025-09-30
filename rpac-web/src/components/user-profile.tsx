@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { t } from '@/lib/locales';
 import { supabase } from '@/lib/supabase';
+import { validateUserProfile, sanitizeHtml } from '@/lib/validation';
 import { 
   User,
   MapPin,
@@ -143,10 +144,11 @@ export function UserProfile({
 
   const handleSave = async () => {
     setIsSaving(true);
+    setSaveMessage(null);
+    
     try {
-      // Only include fields that exist in the database schema
-      const profileToSave = {
-        user_id: user.id,
+      // Prepare data for validation
+      const profileData = {
         display_name: profile.display_name || '',
         email: profile.email || user.email || '',
         phone: profile.phone || '',
@@ -166,7 +168,30 @@ export function UserProfile({
         has_children: profile.has_children || false,
         has_elderly: profile.has_elderly || false,
         has_pets: profile.has_pets || false,
-        pet_types: profile.pet_types || '',
+        pet_types: profile.pet_types || ''
+      };
+
+      // Validate input data
+      const validatedData = validateUserProfile(profileData);
+
+      // Sanitize HTML content
+      const sanitizedData = {
+        ...validatedData,
+        display_name: sanitizeHtml(validatedData.display_name),
+        address: validatedData.address ? sanitizeHtml(validatedData.address) : '',
+        emergency_contact_name: validatedData.emergency_contact_name ? sanitizeHtml(validatedData.emergency_contact_name) : '',
+        emergency_contact_relation: validatedData.emergency_contact_relation ? sanitizeHtml(validatedData.emergency_contact_relation) : '',
+        medical_conditions: validatedData.medical_conditions ? sanitizeHtml(validatedData.medical_conditions) : '',
+        medications: validatedData.medications ? sanitizeHtml(validatedData.medications) : '',
+        allergies: validatedData.allergies ? sanitizeHtml(validatedData.allergies) : '',
+        special_needs: validatedData.special_needs ? sanitizeHtml(validatedData.special_needs) : '',
+        pet_types: validatedData.pet_types ? sanitizeHtml(validatedData.pet_types) : ''
+      };
+
+      // Only include fields that exist in the database schema
+      const profileToSave = {
+        user_id: user.id,
+        ...sanitizedData,
         updated_at: new Date().toISOString()
       };
 
@@ -219,7 +244,15 @@ export function UserProfile({
       setTimeout(() => setSaveMessage(null), 3000);
     } catch (error) {
       console.error('Error saving profile:', error);
-      setSaveMessage('Ett fel uppstod vid sparande');
+      
+      // Handle validation errors specifically
+      if (error instanceof Error && error.message.includes('validation')) {
+        setSaveMessage(`Valideringsfel: ${error.message}`);
+      } else if (error instanceof Error && error.message.includes('zod')) {
+        setSaveMessage(`Ogiltiga data: ${error.message}`);
+      } else {
+        setSaveMessage('Ett fel uppstod vid sparande');
+      }
     } finally {
       setIsSaving(false);
     }

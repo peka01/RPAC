@@ -1,6 +1,8 @@
 // Simple local authentication system
 // This works immediately without any external dependencies
 
+import { SecureStorage, StorageMigration } from './secure-storage';
+
 interface User {
   id: string;
   email: string;
@@ -13,27 +15,32 @@ class LocalAuth {
   private listeners: ((user: User | null) => void)[] = [];
 
   constructor() {
-    // Load user from localStorage on init
+    // Check if migration is needed and perform it
+    if (typeof window !== 'undefined' && StorageMigration.needsMigration()) {
+      StorageMigration.migrateToEncrypted();
+    }
+    
+    // Load user from secure storage on init
     this.loadUser();
   }
 
   private loadUser() {
     // Check if we're in a browser environment
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const savedUser = localStorage.getItem('rpac-user');
+    if (typeof window !== 'undefined') {
+      const savedUser = SecureStorage.getItem<User>('rpac-user');
       if (savedUser) {
-        this.currentUser = JSON.parse(savedUser);
+        this.currentUser = savedUser;
       }
     }
   }
 
   private saveUser(user: User | null) {
     // Check if we're in a browser environment
-    if (typeof window !== 'undefined' && window.localStorage) {
+    if (typeof window !== 'undefined') {
       if (user) {
-        localStorage.setItem('rpac-user', JSON.stringify(user));
+        SecureStorage.setItem('rpac-user', user);
       } else {
-        localStorage.removeItem('rpac-user');
+        SecureStorage.removeItem('rpac-user');
       }
     }
     this.currentUser = user;
@@ -48,10 +55,32 @@ class LocalAuth {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500));
     
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new Error('Invalid email format');
+    }
+    
+    // Validate password strength
+    if (password.length < 8) {
+      throw new Error('Password must be at least 8 characters long');
+    }
+    
+    // Validate name
+    if (!name || name.trim().length < 2) {
+      throw new Error('Name must be at least 2 characters long');
+    }
+    
+    // Check if user already exists (in a real app, this would check the database)
+    const existingUser = this.getCurrentUser();
+    if (existingUser && existingUser.email === email) {
+      throw new Error('User with this email already exists');
+    }
+    
     const user: User = {
       id: Date.now().toString(),
       email,
-      name,
+      name: name.trim(),
       created_at: new Date().toISOString()
     };
 
@@ -63,8 +92,30 @@ class LocalAuth {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    // For demo purposes, accept any email/password (password is validated but not used for demo)
-    console.log('Sign in attempt for:', email, 'with password length:', password.length);
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new Error('Invalid email format');
+    }
+    
+    // Validate password strength
+    if (password.length < 8) {
+      throw new Error('Password must be at least 8 characters long');
+    }
+    
+    // Demo users with proper authentication
+    const demoUsers = {
+      'demo@rpac.se': 'demo123456',
+      'test@rpac.se': 'test123456',
+      'admin@rpac.se': 'admin123456'
+    };
+    
+    // Check credentials
+    if (!demoUsers[email] || demoUsers[email] !== password) {
+      throw new Error('Invalid email or password');
+    }
+    
+    console.log('Successful sign in for:', email);
     const user: User = {
       id: Date.now().toString(),
       email,

@@ -124,11 +124,14 @@ export function CultivationCalendar({
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ period: '', description: '' });
 
-  // Load AI calendar items from localStorage
+  // Load AI calendar items from secure storage
   useEffect(() => {
-    // Check both possible localStorage keys
-    const aiItems = localStorage.getItem('ai-calendar-items');
-    const cultivationItems = localStorage.getItem('cultivationCalendarItems');
+    if (typeof window === 'undefined') return;
+    
+    // Check both possible secure storage keys
+    const { SecureStorage } = require('@/lib/secure-storage');
+    const aiItems = SecureStorage.getItem('ai-calendar-items');
+    const cultivationItems = SecureStorage.getItem('cultivationCalendarItems');
     
     let items = [];
     if (aiItems) {
@@ -170,8 +173,11 @@ export function CultivationCalendar({
     );
     
     setStoredCalendarItems(updatedItems);
-    localStorage.setItem('ai-calendar-items', JSON.stringify(updatedItems));
-    localStorage.setItem('cultivationCalendarItems', JSON.stringify(updatedItems));
+    if (typeof window !== 'undefined') {
+      const { SecureStorage } = require('@/lib/secure-storage');
+      SecureStorage.setItem('ai-calendar-items', updatedItems);
+      SecureStorage.setItem('cultivationCalendarItems', updatedItems);
+    }
     setEditingItem(null);
     setEditForm({ period: '', description: '' });
   };
@@ -184,8 +190,11 @@ export function CultivationCalendar({
   const deleteItem = (itemId: string) => {
     const updatedItems = storedCalendarItems.filter(item => item.id !== itemId);
     setStoredCalendarItems(updatedItems);
-    localStorage.setItem('ai-calendar-items', JSON.stringify(updatedItems));
-    localStorage.setItem('cultivationCalendarItems', JSON.stringify(updatedItems));
+    if (typeof window !== 'undefined') {
+      const { SecureStorage } = require('@/lib/secure-storage');
+      SecureStorage.setItem('ai-calendar-items', updatedItems);
+      SecureStorage.setItem('cultivationCalendarItems', updatedItems);
+    }
   };
 
   // Get current season
