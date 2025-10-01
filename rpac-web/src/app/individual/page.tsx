@@ -9,6 +9,7 @@ import { CultivationCalendar } from '@/components/cultivation-calendar';
 import { AICultivationAdvisor } from '@/components/ai-cultivation-advisor';
 import { AICultivationPlanner } from '@/components/ai-cultivation-planner';
 import { EnhancedCultivationPlanner } from '@/components/enhanced-cultivation-planner';
+import { SuperbOdlingsplanerare } from '@/components/superb-odlingsplanerare';
 import { GardenPlanner } from '@/components/garden-planner';
 import { CultivationReminders } from '@/components/cultivation-reminders';
 import { CrisisCultivation } from '@/components/crisis-cultivation';
@@ -426,74 +427,7 @@ function IndividualPageContent() {
       if (activeSubsection === 'ai-planner') {
         return (
           <div className="space-y-6">
-            <div className="modern-card p-8">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
-                  Min odling
-                </h2>
-                <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-                  Personlig odlingsplan baserad på näringsbehov och växtdiagnos
-                </p>
-              </div>
-              
-              {/* Min odling Tools Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div className="text-center p-6 rounded-lg border" style={{ 
-                  backgroundColor: 'var(--bg-card)',
-                  borderColor: 'var(--color-quaternary)'
-                }}>
-                  <Sprout className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--color-primary)' }} />
-                  <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                    AI Odlingsplanerare
-                  </h3>
-                  <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
-                    Personlig odlingsplan baserad på näringsbehov
-                  </p>
-                  <button
-                    onClick={() => {
-                      // Show the cultivation planner directly
-                      const event = new CustomEvent('showCultivationPlanner');
-                      window.dispatchEvent(event);
-                    }}
-                    className="px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-md"
-                    style={{ 
-                      backgroundColor: 'var(--color-primary)',
-                      color: 'white'
-                    }}
-                  >
-                    Starta planering
-                  </button>
-                </div>
-                
-                <div className="text-center p-6 rounded-lg border" style={{ 
-                  backgroundColor: 'var(--bg-card)',
-                  borderColor: 'var(--color-quaternary)'
-                }}>
-                  <Sprout className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--color-primary)' }} />
-                  <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                    {t('individual.plant_diagnosis')}
-                  </h3>
-                  <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
-                    {t('individual.diagnosis_description')}
-                  </p>
-                  <button
-                    onClick={() => handleSectionChange('cultivation', 'diagnosis')}
-                    className="px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-md"
-                    style={{ 
-                      backgroundColor: 'var(--color-crisis-green)',
-                      color: 'white'
-                    }}
-                  >
-                    Diagnostisera växter
-                  </button>
-                </div>
-              </div>
-            </div>
-            
-            {/* Show the cultivation planner component */}
-            <div className="modern-card">
-              <EnhancedCultivationPlanner user={user} />
-            </div>
+            <SuperbOdlingsplanerare user={user} />
           </div>
         );
       }

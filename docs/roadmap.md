@@ -355,6 +355,149 @@
 
 ---
 
+## 🌱 Odlingsplaneringsförbättringar (Framtida UX-förbättringar)
+*Mål: Komplett odlingshanteringssystem för självförsörjning*
+
+### Kritiska Saknade Funktioner
+**Prioritet: Medium** (Framtida förbättringar)
+
+#### **Säsongstidsplanering**
+- [ ] **Jordförberedelse**
+  - Tidsplanering för jordförberedelse 2-4 veckor före såning
+  - Klimatzon-specifika jordförberedelser
+  - Komposttillsättning och pH-justering
+
+- [ ] **Efterföljande plantering**
+  - Staggerad plantering för kontinuerlig skörd
+  - Sallad var 2:a vecka, morötter i omgångar
+  - Optimering av skördetider
+
+- [ ] **Frostskydd**
+  - Sista frostdatum per klimatzon
+  - Skydd för känsliga grödor
+  - Varningar för sena frostnätter
+
+#### **Grödrotation & Följgrödor**
+- [ ] **Grödrotation**
+  - 3-4 års rotationscykler
+  - Planering av nästa års grödor
+  - Förhindra jordutmattning och sjukdomar
+
+- [ ] **Följgrödor**
+  - Gynnsamma växtkombinationer
+  - Skadedjursbekämpning genom växtval
+  - Förbättrad skörd och näring
+
+#### **Klimatzon-specifik anpassning**
+- [ ] **Mikroklimat**
+  - Södra sluttningar, vindskydd
+  - Lokala klimatvariationer
+  - Anpassad tidsplanering
+
+- [ ] **Väderintegration**
+  - Realtidsväder för aktivitetsplanering
+  - Regn = ingen vattning
+  - Frostvarningar och anpassningar
+
+#### **Näringsfullständighet**
+- [ ] **Proteinrika grödor**
+  - Baljväxter och spannmål
+  - Komplett näringsprofil
+  - Självförsörjning för protein
+
+- [ ] **Basgrödor**
+  - Potatis, spannmål för kalorier
+  - Energitäta grödor
+  - Sann självförsörjning
+
+#### **Underhåll & Vård**
+- [ ] **Vattningsscheman**
+  - Frekvens baserat på väder och grödor
+  - Vattningsoptimering
+  - Vattenbesparingstekniker
+
+- [ ] **Skadedjurs- och sjukdomshantering**
+  - Proaktiv skadedjursbekämpning
+  - Övervakning och förebyggande åtgärder
+  - Naturliga bekämpningsmetoder
+
+- [ ] **Gödslingsscheman**
+  - Tidsplanering för gödsling
+  - Gröd-specifik näring
+  - Organisk vs kemisk gödsling
+
+#### **Skörd & Lagring**
+- [ ] **Optimal skördetid**
+  - Kvalitetsoptimering
+  - Lagringslivslängd
+  - Smak och näringsvärde
+
+- [ ] **Lagringsplanering**
+  - Lagringskrav och metoder
+  - Konserveringstekniker
+  - Matförlustminimering
+
+#### **Krisberedskap**
+- [ ] **Backup-planer**
+  - Alternativa grödor vid misslyckanden
+  - Nödsituationer och krisodling
+  - Resurshantering
+
+- [ ] **Frösparande**
+  - Frösparande för nästa år
+  - Självförsörjning på frön
+  - Fröbank och utbyte
+
+#### **Användarupplevelse**
+- [ ] **Framstegsspårning**
+  - Status på genomförda aktiviteter
+  - Påminnelser och följder
+  - Motivationssystem
+
+- [ ] **Lärande resurser**
+  - Odlingstekniker och guider
+  - Video-tutorials
+  - Expertråd och tips
+
+- [ ] **Gemenskapsfunktioner**
+  - Erfarenhetsutbyte
+  - Lokal hjälp och råd
+  - Grödutbyte och delning
+
+### Förbättrad Planeringsflöde
+**Prioritet: Medium**
+
+```
+Nuvarande: Profil → AI-generering → Dashboard
+Förbättrat: Profil → Klimatanalys → Jordbedömning → AI-generering → Underhållsplanering → Dashboard
+```
+
+### Säsongsplanering
+**Prioritet: Medium**
+
+- [ ] **Vår**: Jordförberedelse, tidiga grödor, efterföljande plantering
+- [ ] **Sommar**: Underhåll, skadedjursbekämpning, efterföljande plantering
+- [ ] **Höst**: Skörd, lagring, jordförbättring
+- [ ] **Vinter**: Planering, fröbeställning, verktygsunderhåll
+
+### Underhållsdashboard
+**Prioritet: Medium**
+
+- [ ] **Dagligt**: Vattning, skadedjursövervakning
+- [ ] **Veckovis**: Ograsrensning, växtkontroll
+- [ ] **Månadsvis**: Gödsling, beskärning
+- [ ] **Säsongsvis**: Stora uppgifter, planering
+
+### Krisläge-funktioner
+**Prioritet: Medium**
+
+- [ ] **Nödsituationer**: Snabbväxande, energitäta alternativ
+- [ ] **Backup-planer**: Alternativa grödor vid misslyckanden
+- [ ] **Resurshantering**: Vatten, frön, verktyg
+- [ ] **Gemenskapsstöd**: Lokal hjälp och resursdelning
+
+---
+
 ## Tekniska Prioriteringar
 
 ### Nuvarande prioriteringar

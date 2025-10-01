@@ -3,16 +3,15 @@ import CryptoJS from 'crypto-js';
 // Get encryption key from environment or generate a fallback
 const getEncryptionKey = (): string => {
   if (typeof window !== 'undefined') {
-    // Client-side: use environment variable or generate key
+    // Client-side: use environment variable or generate stable key
     const envKey = process.env.NEXT_PUBLIC_ENCRYPTION_KEY;
     if (envKey && envKey !== 'your_secure_encryption_key_here') {
       return envKey;
     }
     
-    // Generate a key based on user agent and timestamp (not cryptographically secure, but better than nothing)
+    // Generate a stable key based on user agent only (no timestamp)
     const userAgent = navigator.userAgent;
-    const timestamp = Date.now().toString();
-    return CryptoJS.SHA256(userAgent + timestamp).toString();
+    return CryptoJS.SHA256(userAgent).toString();
   }
   
   // Server-side fallback
@@ -47,12 +46,13 @@ export class SecureStorage {
       const decryptedString = bytes.toString(CryptoJS.enc.Utf8);
       
       if (!decryptedString) {
-        throw new Error('Decryption failed - invalid key or corrupted data');
+        console.warn('Decryption failed - invalid key or corrupted data, returning null');
+        return null;
       }
       
       return JSON.parse(decryptedString);
     } catch (error) {
-      console.error('Decryption failed:', error);
+      console.warn('Decryption failed, returning null:', error);
       return null;
     }
   }

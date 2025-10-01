@@ -124,34 +124,79 @@ export function CultivationCalendar({
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ period: '', description: '' });
 
-  // Load AI calendar items from secure storage
-  useEffect(() => {
+  // Function to refresh calendar items
+  const refreshCalendarItems = async () => {
     if (typeof window === 'undefined') return;
     
-    // Check both possible secure storage keys
-    const { SecureStorage } = require('@/lib/secure-storage');
-    const aiItems = SecureStorage.getItem('ai-calendar-items');
-    const cultivationItems = SecureStorage.getItem('cultivationCalendarItems');
-    
-    let items = [];
-    if (aiItems) {
-      try {
-        items = JSON.parse(aiItems);
-      } catch (error) {
-        console.error('Error parsing ai-calendar-items:', error);
+    try {
+      const { supabase } = await import('@/lib/supabase');
+      const { data: dbItems, error } = await supabase
+        .from('cultivation_calendar')
+        .select('*')
+        .order('date', { ascending: true });
+
+      if (error) {
+        console.error('Error loading calendar from database:', error);
+        setStoredCalendarItems([]);
+        return;
       }
+
+      console.log('Loaded planning activities from database:', dbItems?.length || 0, 'entries');
+      setStoredCalendarItems(dbItems || []);
+    } catch (dbError) {
+      console.error('Database not available:', dbError);
+      setStoredCalendarItems([]);
     }
-    
-    if (cultivationItems) {
-      try {
-        const cultivationItemsParsed = JSON.parse(cultivationItems);
-        items = [...items, ...cultivationItemsParsed];
-      } catch (error) {
-        console.error('Error parsing cultivationCalendarItems:', error);
+  };
+
+  // Function to clear calendar and generate new plan
+  const clearCalendarAndGenerateNew = async () => {
+    if (!confirm('Är du säker på att du vill rensa kalendern och skapa en ny plan? Detta kommer att ta bort alla befintliga aktiviteter.')) {
+      return;
+    }
+
+    try {
+      // Clear calendar from database
+      const { supabase } = await import('@/lib/supabase');
+      const { error } = await supabase
+        .from('cultivation_calendar')
+        .delete()
+        .neq('id', 0); // Delete all records
+
+      if (error) {
+        console.error('Error clearing calendar:', error);
+        alert('Fel vid rensning av kalender. Försök igen.');
+        return;
       }
+
+      // Clear localStorage as well
+      localStorage.removeItem('cultivationCalendarItems');
+      
+      // Refresh the calendar display
+      setStoredCalendarItems([]);
+      
+      // Navigate to planner
+      window.location.href = '/individual?section=cultivation&subsection=ai-planner';
+      
+    } catch (error) {
+      console.error('Error clearing calendar:', error);
+      alert('Fel vid rensning av kalender. Försök igen.');
     }
-    
-    setStoredCalendarItems(items);
+  };
+
+  // Load AI calendar items from secure storage and regular localStorage
+  useEffect(() => {
+    refreshCalendarItems();
+  }, []);
+
+  // Listen for storage changes to refresh when planning data is added
+  useEffect(() => {
+    const handleStorageChange = () => {
+      refreshCalendarItems();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   // Use stored items if no props provided
@@ -263,21 +308,37 @@ export function CultivationCalendar({
           </div>
         </div>
         
-        {crisisMode && (
-          <div className="flex items-center space-x-2 px-3 py-1 rounded-full border" style={{
-            backgroundColor: 'rgba(184, 134, 11, 0.1)',
-            borderColor: 'var(--color-warm-olive)'
-          }}>
-            <AlertTriangle className="w-4 h-4" style={{ color: 'var(--color-warm-olive)' }} />
-            <span className="text-xs font-semibold" style={{ color: 'var(--color-warm-olive)' }}>
-              {t('cultivation.quick_growing')}
-            </span>
-          </div>
-        )}
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => {
+              console.log('Manual refresh clicked');
+              refreshCalendarItems();
+            }}
+            className="px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-md"
+            style={{ 
+              backgroundColor: 'var(--color-sage)', 
+              color: 'white' 
+            }}
+          >
+            🔄 Uppdatera
+          </button>
+          
+          {crisisMode && (
+            <div className="flex items-center space-x-2 px-3 py-1 rounded-full border" style={{
+              backgroundColor: 'rgba(184, 134, 11, 0.1)',
+              borderColor: 'var(--color-warm-olive)'
+            }}>
+              <AlertTriangle className="w-4 h-4" style={{ color: 'var(--color-warm-olive)' }} />
+              <span className="text-xs font-semibold" style={{ color: 'var(--color-warm-olive)' }}>
+                {t('cultivation.quick_growing')}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* AI Calendar Items - Prominent Display */}
-      {displayCalendarItems && displayCalendarItems.length > 0 && (
+      {/* Planning Activities - Main Content */}
+      {displayCalendarItems && displayCalendarItems.length > 0 ? (
         <div className="mb-6 p-4 rounded-lg border-2" style={{ 
           backgroundColor: 'var(--bg-olive-light)',
           borderColor: 'var(--color-sage)'
@@ -291,7 +352,7 @@ export function CultivationCalendar({
             </h3>
           </div>
           <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
-            Dessa aktiviteter är skräddarsydda för din familj baserat på AI-analys av dina näringsbehov och odlingsförutsättningar.
+            Dessa aktiviteter är skräddarsydda för din familj baserat på din personliga odlingsplan.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {displayCalendarItems.map((item, index) => (
@@ -337,24 +398,31 @@ export function CultivationCalendar({
                     // View mode
                     <>
                       <div className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
-                        {item.period}
+                        {item.period || item.title}
                       </div>
                       <div className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-                        {item.description}
+                        {item.description || item.title}
                       </div>
+                      {item.date && (
+                        <div className="text-xs mt-1 font-medium" style={{ color: 'var(--color-sage)' }}>
+                          📅 {new Date(item.date).toLocaleDateString('sv-SE')}
+                        </div>
+                      )}
                       <div className="flex items-center space-x-2 mt-2">
                         <div className="px-2 py-1 rounded text-xs" style={{ 
                           backgroundColor: 'var(--color-sage)', 
                           color: 'white' 
                         }}>
-                          AI-planerad
+                          Planerad
                         </div>
-                        <div className="px-2 py-1 rounded text-xs" style={{ 
-                          backgroundColor: 'var(--bg-olive-light)', 
-                          color: 'var(--text-secondary)' 
-                        }}>
-                          Prioritet: {item.priority}
-                        </div>
+                        {item.type && (
+                          <div className="px-2 py-1 rounded text-xs" style={{ 
+                            backgroundColor: 'var(--bg-olive-light)', 
+                            color: 'var(--text-secondary)' 
+                          }}>
+                            {item.type === 'sowing' ? 'Så' : item.type === 'harvesting' ? 'Skörda' : item.type}
+                          </div>
+                        )}
                       </div>
                       <div className="flex space-x-2 mt-2">
                         <button
@@ -376,6 +444,35 @@ export function CultivationCalendar({
               </div>
             ))}
           </div>
+        </div>
+      ) : (
+        // No planning activities - show helpful message
+        <div className="mb-6 p-6 rounded-lg border-2 border-dashed text-center" style={{ 
+          backgroundColor: 'var(--bg-olive-light)',
+          borderColor: 'var(--color-sage)'
+        }}>
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-sage)' }}>
+            <Calendar className="w-8 h-8 text-white" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+            Ingen odlingsplan än
+          </h3>
+          <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+            Skapa din personliga odlingsplan för att se skräddarsydda aktiviteter här.
+          </p>
+          <button
+            onClick={() => {
+              // Navigate to planning system
+              window.location.href = '/individual?section=cultivation&subsection=ai-planner';
+            }}
+            className="px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:shadow-md"
+            style={{ 
+              backgroundColor: 'var(--color-sage)', 
+              color: 'white' 
+            }}
+          >
+            🎯 Skapa odlingsplan
+          </button>
         </div>
       )}
 
@@ -405,49 +502,351 @@ export function CultivationCalendar({
         ))}
       </div>
 
-      {/* Calendar View */}
+      {/* Planning Calendar View */}
       {activeTab === 'calendar' && (
         <div className="space-y-6">
-          {/* Month Navigation */}
-          <div className="flex items-center justify-between">
+          {/* Enhanced Month Navigation with Cultivation Focus */}
+          <div className="flex items-center justify-between mb-4">
             <button
               onClick={() => setCurrentMonth(currentMonth === 1 ? 12 : currentMonth - 1)}
-              className="flex items-center space-x-2 px-3 py-2 rounded-lg border hover:shadow-sm transition-all duration-200"
+              className="flex items-center space-x-2 px-4 py-2 rounded-lg border hover:shadow-md transition-all duration-200"
               style={{ 
                 backgroundColor: 'var(--bg-card)',
-                borderColor: 'var(--color-secondary)',
-                color: 'var(--text-secondary)'
+                borderColor: 'var(--color-sage)',
+                color: 'var(--text-primary)'
               }}
             >
               <ChevronLeft className="w-4 h-4" />
-              <span className="text-sm">{getMonthName(currentMonth === 1 ? 12 : currentMonth - 1)}</span>
+              <span className="text-sm font-medium">{getMonthName(currentMonth === 1 ? 12 : currentMonth - 1)}</span>
             </button>
 
-            <div className="text-center">
-              <h3 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
-                {getMonthName(currentMonth)}
-              </h3>
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                {t(`cultivation.seasons.${getCurrentSeason()}`)}
-              </p>
+            <div className="text-center flex-1 mx-4">
+              <div className="flex items-center justify-center space-x-3 mb-2">
+                <h3 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                  {getMonthName(currentMonth)}
+                </h3>
+                <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  getCurrentSeason() === 'spring' ? 'bg-green-100 text-green-800' :
+                  getCurrentSeason() === 'summer' ? 'bg-yellow-100 text-yellow-800' :
+                  getCurrentSeason() === 'autumn' ? 'bg-orange-100 text-orange-800' :
+                  'bg-blue-100 text-blue-800'
+                }`}>
+                  {getCurrentSeason() === 'spring' ? '🌸 Vår' :
+                   getCurrentSeason() === 'summer' ? '☀️ Sommar' :
+                   getCurrentSeason() === 'autumn' ? '🍂 Höst' :
+                   '❄️ Vinter'}
+                </div>
+              </div>
+              
+              {/* Monthly Activity Summary */}
+              <div className="flex items-center justify-center space-x-4 text-xs" style={{ color: 'var(--text-secondary)' }}>
+                {(() => {
+                  const monthActivities = displayCalendarItems.filter(item => {
+                    if (!item.date) return false;
+                    const itemDate = new Date(item.date);
+                    return itemDate.getMonth() === currentMonth - 1;
+                  });
+                  
+                  const sowingCount = monthActivities.filter(item => 
+                    item.type === 'sowing' || item.title?.toLowerCase().includes('så')
+                  ).length;
+                  
+                  const harvestCount = monthActivities.filter(item => 
+                    item.type === 'harvesting' || item.title?.toLowerCase().includes('skörda')
+                  ).length;
+                  
+                  return (
+                    <>
+                      {sowingCount > 0 && (
+                        <span className="flex items-center space-x-1">
+                          <span>🌱</span>
+                          <span>{sowingCount} såaktiviteter</span>
+                        </span>
+                      )}
+                      {harvestCount > 0 && (
+                        <span className="flex items-center space-x-1">
+                          <span>🍅</span>
+                          <span>{harvestCount} skördeaktiviteter</span>
+                        </span>
+                      )}
+                      {monthActivities.length === 0 && (
+                        <span>Inga planerade aktiviteter denna månad</span>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
             </div>
 
             <button
               onClick={() => setCurrentMonth(currentMonth === 12 ? 1 : currentMonth + 1)}
-              className="flex items-center space-x-2 px-3 py-2 rounded-lg border hover:shadow-sm transition-all duration-200"
+              className="flex items-center space-x-2 px-4 py-2 rounded-lg border hover:shadow-md transition-all duration-200"
               style={{ 
                 backgroundColor: 'var(--bg-card)',
-                borderColor: 'var(--color-secondary)',
-                color: 'var(--text-secondary)'
+                borderColor: 'var(--color-sage)',
+                color: 'var(--text-primary)'
               }}
             >
-              <span className="text-sm">{getMonthName(currentMonth === 12 ? 1 : currentMonth + 1)}</span>
+              <span className="text-sm font-medium">{getMonthName(currentMonth === 12 ? 1 : currentMonth + 1)}</span>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Current Month Plants */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Quick Month Navigation for Months with Activities */}
+          {displayCalendarItems && displayCalendarItems.length > 0 && (() => {
+            const monthsWithActivities = [];
+            for (let month = 1; month <= 12; month++) {
+              const monthActivities = displayCalendarItems.filter(item => {
+                if (!item.date) return false;
+                const itemDate = new Date(item.date);
+                return itemDate.getMonth() === month - 1;
+              });
+              if (monthActivities.length > 0) {
+                monthsWithActivities.push({ month, count: monthActivities.length });
+              }
+            }
+            
+            if (monthsWithActivities.length > 1) {
+              return (
+                <div className="mb-4 p-3 rounded-lg border" style={{ 
+                  backgroundColor: 'var(--bg-olive-light)',
+                  borderColor: 'var(--color-sage)'
+                }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                      📅 Månader med aktiviteter
+                    </span>
+                    <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                      Klicka för att hoppa till månad
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {monthsWithActivities.map(({ month, count }) => (
+                      <button
+                        key={month}
+                        onClick={() => setCurrentMonth(month)}
+                        className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
+                          month === currentMonth 
+                            ? 'bg-green-500 text-white shadow-md' 
+                            : 'bg-white text-gray-700 hover:bg-green-50 hover:text-green-700'
+                        }`}
+                        style={{ 
+                          borderColor: month === currentMonth ? 'var(--color-sage)' : 'var(--color-secondary)',
+                          borderWidth: '1px'
+                        }}
+                      >
+                        {getMonthName(month)} ({count})
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })()}
+
+
+          {/* Monthly Overview - Cultivation Activities by Month */}
+          {displayCalendarItems && displayCalendarItems.length > 0 && (() => {
+            // Group activities by month
+            const activitiesByMonth: Record<number, any[]> = {};
+            displayCalendarItems.forEach(activity => {
+              if (activity.date) {
+                const activityDate = new Date(activity.date);
+                const month = activityDate.getMonth() + 1;
+                if (!activitiesByMonth[month]) {
+                  activitiesByMonth[month] = [];
+                }
+                activitiesByMonth[month].push(activity);
+              }
+            });
+
+            return (
+              <div className="mb-6 p-4 rounded-lg border" style={{ 
+                backgroundColor: 'var(--bg-olive-light)',
+                borderColor: 'var(--color-sage)'
+              }}>
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-sage)' }}>
+                    <span className="text-white text-sm">📅</span>
+                  </div>
+                  <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    Månadsvis Odlingsöversikt
+                  </h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {Object.entries(activitiesByMonth).map(([month, activities]) => {
+                    const monthNumber = parseInt(month);
+                    const monthName = getMonthName(monthNumber);
+                    const sowingActivities = activities.filter(a => a.type === 'sowing');
+                    const harvestActivities = activities.filter(a => a.type === 'harvesting');
+                    
+                    return (
+                      <div key={month} className="p-4 rounded-lg border bg-white" style={{ borderColor: 'var(--color-sage)' }}>
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                            {monthName}
+                          </h4>
+                          <span className="text-xs px-2 py-1 rounded-full bg-gray-100" style={{ color: 'var(--text-secondary)' }}>
+                            {activities.length} aktiviteter
+                          </span>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          {sowingActivities.length > 0 && (
+                            <div className="flex items-center space-x-2">
+                              <span className="text-green-600">🌱</span>
+                              <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                                Såning ({sowingActivities.length})
+                              </span>
+                            </div>
+                          )}
+                          
+                          {harvestActivities.length > 0 && (
+                            <div className="flex items-center space-x-2">
+                              <span className="text-orange-600">🍅</span>
+                              <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                                Skörd ({harvestActivities.length})
+                              </span>
+                            </div>
+                          )}
+                          
+                          <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                            {activities.map(activity => activity.crop_name).filter((name, index, arr) => arr.indexOf(name) === index).join(', ')}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Planning Activities Calendar View */}
+          {displayCalendarItems && displayCalendarItems.length > 0 ? (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h4 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+                  Min odlingsplan ({displayCalendarItems.length} aktiviteter)
+                </h4>
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm px-2 py-1 rounded-full" style={{ 
+                      backgroundColor: 'rgba(135, 169, 107, 0.15)',
+                      color: 'var(--color-sage)'
+                    }}>
+                      🌱 Så
+                    </span>
+                    <span className="text-sm px-2 py-1 rounded-full" style={{ 
+                      backgroundColor: 'rgba(160, 142, 90, 0.15)',
+                      color: 'var(--color-khaki)'
+                    }}>
+                      🍅 Skörda
+                    </span>
+                  </div>
+                  <button
+                    onClick={clearCalendarAndGenerateNew}
+                    className="px-4 py-2 rounded-lg font-medium text-white hover:shadow-md transition-all duration-200 flex items-center space-x-2"
+                    style={{ backgroundColor: 'var(--color-warm-olive)' }}
+                  >
+                    <span>🗑️</span>
+                    <span>Rensa & Skapa ny plan</span>
+                  </button>
+                </div>
+              </div>
+
+
+              {/* Activity Summary */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 rounded-lg border" style={{ 
+                  backgroundColor: 'var(--bg-card)',
+                  borderColor: 'var(--color-sage)'
+                }}>
+                  <h5 className="font-semibold mb-2 flex items-center" style={{ color: 'var(--text-primary)' }}>
+                    🌱 Såaktiviteter
+                  </h5>
+                  <div className="space-y-2">
+                    {displayCalendarItems
+                      .filter(item => item.type === 'sowing')
+                      .slice(0, 5)
+                      .map((item, idx) => (
+                        <div key={idx} className="flex items-center justify-between text-sm">
+                          <span style={{ color: 'var(--text-secondary)' }}>
+                            {item.title}
+                          </span>
+                          <div className="flex flex-col items-end">
+                            <span className="text-xs text-gray-500 mb-1">Senast</span>
+                            <span className="text-xs px-2 py-1 rounded" style={{ 
+                              backgroundColor: 'var(--color-sage)',
+                              color: 'white'
+                            }}>
+                              {new Date(item.date).toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' })}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-lg border" style={{ 
+                  backgroundColor: 'var(--bg-card)',
+                  borderColor: 'var(--color-khaki)'
+                }}>
+                  <h5 className="font-semibold mb-2 flex items-center" style={{ color: 'var(--text-primary)' }}>
+                    🍅 Skördeaktiviteter
+                  </h5>
+                  <div className="space-y-2">
+                    {displayCalendarItems
+                      .filter(item => item.type === 'harvesting')
+                      .slice(0, 5)
+                      .map((item, idx) => (
+                        <div key={idx} className="flex items-center justify-between text-sm">
+                          <span style={{ color: 'var(--text-secondary)' }}>
+                            {item.title}
+                          </span>
+                          <div className="flex flex-col items-end">
+                            <span className="text-xs text-gray-500 mb-1">Senast</span>
+                            <span className="text-xs px-2 py-1 rounded" style={{ 
+                              backgroundColor: 'var(--color-khaki)',
+                              color: 'white'
+                            }}>
+                              {new Date(item.date).toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' })}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style={{
+                backgroundColor: 'var(--color-sage)',
+                color: 'white'
+              }}>
+                📅
+              </div>
+              <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                Ingen odlingsplan än
+              </h3>
+              <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+                Skapa en odlingsplan för att se dina aktiviteter här
+              </p>
+              <button
+                onClick={() => window.location.href = '/individual?section=cultivation&subsection=ai-planner'}
+                className="px-4 py-2 rounded-lg font-medium text-white hover:shadow-md transition-all duration-200"
+                style={{ backgroundColor: 'var(--color-sage)' }}
+              >
+                🎯 Skapa odlingsplan
+              </button>
+            </div>
+          )}
+
+          {/* Planning-focused calendar - no general plants shown */}
+          <div className="hidden">
             {getCurrentMonthPlants().map(([plantKey, plant]) => {
               const canSow = plant.sowingMonths.includes(currentMonth);
               const canHarvest = plant.harvestMonths.includes(currentMonth);

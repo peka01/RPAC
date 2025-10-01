@@ -27,7 +27,12 @@ interface CultivationReminder {
   reminder_type: string;
   reminder_date: string;
   reminder_time?: string;
-  message: string;
+  message?: string; // Keep for backward compatibility
+  title?: string; // New field for reminder headers
+  description?: string; // New field for detailed text
+  crop_name?: string; // New field for crop identification
+  plant_count?: number; // New field for number of plants
+  notes?: string; // New field for additional information
   is_completed: boolean;
   created_at: string;
   updated_at: string;
@@ -401,8 +406,19 @@ export function CultivationReminders({
                     <TypeIcon className="w-6 h-6 sm:w-4 sm:h-4 flex-shrink-0 mt-1" style={{ color: priorityColor }} />
                     <h3 className={`font-bold text-lg sm:text-sm leading-relaxed ${reminder.is_completed ? 'line-through' : ''}`}
                         style={{ color: 'var(--text-primary)' }}>
-                      {reminder.message}
+                      {reminder.title || reminder.message || 'Påminnelse'}
                     </h3>
+                    {reminder.description && (
+                      <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+                        {reminder.description}
+                      </p>
+                    )}
+                    {reminder.crop_name && (
+                      <div className="flex items-center space-x-2 mt-1 text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                        <span>Gröda: {reminder.crop_name}</span>
+                        {reminder.plant_count && <span>• {reminder.plant_count} plantor</span>}
+                      </div>
+                    )}
                   </div>
                   
                   

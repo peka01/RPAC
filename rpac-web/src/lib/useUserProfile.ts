@@ -25,6 +25,7 @@ export interface UserProfile {
   has_elderly?: boolean;
   has_pets?: boolean;
   pet_types?: string;
+  experience_level?: 'beginner' | 'intermediate' | 'advanced';
   created_at: Date;
   updated_at: Date;
 }
