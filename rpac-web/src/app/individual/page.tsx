@@ -46,7 +46,7 @@ function IndividualPageContent() {
       subsections: [
         {
           id: 'ai-planner',
-          title: 'Min odling',
+          title: 'Odlingsplanering',
           description: 'Personlig odlingsplan baserad på näringsbehov',
           priority: 'high' as const
         },
@@ -156,6 +156,9 @@ function IndividualPageContent() {
     setActiveSection(sectionId);
     if (subsectionId) {
       setActiveSubsection(subsectionId);
+    } else {
+      // Clear subsection to show landing page
+      setActiveSubsection('');
     }
   };
 

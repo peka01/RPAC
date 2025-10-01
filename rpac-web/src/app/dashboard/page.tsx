@@ -282,7 +282,7 @@ export default function DashboardPage() {
                   <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{t('dashboard.self_sufficiency')}</div>
                 </div>
               </div>
-              <h3 className="text-sm font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Min odling</h3>
+              <h3 className="text-sm font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Odlingsplanering</h3>
               <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>
                 {(() => {
                   if (cultivationPlan) {

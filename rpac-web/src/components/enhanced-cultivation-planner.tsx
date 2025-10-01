@@ -2759,7 +2759,7 @@ export function EnhancedCultivationPlanner({ user }: EnhancedCultivationPlannerP
         </div>
         <div>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-            Min odling
+            Odlingsplanering
           </h1>
           <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
             Personlig odlingsplan baserad på din familj och lokala förhållanden

@@ -365,7 +365,15 @@ export function SuperbOdlingsplanerare({ user }: SuperbOdlingsplanerareProps) {
         return;
       }
 
-      const calendarEntries = [];
+      const calendarEntries: Array<{
+        title: string;
+        description: string;
+        date: string;
+        type: string;
+        crop_name: string;
+        plant_count: number;
+        user_id: string | undefined;
+      }> = [];
       const monthNames = [
         'Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni',
         'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'
@@ -460,7 +468,17 @@ export function SuperbOdlingsplanerare({ user }: SuperbOdlingsplanerareProps) {
     try {
       if (!gardenPlan || !selectedCrops.length) return;
 
-      const reminders = [];
+      const reminders: Array<{
+        user_id: string | undefined;
+        reminder_type: string;
+        reminder_date: string;
+        is_completed: boolean;
+        title: string;
+        description: string;
+        crop_name: string;
+        plant_count: number;
+        notes: string;
+      }> = [];
       const monthNames = [
         'Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni',
         'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'
@@ -690,6 +708,8 @@ export function SuperbOdlingsplanerare({ user }: SuperbOdlingsplanerareProps) {
   };
 
   const generateAIGardenPlan = async (profile: UserProfile): Promise<GardenPlan> => {
+    let aiPlan: any = null;
+    
     try {
       // Create a comprehensive prompt for AI
       const prompt = `Du är en expert på svensk odling och självförsörjning. Skapa en personlig odlingsplan för:
@@ -777,7 +797,6 @@ Svara ENDAST med en JSON-struktur enligt detta format:
       console.log('AI Response:', aiResponse);
       
       // Parse AI response
-      let aiPlan;
       try {
         const content = aiResponse.choices?.[0]?.message?.content || '{}';
         console.log('AI Content:', content);
@@ -1319,6 +1338,11 @@ Svara ENDAST med en JSON-struktur enligt detta format:
         caloriesFromGroceries: Math.round(caloriesFromGroceries),
         annualCalorieNeed: Math.round(annualCalorieNeed),
         gardenProduction: Math.round(production.calories),
+        grocerySuggestions: [
+          "Köp kompletterande proteiner som ägg och mejeriprodukter",
+          "Lägg till nötter och frön för fett och mineraler",
+          "Köp citrusfrukter för vitamin C under vintern"
+        ],
         crops: crops,
         monthlyTasks: generateMonthlyTasks(),
         totalSpace: Math.round(production.spaceUsed),
@@ -2158,7 +2182,7 @@ VIKTIGT: Inga kommentarer, inga // eller /* */ i JSON:en. Endast ren JSON.`;
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {gardenPlan.crops.map((crop) => (
+            {gardenPlan?.crops?.map((crop) => (
               <div key={crop.name} className="border rounded-lg p-4" style={{ borderColor: 'var(--border-color)' }}>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-2">

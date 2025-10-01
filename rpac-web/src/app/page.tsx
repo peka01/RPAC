@@ -124,25 +124,30 @@ export default function LoginPage() {
   // Landing page when not showing modal
   if (!showModal) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
-        <div className="max-w-md w-full space-y-8 p-8">
-          <div className="text-center">
-            <div className="flex justify-center mb-4">
-              <img 
-                src="/beready-logo2.png" 
-                alt="BE READY" 
-                className="h-16 w-auto"
-              />
-            </div>
-            <button
-              onClick={() => setShowModal(true)}
-              className="modern-button flex items-center space-x-2 px-6 py-3 text-white mx-auto"
-              style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)' }}
-            >
-              <LogIn className="w-5 h-5" />
-              <span>{t('auth.sign_in')}</span>
-            </button>
+      <div 
+        className="fixed inset-0 flex items-center justify-center" 
+        style={{ 
+          background: 'var(--bg-primary)',
+          height: '100vh',
+          width: '100vw'
+        }}
+      >
+        <div className="text-center">
+          <div className="flex justify-center mb-8">
+            <img 
+              src="/beready-logo2.png" 
+              alt="BE READY" 
+              className="h-20 w-auto"
+            />
           </div>
+          <button
+            onClick={() => setShowModal(true)}
+            className="modern-button flex items-center space-x-2 px-8 py-4 text-white mx-auto"
+            style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)' }}
+          >
+            <LogIn className="w-5 h-5" />
+            <span>{t('auth.sign_in')}</span>
+          </button>
         </div>
       </div>
     );

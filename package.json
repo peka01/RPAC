@@ -9,7 +9,7 @@
     "secret:put": "wrangler secret put OPENAI_API_KEY"
   },
   "devDependencies": {
-    "wrangler": "^3.0.0"
+    "wrangler": "^4.40.3"
   },
   "keywords": [
     "cloudflare",
