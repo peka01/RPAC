@@ -10,10 +10,10 @@ import { AICultivationAdvisor } from '@/components/ai-cultivation-advisor';
 import { AICultivationPlanner } from '@/components/ai-cultivation-planner';
 import { EnhancedCultivationPlanner } from '@/components/enhanced-cultivation-planner';
 import { SuperbOdlingsplanerare } from '@/components/superb-odlingsplanerare';
-import { GardenPlanner } from '@/components/garden-planner';
 import { CultivationReminders } from '@/components/cultivation-reminders';
 import { CrisisCultivation } from '@/components/crisis-cultivation';
 import { PersonalAICoach } from '@/components/personal-ai-coach';
+import { ExistingCultivationPlans } from '@/components/existing-cultivation-plans';
 import { useUserProfile } from '@/lib/useUserProfile';
 import { supabase } from '@/lib/supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
@@ -25,6 +25,7 @@ function IndividualPageContent() {
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState('home');
   const [activeSubsection, setActiveSubsection] = useState('');
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -54,12 +55,6 @@ function IndividualPageContent() {
           id: 'calendar',
           title: t('individual.calendar_advisor'),
           description: t('individual.calendar_description'),
-          priority: 'high' as const
-        },
-        {
-          id: 'planning',
-          title: t('individual.garden_planning'),
-          description: t('individual.planning_description'),
           priority: 'high' as const
         },
         {
@@ -267,29 +262,6 @@ function IndividualPageContent() {
               }}>
                 <Sprout className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--color-primary)' }} />
                 <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                  {t('individual.garden_planning')}
-                </h3>
-                <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
-                  {t('individual.planning_description')}
-                </p>
-                <button
-                  onClick={() => handleSectionChange('cultivation', 'planning')}
-                  className="px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-md"
-                  style={{ 
-                    backgroundColor: 'var(--color-secondary)',
-                    color: 'white'
-                  }}
-                >
-                  Planera trädgård
-                </button>
-              </div>
-              
-              <div className="text-center p-6 rounded-lg border" style={{ 
-                backgroundColor: 'var(--bg-card)',
-                borderColor: 'var(--color-quaternary)'
-              }}>
-                <Sprout className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--color-primary)' }} />
-                <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
                   {t('individual.reminders')}
                 </h3>
                 <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
@@ -354,6 +326,7 @@ function IndividualPageContent() {
               </div>
             </div>
           </div>
+
         </div>
       );
     }
@@ -430,7 +403,23 @@ function IndividualPageContent() {
       if (activeSubsection === 'ai-planner') {
         return (
           <div className="space-y-6">
-            <SuperbOdlingsplanerare user={user} />
+            {/* AI Planner Component */}
+            <SuperbOdlingsplanerare user={user} selectedPlan={selectedPlan} />
+            
+            {/* Existing Cultivation Plans - Moved to bottom */}
+            <div className="modern-card p-6">
+              <ExistingCultivationPlans 
+                user={user}
+                onViewPlan={(plan) => {
+                  console.log('Viewing plan:', plan);
+                  setSelectedPlan(plan);
+                }}
+                onEditPlan={(plan) => {
+                  console.log('Editing plan:', plan);
+                  setSelectedPlan(plan);
+                }}
+              />
+            </div>
           </div>
         );
       }
@@ -454,27 +443,6 @@ function IndividualPageContent() {
             <div className="modern-card">
               <AICultivationAdvisor 
                 user={user}
-                crisisMode={false}
-              />
-            </div>
-          </div>
-        );
-      }
-      if (activeSubsection === 'planning') {
-        return (
-          <div className="space-y-8">
-            <div className="modern-card">
-              <GardenPlanner 
-                onSave={(layout) => {
-                  console.log('Garden layout saved:', layout);
-                }}
-                crisisMode={false}
-              />
-            </div>
-            <div className="modern-card">
-              <CultivationReminders 
-                user={user}
-                climateZone={profile?.county ? getClimateZone(profile.county) : 'svealand'}
                 crisisMode={false}
               />
             </div>

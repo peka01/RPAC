@@ -41,13 +41,13 @@ import {
   Home,
   TreePine,
   X,
-  FolderOpen,
   Plus
 } from 'lucide-react';
 import { ProfileEditorModal } from './profile-editor-modal';
 
 interface SuperbOdlingsplanerareProps {
   user: any;
+  selectedPlan?: any;
 }
 
 interface UserProfile {
@@ -89,7 +89,9 @@ interface CropRecommendation {
   yield: number;
   calories: number;
   nutritionalHighlights: string[];
+  spacePerPlant?: number;
   color: string;
+  icon?: string;
 }
 
 interface MonthlyTask {
@@ -98,7 +100,7 @@ interface MonthlyTask {
   priority: 'low' | 'medium' | 'high';
 }
 
-export function SuperbOdlingsplanerare({ user }: SuperbOdlingsplanerareProps) {
+export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplanerareProps) {
   const { profile, refreshProfile } = useUserProfile(user);
   const [currentStep, setCurrentStep] = useState<'profile' | 'generating' | 'dashboard'>('profile');
   const [loading, setLoading] = useState(false);
@@ -129,13 +131,13 @@ export function SuperbOdlingsplanerare({ user }: SuperbOdlingsplanerareProps) {
     selfSufficiencyPercent: number;
     caloriesFromGroceries: number;
     totalCost: number;
+    totalSpace: number;
   } | null>(null);
 
   // Planning management
   const [savedPlans, setSavedPlans] = useState<any[]>([]);
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
   const [showPlanSelector, setShowPlanSelector] = useState(false);
-  const [showLoadPlanModal, setShowLoadPlanModal] = useState(false);
   
   // Save plan modal
   const [showSaveModal, setShowSaveModal] = useState(false);
@@ -262,72 +264,6 @@ export function SuperbOdlingsplanerare({ user }: SuperbOdlingsplanerareProps) {
     }
   };
 
-  // Load all saved plans
-  const loadSavedPlans = async () => {
-    try {
-      if (!user?.id) return;
-
-      const { data, error } = await supabase
-        .from('cultivation_plans')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error loading saved plans:', error);
-        return;
-      }
-
-      setSavedPlans(data || []);
-      console.log('Loaded saved plans:', data?.length || 0);
-    } catch (error) {
-      console.error('Error loading saved plans:', error);
-    }
-  };
-
-  // Load a specific saved plan
-  const loadSelectedPlan = async (planId: string) => {
-    try {
-      const plan = savedPlans.find(p => p.id === planId);
-      if (!plan || !plan.plan_data) return;
-
-      const planData = plan.plan_data;
-      
-      // Load the plan data into the component state
-      if (planData.profile) {
-        setProfileData(planData.profile);
-      }
-      
-      if (planData.gardenPlan) {
-        setGardenPlan(planData.gardenPlan);
-      }
-      
-      if (planData.selectedCrops) {
-        setSelectedCrops(planData.selectedCrops);
-      }
-      
-      if (planData.cropVolumes) {
-        setCropVolumes(planData.cropVolumes);
-      }
-      
-      if (planData.adjustableGardenSize) {
-        setAdjustableGardenSize(planData.adjustableGardenSize);
-      }
-      
-      if (planData.cultivationIntensity) {
-        setCultivationIntensity(planData.cultivationIntensity);
-      }
-
-      // Set current plan ID and move to dashboard
-      setCurrentPlanId(planId);
-      setCurrentStep('dashboard');
-      setShowLoadPlanModal(false);
-      
-      console.log('Plan loaded successfully:', planData.name);
-    } catch (error) {
-      console.error('Error loading plan:', error);
-    }
-  };
 
   // Delete a saved plan
   const deletePlan = async (planId: string) => {
@@ -651,7 +587,8 @@ export function SuperbOdlingsplanerare({ user }: SuperbOdlingsplanerareProps) {
           gardenProduction: production.calories,
           selfSufficiencyPercent,
           caloriesFromGroceries,
-          totalCost: production.cost
+          totalCost: production.cost,
+          totalSpace: production.spaceUsed
         });
       } catch (error) {
         console.error('Error in real-time calculation:', error);
@@ -660,11 +597,69 @@ export function SuperbOdlingsplanerare({ user }: SuperbOdlingsplanerareProps) {
           gardenProduction: 0,
           selfSufficiencyPercent: 0,
           caloriesFromGroceries: profileData.household_size * 2000 * 365,
-          totalCost: 0
+          totalCost: 0,
+          totalSpace: 0
         });
       }
     }
   }, [selectedCrops, adjustableGardenSize, cultivationIntensity, cropVolumes, profileData.household_size, gardenPlan]);
+
+  // Load selected plan when provided
+  useEffect(() => {
+    if (selectedPlan && selectedPlan.plan_data) {
+      loadSelectedPlanData(selectedPlan.plan_data);
+    }
+  }, [selectedPlan]);
+
+  const loadSelectedPlanData = (planData: any) => {
+    try {
+      console.log('Loading selected plan data:', planData);
+      
+      // Show loading state briefly
+      setLoading(true);
+      
+      // Load the plan data into the component state
+      if (planData.profile) {
+        setProfileData(planData.profile);
+      }
+      
+      if (planData.gardenPlan) {
+        setGardenPlan(planData.gardenPlan);
+      }
+      
+      if (planData.selectedCrops) {
+        setSelectedCrops(planData.selectedCrops);
+      }
+      
+      if (planData.cropVolumes) {
+        setCropVolumes(planData.cropVolumes);
+      }
+      
+      if (planData.adjustableGardenSize) {
+        setAdjustableGardenSize(planData.adjustableGardenSize);
+      }
+      
+      if (planData.cultivationIntensity) {
+        setCultivationIntensity(planData.cultivationIntensity);
+      }
+
+      // Move to dashboard to show the loaded plan
+      setCurrentStep('dashboard');
+      
+      // Hide loading state
+      setTimeout(() => {
+        setLoading(false);
+      }, 1000);
+      
+      console.log('Plan loaded successfully');
+      
+      // Show success message
+      alert(`Odlingsplan "${planData.name || 'Namnlös plan'}" har laddats framgångsrikt!`);
+    } catch (error) {
+      console.error('Error loading plan:', error);
+      setLoading(false);
+    }
+  };
 
   const generateGardenPlan = async () => {
     setCurrentStep('generating');
@@ -709,9 +704,9 @@ export function SuperbOdlingsplanerare({ user }: SuperbOdlingsplanerareProps) {
 
   const generateAIGardenPlan = async (profile: UserProfile): Promise<GardenPlan> => {
     let aiPlan: any = null;
-    
+
     try {
-      // Create a comprehensive prompt for AI
+      // 1. Build AI prompt
       const prompt = `Du är en expert på svensk odling och självförsörjning. Skapa en personlig odlingsplan för:
 
 PROFIL:
@@ -731,10 +726,20 @@ Skapa en detaljerad odlingsplan som maximerar självförsörjningen för detta h
    - Beskrivning
    - Svårighetsgrad (beginner/intermediate/advanced)
    - Såmånader och skördemånader
-   - Utrymme per planta (m²)
-   - Förväntad skörd (kg)
+   - Utrymme per planta (m²) - VIKTIGT: Ange exakt m² per planta
+   - Förväntad skörd (kg) - VIKTIGT: Ange total skörd i kg
    - Kalorier per kg
    - Näringshöjdpunkter
+   - Färgkod (hex-färg)
+   - Emoji-ikon (lämplig emoji för grödan)
+
+VIKTIGT: Inkludera en mångfaldig mix av grödor:
+- Rotgrönsaker (potatis, morötter, lök, rödbetor)
+- Bladgrönsaker (spenat, sallad, kål)
+- Fruktgrönsaker (tomater, paprika, gurka)
+- Baljväxter (bönor, ärtor)
+- Kryddor (persilja, basilika, timjan)
+- Stärkelserika grödor (korn, havre)
 
 2. Månadsvisa aktiviteter för hela året
 
@@ -754,11 +759,12 @@ Svara ENDAST med en JSON-struktur enligt detta format:
       "difficulty": "beginner/intermediate/advanced",
       "sowingMonths": ["Månad1", "Månad2"],
       "harvestingMonths": ["Månad1", "Månad2"],
-      "spaceRequired": 10,
+      "spaceRequired": 10, // Total m² needed for this crop
       "yield": 20,
       "calories": 8000,
       "nutritionalHighlights": ["Näring1", "Näring2"],
-      "color": "#hexfärg"
+      "color": "#hexfärg",
+      "icon": "🥔"
     }
   ],
   "monthlyTasks": [
@@ -772,9 +778,7 @@ Svara ENDAST med en JSON-struktur enligt detta format:
   "estimatedCost": 500
 }`;
 
-      console.log('Sending AI prompt:', prompt);
-      
-      // Call the existing api.beready.se API
+      // 2. Call API
       const response = await fetch('https://api.beready.se', {
         method: 'POST',
         headers: {
@@ -794,556 +798,309 @@ Svara ENDAST med en JSON-struktur enligt detta format:
       }
 
       const aiResponse = await response.json();
-      console.log('AI Response:', aiResponse);
-      
-      // Parse AI response
+      const content = aiResponse.choices?.[0]?.message?.content || '{}';
+
+      // 3. Clean JSON from AI
+      let cleanedContent = content
+        .replace(/\/\/.*$/gm, '')
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/,(\s*[}\]])/g, '$1')
+        .replace(/([{,]\s*)(\w+):/g, '$1"$2":')
+        .replace(/,\s*}/g, '}')
+        .replace(/,\s*]/g, ']')
+        .trim();
+
       try {
-        const content = aiResponse.choices?.[0]?.message?.content || '{}';
-        console.log('AI Content:', content);
-        
-        // Clean the JSON content more aggressively
-        let cleanedContent = content
-          .replace(/\/\/.*$/gm, '') // Remove single-line comments
-          .replace(/\/\*[\s\S]*?\*\//g, '') // Remove multi-line comments
-          .replace(/,(\s*[}\]])/g, '$1') // Remove trailing commas
-          .replace(/([{,]\s*)(\w+):/g, '$1"$2":') // Quote unquoted property names
-          .replace(/,\s*}/g, '}') // Remove trailing commas before closing braces
-          .replace(/,\s*]/g, ']') // Remove trailing commas before closing brackets
-          .trim();
-        
-        // Try to fix unterminated strings by finding the last complete object
-        if (cleanedContent.includes('"harvestingMonths')) {
-          const lastCompleteIndex = cleanedContent.lastIndexOf('}');
-          if (lastCompleteIndex > 0) {
-            cleanedContent = cleanedContent.substring(0, lastCompleteIndex + 1);
-          }
-        }
-        
         aiPlan = JSON.parse(cleanedContent);
       } catch (parseError) {
         console.error('Failed to parse AI response:', parseError);
-        console.log('Using fallback data due to JSON parsing error');
-        aiPlan = null; // Will use fallback data
+        aiPlan = null; // fallback later
       }
 
-      // Use AI-generated data if available, otherwise fallback to static data
+      // 4. Build crops list (AI or fallback)
       let crops = aiPlan?.crops || [
         {
           name: "Potatis",
           scientificName: "Solanum tuberosum",
           description: "Grundläggande kolhydratkälla med hög kaloritetthet",
-          difficulty: "beginner",
+          difficulty: "beginner" as const,
           sowingMonths: ["Mars", "April"],
           harvestingMonths: ["Augusti", "September", "Oktober"],
           spaceRequired: 20,
           yield: 80,
           calories: 64000,
           nutritionalHighlights: ["Kolhydrater", "Kalium", "Vitamin C"],
-          color: "#8B4513"
+          color: "#8B4513",
+          icon: "🥔"
         },
         {
           name: "Morötter",
           scientificName: "Daucus carota",
           description: "Rik på betakaroten och vitamin A",
-          difficulty: "beginner",
+          difficulty: "beginner" as const,
           sowingMonths: ["Mars", "April", "Maj"],
           harvestingMonths: ["Juli", "Augusti", "September", "Oktober"],
           spaceRequired: 8,
           yield: 24,
           calories: 9600,
           nutritionalHighlights: ["Vitamin A", "Betakaroten", "Fiber"],
-          color: "#FF8C00"
-        },
-        {
-          name: "Kål",
-          scientificName: "Brassica oleracea",
-          description: "Hög näringstäthet och lång hållbarhet",
-          difficulty: "intermediate",
-          sowingMonths: ["Mars", "April"],
-          harvestingMonths: ["September", "Oktober", "November"],
-          spaceRequired: 12,
-          yield: 36,
-          calories: 9000,
-          nutritionalHighlights: ["Vitamin C", "K", "Fiber", "Folat"],
-          color: "#228B22"
+          color: "#FF8C00",
+          icon: "🥕"
         },
         {
           name: "Tomater",
           scientificName: "Solanum lycopersicum",
-          description: "Rik på lykopen och vitamin C",
-          difficulty: "intermediate",
+          description: "Rika på lykopen och vitamin C",
+          difficulty: "intermediate" as const,
           sowingMonths: ["Mars", "April"],
           harvestingMonths: ["Juli", "Augusti", "September"],
-          spaceRequired: 15,
+          spaceRequired: 12,
           yield: 30,
-          calories: 4800,
-          nutritionalHighlights: ["Lykopen", "Vitamin C", "Kalium"],
-          color: "#FF6347"
+          calories: 5400,
+          nutritionalHighlights: ["Vitamin C", "Lykopen", "Kalium"],
+          color: "#FF4444",
+          icon: "🍅"
+        },
+        {
+          name: "Kål",
+          scientificName: "Brassica oleracea",
+          description: "Rik på vitamin K och folsyra",
+          difficulty: "beginner" as const,
+          sowingMonths: ["April", "Maj"],
+          harvestingMonths: ["September", "Oktober", "November"],
+          spaceRequired: 15,
+          yield: 25,
+          calories: 6250,
+          nutritionalHighlights: ["Vitamin K", "Folsyra", "Fiber"],
+          color: "#90EE90",
+          icon: "🥬"
+        },
+        {
+          name: "Lök",
+          scientificName: "Allium cepa",
+          description: "Grundläggande krydda med antibakteriella egenskaper",
+          difficulty: "beginner" as const,
+          sowingMonths: ["Mars", "April"],
+          harvestingMonths: ["Juli", "Augusti", "September"],
+          spaceRequired: 6,
+          yield: 20,
+          calories: 8000,
+          nutritionalHighlights: ["Kväve", "Sulfider", "Vitamin C"],
+          color: "#F0E68C",
+          icon: "🧅"
+        },
+        {
+          name: "Spenat",
+          scientificName: "Spinacia oleracea",
+          description: "Rik på järn och folsyra",
+          difficulty: "beginner" as const,
+          sowingMonths: ["Mars", "April", "Augusti"],
+          harvestingMonths: ["Maj", "Juni", "September", "Oktober"],
+          spaceRequired: 4,
+          yield: 8,
+          calories: 1800,
+          nutritionalHighlights: ["Järn", "Folsyra", "Vitamin K"],
+          color: "#228B22",
+          icon: "🥬"
         },
         {
           name: "Gurka",
           scientificName: "Cucumis sativus",
-          description: "Hög vattenhalt och färsk smak",
-          difficulty: "beginner",
+          description: "Hög vattenhalt och vitamin K",
+          difficulty: "intermediate" as const,
           sowingMonths: ["Maj", "Juni"],
           harvestingMonths: ["Juli", "Augusti", "September"],
           spaceRequired: 10,
-          yield: 20,
-          calories: 3200,
-          nutritionalHighlights: ["Vatten", "Vitamin K", "Kalium"],
-          color: "#32CD32"
-        },
-        {
-          name: "Lökar",
-          scientificName: "Allium cepa",
-          description: "Grundläggande krydda och konserveringsmedel",
-          difficulty: "beginner",
-          sowingMonths: ["Mars", "April"],
-          harvestingMonths: ["Augusti", "September"],
-          spaceRequired: 5,
           yield: 15,
-          calories: 6000,
-          nutritionalHighlights: ["Sulfider", "Vitamin C", "Folat"],
-          color: "#F5DEB3"
+          calories: 2250,
+          nutritionalHighlights: ["Vatten", "Vitamin K", "Kalium"],
+          color: "#32CD32",
+          icon: "🥒"
         },
         {
-          name: "Sallat",
-          scientificName: "Lactuca sativa",
-          description: "Snabbväxande grönsak för sallader",
-          difficulty: "beginner",
-          sowingMonths: ["April", "Maj", "Juni", "Juli"],
-          harvestingMonths: ["Juni", "Juli", "Augusti", "September"],
-          spaceRequired: 3,
-          yield: 8,
-          calories: 1200,
-          nutritionalHighlights: ["Vitamin K", "Folat", "Vitamin A"],
-          color: "#90EE90"
-        },
-        {
-          name: "Spinat",
-          scientificName: "Spinacia oleracea",
-          description: "Rik på järn och folsyra",
-          difficulty: "beginner",
-          sowingMonths: ["Mars", "April", "Augusti", "September"],
-          harvestingMonths: ["Maj", "Juni", "Oktober", "November"],
-          spaceRequired: 4,
-          yield: 6,
-          calories: 1800,
-          nutritionalHighlights: ["Järn", "Folat", "Vitamin K", "Magnesium"],
-          color: "#228B22"
+          name: "Paprika",
+          scientificName: "Capsicum annuum",
+          description: "Rik på vitamin C och antioxidanter",
+          difficulty: "intermediate" as const,
+          sowingMonths: ["Mars", "April"],
+          harvestingMonths: ["Juli", "Augusti", "September"],
+          spaceRequired: 8,
+          yield: 12,
+          calories: 3600,
+          nutritionalHighlights: ["Vitamin C", "Antioxidanter", "Fiber"],
+          color: "#FF6347",
+          icon: "🫑"
         },
         {
           name: "Bönor",
           scientificName: "Phaseolus vulgaris",
-          description: "Hög proteinhalt och näringstäthet",
-          difficulty: "beginner",
+          description: "Hög proteinhalt och fiber",
+          difficulty: "beginner" as const,
           sowingMonths: ["Maj", "Juni"],
           harvestingMonths: ["Augusti", "September"],
-          spaceRequired: 8,
-          yield: 12,
-          calories: 4200,
-          nutritionalHighlights: ["Protein", "Fiber", "Folat", "Järn"],
-          color: "#8B4513"
+          spaceRequired: 12,
+          yield: 18,
+          calories: 6300,
+          nutritionalHighlights: ["Protein", "Fiber", "Folsyra"],
+          color: "#8B4513",
+          icon: "🫘"
         },
         {
           name: "Ärtor",
           scientificName: "Pisum sativum",
-          description: "Söt smak och hög proteinhalt",
-          difficulty: "beginner",
+          description: "Rika på protein och vitamin K",
+          difficulty: "beginner" as const,
           sowingMonths: ["Mars", "April"],
           harvestingMonths: ["Juni", "Juli"],
-          spaceRequired: 6,
-          yield: 10,
-          calories: 3500,
-          nutritionalHighlights: ["Protein", "Fiber", "Vitamin C", "Folat"],
-          color: "#32CD32"
-        },
-        {
-          name: "Rädisor",
-          scientificName: "Raphanus sativus",
-          description: "Snabbväxande rotfrukt med skarp smak",
-          difficulty: "beginner",
-          sowingMonths: ["April", "Maj", "Juni", "Juli"],
-          harvestingMonths: ["Maj", "Juni", "Juli", "Augusti"],
-          spaceRequired: 2,
-          yield: 4,
-          calories: 800,
-          nutritionalHighlights: ["Vitamin C", "Kalium", "Folat"],
-          color: "#FF69B4"
-        },
-        {
-          name: "Rotselleri",
-          scientificName: "Apium graveolens",
-          description: "Kryddig rotfrukt för soppor och grytor",
-          difficulty: "intermediate",
-          sowingMonths: ["Mars", "April"],
-          harvestingMonths: ["Oktober", "November"],
-          spaceRequired: 12,
-          yield: 18,
-          calories: 3600,
-          nutritionalHighlights: ["Vitamin K", "Kalium", "Fiber"],
-          color: "#F5DEB3"
-        },
-        {
-          name: "Rödbetor",
-          scientificName: "Beta vulgaris",
-          description: "Rik på folsyra och nitrat",
-          difficulty: "beginner",
-          sowingMonths: ["April", "Maj"],
-          harvestingMonths: ["Augusti", "September", "Oktober"],
-          spaceRequired: 8,
-          yield: 16,
-          calories: 3200,
-          nutritionalHighlights: ["Folat", "Kalium", "Nitrat", "Antioxidanter"],
-          color: "#DC143C"
-        },
-        {
-          name: "Kålrot",
-          scientificName: "Brassica napus",
-          description: "Traditionell svensk rotfrukt",
-          difficulty: "beginner",
-          sowingMonths: ["April", "Maj"],
-          harvestingMonths: ["September", "Oktober", "November"],
-          spaceRequired: 10,
-          yield: 20,
-          calories: 4000,
-          nutritionalHighlights: ["Vitamin C", "Kalium", "Fiber"],
-          color: "#DDA0DD"
-        },
-        {
-          name: "Palsternacka",
-          scientificName: "Pastinaca sativa",
-          description: "Söt rotfrukt för vinterförvaring",
-          difficulty: "beginner",
-          sowingMonths: ["Mars", "April"],
-          harvestingMonths: ["Oktober", "November", "December"],
           spaceRequired: 8,
           yield: 12,
-          calories: 2400,
-          nutritionalHighlights: ["Fiber", "Folat", "Vitamin C", "Kalium"],
-          color: "#F0E68C"
-        },
-        {
-          name: "Squash",
-          scientificName: "Cucurbita pepo",
-          description: "Mångsidig gurkväxt för matlagning",
-          difficulty: "intermediate",
-          sowingMonths: ["Maj", "Juni"],
-          harvestingMonths: ["Augusti", "September", "Oktober"],
-          spaceRequired: 25,
-          yield: 15,
-          calories: 3000,
-          nutritionalHighlights: ["Vitamin A", "Kalium", "Fiber"],
-          color: "#FFA500"
-        },
-        {
-          name: "Broccoli",
-          scientificName: "Brassica oleracea",
-          description: "Supergrönsak rik på vitaminer",
-          difficulty: "intermediate",
-          sowingMonths: ["Mars", "April"],
-          harvestingMonths: ["Juni", "Juli", "Augusti"],
-          spaceRequired: 12,
-          yield: 8,
-          calories: 1600,
-          nutritionalHighlights: ["Vitamin C", "Vitamin K", "Folat", "Antioxidanter"],
-          color: "#228B22"
-        },
-        {
-          name: "Blomkål",
-          scientificName: "Brassica oleracea",
-          description: "Mild kålväxt för många rätter",
-          difficulty: "intermediate",
-          sowingMonths: ["Mars", "April"],
-          harvestingMonths: ["Juli", "Augusti", "September"],
-          spaceRequired: 15,
-          yield: 10,
-          calories: 2000,
-          nutritionalHighlights: ["Vitamin C", "Vitamin K", "Folat"],
-          color: "#F5F5DC"
-        },
-        {
-          name: "Ruccola",
-          scientificName: "Eruca sativa",
-          description: "Kryddig salladsgrönsak",
-          difficulty: "beginner",
-          sowingMonths: ["April", "Maj", "Juni", "Juli"],
-          harvestingMonths: ["Maj", "Juni", "Juli", "Augusti"],
-          spaceRequired: 2,
-          yield: 3,
-          calories: 600,
-          nutritionalHighlights: ["Vitamin K", "Folat", "Nitrat"],
-          color: "#90EE90"
-        },
-        {
-          name: "Persilja",
-          scientificName: "Petroselinum crispum",
-          description: "Kryddört och näringsrik grönsak",
-          difficulty: "beginner",
-          sowingMonths: ["Mars", "April", "Maj"],
-          harvestingMonths: ["Juni", "Juli", "Augusti", "September"],
-          spaceRequired: 3,
-          yield: 2,
-          calories: 400,
-          nutritionalHighlights: ["Vitamin K", "Vitamin C", "Folat", "Järn"],
-          color: "#32CD32"
+          calories: 4200,
+          nutritionalHighlights: ["Protein", "Vitamin K", "Fiber"],
+          color: "#90EE90",
+          icon: "🫘"
         }
       ];
 
-      // Calculate real-time stats
+      // Add spacePerPlant field
+      crops = crops.map((crop: any) => ({
+        ...crop,
+        spacePerPlant:
+          crop.spaceRequired && crop.yield
+            ? Math.round((crop.spaceRequired / Math.max(crop.yield, 1)) * 100) / 100
+            : crop.spacePerPlant || 0.5
+      }));
+
+      // 5. Calculate production stats
       const dailyCaloriesPerPerson = 2000;
       const annualCalorieNeed = profile.household_size * dailyCaloriesPerPerson * 365;
-      const production = calculateGardenProduction(selectedCrops, adjustableGardenSize, cultivationIntensity, cropVolumes);
+      const production = calculateGardenProduction(
+        selectedCrops,
+        adjustableGardenSize,
+        cultivationIntensity,
+        cropVolumes
+      );
       const caloriesFromGroceries = Math.max(0, annualCalorieNeed - production.calories);
       const selfSufficiencyPercent = Math.round((production.calories / annualCalorieNeed) * 100);
 
+      // 6. Return GardenPlan
       return {
-        selfSufficiencyPercent: selfSufficiencyPercent,
+        selfSufficiencyPercent,
         caloriesFromGarden: Math.round(production.calories),
         caloriesFromGroceries: Math.round(caloriesFromGroceries),
         annualCalorieNeed: Math.round(annualCalorieNeed),
         gardenProduction: Math.round(production.calories),
-        grocerySuggestions: aiPlan?.grocerySuggestions || [
-          "Köp kompletterande proteiner som ägg och mejeriprodukter",
-          "Lägg till nötter och frön för fett och mineraler",
-          "Köp citrusfrukter för vitamin C under vintern"
-        ],
-        crops: crops,
+        grocerySuggestions:
+          aiPlan?.grocerySuggestions || [
+            'Köp kompletterande proteiner som ägg och mejeriprodukter',
+            'Lägg till nötter och frön för fett och mineraler',
+            'Köp citrusfrukter för vitamin C under vintern'
+          ],
+        crops,
         monthlyTasks: aiPlan?.monthlyTasks || generateMonthlyTasks(),
         totalSpace: Math.round(production.spaceUsed),
         estimatedCost: aiPlan?.estimatedCost || Math.round(production.cost)
       };
+
     } catch (error) {
       console.error('Error generating AI garden plan:', error);
-      
+
+      // Fallback crops if AI fails
+      const crops = [
+        {
+          name: "Potatis",
+          scientificName: "Solanum tuberosum",
+          description: "Grundläggande kolhydratkälla med hög kaloritetthet",
+          difficulty: "beginner" as const,
+          sowingMonths: ["Mars", "April"],
+          harvestingMonths: ["Augusti", "September", "Oktober"],
+          spaceRequired: 20,
+          yield: 80,
+          calories: 64000,
+          nutritionalHighlights: ["Kolhydrater", "Kalium", "Vitamin C"],
+          color: "#8B4513",
+          icon: "🥔"
+        },
+        {
+          name: "Morötter",
+          scientificName: "Daucus carota",
+          description: "Rik på betakaroten och vitamin A",
+          difficulty: "beginner" as const,
+          sowingMonths: ["Mars", "April", "Maj"],
+          harvestingMonths: ["Juli", "Augusti", "September", "Oktober"],
+          spaceRequired: 8,
+          yield: 24,
+          calories: 9600,
+          nutritionalHighlights: ["Vitamin A", "Betakaroten", "Fiber"],
+          color: "#FF8C00",
+          icon: "🥕"
+        },
+        {
+          name: "Tomater",
+          scientificName: "Solanum lycopersicum",
+          description: "Rika på lykopen och vitamin C",
+          difficulty: "intermediate" as const,
+          sowingMonths: ["Mars", "April"],
+          harvestingMonths: ["Juli", "Augusti", "September"],
+          spaceRequired: 12,
+          yield: 30,
+          calories: 5400,
+          nutritionalHighlights: ["Vitamin C", "Lykopen", "Kalium"],
+          color: "#FF4444",
+          icon: "🍅"
+        },
+        {
+          name: "Kål",
+          scientificName: "Brassica oleracea",
+          description: "Rik på vitamin K och folsyra",
+          difficulty: "beginner" as const,
+          sowingMonths: ["April", "Maj"],
+          harvestingMonths: ["September", "Oktober", "November"],
+          spaceRequired: 15,
+          yield: 25,
+          calories: 6250,
+          nutritionalHighlights: ["Vitamin K", "Folsyra", "Fiber"],
+          color: "#90EE90",
+          icon: "🥬"
+        },
+        {
+          name: "Lök",
+          scientificName: "Allium cepa",
+          description: "Grundläggande krydda med antibakteriella egenskaper",
+          difficulty: "beginner" as const,
+          sowingMonths: ["Mars", "April"],
+          harvestingMonths: ["Juli", "Augusti", "September"],
+          spaceRequired: 6,
+          yield: 20,
+          calories: 8000,
+          nutritionalHighlights: ["Kväve", "Sulfider", "Vitamin C"],
+          color: "#F0E68C",
+          icon: "🧅"
+        }
+      ];
+
       const dailyCaloriesPerPerson = 2000;
       const annualCalorieNeed = profile.household_size * dailyCaloriesPerPerson * 365;
-      const production = calculateGardenProduction(selectedCrops, adjustableGardenSize, cultivationIntensity, cropVolumes);
+      const production = calculateGardenProduction(
+        selectedCrops,
+        adjustableGardenSize,
+        cultivationIntensity,
+        cropVolumes
+      );
       const caloriesFromGroceries = Math.max(0, annualCalorieNeed - production.calories);
       const selfSufficiencyPercent = Math.round((production.calories / annualCalorieNeed) * 100);
-      
-      let crops = aiPlan?.crops || [
-          {
-            name: "Potatis",
-            scientificName: "Solanum tuberosum",
-            description: "Grundläggande kolhydratkälla med hög kaloritetthet",
-            difficulty: "beginner",
-            sowingMonths: ["Mars", "April"],
-            harvestingMonths: ["Augusti", "September", "Oktober"],
-            spaceRequired: 20,
-            yield: 80,
-            calories: 64000,
-            nutritionalHighlights: ["Kolhydrater", "Kalium", "Vitamin C"],
-            color: "#8B4513"
-          },
-          {
-            name: "Morötter",
-            scientificName: "Daucus carota",
-            description: "Rik på betakaroten och vitamin A",
-            difficulty: "beginner",
-            sowingMonths: ["Mars", "April", "Maj"],
-            harvestingMonths: ["Juli", "Augusti", "September", "Oktober"],
-            spaceRequired: 8,
-            yield: 24,
-            calories: 9600,
-            nutritionalHighlights: ["Vitamin A", "Betakaroten", "Fiber"],
-            color: "#FF8C00"
-          },
-          {
-            name: "Kål",
-            scientificName: "Brassica oleracea",
-            description: "Hög näringstäthet och lång hållbarhet",
-            difficulty: "intermediate",
-            sowingMonths: ["Mars", "April"],
-            harvestingMonths: ["September", "Oktober", "November"],
-            spaceRequired: 12,
-            yield: 36,
-            calories: 9000,
-            nutritionalHighlights: ["Vitamin C", "K", "Fiber", "Folat"],
-            color: "#228B22"
-          },
-          {
-            name: "Tomater",
-            scientificName: "Solanum lycopersicum",
-            description: "Rik på lykopen och vitamin C",
-            difficulty: "intermediate",
-            sowingMonths: ["Mars", "April"],
-            harvestingMonths: ["Juli", "Augusti", "September"],
-            spaceRequired: 15,
-            yield: 30,
-            calories: 4800,
-            nutritionalHighlights: ["Lykopen", "Vitamin C", "Kalium"],
-            color: "#FF6347"
-          },
-          {
-            name: "Gurka",
-            scientificName: "Cucumis sativus",
-            description: "Hög vattenhalt och färsk smak",
-            difficulty: "beginner",
-            sowingMonths: ["Maj", "Juni"],
-            harvestingMonths: ["Juli", "Augusti", "September"],
-            spaceRequired: 10,
-            yield: 20,
-            calories: 3200,
-            nutritionalHighlights: ["Vatten", "Vitamin K", "Kalium"],
-            color: "#32CD32"
-          }
-        ];
-
-      // Ensure we have at least 15 crops by adding more if needed
-      if (crops.length < 15) {
-        console.log(`AI only provided ${crops.length} crops, adding more to reach 15`);
-        const additionalCrops = [
-          {
-            name: "Lök",
-            scientificName: "Allium cepa",
-            description: "Grundläggande krydda och smaksättare",
-            difficulty: "beginner",
-            sowingMonths: ["Mars", "April"],
-            harvestingMonths: ["Augusti", "September"],
-            spaceRequired: 8,
-            yield: 24,
-            calories: 4000,
-            nutritionalHighlights: ["Vitamin C", "Folat", "Kalium"],
-            color: "#F5DEB3"
-          },
-          {
-            name: "Sallad",
-            scientificName: "Lactuca sativa",
-            description: "Snabbväxande bladgrönsak",
-            difficulty: "beginner",
-            sowingMonths: ["April", "Maj", "Juni"],
-            harvestingMonths: ["Juni", "Juli", "Augusti"],
-            spaceRequired: 5,
-            yield: 15,
-            calories: 1500,
-            nutritionalHighlights: ["Vitamin K", "Folat", "Järn"],
-            color: "#90EE90"
-          },
-          {
-            name: "Spinat",
-            scientificName: "Spinacia oleracea",
-            description: "Rik på järn och folat",
-            difficulty: "beginner",
-            sowingMonths: ["Mars", "April", "Augusti"],
-            harvestingMonths: ["Maj", "Juni", "September"],
-            spaceRequired: 6,
-            yield: 18,
-            calories: 2300,
-            nutritionalHighlights: ["Järn", "Folat", "Vitamin K"],
-            color: "#228B22"
-          },
-          {
-            name: "Rädisor",
-            scientificName: "Raphanus sativus",
-            description: "Snabbväxande rotgrönsak",
-            difficulty: "beginner",
-            sowingMonths: ["April", "Maj", "Juni"],
-            harvestingMonths: ["Maj", "Juni", "Juli"],
-            spaceRequired: 3,
-            yield: 9,
-            calories: 1600,
-            nutritionalHighlights: ["Vitamin C", "Folat", "Kalium"],
-            color: "#FF69B4"
-          },
-          {
-            name: "Bönor",
-            scientificName: "Phaseolus vulgaris",
-            description: "Hög proteinhalt och näringstäthet",
-            difficulty: "intermediate",
-            sowingMonths: ["Maj", "Juni"],
-            harvestingMonths: ["Augusti", "September"],
-            spaceRequired: 10,
-            yield: 20,
-            calories: 3500,
-            nutritionalHighlights: ["Protein", "Fiber", "Folat"],
-            color: "#8B4513"
-          },
-          {
-            name: "Ärtor",
-            scientificName: "Pisum sativum",
-            description: "Söt smak och hög proteinhalt",
-            difficulty: "beginner",
-            sowingMonths: ["Mars", "April"],
-            harvestingMonths: ["Juni", "Juli"],
-            spaceRequired: 8,
-            yield: 16,
-            calories: 3200,
-            nutritionalHighlights: ["Protein", "Vitamin C", "Fiber"],
-            color: "#32CD32"
-          },
-          {
-            name: "Broccoli",
-            scientificName: "Brassica oleracea var. italica",
-            description: "Rik på vitaminer och antioxidanter",
-            difficulty: "intermediate",
-            sowingMonths: ["Mars", "April"],
-            harvestingMonths: ["Juli", "Augusti", "September"],
-            spaceRequired: 12,
-            yield: 24,
-            calories: 3400,
-            nutritionalHighlights: ["Vitamin C", "K", "Fiber"],
-            color: "#228B22"
-          },
-          {
-            name: "Blomkål",
-            scientificName: "Brassica oleracea var. botrytis",
-            description: "Mild smak och mångsidig användning",
-            difficulty: "intermediate",
-            sowingMonths: ["Mars", "April"],
-            harvestingMonths: ["Juli", "Augusti", "September"],
-            spaceRequired: 12,
-            yield: 20,
-            calories: 2500,
-            nutritionalHighlights: ["Vitamin C", "K", "Fiber"],
-            color: "#F5F5DC"
-          },
-          {
-            name: "Kålrot",
-            scientificName: "Brassica napus",
-            description: "Söt smak och lång hållbarhet",
-            difficulty: "beginner",
-            sowingMonths: ["April", "Maj"],
-            harvestingMonths: ["September", "Oktober"],
-            spaceRequired: 8,
-            yield: 20,
-            calories: 3800,
-            nutritionalHighlights: ["Vitamin C", "K", "Fiber"],
-            color: "#DDA0DD"
-          },
-          {
-            name: "Rödbetor",
-            scientificName: "Beta vulgaris",
-            description: "Söt smak och hög folathalt",
-            difficulty: "beginner",
-            sowingMonths: ["April", "Maj"],
-            harvestingMonths: ["Augusti", "September"],
-            spaceRequired: 6,
-            yield: 18,
-            calories: 4300,
-            nutritionalHighlights: ["Folat", "Mangan", "Kalium"],
-            color: "#DC143C"
-          }
-        ];
-        
-        // Add additional crops until we have at least 15
-        for (let i = 0; i < additionalCrops.length && crops.length < 15; i++) {
-          crops.push(additionalCrops[i]);
-        }
-      }
 
       return {
-        selfSufficiencyPercent: selfSufficiencyPercent,
+        selfSufficiencyPercent,
         caloriesFromGarden: Math.round(production.calories),
         caloriesFromGroceries: Math.round(caloriesFromGroceries),
         annualCalorieNeed: Math.round(annualCalorieNeed),
         gardenProduction: Math.round(production.calories),
         grocerySuggestions: [
-          "Köp kompletterande proteiner som ägg och mejeriprodukter",
-          "Lägg till nötter och frön för fett och mineraler",
-          "Köp citrusfrukter för vitamin C under vintern"
+          'Köp kompletterande proteiner som ägg och mejeriprodukter',
+          'Lägg till nötter och frön för fett och mineraler',
+          'Köp citrusfrukter för vitamin C under vintern'
         ],
-        crops: crops,
+        crops,
         monthlyTasks: generateMonthlyTasks(),
         totalSpace: Math.round(production.spaceUsed),
         estimatedCost: Math.round(production.cost)
@@ -1454,8 +1211,8 @@ Svara ENDAST med en JSON-struktur enligt detta format:
       
       const remainingSpace = gardenSize - totalSpaceUsed;
       const maxPlantsForSpace = Math.floor(remainingSpace / crop.spacePerPlant);
-      const maxPlantsForBudget = Math.floor((500 - totalCost) / crop.pricePerPlant);
-      const maxPlants = Math.min(maxPlantsForSpace, maxPlantsForBudget, 50);
+      const maxPlantsForBudget = Math.floor((2000 - totalCost) / crop.pricePerPlant);
+      const maxPlants = Math.min(maxPlantsForSpace, maxPlantsForBudget, 200);
       
       if (maxPlants > 0) {
         const plantCount = Math.min(maxPlants, Math.max(5, Math.floor(targetCalories / crop.caloriesPerPlant / 4)));
@@ -1470,18 +1227,18 @@ Svara ENDAST med en JSON-struktur enligt detta format:
       }
     }
 
-    if (selectedCrops.length < 3) {
-      const essentialCrops = ["Potatis", "Morötter", "Kål"];
-      essentialCrops.forEach(cropName => {
-        if (!selectedCrops.includes(cropName)) {
-          const crop = availableCrops.find(c => c.name === cropName);
-          if (crop) {
-            selectedCrops.push(cropName);
-            volumes[cropName] = Math.min(10, Math.floor(gardenSize / 10));
-          }
+    // Always ensure we have a good variety of essential crops
+    const essentialCrops = ["Potatis", "Morötter", "Kål", "Tomater", "Lök"];
+    essentialCrops.forEach(cropName => {
+      if (!selectedCrops.includes(cropName)) {
+        const crop = availableCrops.find(c => c.name === cropName);
+        if (crop) {
+          const defaultQuantity = getDefaultCropQuantity(cropName, gardenSize);
+          selectedCrops.push(cropName);
+          volumes[cropName] = defaultQuantity;
         }
-      });
-    }
+      }
+    });
 
     return {
       crops: selectedCrops,
@@ -1491,40 +1248,40 @@ Svara ENDAST med en JSON-struktur enligt detta format:
 
   const getDefaultCropQuantity = (cropName: string, gardenSize: number): number => {
     // Default quantities based on crop type and garden size
-    const cropDefaults: Record<string, { base: number, perM2: number }> = {
-      'Potatis': { base: 5, perM2: 0.5 },
-      'Morötter': { base: 10, perM2: 1.0 },
-      'Kål': { base: 3, perM2: 0.3 },
-      'Tomater': { base: 2, perM2: 0.2 },
-      'Lök': { base: 8, perM2: 0.8 },
-      'Sallad': { base: 15, perM2: 1.5 },
-      'Spinat': { base: 20, perM2: 2.0 },
-      'Gurka': { base: 2, perM2: 0.2 },
-      'Paprika': { base: 3, perM2: 0.3 },
-      'Broccoli': { base: 4, perM2: 0.4 },
-      'Blomkål': { base: 3, perM2: 0.3 },
-      'Rädisor': { base: 25, perM2: 2.5 },
-      'Bönor': { base: 8, perM2: 0.8 },
-      'Ärtor': { base: 10, perM2: 1.0 },
-      'Sockerärtor': { base: 12, perM2: 1.2 },
-      'Kålrot': { base: 6, perM2: 0.6 },
-      'Rödbetor': { base: 8, perM2: 0.8 },
-      'Salladslök': { base: 15, perM2: 1.5 },
-      'Persilja': { base: 5, perM2: 0.5 },
-      'Basilika': { base: 8, perM2: 0.8 }
+    const cropDefaults: Record<string, { base: number, perM2: number, max: number }> = {
+      'Potatis': { base: 5, perM2: 0.3, max: 20 },
+      'Morötter': { base: 8, perM2: 0.4, max: 30 },
+      'Kål': { base: 3, perM2: 0.2, max: 8 },
+      'Tomater': { base: 2, perM2: 0.1, max: 6 },
+      'Lök': { base: 6, perM2: 0.3, max: 15 },
+      'Spenat': { base: 10, perM2: 0.5, max: 25 },
+      'Gurka': { base: 2, perM2: 0.1, max: 4 },
+      'Paprika': { base: 2, perM2: 0.1, max: 4 },
+      'Bönor': { base: 6, perM2: 0.3, max: 12 },
+      'Ärtor': { base: 8, perM2: 0.4, max: 15 },
+      'Sallad': { base: 10, perM2: 0.5, max: 20 },
+      'Broccoli': { base: 3, perM2: 0.2, max: 6 },
+      'Blomkål': { base: 2, perM2: 0.1, max: 4 },
+      'Rädisor': { base: 15, perM2: 0.8, max: 30 },
+      'Sockerärtor': { base: 8, perM2: 0.4, max: 15 },
+      'Kålrot': { base: 4, perM2: 0.2, max: 8 },
+      'Rödbetor': { base: 6, perM2: 0.3, max: 12 },
+      'Salladslök': { base: 10, perM2: 0.5, max: 20 },
+      'Persilja': { base: 3, perM2: 0.2, max: 6 },
+      'Basilika': { base: 4, perM2: 0.2, max: 8 }
     };
 
     const cropConfig = cropDefaults[cropName];
     if (!cropConfig) {
       // Default for unknown crops
-      return Math.max(5, Math.floor(gardenSize / 10));
+      return Math.max(3, Math.min(10, Math.floor(gardenSize / 5)));
     }
 
     // Calculate quantity based on garden size and crop characteristics
     const calculatedQuantity = Math.floor(cropConfig.base + (gardenSize * cropConfig.perM2));
     
-    // Ensure reasonable bounds
-    return Math.max(2, Math.min(calculatedQuantity, 50));
+    // Ensure reasonable bounds with crop-specific maximums
+    return Math.max(2, Math.min(calculatedQuantity, cropConfig.max));
   };
 
   const validateCustomCropWithAI = async (cropName: string, description: string) => {
@@ -1878,21 +1635,6 @@ VIKTIGT: Inga kommentarer, inga // eller /* */ i JSON:en. Endast ren JSON.`;
             <ArrowRight className="w-4 h-4" />
           </button>
           
-          <button
-            onClick={() => {
-              loadSavedPlans();
-              setShowLoadPlanModal(true);
-            }}
-            className="flex items-center justify-center space-x-2 px-6 py-3 rounded-lg border transition-all duration-200 hover:shadow-md"
-            style={{ 
-              backgroundColor: 'white',
-              color: 'var(--color-primary)',
-              borderColor: 'var(--color-primary)'
-            }}
-          >
-            <FolderOpen className="w-5 h-5" />
-            <span>Öppna sparad plan</span>
-          </button>
         </div>
       </div>
     </div>
@@ -2024,7 +1766,7 @@ VIKTIGT: Inga kommentarer, inga // eller /* */ i JSON:en. Endast ren JSON.`;
 
         {gardenPlan && (
           <div className="sticky top-4 z-10 bg-white/95 backdrop-blur-sm rounded-lg p-4 shadow-lg border" style={{ borderColor: 'var(--border-color)' }}>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
               <div className="modern-card p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-semibold">Självförsörjning</h3>
@@ -2094,6 +1836,28 @@ VIKTIGT: Inga kommentarer, inga // eller /* */ i JSON:en. Endast ren JSON.`;
                 <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                   Kompletterande köp
                 </p>
+              </div>
+
+              <div className="modern-card p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold">Utrymme krävs</h3>
+                  <MapPin className="w-4 h-4" style={{ color: 'var(--color-warm-olive)' }} />
+                </div>
+                <div className="text-2xl font-bold mb-2" style={{ color: 'var(--color-warm-olive)' }}>
+                  {Math.round(realTimeStats?.totalSpace || gardenPlan.totalSpace)} m²
+                </div>
+                <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  av {adjustableGardenSize} m² tillgängligt
+                </p>
+                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                  <div
+                    className="h-1.5 rounded-full transition-all duration-500"
+                    style={{ 
+                      backgroundColor: 'var(--color-warm-olive)',
+                      width: `${Math.min(100, ((realTimeStats?.totalSpace || gardenPlan.totalSpace) / adjustableGardenSize) * 100)}%`
+                    }}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -2227,6 +1991,21 @@ VIKTIGT: Inga kommentarer, inga // eller /* */ i JSON:en. Endast ren JSON.`;
                   </span>
                 </div>
                 
+                {/* Crop Icon */}
+                {crop.icon && (
+                  <div className="mb-3 flex justify-center">
+                    <div 
+                      className="w-16 h-16 flex items-center justify-center rounded-lg text-3xl"
+                      style={{ 
+                        backgroundColor: `${crop.color}20`,
+                        border: `2px solid ${crop.color}`
+                      }}
+                    >
+                      {crop.icon}
+                    </div>
+                  </div>
+                )}
+                
                 <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>
                   {crop.description}
                 </p>
@@ -2239,12 +2018,19 @@ VIKTIGT: Inga kommentarer, inga // eller /* */ i JSON:en. Endast ren JSON.`;
                     </span>
                   </div>
                   
+                  <div className="flex justify-between text-sm">
+                    <span style={{ color: 'var(--text-secondary)' }}>Utrymme per planta:</span>
+                    <span style={{ color: 'var(--text-primary)' }}>
+                      {crop.spacePerPlant || 0.5} m²
+                    </span>
+                  </div>
+                  
                   {selectedCrops.includes(crop.name) && (
                     <div className="space-y-2">
                       <input
                         type="range"
                         min="0"
-                        max="50"
+                        max="200"
                         value={cropVolumes[crop.name] || 0}
                         onChange={(e) => setCropVolumes(prev => ({
                           ...prev,
@@ -2253,7 +2039,7 @@ VIKTIGT: Inga kommentarer, inga // eller /* */ i JSON:en. Endast ren JSON.`;
                         className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                       />
                       
-                      <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="grid grid-cols-3 gap-2 text-xs">
                         <div>
                           <span style={{ color: 'var(--text-secondary)' }}>Kostnad:</span>
                           <span className="block font-medium" style={{ color: 'var(--text-primary)' }}>
@@ -2264,6 +2050,12 @@ VIKTIGT: Inga kommentarer, inga // eller /* */ i JSON:en. Endast ren JSON.`;
                           <span style={{ color: 'var(--text-secondary)' }}>Kalorier:</span>
                           <span className="block font-medium" style={{ color: 'var(--text-primary)' }}>
                             {Math.round((cropVolumes[crop.name] || 0) * 800)} cal
+                          </span>
+                        </div>
+                        <div>
+                          <span style={{ color: 'var(--text-secondary)' }}>Utrymme:</span>
+                          <span className="block font-medium" style={{ color: 'var(--text-primary)' }}>
+                            {Math.round((cropVolumes[crop.name] || 0) * (crop.spacePerPlant || 0.5))} m²
                           </span>
                         </div>
                       </div>
@@ -2320,21 +2112,6 @@ VIKTIGT: Inga kommentarer, inga // eller /* */ i JSON:en. Endast ren JSON.`;
             <span>Spara plan</span>
           </button>
           
-          <button
-            onClick={() => {
-              loadSavedPlans();
-              setShowLoadPlanModal(true);
-            }}
-            className="flex items-center space-x-2 px-6 py-3 rounded-lg border transition-all duration-200 hover:shadow-md"
-            style={{ 
-              backgroundColor: 'white',
-              color: 'var(--color-primary)',
-              borderColor: 'var(--color-primary)'
-            }}
-          >
-            <FolderOpen className="w-4 h-4" />
-            <span>Öppna plan</span>
-          </button>
           
           <button
             onClick={() => setCurrentStep('profile')}
@@ -2450,90 +2227,6 @@ VIKTIGT: Inga kommentarer, inga // eller /* */ i JSON:en. Endast ren JSON.`;
       )}
 
       {/* Load Plan Modal */}
-      {showLoadPlanModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-                Öppna sparad plan
-              </h2>
-              <button
-                onClick={() => setShowLoadPlanModal(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-              {savedPlans.length === 0 ? (
-                <div className="text-center py-8">
-                  <FolderOpen className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                  <p className="text-gray-500">Inga sparade planer hittades</p>
-                </div>
-              ) : (
-                savedPlans.map((plan) => (
-                  <div
-                    key={plan.id}
-                    className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-                    onClick={() => loadSelectedPlan(plan.id)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <h3 className="font-medium" style={{ color: 'var(--text-primary)' }}>
-                          {plan.plan_data?.name || 'Namnlös plan'}
-                        </h3>
-                        <p className="text-sm text-gray-500 mt-1">
-                          Skapad: {new Date(plan.created_at).toLocaleDateString('sv-SE')}
-                        </p>
-                        {plan.plan_data?.profile && (
-                          <p className="text-xs text-gray-400 mt-1">
-                            Hushåll: {plan.plan_data.profile.household_size} personer • 
-                            Gröda: {plan.plan_data.profile.county}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            loadSelectedPlan(plan.id);
-                          }}
-                          className="px-3 py-1 text-sm rounded-lg transition-colors"
-                          style={{ 
-                            backgroundColor: 'var(--color-sage)',
-                            color: 'white'
-                          }}
-                        >
-                          Öppna
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deletePlan(plan.id);
-                          }}
-                          className="px-3 py-1 text-sm rounded-lg text-red-600 hover:bg-red-50 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-            
-            <div className="flex justify-end mt-6">
-              <button
-                onClick={() => setShowLoadPlanModal(false)}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                Stäng
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Save Success Message */}
       {saveSuccess && (

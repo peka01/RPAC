@@ -361,7 +361,6 @@ RPAC har uppnått en stor milstolpe med implementeringen av det kompletta odling
 #### Implementerade Komponenter
 - **CultivationCalendar** - Komplett svensk odlingskalender med klimatzon-anpassning
 - **AICultivationAdvisor** - Personlig rådgivning baserat på användarprofil
-- **GardenPlanner** - Visuell trädgårdsplanering med drag-and-drop
 - **CultivationReminders** - Smart påminnelsesystem för odlingsuppgifter
 - **CrisisCultivation** - Akut matproduktion för kriser
 - **NutritionCalculator** - Självförsörjningsanalys med kaloriberäkningar
