@@ -51,7 +51,25 @@ export function ExistingCultivationPlans({ user, onViewPlan, onEditPlan }: Exist
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      console.log('Loaded cultivation plans:', data);
+        console.log('Loaded cultivation plans:', data);
+        console.log('Sample plan structure:', data?.[0]);
+        if (data?.[0]) {
+          const plan = data[0];
+          console.log('Percentage sources for plan:', {
+            self_sufficiency_percent: plan.self_sufficiency_percent,
+            realTimeStats: plan.plan_data?.realTimeStats?.selfSufficiencyPercent,
+            gardenPlan: plan.plan_data?.gardenPlan?.selfSufficiencyPercent,
+            final: plan.self_sufficiency_percent || plan.plan_data?.realTimeStats?.selfSufficiencyPercent || plan.plan_data?.gardenPlan?.selfSufficiencyPercent || 0
+          });
+          
+          // Additional debugging for the specific plan being displayed
+          console.log('Full plan_data structure:', plan.plan_data);
+          if (plan.plan_data?.realTimeStats) {
+            console.log('realTimeStats found:', plan.plan_data.realTimeStats);
+          } else {
+            console.log('No realTimeStats found in plan_data');
+          }
+        }
       setPlans(data || []);
     } catch (error) {
       console.error('Error loading cultivation plans:', error);
@@ -208,7 +226,29 @@ export function ExistingCultivationPlans({ user, onViewPlan, onEditPlan }: Exist
                 <TrendingUp className="w-4 h-4 mr-2 text-green-600" />
                 <div>
                   <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                    {plan.self_sufficiency_percent || 0}%
+                    {(() => {
+                      // Priority order: realTimeStats > gardenPlan > legacy self_sufficiency_percent > calculated fallback
+                      if (plan.plan_data?.realTimeStats?.selfSufficiencyPercent) {
+                        return plan.plan_data.realTimeStats.selfSufficiencyPercent;
+                      }
+                      if (plan.plan_data?.gardenPlan?.selfSufficiencyPercent) {
+                        return plan.plan_data.gardenPlan.selfSufficiencyPercent;
+                      }
+                      if (plan.self_sufficiency_percent) {
+                        return plan.self_sufficiency_percent;
+                      }
+                      
+                      // Fallback calculation for legacy plans
+                      if (plan.plan_data?.gardenPlan?.crops && plan.plan_data?.profile?.household_size) {
+                        const dailyCaloriesPerPerson = 2000;
+                        const annualCalorieNeed = plan.plan_data.profile.household_size * dailyCaloriesPerPerson * 365;
+                        const gardenProduction = plan.plan_data.gardenPlan.gardenProduction || 0;
+                        const calculatedPercent = Math.round((gardenProduction / annualCalorieNeed) * 100);
+                        return calculatedPercent;
+                      }
+                      
+                      return 0;
+                    })()}%
                   </div>
                   <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                     Självförsörjning
@@ -216,19 +256,19 @@ export function ExistingCultivationPlans({ user, onViewPlan, onEditPlan }: Exist
                 </div>
               </div>
               
-              {plan.crops && plan.crops.length > 0 && (
+              {(plan.crops && plan.crops.length > 0) || (plan.plan_data?.gardenPlan?.crops && plan.plan_data.gardenPlan.crops.length > 0) ? (
                 <div className="flex items-center p-2 rounded-lg" style={{ backgroundColor: 'var(--bg-secondary)' }}>
                   <MapPin className="w-4 h-4 mr-2 text-blue-600" />
                   <div>
                     <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                      {plan.crops.length}
+                      {plan.crops?.length || plan.plan_data?.gardenPlan?.crops?.length || 0}
                     </div>
                     <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                       Grödor
                     </div>
                   </div>
                 </div>
-              )}
+              ) : null}
 
               {plan.timeline && (
                 <div className="flex items-center p-2 rounded-lg" style={{ backgroundColor: 'var(--bg-secondary)' }}>

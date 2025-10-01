@@ -221,10 +221,18 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
           cropVolumes: cropVolumes,
           adjustableGardenSize: adjustableGardenSize,
           cultivationIntensity: cultivationIntensity,
+          realTimeStats: realTimeStats, // Save the current real-time stats
           created_at: new Date().toISOString()
         },
         user_id: user?.id
       };
+
+      // Debug: Log what we're saving
+      console.log('Saving plan with realTimeStats:', {
+        realTimeStats: realTimeStats,
+        selfSufficiencyPercent: realTimeStats?.selfSufficiencyPercent,
+        gardenPlanSelfSufficiency: gardenPlan?.selfSufficiencyPercent
+      });
 
       // Save to Supabase
       const { data, error } = await supabase
@@ -641,6 +649,12 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
       
       if (planData.cultivationIntensity) {
         setCultivationIntensity(planData.cultivationIntensity);
+      }
+
+      // Load the saved realTimeStats if available
+      if (planData.realTimeStats) {
+        setRealTimeStats(planData.realTimeStats);
+        console.log('Loaded realTimeStats from saved plan:', planData.realTimeStats);
       }
 
       // Move to dashboard to show the loaded plan
@@ -1804,6 +1818,12 @@ VIKTIGT: Inga kommentarer, inga // eller /* */ i JSON:en. Endast ren JSON.`;
                 <div className="text-2xl font-bold mb-2" style={{ color: 'var(--color-sage)' }}>
                   {realTimeStats?.selfSufficiencyPercent || gardenPlan.selfSufficiencyPercent}%
                 </div>
+                {/* Debug info - remove in production */}
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="text-xs text-gray-500">
+                    Debug: {realTimeStats?.selfSufficiencyPercent ? 'realTimeStats' : 'gardenPlan'} = {realTimeStats?.selfSufficiencyPercent || gardenPlan.selfSufficiencyPercent}%
+                  </div>
+                )}
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
                   <div
                     className="h-1.5 rounded-full transition-all duration-500"

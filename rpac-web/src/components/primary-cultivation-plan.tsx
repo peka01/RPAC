@@ -94,7 +94,29 @@ export function PrimaryCultivationPlan({ user, onViewPlan, onEditPlan }: Primary
             <TrendingUp className="w-5 h-5 mr-3 text-green-600" />
             <div>
               <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
-                {primaryPlan.self_sufficiency_percent}%
+                {(() => {
+                  // Priority order: realTimeStats > gardenPlan > legacy self_sufficiency_percent > calculated fallback
+                  if (primaryPlan.plan_data?.realTimeStats?.selfSufficiencyPercent) {
+                    return primaryPlan.plan_data.realTimeStats.selfSufficiencyPercent;
+                  }
+                  if (primaryPlan.plan_data?.gardenPlan?.selfSufficiencyPercent) {
+                    return primaryPlan.plan_data.gardenPlan.selfSufficiencyPercent;
+                  }
+                  if (primaryPlan.self_sufficiency_percent) {
+                    return primaryPlan.self_sufficiency_percent;
+                  }
+                  
+                  // Fallback calculation for legacy plans
+                  if (primaryPlan.plan_data?.gardenPlan?.crops && primaryPlan.plan_data?.profile?.household_size) {
+                    const dailyCaloriesPerPerson = 2000;
+                    const annualCalorieNeed = primaryPlan.plan_data.profile.household_size * dailyCaloriesPerPerson * 365;
+                    const gardenProduction = primaryPlan.plan_data.gardenPlan.gardenProduction || 0;
+                    const calculatedPercent = Math.round((gardenProduction / annualCalorieNeed) * 100);
+                    return calculatedPercent;
+                  }
+                  
+                  return 0;
+                })()}%
               </div>
               <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                 Självförsörjning
@@ -102,19 +124,19 @@ export function PrimaryCultivationPlan({ user, onViewPlan, onEditPlan }: Primary
             </div>
           </div>
           
-          {primaryPlan.crops && primaryPlan.crops.length > 0 && (
+          {(primaryPlan.crops && primaryPlan.crops.length > 0) || (primaryPlan.plan_data?.gardenPlan?.crops && primaryPlan.plan_data.gardenPlan.crops.length > 0) ? (
             <div className="flex items-center p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-secondary)' }}>
               <MapPin className="w-5 h-5 mr-3 text-blue-600" />
               <div>
                 <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
-                  {primaryPlan.crops.length}
+                  {primaryPlan.crops?.length || primaryPlan.plan_data?.gardenPlan?.crops?.length || 0}
                 </div>
                 <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                   Grödor
                 </div>
               </div>
             </div>
-          )}
+          ) : null}
 
           {primaryPlan.timeline && (
             <div className="flex items-center p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-secondary)' }}>
