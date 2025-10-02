@@ -666,9 +666,6 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
       }, 1000);
       
       console.log('Plan loaded successfully');
-      
-      // Show success message
-      alert(`Odlingsplan "${planData.name || 'Namnlös plan'}" har laddats framgångsrikt!`);
     } catch (error) {
       console.error('Error loading plan:', error);
       setLoading(false);

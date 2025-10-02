@@ -91,36 +91,36 @@ export function CommunityCoordinationSummary() {
         </div>
 
         {/* Key Statistics */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
           <div className="text-center p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-card)' }}>
-            <div className="text-2xl font-bold mb-1" style={{ color: 'var(--color-sage)' }}>
+            <div className="text-xl sm:text-2xl font-bold mb-1" style={{ color: 'var(--color-sage)' }}>
               {coordinationStats.activeCommunities}
             </div>
-            <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+            <div className="text-xs leading-tight" style={{ color: 'var(--text-secondary)' }}>
               {t('dashboard.active_communities')}
             </div>
           </div>
           <div className="text-center p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-card)' }}>
-            <div className="text-2xl font-bold mb-1" style={{ color: 'var(--color-primary)' }}>
+            <div className="text-xl sm:text-2xl font-bold mb-1" style={{ color: 'var(--color-primary)' }}>
               {coordinationStats.activeMembers}
             </div>
-            <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+            <div className="text-xs leading-tight" style={{ color: 'var(--text-secondary)' }}>
               {t('dashboard.active_members')}
             </div>
           </div>
           <div className="text-center p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-card)' }}>
-            <div className="text-2xl font-bold mb-1" style={{ color: 'var(--color-khaki)' }}>
-              {coordinationStats.averagePreparedness}
+            <div className="text-xl sm:text-2xl font-bold mb-1" style={{ color: 'var(--color-khaki)' }}>
+              {coordinationStats.averagePreparedness}%
             </div>
-            <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+            <div className="text-xs leading-tight" style={{ color: 'var(--text-secondary)' }}>
               {t('dashboard.avg_preparedness')}
             </div>
           </div>
           <div className="text-center p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-card)' }}>
-            <div className="text-2xl font-bold mb-1" style={{ color: 'var(--color-danger)' }}>
+            <div className="text-xl sm:text-2xl font-bold mb-1" style={{ color: 'var(--color-danger)' }}>
               {coordinationStats.helpRequests}
             </div>
-            <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+            <div className="text-xs leading-tight" style={{ color: 'var(--text-secondary)' }}>
               {t('dashboard.help_requests')}
             </div>
           </div>
@@ -225,3 +225,5 @@ export function CommunityCoordinationSummary() {
     </div>
   );
 }
+
+

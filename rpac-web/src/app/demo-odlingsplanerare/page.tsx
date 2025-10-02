@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { SuperbOdlingsplanerare } from '@/components/superb-odlingsplanerare';
+import { SuperbOdlingsplanerare } from '@/components/superb-odlingsplanerare-refactored';
 
 export default function DemoOdlingsplanerarePage() {
   const [user] = useState({

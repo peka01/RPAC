@@ -172,28 +172,28 @@ export function ResourceSummaryCard({ user }: ResourceSummaryCardProps) {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="text-center">
-            <div className="text-2xl font-bold" style={{ color: 'var(--color-danger)' }}>
+        <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
+          <div className="text-center p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-card)' }}>
+            <div className="text-xl sm:text-2xl font-bold mb-1" style={{ color: 'var(--color-danger)' }}>
               {resourceStats.criticalItems}
             </div>
-            <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+            <div className="text-xs leading-tight" style={{ color: 'var(--text-secondary)' }}>
               {t('dashboard.critical_items')}
             </div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold" style={{ color: 'var(--color-warning)' }}>
+          <div className="text-center p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-card)' }}>
+            <div className="text-xl sm:text-2xl font-bold mb-1" style={{ color: 'var(--color-warning)' }}>
               {resourceStats.lowStock}
             </div>
-            <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+            <div className="text-xs leading-tight" style={{ color: 'var(--text-secondary)' }}>
               {t('dashboard.low_stock')}
             </div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold" style={{ color: 'var(--color-sage)' }}>
+          <div className="text-center p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-card)' }}>
+            <div className="text-xl sm:text-2xl font-bold mb-1" style={{ color: 'var(--color-sage)' }}>
               {resourceStats.healthyItems}
             </div>
-            <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+            <div className="text-xs leading-tight" style={{ color: 'var(--text-secondary)' }}>
               {t('dashboard.healthy_items')}
             </div>
           </div>
@@ -216,3 +216,5 @@ export function ResourceSummaryCard({ user }: ResourceSummaryCardProps) {
     </div>
   );
 }
+
+

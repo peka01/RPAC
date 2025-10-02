@@ -9,7 +9,7 @@ import { CultivationCalendar } from '@/components/cultivation-calendar';
 import { AICultivationAdvisor } from '@/components/ai-cultivation-advisor';
 import { AICultivationPlanner } from '@/components/ai-cultivation-planner';
 import { EnhancedCultivationPlanner } from '@/components/enhanced-cultivation-planner';
-import { SuperbOdlingsplanerare } from '@/components/superb-odlingsplanerare';
+import { SuperbOdlingsplanerare } from '@/components/superb-odlingsplanerare-refactored';
 import { CultivationReminders } from '@/components/cultivation-reminders';
 import { CrisisCultivation } from '@/components/crisis-cultivation';
 import { PersonalAICoach } from '@/components/personal-ai-coach';
