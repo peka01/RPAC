@@ -16,8 +16,7 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
-import { WeatherService, WeatherData, WeatherForecast } from '@/lib/weather-service';
-import { useUserProfile } from '@/lib/useUserProfile';
+import { useWeather } from '@/contexts/WeatherContext';
 import type { User } from '@supabase/supabase-js';
 
 interface WeatherCardProps {
@@ -25,45 +24,8 @@ interface WeatherCardProps {
 }
 
 export function WeatherCard({ user }: WeatherCardProps) {
-  const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [forecast, setForecast] = useState<WeatherForecast[]>([]);
-  const [extremeWeatherWarnings, setExtremeWeatherWarnings] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { weather, forecast, extremeWeatherWarnings, loading } = useWeather();
   const [showAllWarnings, setShowAllWarnings] = useState(false);
-  const { profile } = useUserProfile(user);
-
-  useEffect(() => {
-    const loadWeather = async () => {
-      if (!user) return;
-      
-      setLoading(true);
-      try {
-        // Load current weather
-        const weatherData = await WeatherService.getCurrentWeather(undefined, undefined, {
-          county: profile?.county,
-          city: profile?.city
-        });
-        setWeather(weatherData);
-        
-        // Load forecast data
-        const forecastData = await WeatherService.getWeatherForecast(undefined, undefined, {
-          county: profile?.county,
-          city: profile?.city
-        });
-        setForecast(forecastData);
-        
-        // Generate extreme weather warnings
-        const warnings = WeatherService.getExtremeWeatherWarnings(forecastData);
-        setExtremeWeatherWarnings(warnings);
-      } catch (error) {
-        console.error('Error loading weather:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadWeather();
-  }, [user, profile?.county, profile?.city]);
 
   const getWeatherIcon = (forecast: string) => {
     const forecastLower = forecast.toLowerCase();
@@ -188,7 +150,7 @@ export function WeatherCard({ user }: WeatherCardProps) {
               {weather.forecast}, {Math.round(weather.temperature)}°C
             </div>
             <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-              {profile?.city || profile?.county || 'Din plats'}
+              Din plats
             </div>
           </div>
         </div>

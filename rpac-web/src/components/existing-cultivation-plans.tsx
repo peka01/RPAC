@@ -44,32 +44,52 @@ export function ExistingCultivationPlans({ user, onViewPlan, onEditPlan }: Exist
   const loadPlans = async () => {
     try {
       setLoading(true);
+      setError(null);
+      
+      // Check if user is authenticated
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
+        console.log('No authenticated user, skipping plan loading');
+        setPlans([]);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('cultivation_plans')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-        console.log('Loaded cultivation plans:', data);
-        console.log('Sample plan structure:', data?.[0]);
-        if (data?.[0]) {
-          const plan = data[0];
-          console.log('Percentage sources for plan:', {
-            self_sufficiency_percent: plan.self_sufficiency_percent,
-            realTimeStats: plan.plan_data?.realTimeStats?.selfSufficiencyPercent,
-            gardenPlan: plan.plan_data?.gardenPlan?.selfSufficiencyPercent,
-            final: plan.self_sufficiency_percent || plan.plan_data?.realTimeStats?.selfSufficiencyPercent || plan.plan_data?.gardenPlan?.selfSufficiencyPercent || 0
-          });
-          
-          // Additional debugging for the specific plan being displayed
-          console.log('Full plan_data structure:', plan.plan_data);
-          if (plan.plan_data?.realTimeStats) {
-            console.log('realTimeStats found:', plan.plan_data.realTimeStats);
-          } else {
-            console.log('No realTimeStats found in plan_data');
-          }
+      if (error) {
+        console.error('Database error loading cultivation plans:', error);
+        if (error.code === 'PGRST301' || error.message.includes('406')) {
+          console.log('Authentication issue, user may not be properly authenticated');
+          setError('Autentiseringsproblem - försök att logga in igen');
+        } else {
+          throw error;
         }
+        return;
+      }
+
+      console.log('Loaded cultivation plans:', data);
+      console.log('Sample plan structure:', data?.[0]);
+      if (data?.[0]) {
+        const plan = data[0];
+        console.log('Percentage sources for plan:', {
+          self_sufficiency_percent: plan.self_sufficiency_percent,
+          realTimeStats: plan.plan_data?.realTimeStats?.selfSufficiencyPercent,
+          gardenPlan: plan.plan_data?.gardenPlan?.selfSufficiencyPercent,
+          final: plan.self_sufficiency_percent || plan.plan_data?.realTimeStats?.selfSufficiencyPercent || plan.plan_data?.gardenPlan?.selfSufficiencyPercent || 0
+        });
+        
+        // Additional debugging for the specific plan being displayed
+        console.log('Full plan_data structure:', plan.plan_data);
+        if (plan.plan_data?.realTimeStats) {
+          console.log('realTimeStats found:', plan.plan_data.realTimeStats);
+        } else {
+          console.log('No realTimeStats found in plan_data');
+        }
+      }
       setPlans(data || []);
     } catch (error) {
       console.error('Error loading cultivation plans:', error);

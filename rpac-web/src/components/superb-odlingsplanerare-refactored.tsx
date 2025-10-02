@@ -96,6 +96,8 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
   const [customCropDescription, setCustomCropDescription] = useState('');
   const [isValidatingCrop, setIsValidatingCrop] = useState(false);
   const [customCropData, setCustomCropData] = useState<any>(null);
+  const [editingCrop, setEditingCrop] = useState<any>(null);
+  const [cropDataLoaded, setCropDataLoaded] = useState(false);
   const [showIntensityTooltip, setShowIntensityTooltip] = useState(false);
   const [profileUpdateSuccess, setProfileUpdateSuccess] = useState(false);
 
@@ -150,22 +152,199 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
     }
   };
 
+  const handleEditCustomCrop = (crop: any) => {
+    setEditingCrop(crop);
+    setCustomCropName(crop.name);
+    setCustomCropDescription(crop.description || '');
+    setShowCustomCropModal(true);
+  };
+
+  const handleDeleteCustomCrop = async (crop: any) => {
+    if (!gardenPlan || !user?.id) return;
+    
+    // Confirm deletion
+    const confirmed = window.confirm(`Är du säker på att du vill ta bort "${crop.name}"? Denna åtgärd kan inte ångras.`);
+    if (!confirmed) return;
+    
+    try {
+      // Remove crop from garden plan
+      const updatedCrops = gardenPlan.crops.filter((existingCrop: any) => existingCrop.name !== crop.name);
+      
+      setGardenPlan({
+        ...gardenPlan,
+        crops: updatedCrops
+      });
+      
+      // Remove from selected crops if it was selected
+      if (selectedCrops.includes(crop.name)) {
+        setSelectedCrops(selectedCrops.filter(c => c !== crop.name));
+      }
+      
+      // Remove from crop volumes
+      const newVolumes = { ...cropVolumes };
+      delete newVolumes[crop.name];
+      setCropVolumes(newVolumes);
+      
+      // Save updated crop data to database
+      const { error } = await supabase
+        .from('cultivation_plans')
+        .update({
+          crops: updatedCrops,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+      
+      if (error) {
+        console.error('Error deleting crop from database:', error);
+        alert('Kunde inte ta bort grödan från databasen. Försök igen senare.');
+      } else {
+        console.log('Custom crop deleted successfully:', crop.name);
+      }
+    } catch (error) {
+      console.error('Error deleting custom crop:', error);
+      alert('Kunde inte ta bort grödan. Försök igen senare.');
+    }
+  };
+
+  const loadSavedCropData = async () => {
+    if (!user?.id || cropDataLoaded) return;
+    
+    try {
+      // Load the latest cultivation plan with saved crop data
+      const { data, error } = await supabase
+        .from('cultivation_plans')
+        .select('crops')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (error) {
+        console.log('No saved crop data found or error loading:', error);
+        return;
+      }
+      
+      if (data?.crops && Array.isArray(data.crops) && data.crops.length > 0) {
+        console.log('Loaded saved crop data from database:', data.crops);
+        // The crop data will be loaded when the garden plan is set
+        setCropDataLoaded(true);
+      }
+    } catch (error) {
+      console.error('Error loading saved crop data:', error);
+    }
+  };
+
+  const saveUpdatedCropToDatabase = async (updatedCrop: any) => {
+    if (!user?.id || !gardenPlan) return;
+    
+    try {
+      // Update the cultivation plan in the database with the new crop data
+      const { error } = await supabase
+        .from('cultivation_plans')
+        .update({
+          crops: gardenPlan.crops,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+      
+      if (error) {
+        console.error('Error saving updated crop to database:', error);
+      } else {
+        console.log('Crop data saved to database successfully');
+      }
+    } catch (error) {
+      console.error('Error updating crop in database:', error);
+    }
+  };
+
+  const handleUpdateCrop = async (crop: any) => {
+    if (!gardenPlan) return;
+    
+    setIsValidatingCrop(true);
+    try {
+      console.log('Fetching real nutrition data for:', crop.name);
+      
+      // Import the nutrition service
+      const { NutritionService } = await import('@/lib/nutrition-service');
+      
+      // Get real nutrition data from USDA API
+      const nutritionData = await NutritionService.getCropNutrition(crop.name);
+      
+      if (nutritionData) {
+        // Update the crop with real nutrition data
+        const updatedCrop = {
+          ...crop,
+          nutritionData: nutritionData,
+          lastUpdated: new Date().toISOString()
+        };
+        
+        // Update the crop in the garden plan
+        const updatedCrops = gardenPlan.crops.map((existingCrop: any) => 
+          existingCrop.name === crop.name ? updatedCrop : existingCrop
+        );
+        
+        setGardenPlan({
+          ...gardenPlan,
+          crops: updatedCrops
+        });
+        
+        // Save the updated crop data to the database
+        await saveUpdatedCropToDatabase(updatedCrop);
+        
+        console.log('Crop updated with real nutrition data:', updatedCrop);
+      } else {
+        throw new Error('Kunde inte hämta näringsdata för grödan');
+      }
+    } catch (error) {
+      console.error('Error updating crop with nutrition data:', error);
+      alert('Kunde inte uppdatera gröda med näringsdata. Försök igen senare.');
+    } finally {
+      setIsValidatingCrop(false);
+    }
+  };
+
   const savePlanning = async (customName?: string) => {
     try {
       if (!gardenPlan) return;
 
       const planNameToUse = customName || planName || `Odlingsplan ${new Date().toLocaleDateString('sv-SE')}`;
       
+      // Clean all data to avoid circular references
+      const cleanRealTimeStats = realTimeStats ? {
+        gardenProduction: realTimeStats.gardenProduction,
+        selfSufficiencyPercent: realTimeStats.selfSufficiencyPercent,
+        caloriesFromGroceries: realTimeStats.caloriesFromGroceries,
+        totalCost: realTimeStats.totalCost,
+        totalSpace: realTimeStats.totalSpace
+      } : null;
+
+      // Clean gardenPlan to avoid circular references
+      const cleanGardenPlan = gardenPlan ? {
+        selfSufficiencyPercent: gardenPlan.selfSufficiencyPercent,
+        caloriesFromGarden: gardenPlan.caloriesFromGarden,
+        caloriesFromGroceries: gardenPlan.caloriesFromGroceries,
+        annualCalorieNeed: gardenPlan.annualCalorieNeed,
+        gardenProduction: gardenPlan.gardenProduction,
+        grocerySuggestions: gardenPlan.grocerySuggestions,
+        crops: gardenPlan.crops,
+        monthlyTasks: gardenPlan.monthlyTasks,
+        estimatedCost: gardenPlan.estimatedCost
+      } : null;
+
       const planData = {
         plan_data: {
           name: planNameToUse,
           profile: profileData,
-          gardenPlan: gardenPlan,
+          gardenPlan: cleanGardenPlan,
           selectedCrops: selectedCrops,
           cropVolumes: cropVolumes,
           adjustableGardenSize: adjustableGardenSize,
           cultivationIntensity: cultivationIntensity,
-          realTimeStats: realTimeStats, // Save the current real-time stats
+          realTimeStats: cleanRealTimeStats,
           created_at: new Date().toISOString()
         },
         user_id: user?.id
@@ -177,6 +356,40 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
         selfSufficiencyPercent: realTimeStats?.selfSufficiencyPercent,
         gardenPlanSelfSufficiency: gardenPlan?.selfSufficiencyPercent
       });
+
+      // Create a safe JSON string to test for circular references
+      try {
+        JSON.stringify(planData);
+      } catch (jsonError) {
+        console.error('Circular reference detected in planData:', jsonError);
+        // Create a minimal safe version
+        const safePlanData = {
+          plan_data: {
+            name: planNameToUse,
+            profile: profileData,
+            selectedCrops: selectedCrops,
+            cropVolumes: cropVolumes,
+            adjustableGardenSize: adjustableGardenSize,
+            cultivationIntensity: cultivationIntensity,
+            created_at: new Date().toISOString()
+          },
+          user_id: user?.id
+        };
+        
+        const { data: safeData, error: safeError } = await supabase
+          .from('cultivation_plans')
+          .insert([safePlanData])
+          .select()
+          .single();
+          
+        if (safeError) {
+          console.error('Error saving plan (safe version):', safeError);
+          return;
+        }
+        
+        console.log('Plan saved successfully (safe version)');
+        return;
+      }
 
       // Save to Supabase
       const { data, error } = await supabase
@@ -249,6 +462,13 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
       setAdjustableGardenSize(50);
     }
   }, [profile]);
+
+  // Load saved crop data from database
+  useEffect(() => {
+    if (user?.id && !cropDataLoaded) {
+      loadSavedCropData();
+    }
+  }, [user?.id, cropDataLoaded]);
 
   // Real-time calculation when parameters change
   useEffect(() => {
@@ -437,6 +657,9 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
             }}
             onNewPlan={() => setCurrentStep('profile')}
             onAddCustomCrop={() => setShowCustomCropModal(true)}
+            onEditCustomCrop={handleEditCustomCrop}
+            onUpdateCrop={handleUpdateCrop}
+            onDeleteCustomCrop={handleDeleteCustomCrop}
             generateMonthlyTasks={generateMonthlyTasksHandler}
           />
         )}
@@ -470,13 +693,176 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
         setCustomCropDescription={setCustomCropDescription}
         customCropData={customCropData}
         isValidatingCrop={isValidatingCrop}
-        onValidate={() => {
-          // Implementation for validating custom crop
-          console.log('Validating custom crop...');
+        isEditing={!!editingCrop}
+        onValidate={async () => {
+          if (!customCropName.trim()) return;
+          
+          setIsValidatingCrop(true);
+          try {
+            const cropName = customCropName.trim();
+            const description = customCropDescription.trim();
+            
+            // Check if crop already exists (case-insensitive)
+            const existingCrop = gardenPlan?.crops?.find((crop: any) => 
+              crop.name.toLowerCase() === cropName.toLowerCase() && 
+              (!editingCrop || crop.name !== editingCrop.name) // Don't match the crop we're editing
+            );
+            
+            if (existingCrop) {
+              // If crop exists, show warning but still allow adding
+              const customCrop = {
+                name: cropName,
+                scientificName: cropName,
+                description: description || `Anpassad gröda: ${cropName}`,
+                difficulty: 'beginner' as const,
+                sowingMonths: ['April', 'Maj'],
+                harvestingMonths: ['Augusti', 'September'],
+                spaceRequired: 0.5,
+                yield: 5,
+                calories: 200,
+                nutritionalHighlights: ['Anpassad gröda'],
+                color: '#8B4513',
+                icon: '🌱',
+                isCustom: true,
+                localTips: [`Gröda "${existingCrop.name}" finns redan i planen`]
+              };
+              setCustomCropData(customCrop);
+              return;
+            }
+            
+            // Get real nutrition data from Swedish nutrition database
+            console.log('Fetching Swedish nutrition data for custom crop:', cropName);
+            
+            const { NutritionService } = await import('@/lib/nutrition-service');
+            const nutritionData = await NutritionService.getCropNutrition(cropName);
+            
+            if (nutritionData) {
+              console.log('✅ Found nutrition data for custom crop:', cropName, nutritionData);
+              
+              // Create crop with real nutrition data
+              const customCrop = {
+                name: cropName,
+                scientificName: cropName,
+                description: description || `Anpassad gröda: ${cropName}`,
+                difficulty: 'beginner' as const,
+                sowingMonths: ['April', 'Maj'],
+                harvestingMonths: ['Augusti', 'September'],
+                spaceRequired: 0.5,
+                yield: 5,
+                calories: 200,
+                nutritionalHighlights: ['Anpassad gröda'],
+                color: '#8B4513',
+                icon: '🌱',
+                isCustom: true,
+                localTips: ['Anpassad gröda för svensk odling', 'Näringsdata från Livsmedelsverket'],
+                nutritionData: nutritionData,
+                lastUpdated: new Date().toISOString()
+              };
+              
+              setCustomCropData(customCrop);
+            } else {
+              console.log('⚠️ No nutrition data found for custom crop:', cropName, 'using fallback data');
+              
+              // Fallback to basic crop structure if nutrition data fails
+              const customCrop = {
+                name: cropName,
+                scientificName: cropName,
+                description: description || `Anpassad gröda: ${cropName}`,
+                difficulty: 'beginner' as const,
+                sowingMonths: ['April', 'Maj'],
+                harvestingMonths: ['Augusti', 'September'],
+                spaceRequired: 0.5,
+                yield: 5,
+                calories: 200,
+                nutritionalHighlights: ['Anpassad gröda'],
+                color: '#8B4513',
+                icon: '🌱',
+                isCustom: true,
+                localTips: ['Anpassad gröda för svensk odling', 'Grundläggande näringsdata'],
+                nutritionData: {
+                  caloriesPer100g: 25,
+                  protein: 2.5,
+                  carbs: 4.2,
+                  fiber: 2.1,
+                  vitamins: { vitaminC: 85, vitaminA: 450, vitaminK: 120, folate: 65 },
+                  minerals: { potassium: 300, calcium: 50, iron: 1.2, magnesium: 25 },
+                  antioxidants: ['Anpassad gröda'],
+                  healthBenefits: ['Näringsrik gröda']
+                }
+              };
+              setCustomCropData(customCrop);
+            }
+          } catch (error) {
+            console.error('Error fetching nutrition data for custom crop:', error);
+            // Fallback to basic crop structure with nutrition data
+            const customCrop = {
+              name: cropName,
+              scientificName: cropName,
+              description: description || `Anpassad gröda: ${cropName}`,
+              difficulty: 'beginner' as const,
+              sowingMonths: ['April', 'Maj'],
+              harvestingMonths: ['Augusti', 'September'],
+              spaceRequired: 0.5,
+              yield: 5,
+              calories: 200,
+              nutritionalHighlights: ['Anpassad gröda'],
+              color: '#8B4513',
+              icon: '🌱',
+              isCustom: true,
+              localTips: ['Näringstjänsten är inte tillgänglig - använder grundläggande data'],
+              nutritionData: {
+                caloriesPer100g: 25,
+                protein: 2.5,
+                carbs: 4.2,
+                fiber: 2.1,
+                vitamins: { vitaminC: 85, vitaminA: 450, vitaminK: 120, folate: 65 },
+                minerals: { potassium: 300, calcium: 50, iron: 1.2, magnesium: 25 },
+                antioxidants: ['Anpassad gröda'],
+                healthBenefits: ['Näringsrik gröda']
+              }
+            };
+            setCustomCropData(customCrop);
+          } finally {
+            setIsValidatingCrop(false);
+          }
         }}
-        onAdd={() => {
-          // Implementation for adding custom crop
-          console.log('Adding custom crop...');
+        onAdd={async () => {
+          if (!customCropData) return;
+          
+          if (editingCrop) {
+            // Edit existing custom crop
+            if (gardenPlan) {
+              const updatedCrops = gardenPlan.crops.map((crop: any) => 
+                crop.name === editingCrop.name ? customCropData : crop
+              );
+              setGardenPlan({
+                ...gardenPlan,
+                crops: updatedCrops
+              });
+              
+              // Save the updated crop data to the database
+              await saveUpdatedCropToDatabase(customCropData);
+            }
+          } else {
+            // Add new custom crop
+            if (gardenPlan) {
+              const updatedCrops = [...gardenPlan.crops, customCropData];
+              setGardenPlan({
+                ...gardenPlan,
+                crops: updatedCrops
+              });
+              
+              // Save the new crop data to the database
+              await saveUpdatedCropToDatabase(customCropData);
+            }
+          }
+          
+          // Reset the modal
+          setCustomCropName('');
+          setCustomCropDescription('');
+          setCustomCropData(null);
+          setEditingCrop(null);
+          setShowCustomCropModal(false);
         }}
       />
 

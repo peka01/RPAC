@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
+import { WeatherProviderWrapper } from '@/components/WeatherProviderWrapper';
 import { Navigation } from '@/components/navigation';
 import { t } from '@/lib/locales';
 
@@ -48,10 +49,12 @@ export default function RootLayout({
             
             {/* Main content with modern spacing */}
             <div className="relative z-10">
-              <Navigation />
-              <main className="pt-20" style={{ scrollBehavior: 'auto' }}>
-                {children}
-              </main>
+              <WeatherProviderWrapper>
+                <Navigation />
+                <main className="pt-20" style={{ scrollBehavior: 'auto' }}>
+                  {children}
+                </main>
+              </WeatherProviderWrapper>
             </div>
           </div>
         </ThemeProvider>

@@ -40,119 +40,75 @@ export const generateAIGardenPlan = async (
   let aiPlan: any = null;
 
   try {
-    // 1. Build AI prompt
-    const prompt = `Du är en expert på svensk odling och självförsörjning. Skapa en personlig odlingsplan för:
+    // 1. Use pre-defined Swedish crops and fetch real nutrition data
+    const swedishCrops = [
+      {"name": "Potatis", "scientificName": "Solanum tuberosum", "description": "Stärkelserik rotgrönsak, lätt att odla", "difficulty": "beginner", "sowingMonths": ["April"], "harvestingMonths": ["Augusti"], "spaceRequired": 1, "yield": 15, "calories": 12000, "nutritionalHighlights": ["C-vitamin", "Kalium"], "color": "#8B4513", "icon": "🥔"},
+      {"name": "Morötter", "scientificName": "Daucus carota", "description": "Söt rotgrönsak rik på betakaroten", "difficulty": "beginner", "sowingMonths": ["April"], "harvestingMonths": ["Juli"], "spaceRequired": 0.5, "yield": 8, "calories": 3200, "nutritionalHighlights": ["A-vitamin", "Betakaroten"], "color": "#FF8C00", "icon": "🥕"},
+      {"name": "Tomater", "scientificName": "Solanum lycopersicum", "description": "Saftig fruktgrönsak, kräver värme", "difficulty": "intermediate", "sowingMonths": ["Mars"], "harvestingMonths": ["Juli"], "spaceRequired": 0.5, "yield": 5, "calories": 1000, "nutritionalHighlights": ["C-vitamin", "Lykopen"], "color": "#FF0000", "icon": "🍅"},
+      {"name": "Sallad", "scientificName": "Lactuca sativa", "description": "Snabbväxande bladgrönsak", "difficulty": "beginner", "sowingMonths": ["April"], "harvestingMonths": ["Juni"], "spaceRequired": 0.2, "yield": 2, "calories": 100, "nutritionalHighlights": ["Fiber", "Folat"], "color": "#90EE90", "icon": "🥬"},
+      {"name": "Lök", "scientificName": "Allium cepa", "description": "Kryddgrönsak med lång hållbarhet", "difficulty": "beginner", "sowingMonths": ["April"], "harvestingMonths": ["Augusti"], "spaceRequired": 0.3, "yield": 3, "calories": 450, "nutritionalHighlights": ["C-vitamin", "Flavonoider"], "color": "#F5F5DC", "icon": "🧅"},
+      {"name": "Kål", "scientificName": "Brassica oleracea", "description": "Näringsrik bladgrönsak för höst/vinter", "difficulty": "intermediate", "sowingMonths": ["Maj"], "harvestingMonths": ["September"], "spaceRequired": 0.8, "yield": 4, "calories": 400, "nutritionalHighlights": ["C-vitamin", "K-vitamin"], "color": "#228B22", "icon": "🥬"},
+      {"name": "Gurka", "scientificName": "Cucumis sativus", "description": "Vätskerik grönsak, kräver värme", "difficulty": "intermediate", "sowingMonths": ["Maj"], "harvestingMonths": ["Juli"], "spaceRequired": 0.5, "yield": 8, "calories": 400, "nutritionalHighlights": ["Vätska", "K-vitamin"], "color": "#32CD32", "icon": "🥒"},
+      {"name": "Spenat", "scientificName": "Spinacia oleracea", "description": "Näringsrik bladgrönsak", "difficulty": "beginner", "sowingMonths": ["April"], "harvestingMonths": ["Juni"], "spaceRequired": 0.3, "yield": 2, "calories": 200, "nutritionalHighlights": ["Järn", "Folat"], "color": "#228B22", "icon": "🥬"},
+      {"name": "Rödbetor", "scientificName": "Beta vulgaris", "description": "Söt rotgrönsak, lång hållbarhet", "difficulty": "beginner", "sowingMonths": ["April"], "harvestingMonths": ["Augusti"], "spaceRequired": 0.4, "yield": 6, "calories": 1800, "nutritionalHighlights": ["Folat", "Mangan"], "color": "#DC143C", "icon": "🥕"},
+      {"name": "Bönor", "scientificName": "Phaseolus vulgaris", "description": "Proteinrik baljväxt", "difficulty": "beginner", "sowingMonths": ["Maj"], "harvestingMonths": ["Augusti"], "spaceRequired": 0.3, "yield": 3, "calories": 1200, "nutritionalHighlights": ["Protein", "Fiber"], "color": "#8B4513", "icon": "🫘"},
+      {"name": "Ärtor", "scientificName": "Pisum sativum", "description": "Söt baljväxt, tidig skörd", "difficulty": "beginner", "sowingMonths": ["April"], "harvestingMonths": ["Juni"], "spaceRequired": 0.3, "yield": 4, "calories": 1200, "nutritionalHighlights": ["Protein", "C-vitamin"], "color": "#90EE90", "icon": "🫘"},
+      {"name": "Paprika", "scientificName": "Capsicum annuum", "description": "Färgrik fruktgrönsak, kräver värme", "difficulty": "advanced", "sowingMonths": ["Mars"], "harvestingMonths": ["Juli"], "spaceRequired": 0.4, "yield": 3, "calories": 450, "nutritionalHighlights": ["C-vitamin", "A-vitamin"], "color": "#FFD700", "icon": "🫑"},
+      {"name": "Persilja", "scientificName": "Petroselinum crispum", "description": "Kryddört, tvåårig", "difficulty": "beginner", "sowingMonths": ["April"], "harvestingMonths": ["Juni"], "spaceRequired": 0.1, "yield": 1, "calories": 50, "nutritionalHighlights": ["C-vitamin", "K-vitamin"], "color": "#228B22", "icon": "🌿"},
+      {"name": "Basilika", "scientificName": "Ocimum basilicum", "description": "Aromatisk kryddört", "difficulty": "beginner", "sowingMonths": ["Maj"], "harvestingMonths": ["Juli"], "spaceRequired": 0.1, "yield": 0.5, "calories": 25, "nutritionalHighlights": ["A-vitamin", "K-vitamin"], "color": "#228B22", "icon": "🌿"},
+      {"name": "Rädisor", "scientificName": "Raphanus sativus", "description": "Snabbväxande rotgrönsak", "difficulty": "beginner", "sowingMonths": ["April"], "harvestingMonths": ["Juni"], "spaceRequired": 0.1, "yield": 2, "calories": 100, "nutritionalHighlights": ["C-vitamin", "Folat"], "color": "#FFB6C1", "icon": "🥕"},
+      {"name": "Kålrot", "scientificName": "Brassica napus", "description": "Mild kålgrönsak", "difficulty": "beginner", "sowingMonths": ["Maj"], "harvestingMonths": ["Augusti"], "spaceRequired": 0.3, "yield": 3, "calories": 300, "nutritionalHighlights": ["C-vitamin", "K-vitamin"], "color": "#DDA0DD", "icon": "🥬"},
+      {"name": "Squash", "scientificName": "Cucurbita pepo", "description": "Stor fruktgrönsak", "difficulty": "intermediate", "sowingMonths": ["Maj"], "harvestingMonths": ["Augusti"], "spaceRequired": 2, "yield": 8, "calories": 3200, "nutritionalHighlights": ["A-vitamin", "C-vitamin"], "color": "#FFA500", "icon": "🎃"},
+      {"name": "Broccoli", "scientificName": "Brassica oleracea", "description": "Näringsrik kålgrönsak", "difficulty": "intermediate", "sowingMonths": ["Maj"], "harvestingMonths": ["Augusti"], "spaceRequired": 0.6, "yield": 2, "calories": 200, "nutritionalHighlights": ["C-vitamin", "K-vitamin"], "color": "#228B22", "icon": "🥦"},
+      {"name": "Blomkål", "scientificName": "Brassica oleracea", "description": "Vit kålgrönsak, kräver kyla", "difficulty": "intermediate", "sowingMonths": ["Maj"], "harvestingMonths": ["Augusti"], "spaceRequired": 0.6, "yield": 2, "calories": 200, "nutritionalHighlights": ["C-vitamin", "K-vitamin"], "color": "#F5F5F5", "icon": "🥦"},
+      {"name": "Ruccola", "scientificName": "Eruca sativa", "description": "Pikant bladgrönsak", "difficulty": "beginner", "sowingMonths": ["April"], "harvestingMonths": ["Juni"], "spaceRequired": 0.2, "yield": 1, "calories": 50, "nutritionalHighlights": ["C-vitamin", "K-vitamin"], "color": "#90EE90", "icon": "🥬"}
+    ];
 
-PROFIL:
-- Hushåll: ${profile.household_size} personer
-- Ort: ${profile.city}, ${profile.county}
-- Klimatzon: ${profile.climate_zone}
-- Erfarenhet: ${profile.experience_level}
-- Trädgårdsstorlek: ${adjustableGardenSize} m²
-- Allergier: ${profile.allergies || 'Inga'}
-- Särskilda behov: ${profile.special_needs || 'Inga'}
+    // 2. Use crops without fetching nutrition data initially (will be fetched on-demand)
+    console.log('Using pre-defined crops with on-demand nutrition data fetching...');
+    
+    const cropsWithNutrition = swedishCrops.map(crop => ({
+      ...crop,
+      // Nutrition data will be fetched when user clicks refresh button
+      nutritionData: null
+    }));
 
-UPPGIFT:
-Skapa en detaljerad odlingsplan som maximerar självförsörjningen för detta hushåll. Inkludera:
+    console.log('Pre-defined crops ready for on-demand nutrition fetching:', cropsWithNutrition.length);
 
-1. Rekommenderade grödor (EXAKT 20 stycken - INTE FÄRRE) med:
-   - Namn och vetenskapligt namn
-   - Beskrivning
-   - Svårighetsgrad (beginner/intermediate/advanced)
-   - Såmånader och skördemånader
-   - Utrymme per planta (m²) - VIKTIGT: Ange exakt m² per planta
-   - Förväntad skörd (kg) - VIKTIGT: Ange total skörd i kg
-   - Kalorier per kg
-   - Näringshöjdpunkter
-   - Färgkod (hex-färg)
-   - Emoji-ikon (lämplig emoji för grödan)
+    const monthlyTasks = [
+      {"month": "Januari", "tasks": ["Planera odlingen för året", "Beställ frön"], "priority": "low"},
+      {"month": "Februari", "tasks": ["Förbered jord och verktyg", "Börja så tomater inomhus"], "priority": "medium"},
+      {"month": "Mars", "tasks": ["Så tomater och paprika inomhus", "Förbered odlingsbäddar"], "priority": "high"},
+      {"month": "April", "tasks": ["Så potatis, morötter, lök och rädisor", "Så sallad och spinat"], "priority": "high"},
+      {"month": "Maj", "tasks": ["Plantera ut tomater", "Så kål, broccoli och blomkål"], "priority": "high"},
+      {"month": "Juni", "tasks": ["Skörda sallad och rädisor", "Så gurka och squash"], "priority": "medium"},
+      {"month": "Juli", "tasks": ["Skörda tomater, gurka och paprika", "Vattna regelbundet"], "priority": "high"},
+      {"month": "Augusti", "tasks": ["Skörda potatis och morötter", "Så höstgrödor"], "priority": "high"},
+      {"month": "September", "tasks": ["Skörda kål och rödbetor", "Förbered för vinter"], "priority": "medium"},
+      {"month": "Oktober", "tasks": ["Skörda sista grödor", "Rensa odlingsbäddar"], "priority": "low"},
+      {"month": "November", "tasks": ["Förbered jord för nästa år", "Lagra skörd"], "priority": "low"},
+      {"month": "December", "tasks": ["Planera nästa års odling", "Vila och återhämta dig"], "priority": "low"}
+    ];
 
-VIKTIGT: Inkludera en mångfaldig mix av grödor:
-- Rotgrönsaker (potatis, morötter, lök, rödbetor)
-- Bladgrönsaker (spenat, sallad, kål)
-- Fruktgrönsaker (tomater, paprika, gurka)
-- Baljväxter (bönor, ärtor)
-- Kryddor (persilja, basilika, timjan)
-- Stärkelserika grödor (korn, havre)
+    const grocerySuggestions = [
+      "Köp kött och fisk för protein",
+      "Tillsätt mejeriprodukter för kalcium",
+      "Köp nötter och frön för fett och mineraler",
+      "Köp citrusfrukter för vitamin C under vintern"
+    ];
 
-2. Månadsvisa aktiviteter för hela året
+    // Create the plan directly without AI
+    aiPlan = {
+      crops: cropsWithNutrition,
+      monthlyTasks: monthlyTasks,
+      grocerySuggestions: grocerySuggestions,
+      estimatedCost: 500
+    };
 
-3. Kostnadsuppskattning
+    console.log('Using pre-defined Swedish crops plan:', aiPlan);
 
-4. Förslag på kompletterande köp
-
-VIKTIGT: Du MÅSTE inkludera EXAKT 20 olika grödor i "crops" arrayen. INTE FÄRRE. Lista alla 20 grödor med fullständig information för varje.
-
-Svara ENDAST med en JSON-struktur enligt detta format:
-{
-  "crops": [
-    {
-      "name": "Grödnamn",
-      "scientificName": "Vetenskapligt namn",
-      "description": "Beskrivning",
-      "difficulty": "beginner/intermediate/advanced",
-      "sowingMonths": ["Månad1", "Månad2"],
-      "harvestingMonths": ["Månad1", "Månad2"],
-      "spaceRequired": 10, // Total m² needed for this crop
-      "yield": 20,
-      "calories": 8000,
-      "nutritionalHighlights": ["Näring1", "Näring2"],
-      "color": "#hexfärg",
-      "icon": "🥔"
-    }
-  ],
-  "monthlyTasks": [
-    {
-      "month": "Januari",
-      "tasks": ["Uppgift1", "Uppgift2"],
-      "priority": "low/medium/high"
-    }
-  ],
-  "grocerySuggestions": ["Förslag1", "Förslag2"],
-  "estimatedCost": 500
-}`;
-
-    // 2. Call API
-    const response = await fetch('https://api.beready.se', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'RPAC-CultivationPlanner/1.0'
-      },
-      body: JSON.stringify({
-        prompt: prompt,
-        type: 'cultivation-plan'
-      })
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('AI API error details:', errorData);
-      throw new Error(`AI API error: ${response.status} - ${errorData.error || 'Unknown error'}`);
-    }
-
-    const aiResponse = await response.json();
-    const content = aiResponse.choices?.[0]?.message?.content || '{}';
-
-    // 3. Clean JSON from AI
-    let cleanedContent = content
-      .replace(/\/\/.*$/gm, '')
-      .replace(/\/\*[\s\S]*?\*\//g, '')
-      .replace(/,(\s*[}\]])/g, '$1')
-      .replace(/([{,]\s*)(\w+):/g, '$1"$2":')
-      .replace(/,\s*}/g, '}')
-      .replace(/,\s*]/g, ']')
-      .trim();
-
-    try {
-      aiPlan = JSON.parse(cleanedContent);
-    } catch (parseError) {
-      console.error('Failed to parse AI response:', parseError);
-      aiPlan = null; // fallback later
-    }
-
-    // 4. Build crops list (AI or fallback)
-    let crops = aiPlan?.crops || fallbackCrops();
+    // 2. Build crops list from pre-defined plan
+    let crops = aiPlan.crops;
 
     // Add spacePerPlant field
     crops = crops.map((crop: any) => ({
@@ -229,6 +185,4 @@ Svara ENDAST med en JSON-struktur enligt detta format:
       estimatedCost: Math.round(production.cost)
     };
   }
-};
-
-
+}

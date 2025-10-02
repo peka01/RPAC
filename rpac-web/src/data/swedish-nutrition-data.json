@@ -1,0 +1,49 @@
+{
+  "potatis": {
+    "caloriesPer100g": 77,
+    "protein": 2,
+    "carbs": 17,
+    "fiber": 2.2,
+    "fat": 0.1,
+    "vitamins": {
+      "vitaminC": 20,
+      "vitaminA": 0,
+      "vitaminK": 2,
+      "vitaminB6": 0.3,
+      "folate": 15
+    },
+    "minerals": {
+      "potassium": 421,
+      "calcium": 12,
+      "iron": 0.8,
+      "magnesium": 23,
+      "phosphorus": 57
+    },
+    "antioxidants": ["Flavonoider", "Klorogensyra"],
+    "healthBenefits": ["Stärker immunförsvaret", "Hjälper hjärtat", "Reglerar blodsocker", "Förbättrar matsmältningen"]
+  },
+  "morötter": {
+    "caloriesPer100g": 41,
+    "protein": 0.9,
+    "carbs": 10,
+    "fiber": 2.8,
+    "fat": 0.2,
+    "vitamins": {
+      "vitaminC": 5.9,
+      "vitaminA": 16706,
+      "vitaminK": 13.2,
+      "vitaminB6": 0.1,
+      "folate": 19
+    },
+    "minerals": {
+      "potassium": 320,
+      "calcium": 33,
+      "iron": 0.3,
+      "magnesium": 12,
+      "phosphorus": 35
+    },
+    "antioxidants": ["Betakaroten", "Alfa-karoten", "Lutein"],
+    "healthBenefits": ["Förbättrar synen", "Stärker immunförsvaret", "Hjälper hjärtat", "Skyddar mot cancer"]
+  }
+}
+

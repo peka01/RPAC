@@ -56,6 +56,9 @@ interface InteractiveDashboardProps {
   onSavePlan: () => void;
   onNewPlan: () => void;
   onAddCustomCrop: () => void;
+  onEditCustomCrop: (crop: any) => void;
+  onUpdateCrop: (crop: any) => void;
+  onDeleteCustomCrop: (crop: any) => void;
   generateMonthlyTasks: () => any[];
 }
 
@@ -77,6 +80,9 @@ export function InteractiveDashboard({
   onSavePlan,
   onNewPlan,
   onAddCustomCrop,
+  onEditCustomCrop,
+  onUpdateCrop,
+  onDeleteCustomCrop,
   generateMonthlyTasks
 }: InteractiveDashboardProps) {
   return (
@@ -129,6 +135,9 @@ export function InteractiveDashboard({
         setCropVolumes={setCropVolumes}
         adjustableGardenSize={adjustableGardenSize}
         onAddCustomCrop={onAddCustomCrop}
+        onEditCustomCrop={onEditCustomCrop}
+        onUpdateCrop={onUpdateCrop}
+        onDeleteCustomCrop={onDeleteCustomCrop}
       />
 
       <MonthlyTasks generateMonthlyTasks={generateMonthlyTasks} />

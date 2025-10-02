@@ -277,36 +277,102 @@ export default function DashboardPage() {
                 </div>
                 <div className="text-right">
                   <div className="text-lg font-bold" style={{ color: 'var(--color-khaki)' }}>
-                    {cultivationPlan?.selfSufficiencyPercent || '0'}%
+                    {cultivationPlan?.self_sufficiency_percent || cultivationPlan?.selfSufficiencyPercent || '0'}%
                   </div>
                   <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{t('dashboard.self_sufficiency')}</div>
                 </div>
               </div>
-              <h3 className="text-sm font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Odlingsplanering</h3>
-              <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>
-                {(() => {
-                  if (cultivationPlan) {
-                    const cropCount = cultivationPlan.crops?.length || 0;
-                    const timeline = cultivationPlan.timeline || t('dashboard.timeline_default');
-                    
-                    // Format timeline for better display
-                    let timelineDisplay = timeline;
-                    if (timeline.length > 50) {
-                      // Show first part of timeline if it's too long
-                      const firstLine = timeline.split('\n')[0];
-                      timelineDisplay = firstLine.length > 50 ? firstLine.substring(0, 47) + '...' : firstLine;
+              <h3 className="text-sm font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+                {cultivationPlan?.title || cultivationPlan?.name || 'Odlingsplanering'}
+              </h3>
+              
+              {cultivationPlan ? (
+                <div className="space-y-2 mb-3">
+                  {/* Plan Description */}
+                  {cultivationPlan.description && (
+                    <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                      {cultivationPlan.description.length > 60 
+                        ? cultivationPlan.description.substring(0, 57) + '...' 
+                        : cultivationPlan.description}
+                    </p>
+                  )}
+                  
+                  {/* Plan Stats */}
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="flex items-center space-x-1">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--color-khaki)' }}></div>
+                      <span style={{ color: 'var(--text-secondary)' }}>
+                        {cultivationPlan.crops?.length || 0} grödor
+                      </span>
+                    </div>
+                    {cultivationPlan.estimated_cost && (
+                      <div className="flex items-center space-x-1">
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--color-sage)' }}></div>
+                        <span style={{ color: 'var(--text-secondary)' }}>
+                          {Math.round(cultivationPlan.estimated_cost)} kr
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Plan Date */}
+                  <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                    {cultivationPlan.created_at 
+                      ? `Skapad ${new Date(cultivationPlan.created_at).toLocaleDateString('sv-SE')}`
+                      : 'Aktiv plan'
                     }
-                    
-                    return t('dashboard.planned_crops', { count: cropCount, timeline: timelineDisplay });
-                  }
-                  return t('dashboard.click_to_create_plan');
-                })()}
-              </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2 mb-3">
+                  <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                    {t('dashboard.no_plan_selected')}
+                  </p>
+                  
+                  {/* How to create plan info */}
+                  <div className="bg-gray-50 rounded-lg p-3 border" style={{ 
+                    backgroundColor: 'rgba(160, 142, 90, 0.05)',
+                    borderColor: 'rgba(160, 142, 90, 0.2)'
+                  }}>
+                    <div className="flex items-start space-x-2">
+                      <div className="w-4 h-4 rounded-full flex items-center justify-center mt-0.5" style={{ 
+                        backgroundColor: 'var(--color-khaki)' 
+                      }}>
+                        <span className="text-white text-xs font-bold">1</span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
+                          Skapa din första odlingsplan
+                        </p>
+                        <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                          Fyll i din profil och få en personlig plan anpassad för ditt klimat och trädgårdsstorlek
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Benefits preview */}
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="flex items-center space-x-1">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--color-sage)' }}></div>
+                      <span style={{ color: 'var(--text-secondary)' }}>
+                        AI-anpassad plan
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--color-khaki)' }}></div>
+                      <span style={{ color: 'var(--text-secondary)' }}>
+                        Kostnadsberäkning
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="flex justify-between items-center">
                 <div className="flex space-x-2 flex-1">
                   <div className="flex-1 rounded-full h-2" style={{ backgroundColor: 'rgba(160, 142, 90, 0.2)' }}>
                     <div className="h-2 rounded-full" style={{ 
-                      width: `${cultivationPlan?.selfSufficiencyPercent || 0}%`, 
+                      width: `${cultivationPlan?.self_sufficiency_percent || cultivationPlan?.selfSufficiencyPercent || 0}%`, 
                       backgroundColor: 'var(--color-khaki)' 
                     }}></div>
                   </div>
@@ -322,7 +388,7 @@ export default function DashboardPage() {
                   </span>
                 </div>
                 <span className="text-xs ml-2 group-hover:underline" style={{ color: 'var(--color-khaki)' }}>
-                  {t('dashboard.manage')}
+                  {cultivationPlan ? t('dashboard.manage') : t('dashboard.create_plan')}
                 </span>
               </div>
             </div>

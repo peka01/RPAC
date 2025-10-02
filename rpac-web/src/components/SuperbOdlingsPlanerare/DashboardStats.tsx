@@ -37,7 +37,7 @@ export function DashboardStats({ gardenPlan, realTimeStats, adjustableGardenSize
   };
 
   return (
-    <div className="sticky top-4 z-10 bg-white/95 backdrop-blur-sm rounded-lg p-3 sm:p-4 shadow-lg border" style={{ borderColor: 'var(--border-color)' }}>
+    <div className="sticky top-14 z-20 bg-white/98 backdrop-blur-md rounded-lg p-3 sm:p-4 shadow-lg border" style={{ borderColor: 'var(--border-color)' }}>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         {/* Self-sufficiency card */}
         <div className="modern-card p-3 sm:p-4 min-h-[100px] flex flex-col">
