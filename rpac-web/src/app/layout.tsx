@@ -49,7 +49,7 @@ export default function RootLayout({
             {/* Main content with modern spacing */}
             <div className="relative z-10">
               <Navigation />
-              <main className="pt-48" style={{ scrollBehavior: 'auto' }}>
+              <main className="pt-20" style={{ scrollBehavior: 'auto' }}>
                 {children}
               </main>
             </div>

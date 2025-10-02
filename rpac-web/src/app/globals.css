@@ -139,8 +139,24 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Smooth animations and transitions */
+/* Smooth animations and transitions - removed global page transitions */
 * {
+  /* Removed global transition to eliminate page transition animations */
+}
+
+/* Specific transitions for interactive elements only */
+button, 
+a, 
+.modern-button, 
+.crisis-button, 
+.modern-card, 
+.crisis-card,
+nav a,
+.nav-item,
+[role="button"],
+input,
+select,
+textarea {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
