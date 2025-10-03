@@ -161,33 +161,30 @@ export function WeatherRibbon({ user }: WeatherRibbonProps) {
   };
 
   const getCultivationImpact = () => {
-    if (!weather) return null;
+    if (!weather || !forecast || forecast.length === 0) return null;
     
     const temp = weather.temperature;
-    const forecastLower = weather.forecast?.toLowerCase() || '';
+    const todayForecast = forecast[0];
+    const month = new Date().getMonth() + 1; // 1-12
+    const isGrowingSeason = month >= 4 && month <= 9; // April-September
+    const isAutumn = month >= 9 && month <= 11; // September-November
+    const isWinter = month === 12 || month <= 2; // December-February
+    const isEarlySpring = month >= 3 && month <= 4; // March-April
 
-    // Frost warning
+    // Frost warning (relevant all year)
     if (temp < 2 || extremeWeatherWarnings.some(w => w.toLowerCase().includes('frost'))) {
-      return {
-        icon: '🌱',
-        message: 'Frost varning - täck känsliga plantor',
-        severity: 'critical',
-        action: 'Visa påverkade uppgifter'
-      };
+      if (isGrowingSeason || isAutumn) {
+        return {
+          icon: '🌱',
+          message: 'Frost varning - skydda växter',
+          severity: 'critical',
+          action: 'Visa påverkade uppgifter'
+        };
+      }
     }
 
-    // Perfect planting weather
-    if (temp >= 10 && temp <= 20 && !forecastLower.includes('regn')) {
-      return {
-        icon: '🌱',
-        message: 'Perfekt väder för plantering',
-        severity: 'positive',
-        action: 'Visa odlingsuppgifter'
-      };
-    }
-
-    // Rain - skip watering
-    if (forecastLower.includes('regn')) {
+    // Rain - skip watering (only during growing season)
+    if (todayForecast && todayForecast.rainfall > 1 && (isGrowingSeason || isAutumn)) {
       return {
         icon: '💧',
         message: 'Regn idag - ingen vattning behövs',
@@ -196,13 +193,50 @@ export function WeatherRibbon({ user }: WeatherRibbonProps) {
       };
     }
 
-    // Hot weather
-    if (temp > 25) {
+    // Hot weather - extra watering (only during growing season)
+    if (temp > 25 && isGrowingSeason) {
       return {
         icon: '🌡️',
         message: 'Varmt väder - extra vattning behövs',
         severity: 'warning',
         action: 'Visa vattningsbehov'
+      };
+    }
+
+    // Season-specific advice
+    if (isEarlySpring && temp >= 10 && temp <= 20 && (!todayForecast || todayForecast.rainfall <= 1)) {
+      return {
+        icon: '🌱',
+        message: 'Bra väder för försådd och förberedelser',
+        severity: 'positive',
+        action: 'Visa odlingsuppgifter'
+      };
+    }
+
+    if (isGrowingSeason && temp >= 10 && temp <= 20 && (!todayForecast || todayForecast.rainfall <= 1)) {
+      return {
+        icon: '🌱',
+        message: 'Perfekt väder för trädgårdsarbete',
+        severity: 'positive',
+        action: 'Visa odlingsuppgifter'
+      };
+    }
+
+    if (isAutumn && temp >= 8 && temp <= 15 && (!todayForecast || todayForecast.rainfall <= 1)) {
+      return {
+        icon: '🍂',
+        message: 'Bra väder för höstplantering och skörd',
+        severity: 'positive',
+        action: 'Visa odlingsuppgifter'
+      };
+    }
+
+    if (isWinter && temp > 0 && (!todayForecast || todayForecast.rainfall <= 1)) {
+      return {
+        icon: '🌿',
+        message: 'Milt väder - kontrollera vinterskydd',
+        severity: 'info',
+        action: null
       };
     }
 
