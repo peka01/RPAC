@@ -37,7 +37,7 @@ export function WeatherProvider({ children, user }: WeatherProviderProps) {
       const userProfile = profile ? {
         county: profile.county,
         city: profile.city
-      } : null;
+      } : undefined;
 
       // Fetch current weather and forecast
       const [weatherData, forecastData] = await Promise.all([
