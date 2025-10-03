@@ -35,7 +35,7 @@ export function ResponsiveCultivationTool({ user, tool, climateZone }: Responsiv
     return isMobile ? (
       <CultivationRemindersMobileComplete user={user} climateZone={climateZone} />
     ) : (
-      <CultivationReminders user={user} climateZone={climateZone} />
+      <CultivationReminders user={user} climateZone={climateZone as 'gotaland' | 'svealand' | 'norrland'} />
     );
   }
 
@@ -43,7 +43,7 @@ export function ResponsiveCultivationTool({ user, tool, climateZone }: Responsiv
     return isMobile ? (
       <CrisisCultivationMobile user={user} />
     ) : (
-      <CrisisCultivation user={user} />
+      <CrisisCultivation urgencyLevel="medium" availableSpace="both" timeframe={30} />
     );
   }
 

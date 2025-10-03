@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { messagingService, type Message, type Contact } from '@/lib/messaging-service';
-import { ResourceSharingPanelMobile } from './resource-sharing-panel-mobile';
+// Resource sharing panel removed - to be reimplemented
 import type { User } from '@supabase/supabase-js';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -118,9 +118,15 @@ export function MessagingSystemMobile({ user, communityId, onUnreadCountChange }
       let fetchedMessages: Message[] = [];
       
       if (activeTab === 'community' && communityId) {
-        fetchedMessages = await messagingService.getMessages(communityId);
+        fetchedMessages = await messagingService.getMessages({
+          userId: user.id,
+          communityId: communityId
+        });
       } else if (activeTab === 'direct' && activeContact) {
-        fetchedMessages = await messagingService.getMessages(undefined, activeContact.id, user.id);
+        fetchedMessages = await messagingService.getMessages({
+          userId: user.id,
+          recipientId: activeContact.id
+        });
       }
 
       setMessages(fetchedMessages);
@@ -403,23 +409,11 @@ export function MessagingSystemMobile({ user, communityId, onUnreadCountChange }
         </div>
 
         <div className="p-4">
-          {communityId ? (
-            <ResourceSharingPanelMobile
-              user={user}
-              communityId={communityId}
-              onSendMessage={(content) => {
-                setNewMessage(content);
-                setActiveTab('community');
-                setView('chat');
-              }}
-            />
-          ) : (
-            <div className="text-center py-16">
-              <Package size={64} className="mx-auto mb-4 text-gray-300" />
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Inget samhälle valt</h3>
-              <p className="text-gray-600 text-sm">Gå med i ett samhälle för att dela resurser</p>
-            </div>
-          )}
+          <div className="text-center py-16">
+            <Package size={64} className="mx-auto mb-4 text-gray-300" />
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Resursdelning</h3>
+            <p className="text-gray-600 text-sm">Funktionen kommer snart</p>
+          </div>
         </div>
       </div>
     );

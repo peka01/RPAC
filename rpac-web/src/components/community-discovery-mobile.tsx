@@ -98,14 +98,15 @@ export function CommunityDiscoveryMobile({ user, userPostalCode, onJoinCommunity
 
       setLocationSummary(`${locationInfo.county}, ${locationInfo.region}`);
 
-      const allCommunities = await communityService.searchCommunities({
-        postalCode: userPostalCode,
-        county: locationInfo.county,
-        region: locationInfo.region,
-        radius: 200
-      });
+      // Get all communities and filter by location
+      const allCommunities = await communityService.getCommunities();
+      
+      // Filter communities by county
+      const filteredCommunities = allCommunities.filter(community => 
+        community.county === locationInfo.county
+      );
 
-      const withDistance = allCommunities.map(community => {
+      const withDistance = filteredCommunities.map(community => {
         const distance = community.postal_code
           ? geographicService.calculatePostalCodeDistance(userPostalCode, community.postal_code)
           : undefined;

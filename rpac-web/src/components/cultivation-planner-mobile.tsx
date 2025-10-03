@@ -141,7 +141,20 @@ export function CultivationPlannerMobile({ user, onPlanCreated }: CultivationPla
       });
 
       const plan = await generateAIGardenPlan(
-        profileData,
+        {
+          household_size: profileData.household_size,
+          has_children: profileData.has_children,
+          has_elderly: profileData.has_elderly,
+          has_pets: profileData.has_pets,
+          city: profileData.city,
+          county: profileData.county,
+          address: '',
+          allergies: '',
+          special_needs: '',
+          garden_size: profileData.garden_size,
+          experience_level: (profileData.experience_level || 'beginner') as 'beginner' | 'intermediate' | 'advanced',
+          climate_zone: (profileData.climate_zone || 'Svealand') as 'Götaland' | 'Svealand' | 'Norrland'
+        },
         profileData.garden_size,
         allCrops,
         'medium',
@@ -171,7 +184,20 @@ export function CultivationPlannerMobile({ user, onPlanCreated }: CultivationPla
     setLoading(true);
     try {
       const plan = await generateAIGardenPlan(
-        profileData,
+        {
+          household_size: profileData.household_size,
+          has_children: profileData.has_children,
+          has_elderly: profileData.has_elderly,
+          has_pets: profileData.has_pets,
+          city: profileData.city,
+          county: profileData.county,
+          address: '',
+          allergies: '',
+          special_needs: '',
+          garden_size: profileData.garden_size,
+          experience_level: (profileData.experience_level || 'beginner') as 'beginner' | 'intermediate' | 'advanced',
+          climate_zone: (profileData.climate_zone || 'Svealand') as 'Götaland' | 'Svealand' | 'Norrland'
+        },
         adjustableGardenSize,
         selectedCrops,
         cultivationIntensity,

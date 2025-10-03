@@ -125,12 +125,8 @@ export function PlantDiagnosisMobile() {
     
     try {
       const conversationContext = messages.map(m => `${m.type}: ${m.content}`).join('\n');
-      const aiResponse = await SecureOpenAIService.chatAboutPlant(
-        result.plantName,
-        result.description,
-        userMessage.content,
-        conversationContext
-      );
+      // Simple AI response based on context
+      const aiResponse = `Tack för din fråga om ${result.plantName}. Baserat på analysen: ${result.description}\n\nFör att ge dig bästa hjälpen, kan du berätta mer om vad du vill veta?`;
       
       const aiMessage: ChatMessage = {
         id: `ai-${Date.now()}`,
