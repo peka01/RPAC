@@ -61,14 +61,26 @@ export const messagingService = {
       .limit(limit);
     
     if (recipientId) {
-      // Direct messages between two users
-      query = query.or(`and(sender_id.eq.${userId},receiver_id.eq.${recipientId}),and(sender_id.eq.${recipientId},receiver_id.eq.${userId})`);
+      // Direct messages between two users (NOT community messages)
+      // Must have receiver_id set and community_id NULL or not relevant to community
+      query = query
+        .or(`and(sender_id.eq.${userId},receiver_id.eq.${recipientId}),and(sender_id.eq.${recipientId},receiver_id.eq.${userId})`)
+        .not('receiver_id', 'is', null); // Ensure it's actually a direct message
+      console.log('🔍 QUERY TYPE: DIRECT MESSAGE between', userId, 'and', recipientId);
     } else if (communityId) {
-      // Community messages
-      query = query.eq('community_id', communityId);
+      // Community messages (NOT direct messages)
+      // Must have community_id set and receiver_id NULL
+      query = query.eq('community_id', communityId).is('receiver_id', null);
+      console.log('🔍 QUERY TYPE: COMMUNITY MESSAGE for community', communityId);
     }
     
+    console.log('📥 Fetching messages with params:', { userId, recipientId, communityId, limit });
+    
     const { data, error } = await query;
+    
+    console.log('📬 Messages fetched:', data?.length || 0, 'messages');
+    console.log('📬 Messages data:', data);
+    console.log('❌ Error (if any):', error);
     
     if (error) throw error;
     return (data || []).map(msg => this.formatMessage(msg));
@@ -106,12 +118,17 @@ export const messagingService = {
       is_read: false
     };
     
+    // CRITICAL: A message must be EITHER direct OR community, NEVER both
     if (recipientId) {
       messageData.receiver_id = recipientId;
-    }
-    
-    if (communityId) {
+      // Do NOT set community_id for direct messages
+      console.log('📤 Sending DIRECT message to user:', recipientId);
+    } else if (communityId) {
       messageData.community_id = communityId;
+      // Do NOT set receiver_id for community messages
+      console.log('📤 Sending COMMUNITY message to:', communityId);
+    } else {
+      throw new Error('Message must have either recipientId or communityId');
     }
     
     // Store sender name in metadata if needed for display
@@ -125,11 +142,29 @@ export const messagingService = {
       messageData.metadata = { ...messageData.metadata, ...metadata };
     }
     
+    console.log('📤 Sending message with data:', {
+      ...messageData,
+      has_receiver_id: !!messageData.receiver_id,
+      has_community_id: !!messageData.community_id,
+      type: messageData.receiver_id ? 'DIRECT' : 'COMMUNITY'
+    });
+    
     const { data, error } = await supabase
       .from('messages')
       .insert([messageData])
       .select()
       .single();
+    
+    if (error) {
+      console.error('❌ Error sending message:', error);
+    } else {
+      console.log('✅ Message sent successfully:', {
+        id: data.id,
+        has_receiver_id: !!data.receiver_id,
+        has_community_id: !!data.community_id,
+        type: data.receiver_id ? 'DIRECT' : 'COMMUNITY'
+      });
+    }
     
     if (error) throw error;
     return this.formatMessage(data);
@@ -270,6 +305,13 @@ export const messagingService = {
       ? `messages:community:${communityId}`
       : `messages:${userId}`;
     
+    console.log('🔔 Setting up realtime subscription:', {
+      channelName,
+      userId,
+      recipientId,
+      communityId
+    });
+    
     const channel = supabase
       .channel(channelName)
       .on(
@@ -281,21 +323,26 @@ export const messagingService = {
           filter: recipientId
             ? `receiver_id=eq.${userId}`
             : communityId
-            ? `community_id=eq.${communityId}`
+            ? `community_id=eq.${communityId}&receiver_id=is.null`
             : `receiver_id=eq.${userId}`
         },
         (payload) => {
+          console.log('🔔 Realtime message received!', payload);
           try {
             const message = this.formatMessage(payload.new);
+            console.log('🔔 Formatted message:', message);
             onMessage(message);
           } catch (error) {
+            console.error('🔔 Error formatting realtime message:', error);
             if (onError) {
               onError(error as Error);
             }
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('🔔 Subscription status:', status);
+      });
     
     return channel;
   },
@@ -323,37 +370,79 @@ export const messagingService = {
    * Get online users in a community
    */
   async getOnlineUsers(communityId: string): Promise<Contact[]> {
-    // Get community members (without trying to join to users table)
-    const { data: memberships, error } = await supabase
+    // Get community members
+    const { data: memberships, error: membershipsError } = await supabase
       .from('community_memberships')
       .select('user_id, role')
       .eq('community_id', communityId);
     
-    if (error) throw error;
+    if (membershipsError) throw membershipsError;
     if (!memberships || memberships.length === 0) return [];
     
-    // Check presence
+    // Get user profiles for these members
     const userIds = memberships.map(m => m.user_id);
+    const { data: profiles, error: profilesError } = await supabase
+      .from('user_profiles')
+      .select('user_id, display_name, first_name, last_name, name_display_preference, avatar_url')
+      .in('user_id', userIds);
+    
+    if (profilesError) {
+      console.warn('Could not fetch user profiles:', profilesError);
+      // Continue without profiles rather than failing completely
+    }
+    
+    // Check presence
     const { data: presenceData } = await supabase
       .from('user_presence')
       .select('*')
       .in('user_id', userIds)
       .gte('last_seen', new Date(Date.now() - 5 * 60 * 1000).toISOString()); // Active in last 5 minutes
     
-    // Get user profiles
-    const { data: profiles } = await supabase
-      .from('user_profiles')
-      .select('user_id, id')
-      .in('user_id', userIds);
-    
-    // Format contacts - we'll use auth user data from the client
-    return memberships.map(membership => {
-      const profile = profiles?.find(p => p.user_id === membership.user_id);
+    // Format contacts with display names from user_profiles based on privacy preference
+    return memberships.map((membership: any, index: number) => {
       const presence = presenceData?.find(p => p.user_id === membership.user_id);
+      const profile = profiles?.find(p => p.user_id === membership.user_id);
+      
+      // Determine display name based on user's privacy preference
+      let userName = 'Medlem';
+      
+      // If no profile or empty display_name, use numbered fallback
+      if (!profile || !profile.display_name || profile.display_name.trim() === '') {
+        userName = `Medlem ${index + 1}`;
+      } else {
+        const preference = profile.name_display_preference || 'display_name';
+        
+        switch (preference) {
+          case 'display_name':
+            userName = profile.display_name.trim() || `Medlem ${index + 1}`;
+            break;
+          case 'first_last':
+            if (profile.first_name && profile.last_name) {
+              userName = `${profile.first_name} ${profile.last_name}`;
+            } else {
+              userName = profile.display_name.trim() || `Medlem ${index + 1}`;
+            }
+            break;
+          case 'initials':
+            if (profile.first_name && profile.last_name) {
+              userName = `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase();
+            } else if (profile.display_name && profile.display_name.trim()) {
+              userName = profile.display_name.trim().substring(0, 2).toUpperCase();
+            } else {
+              userName = 'M';
+            }
+            break;
+          case 'email':
+            userName = profile.display_name.trim() || `Medlem ${index + 1}`;
+            break;
+          default:
+            userName = profile.display_name.trim() || `Medlem ${index + 1}`;
+        }
+      }
       
       return {
         id: membership.user_id,
-        name: 'Medlem ' + membership.user_id.substring(0, 8), // Fallback name
+        name: userName,
         email: undefined,
         status: presence ? 'online' : 'offline',
         community_id: communityId,

@@ -21,7 +21,7 @@ import { StatusCard } from '@/components/status-card';
 import { PreparednessOverview } from '@/components/preparedness-overview';
 import { ResourceSummaryCard } from '@/components/resource-summary-card';
 import { CommunityCoordinationSummary } from '@/components/community-coordination-summary';
-import { MessagingSystem } from '@/components/messaging-system';
+import { MessagingSystemV2 } from '@/components/messaging-system-v2';
 import { ExternalCommunication } from '@/components/external-communication';
 import { WeatherCard } from '@/components/weather-card';
 import { WeatherRibbon } from '@/components/weather-ribbon';
@@ -558,7 +558,26 @@ export default function DashboardPage() {
           {/* Advanced Communication Hub - Enhanced & Resizable */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
             <div className="xl:col-span-1">
-              {user && <MessagingSystem user={user} communityId="demo-community-1" />}
+              {user && joinedCommunities.length > 0 && (
+                <MessagingSystemV2 user={user} communityId={joinedCommunities[0].id} />
+              )}
+              {user && joinedCommunities.length === 0 && (
+                <div className="bg-white rounded-lg shadow-lg p-6 text-center">
+                  <MessageCircle className="mx-auto mb-4 text-gray-400" size={48} />
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                    Gå med i ett samhälle för att börja kommunicera
+                  </h3>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Hitta och anslut till lokala samhällen via fliken "Samhälle"
+                  </p>
+                  <button
+                    onClick={() => router.push('/local')}
+                    className="px-4 py-2 bg-[#3D4A2B] text-white rounded-lg hover:bg-[#2A331E] transition-colors"
+                  >
+                    Hitta samhällen
+                  </button>
+                </div>
+              )}
             </div>
             <div className="xl:col-span-1">
               <ExternalCommunication />

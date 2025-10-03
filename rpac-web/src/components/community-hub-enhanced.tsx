@@ -7,11 +7,13 @@ import {
   Search,
   Settings,
   MapPin,
-  Plus
+  Plus,
+  ChevronDown
 } from 'lucide-react';
 import { CommunityDiscovery } from './community-discovery';
 import { MessagingSystemV2 } from './messaging-system-v2';
 import { useUserProfile } from '@/lib/useUserProfile';
+import { communityService, type LocalCommunity } from '@/lib/supabase';
 import { t } from '@/lib/locales';
 import type { User } from '@supabase/supabase-js';
 
@@ -22,12 +24,51 @@ interface CommunityHubEnhancedProps {
 export function CommunityHubEnhanced({ user }: CommunityHubEnhancedProps) {
   const [activeView, setActiveView] = useState<'discovery' | 'messaging'>('discovery');
   const [activeCommunityId, setActiveCommunityId] = useState<string | undefined>();
+  const [userCommunities, setUserCommunities] = useState<LocalCommunity[]>([]);
+  const [loadingCommunities, setLoadingCommunities] = useState(false);
   const { profile, loading } = useUserProfile(user);
   const userPostalCode = profile?.postal_code;
+
+  // Load user's communities on mount
+  useEffect(() => {
+    if (user && user.id !== 'demo-user') {
+      loadUserCommunities();
+    }
+  }, [user]);
+
+  const loadUserCommunities = async () => {
+    if (!user || user.id === 'demo-user') return;
+    
+    setLoadingCommunities(true);
+    try {
+      const memberships = await communityService.getUserMemberships(user.id);
+      
+      if (memberships.length > 0) {
+        // Load full community details for each membership
+        const communities = await Promise.all(
+          memberships.map(id => communityService.getCommunityById(id))
+        );
+        
+        const validCommunities = communities.filter(c => c !== null) as LocalCommunity[];
+        setUserCommunities(validCommunities);
+        
+        // Auto-select first community if none is selected
+        if (!activeCommunityId && validCommunities.length > 0) {
+          setActiveCommunityId(validCommunities[0].id);
+        }
+      }
+    } catch (err) {
+      console.error('Error loading user communities:', err);
+    } finally {
+      setLoadingCommunities(false);
+    }
+  };
 
   const handleJoinCommunity = (communityId: string) => {
     setActiveCommunityId(communityId);
     setActiveView('messaging');
+    // Reload communities to include the newly joined one
+    loadUserCommunities();
   };
 
   if (loading) {
@@ -125,11 +166,35 @@ export function CommunityHubEnhanced({ user }: CommunityHubEnhancedProps) {
 
           {activeView === 'messaging' && (
             <div>
-              {activeCommunityId ? (
-                <MessagingSystemV2 
-                  user={user}
-                  communityId={activeCommunityId}
-                />
+              {userCommunities.length > 0 ? (
+                <div>
+                  {/* Community Selector */}
+                  {userCommunities.length > 1 && (
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Välj samhälle
+                      </label>
+                      <select
+                        value={activeCommunityId}
+                        onChange={(e) => setActiveCommunityId(e.target.value)}
+                        className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B] bg-white"
+                      >
+                        {userCommunities.map((community) => (
+                          <option key={community.id} value={community.id}>
+                            {community.community_name} ({community.member_count} medlemmar)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  
+                  {activeCommunityId && (
+                    <MessagingSystemV2 
+                      user={user}
+                      communityId={activeCommunityId}
+                    />
+                  )}
+                </div>
               ) : (
                 <div className="text-center py-12">
                   <MessageCircle size={64} className="mx-auto mb-4 text-gray-400" />
@@ -197,19 +262,21 @@ export function CommunityHubEnhanced({ user }: CommunityHubEnhancedProps) {
           <div className="mt-6 bg-gradient-to-r from-[#3D4A2B] to-[#2A331E] rounded-lg p-6 text-white">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="text-center">
-                <div className="text-3xl font-bold mb-1">0</div>
+                <div className="text-3xl font-bold mb-1">{userCommunities.length}</div>
                 <div className="text-sm text-[#C8D5B9]">{t('local_community.your_communities')}</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold mb-1">0</div>
+                <div className="text-3xl font-bold mb-1">
+                  {userCommunities.reduce((sum, c) => sum + (c.member_count || 0), 0)}
+                </div>
                 <div className="text-sm text-[#C8D5B9]">{t('local_community.members_nearby')}</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold mb-1">0</div>
+                <div className="text-3xl font-bold mb-1">-</div>
                 <div className="text-sm text-[#C8D5B9]">{t('local_community.shared_resources')}</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold mb-1">0</div>
+                <div className="text-3xl font-bold mb-1">-</div>
                 <div className="text-sm text-[#C8D5B9]">{t('local_community.active_requests')}</div>
               </div>
             </div>

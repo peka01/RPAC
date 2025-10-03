@@ -15,24 +15,27 @@ import {
   Wifi,
   WifiOff,
   Search,
-  X
+  X,
+  Package
 } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { messagingService, type Message, type Contact } from '@/lib/messaging-service';
+import { ResourceSharingPanel } from './resource-sharing-panel';
 import type { User } from '@supabase/supabase-js';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 interface MessagingSystemProps {
   user: User;
   communityId?: string;
+  initialTab?: 'direct' | 'community' | 'emergency' | 'resources';
 }
 
-export function MessagingSystemV2({ user, communityId }: MessagingSystemProps) {
+export function MessagingSystemV2({ user, communityId, initialTab = 'community' }: MessagingSystemProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [activeContact, setActiveContact] = useState<Contact | null>(null);
   const [newMessage, setNewMessage] = useState('');
-  const [activeTab, setActiveTab] = useState<'direct' | 'community' | 'emergency'>('community');
+  const [activeTab, setActiveTab] = useState<'direct' | 'community' | 'emergency' | 'resources'>(initialTab);
   const [isConnected, setIsConnected] = useState(true);
   const [emergencyMode, setEmergencyMode] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -47,6 +50,13 @@ export function MessagingSystemV2({ user, communityId }: MessagingSystemProps) {
       loadInitialData();
     }
   }, [user?.id, communityId]);
+
+  // Reload messages when tab or contact changes
+  useEffect(() => {
+    if (user?.id) {
+      loadMessages();
+    }
+  }, [activeTab, activeContact]);
 
   // Subscribe to real-time messages
   useEffect(() => {
@@ -96,10 +106,11 @@ export function MessagingSystemV2({ user, communityId }: MessagingSystemProps) {
       setLoading(true);
       setError(null);
 
-      // Load contacts (community members if in community mode)
+      // Load contacts (community members if in community mode, excluding self)
       if (communityId) {
         const onlineUsers = await messagingService.getOnlineUsers(communityId);
-        setContacts(onlineUsers);
+        // Filter out the current user from the contacts list
+        setContacts(onlineUsers.filter(contact => contact.id !== user.id));
       }
 
       // Load messages
@@ -117,6 +128,12 @@ export function MessagingSystemV2({ user, communityId }: MessagingSystemProps) {
     if (!user?.id) return;
 
     try {
+      // Don't load messages on Direct tab without a selected contact
+      if (activeTab === 'direct' && !activeContact) {
+        setMessages([]);
+        return;
+      }
+
       const params: any = { userId: user.id, limit: 100 };
 
       if (activeTab === 'community' && communityId) {
@@ -170,13 +187,21 @@ export function MessagingSystemV2({ user, communityId }: MessagingSystemProps) {
       };
 
       if (activeTab === 'direct' && activeContact) {
+        // Direct message - ONLY set recipientId, NOT communityId
         params.recipientId = activeContact.id;
+        // Explicitly don't set communityId for direct messages
       } else if (activeTab === 'community' && communityId) {
+        // Community message - ONLY set communityId, NOT recipientId
         params.communityId = communityId;
+        // Explicitly don't set recipientId for community messages
       }
 
       await messagingService.sendMessage(params);
       setNewMessage('');
+
+      // Reload messages to show the sent message immediately
+      // (in case realtime subscription is slow)
+      await loadMessages();
 
       if (isEmergency) {
         setEmergencyMode(true);
@@ -238,44 +263,60 @@ export function MessagingSystemV2({ user, communityId }: MessagingSystemProps) {
   return (
     <div className="flex flex-col h-full bg-white rounded-lg shadow-lg overflow-hidden">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <MessageCircle size={24} />
-            <h2 className="text-xl font-bold">
-              {activeTab === 'community' ? 'Samhällsmeddelanden' : 
-               activeTab === 'direct' ? 'Direktmeddelanden' : 
-               'Nödkommunikation'}
-            </h2>
-          </div>
-          <div className="flex items-center gap-2">
-            {isConnected ? (
-              <><Wifi size={20} /> <span className="text-sm">Ansluten</span></>
-            ) : (
-              <><WifiOff size={20} /> <span className="text-sm">Frånkopplad</span></>
-            )}
+      <div className="p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-md bg-gradient-to-br from-[#3D4A2B] to-[#5C6B47]">
+              <MessageCircle className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">
+                {activeTab === 'community' ? 'Samhällsmeddelanden' : 
+                 activeTab === 'direct' ? 'Direktmeddelanden' : 
+                 activeTab === 'resources' ? 'Resursdelning & Hjälp' :
+                 'Nödkommunikation'}
+              </h2>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                {isConnected ? (
+                  <><Wifi size={16} /> <span>Ansluten</span></>
+                ) : (
+                  <><WifiOff size={16} /> <span>Frånkopplad</span></>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => setActiveTab('community')}
-            className={`flex-1 py-2 px-4 rounded-lg transition-all ${
+            className={`flex-1 min-w-[120px] py-2 px-4 rounded-lg transition-all border-2 ${
               activeTab === 'community'
-                ? 'bg-white text-blue-600 font-semibold'
-                : 'bg-blue-500/30 text-white hover:bg-blue-500/50'
+                ? 'bg-[#3D4A2B] text-white border-[#3D4A2B] font-semibold'
+                : 'bg-white text-gray-700 border-gray-300 hover:border-[#3D4A2B] hover:text-[#3D4A2B]'
             }`}
           >
             <Users className="inline mr-2" size={18} />
             Samhälle
           </button>
           <button
+            onClick={() => setActiveTab('resources')}
+            className={`flex-1 min-w-[120px] py-2 px-4 rounded-lg transition-all border-2 ${
+              activeTab === 'resources'
+                ? 'bg-[#3D4A2B] text-white border-[#3D4A2B] font-semibold'
+                : 'bg-white text-gray-700 border-gray-300 hover:border-[#3D4A2B] hover:text-[#3D4A2B]'
+            }`}
+          >
+            <Package className="inline mr-2" size={18} />
+            Resurser
+          </button>
+          <button
             onClick={() => setActiveTab('direct')}
-            className={`flex-1 py-2 px-4 rounded-lg transition-all ${
+            className={`flex-1 min-w-[120px] py-2 px-4 rounded-lg transition-all border-2 ${
               activeTab === 'direct'
-                ? 'bg-white text-blue-600 font-semibold'
-                : 'bg-blue-500/30 text-white hover:bg-blue-500/50'
+                ? 'bg-[#3D4A2B] text-white border-[#3D4A2B] font-semibold'
+                : 'bg-white text-gray-700 border-gray-300 hover:border-[#3D4A2B] hover:text-[#3D4A2B]'
             }`}
           >
             <MessageCircle className="inline mr-2" size={18} />
@@ -283,10 +324,10 @@ export function MessagingSystemV2({ user, communityId }: MessagingSystemProps) {
           </button>
           <button
             onClick={() => setActiveTab('emergency')}
-            className={`flex-1 py-2 px-4 rounded-lg transition-all ${
+            className={`flex-1 min-w-[120px] py-2 px-4 rounded-lg transition-all border-2 ${
               activeTab === 'emergency'
-                ? 'bg-red-600 text-white font-semibold'
-                : 'bg-red-500/30 text-white hover:bg-red-500/50'
+                ? 'bg-red-600 text-white border-red-600 font-semibold'
+                : 'bg-white text-red-600 border-red-300 hover:border-red-600'
             }`}
           >
             <AlertTriangle className="inline mr-2" size={18} />
@@ -371,40 +412,70 @@ export function MessagingSystemV2({ user, communityId }: MessagingSystemProps) {
           </div>
         )}
 
-        {/* Messages area */}
+        {/* Messages area or Resources panel */}
         <div className="flex-1 flex flex-col">
-          {/* Active contact header (for direct messages) */}
-          {activeTab === 'direct' && activeContact && (
-            <div className="bg-gray-50 border-b border-gray-200 p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`w-3 h-3 rounded-full ${
-                    activeContact.status === 'online' ? 'bg-green-500' :
-                    activeContact.status === 'away' ? 'bg-yellow-500' : 'bg-gray-400'
-                  }`} />
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{activeContact.name}</h3>
-                    <p className="text-sm text-gray-500">
-                      {activeContact.status === 'online' ? 'Online' : 
-                       activeContact.status === 'away' ? 'Borta' : 
-                       activeContact.last_seen ? `Senast ${formatTimestamp(activeContact.last_seen)}` : 'Offline'}
-                    </p>
+          {/* Resources Tab Content */}
+          {activeTab === 'resources' ? (
+            <div className="flex-1 overflow-y-auto p-4">
+              {communityId ? (
+                <ResourceSharingPanel
+                  user={user}
+                  communityId={communityId}
+                  onSendMessage={(content) => {
+                    setNewMessage(content);
+                    setActiveTab('community');
+                  }}
+                />
+              ) : (
+                <div className="text-center py-12 text-gray-500">
+                  <Package size={64} className="mx-auto mb-4 opacity-30" />
+                  <p className="text-lg font-medium">Välj ett samhälle först</p>
+                  <p className="text-sm">Gå med i ett samhälle för att dela resurser och be om hjälp</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Active contact header (for direct messages) */}
+              {activeTab === 'direct' && activeContact && (
+                <div className="bg-gray-50 border-b border-gray-200 p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${
+                        activeContact.status === 'online' ? 'bg-green-500' :
+                        activeContact.status === 'away' ? 'bg-yellow-500' : 'bg-gray-400'
+                      }`} />
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{activeContact.name}</h3>
+                        <p className="text-sm text-gray-500">
+                          {activeContact.status === 'online' ? 'Online' : 
+                           activeContact.status === 'away' ? 'Borta' : 
+                           activeContact.last_seen ? `Senast ${formatTimestamp(activeContact.last_seen)}` : 'Offline'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button 
+                        className="p-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition-colors cursor-not-allowed opacity-60"
+                        title="Röstsamtal kommer snart"
+                        disabled
+                      >
+                        <Phone size={20} />
+                      </button>
+                      <button 
+                        className="p-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition-colors cursor-not-allowed opacity-60"
+                        title="Videosamtal kommer snart"
+                        disabled
+                      >
+                        <Video size={20} />
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <button className="p-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition-colors">
-                    <Phone size={20} />
-                  </button>
-                  <button className="p-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition-colors">
-                    <Video size={20} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+              )}
 
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 messages-container bg-gray-50">
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 messages-container bg-gray-50">
             {messages.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 <MessageCircle size={64} className="mx-auto mb-4 opacity-30" />
@@ -501,10 +572,12 @@ export function MessagingSystemV2({ user, communityId }: MessagingSystemProps) {
               </div>
             </div>
             
-            <p className="text-xs text-gray-500 mt-2">
-              Tryck Enter för att skicka • Shift+Enter för ny rad
-            </p>
-          </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Tryck Enter för att skicka • Shift+Enter för ny rad
+                </p>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

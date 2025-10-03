@@ -25,7 +25,7 @@ import {
   Droplets,
   Sun as SunIcon
 } from 'lucide-react';
-import { UserProfile } from '@/components/user-profile';
+import { UnifiedProfileSettings } from '@/components/unified-profile-settings';
 import { useUserProfile } from '@/lib/useUserProfile';
 import { supabase } from '@/lib/supabase';
 import { t } from '@/lib/locales';
@@ -142,6 +142,11 @@ export default function SettingsPage() {
     }
   });
 
+  // Stable callback for profile save
+  const handleProfileSave = () => {
+    console.log('Profile saved successfully');
+  };
+
   const tabs = [
     { id: 'profile', label: 'Profil', icon: User },
     { id: 'cultivation', label: 'Odlingsprofil', icon: Sprout },
@@ -239,17 +244,12 @@ export default function SettingsPage() {
           {/* Main Content */}
           <div className="lg:col-span-3">
             {/* Profile Tab */}
-            {activeTab === 'profile' && (
-              <div className="space-y-6">
-                <UserProfile 
-                  user={user}
-                  initialProfile={profile || undefined}
-                  onProfileUpdate={(updatedProfile) => {
-                    console.log('Profile updated:', updatedProfile);
-                    // The profile is automatically saved by the component
-                  }}
-                />
-              </div>
+            {activeTab === 'profile' && user && (
+              <UnifiedProfileSettings 
+                key={user.id}
+                user={user}
+                onSave={handleProfileSave}
+              />
             )}
 
             {/* Cultivation Tab */}

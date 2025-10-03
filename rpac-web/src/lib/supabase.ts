@@ -225,6 +225,20 @@ export const communityService = {
     return data || []
   },
 
+  async getCommunityById(communityId: string): Promise<LocalCommunity | null> {
+    const { data, error } = await supabase
+      .from('local_communities')
+      .select('*')
+      .eq('id', communityId)
+      .single()
+    
+    if (error) {
+      console.error('Error fetching community:', error)
+      return null
+    }
+    return data
+  },
+
   async createCommunity(community: Omit<LocalCommunity, 'id' | 'created_at' | 'updated_at'>): Promise<LocalCommunity> {
     const { data, error } = await supabase
       .from('local_communities')
