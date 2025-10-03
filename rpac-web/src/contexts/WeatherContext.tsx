@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { WeatherService, WeatherData, WeatherForecast } from '@/lib/weather-service';
+import { WeatherService, WeatherData, WeatherForecast, HourlyForecast } from '@/lib/weather-service';
 import type { User } from '@supabase/supabase-js';
 import { useUserProfile } from '@/lib/useUserProfile';
 
@@ -11,6 +11,8 @@ interface WeatherContextType {
   extremeWeatherWarnings: string[];
   loading: boolean;
   refreshWeather: () => Promise<void>;
+  hourlyForecast: HourlyForecast[];
+  nextWeatherChange: string | null;
 }
 
 const WeatherContext = createContext<WeatherContextType | undefined>(undefined);
@@ -25,6 +27,8 @@ export function WeatherProvider({ children, user }: WeatherProviderProps) {
   const [forecast, setForecast] = useState<WeatherForecast[]>([]);
   const [extremeWeatherWarnings, setExtremeWeatherWarnings] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hourlyForecast, setHourlyForecast] = useState<HourlyForecast[]>([]);
+  const [nextWeatherChange, setNextWeatherChange] = useState<string | null>(null);
   
   // Use the proven useUserProfile hook pattern
   const { profile } = useUserProfile(user);
@@ -39,24 +43,32 @@ export function WeatherProvider({ children, user }: WeatherProviderProps) {
         city: profile.city
       } : undefined;
 
-      // Fetch current weather and forecast
-      const [weatherData, forecastData] = await Promise.all([
+      // Fetch current weather, forecast, and hourly data
+      const [weatherData, forecastData, hourlyData] = await Promise.all([
         WeatherService.getCurrentWeather(undefined, undefined, userProfile),
-        WeatherService.getWeatherForecast(undefined, undefined, userProfile)
+        WeatherService.getWeatherForecast(undefined, undefined, userProfile),
+        WeatherService.getHourlyForecast(undefined, undefined, userProfile)
       ]);
 
       setWeather(weatherData);
       setForecast(forecastData);
+      setHourlyForecast(hourlyData);
 
       // Get extreme weather warnings
       const warnings = WeatherService.getExtremeWeatherWarnings(forecastData);
       setExtremeWeatherWarnings(warnings);
+
+      // Analyze hourly forecast for next significant change
+      const change = WeatherService.getNextWeatherChange(hourlyData);
+      setNextWeatherChange(change);
     } catch (error) {
       console.error('Error fetching weather data:', error);
       // Set fallback data on error
       setWeather(null);
       setForecast([]);
       setExtremeWeatherWarnings([]);
+      setHourlyForecast([]);
+      setNextWeatherChange(null);
     } finally {
       setLoading(false);
     }
@@ -76,7 +88,9 @@ export function WeatherProvider({ children, user }: WeatherProviderProps) {
     forecast,
     extremeWeatherWarnings,
     loading,
-    refreshWeather: fetchWeatherData
+    refreshWeather: fetchWeatherData,
+    hourlyForecast,
+    nextWeatherChange
   };
 
   return (

@@ -1,0 +1,2 @@
+# Add directories or file patterns to ignore during indexing (e.g. foo/ or *.csv)
+Before doing anything, consult the documentation in the docs-folder. @llm_instructions is a good start.

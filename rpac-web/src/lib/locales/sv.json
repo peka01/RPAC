@@ -115,7 +115,13 @@
     "status_placeholder": "Din beredskapsstatus uppdateras kontinuerligt",
     "recent_activity": "Senaste aktivitet",
     "activity_placeholder": "Senaste aktiviteter visas här när de sker",
-    "no_pets": "Inga husdjur"
+    "no_pets": "Inga husdjur",
+    "cultivation_calendar_progress": "Odlingskalender framsteg",
+    "tasks_completed": "{completed} av {total} uppgifter",
+    "cultivation_progress_excellent": "Utmärkt arbete! Du ligger bra till med din odling",
+    "cultivation_progress_good": "Bra framsteg! Fortsätt att bocka av uppgifter",
+    "cultivation_progress_start": "Kom igång med dina odlingsuppgifter för säsongen",
+    "show_calendar": "Visa kalender"
   },
   "preparedness": {
     "overall_score": "Hur förberedd du är",
@@ -239,6 +245,7 @@
     "optimal": "Optimal",
     "contacts": "Kontakter",
     "network": "Nätverk",
+    "calendar_progress": "Kalenderframsteg",
     "messages_count": "3 meddelanden",
     "cultivation_plan": "Odlingsplan",
     "cultivation_status": "Tomater: Utvecklas • Kål: Mogen snart • Nästa: Morötter",

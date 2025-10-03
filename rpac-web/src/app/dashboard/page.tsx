@@ -24,6 +24,7 @@ import { CommunityCoordinationSummary } from '@/components/community-coordinatio
 import { MessagingSystem } from '@/components/messaging-system';
 import { ExternalCommunication } from '@/components/external-communication';
 import { WeatherCard } from '@/components/weather-card';
+import { WeatherRibbon } from '@/components/weather-ribbon';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 
@@ -32,8 +33,35 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [cultivationPlan, setCultivationPlan] = useState<any>(null);
+  const [cultivationProgress, setCultivationProgress] = useState<{completed: number; total: number; percentage: number}>({
+    completed: 0,
+    total: 0,
+    percentage: 0
+  });
   const router = useRouter();
 
+
+  // Load cultivation calendar progress
+  const loadCultivationProgress = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('cultivation_calendar')
+        .select('is_completed')
+        .eq('user_id', userId);
+      
+      if (error) {
+        return;
+      }
+      
+      const total = data?.length || 0;
+      const completed = data?.filter(item => item.is_completed).length || 0;
+      const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+      
+      setCultivationProgress({ completed, total, percentage });
+    } catch (error) {
+      // Silently fail if cultivation calendar doesn't exist yet
+    }
+  };
 
   // Load cultivation plan from Supabase
   const loadCultivationPlan = async (userId: string) => {
@@ -42,12 +70,58 @@ export default function DashboardPage() {
         .from('cultivation_plans')
         .select('*')
         .eq('user_id', userId)
+        .eq('is_primary', true) // Load primary plan first
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (data && !error) {
-        setCultivationPlan(data);
+      if (!data && !error) {
+        // If no primary plan, get the most recent plan
+        const { data: latestPlan, error: latestError } = await supabase
+          .from('cultivation_plans')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        
+        if (latestPlan && !latestError) {
+          // Extract relevant data from plan_data for display
+          const planData = latestPlan.plan_data || {};
+          const realTimeStats = planData.realTimeStats || {};
+          const gardenPlan = planData.gardenPlan || {};
+          
+          setCultivationPlan({
+            id: latestPlan.id,
+            title: latestPlan.title || planData.name,
+            name: planData.name,
+            description: latestPlan.description,
+            self_sufficiency_percent: realTimeStats.selfSufficiencyPercent || gardenPlan.selfSufficiencyPercent || 0,
+            selfSufficiencyPercent: realTimeStats.selfSufficiencyPercent || gardenPlan.selfSufficiencyPercent || 0,
+            crops: gardenPlan.crops || [],
+            estimated_cost: realTimeStats.totalCost || gardenPlan.estimatedCost || 0,
+            created_at: latestPlan.created_at,
+            is_primary: latestPlan.is_primary
+          });
+        }
+      } else if (data && !error) {
+        // Extract relevant data from plan_data for display
+        const planData = data.plan_data || {};
+        const realTimeStats = planData.realTimeStats || {};
+        const gardenPlan = planData.gardenPlan || {};
+        
+        setCultivationPlan({
+          id: data.id,
+          title: data.title || planData.name,
+          name: planData.name,
+          description: data.description,
+          self_sufficiency_percent: realTimeStats.selfSufficiencyPercent || gardenPlan.selfSufficiencyPercent || 0,
+          selfSufficiencyPercent: realTimeStats.selfSufficiencyPercent || gardenPlan.selfSufficiencyPercent || 0,
+          crops: gardenPlan.crops || [],
+          estimated_cost: realTimeStats.totalCost || gardenPlan.estimatedCost || 0,
+          created_at: data.created_at,
+          is_primary: data.is_primary
+        });
       }
     } catch (error) {
       console.error('Error loading cultivation plan:', error);
@@ -60,6 +134,7 @@ export default function DashboardPage() {
       if (user) {
         setUser(user);
         await loadCultivationPlan(user.id);
+        await loadCultivationProgress(user.id);
         setLoading(false);
       } else {
         // If no user is authenticated, try to authenticate with demo user
@@ -203,6 +278,9 @@ export default function DashboardPage() {
 
   return (
     <div className="relative" style={{ background: 'var(--bg-primary)' }}>
+      {/* Weather Ribbon - Full width, above all content */}
+      <WeatherRibbon user={user} />
+      
       <div className="max-w-7xl mx-auto px-6 py-6">
 
         {/* Dashboard Content */}
@@ -267,7 +345,13 @@ export default function DashboardPage() {
                 backgroundColor: 'var(--bg-card)',
                 borderColor: 'var(--color-khaki)'
               }}
-              onClick={() => router.push('/individual?section=cultivation&subsection=ai-planner')}
+              onClick={() => {
+                // If there's progress, go to calendar, otherwise go to planner
+                const destination = cultivationProgress.total > 0 
+                  ? '/individual?section=cultivation&subsection=calendar'
+                  : '/individual?section=cultivation&subsection=ai-planner';
+                router.push(destination);
+              }}
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm" style={{ 
@@ -283,7 +367,7 @@ export default function DashboardPage() {
                 </div>
               </div>
               <h3 className="text-sm font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
-                {cultivationPlan?.title || cultivationPlan?.name || 'Odlingsplanering'}
+                {cultivationPlan ? `Odlingsplan - ${cultivationPlan.title || cultivationPlan.name}` : 'Odlingsplanering'}
               </h3>
               
               {cultivationPlan ? (
@@ -314,14 +398,31 @@ export default function DashboardPage() {
                       </div>
                     )}
                   </div>
-                  
-                  {/* Plan Date */}
-                  <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-                    {cultivationPlan.created_at 
-                      ? `Skapad ${new Date(cultivationPlan.created_at).toLocaleDateString('sv-SE')}`
-                      : 'Aktiv plan'
-                    }
-                  </div>
+
+                  {/* Calendar Progress - Only show if tasks exist */}
+                  {cultivationProgress.total > 0 && (
+                    <div className="pt-2 mt-2 border-t" style={{ borderColor: 'rgba(160, 142, 90, 0.2)' }}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
+                          {t('dashboard.calendar_progress')}
+                        </span>
+                        <span className="text-xs font-bold" style={{ color: 'var(--color-khaki)' }}>
+                          {cultivationProgress.percentage}%
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="flex-1 rounded-full h-1.5" style={{ backgroundColor: 'rgba(160, 142, 90, 0.2)' }}>
+                          <div className="h-1.5 rounded-full transition-all duration-500" style={{ 
+                            width: `${cultivationProgress.percentage}%`, 
+                            backgroundColor: 'var(--color-sage)' 
+                          }}></div>
+                        </div>
+                        <span className="text-xs whitespace-nowrap" style={{ color: 'var(--text-secondary)' }}>
+                          {cultivationProgress.completed}/{cultivationProgress.total}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-2 mb-3">
@@ -368,37 +469,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
               )}
-              <div className="flex justify-between items-center">
-                <div className="flex space-x-2 flex-1">
-                  <div className="flex-1 rounded-full h-2" style={{ backgroundColor: 'rgba(160, 142, 90, 0.2)' }}>
-                    <div className="h-2 rounded-full" style={{ 
-                      width: `${cultivationPlan?.self_sufficiency_percent || cultivationPlan?.selfSufficiencyPercent || 0}%`, 
-                      backgroundColor: 'var(--color-khaki)' 
-                    }}></div>
-                  </div>
-                  <span className="text-xs font-semibold" style={{ color: 'var(--color-khaki)' }}>
-                    {(() => {
-                      const percentage = cultivationPlan?.self_sufficiency_percent || 0;
-                      
-              if (percentage >= 70) return t('dashboard.status_optimal');
-              if (percentage >= 40) return t('dashboard.status_good');
-              if (percentage > 0) return t('dashboard.status_started');
-              return t('dashboard.status_plan');
-                    })()}
-                  </span>
-                </div>
-                <span className="text-xs ml-2 group-hover:underline" style={{ color: 'var(--color-khaki)' }}>
-                  {cultivationPlan ? t('dashboard.manage') : t('dashboard.create_plan')}
-                </span>
-              </div>
             </div>
-
-            {/* Weather Card */}
-            {user && (
-              <div className="lg:col-span-2 xl:col-span-1">
-                <WeatherCard user={user} />
-              </div>
-            )}
           </div>
 
           {/* Advanced Communication Hub - Enhanced & Resizable */}

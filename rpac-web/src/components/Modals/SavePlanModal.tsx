@@ -7,9 +7,8 @@ interface SavePlanModalProps {
   setPlanName: (name: string) => void;
   saveToCalendar: boolean;
   setSaveToCalendar: (value: boolean) => void;
-  saveReminders: boolean;
-  setSaveReminders: (value: boolean) => void;
   onSave: () => void;
+  isUpdate?: boolean;
 }
 
 export function SavePlanModal({
@@ -19,9 +18,8 @@ export function SavePlanModal({
   setPlanName,
   saveToCalendar,
   setSaveToCalendar,
-  saveReminders,
-  setSaveReminders,
-  onSave
+  onSave,
+  isUpdate = false
 }: SavePlanModalProps) {
   if (!isOpen) return null;
 
@@ -30,7 +28,7 @@ export function SavePlanModal({
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-            Spara odlingsplan
+            {isUpdate ? 'Uppdatera odlingsplan' : 'Spara odlingsplan'}
           </h2>
           <button
             onClick={onClose}
@@ -67,19 +65,6 @@ export function SavePlanModal({
                 Spara till Odlingskalender och skriv över befintlig planering
               </label>
             </div>
-            
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="saveReminders"
-                checked={saveReminders}
-                onChange={(e) => setSaveReminders(e.target.checked)}
-                className="w-4 h-4"
-              />
-              <label htmlFor="saveReminders" className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                Spara påminnelser för odlingsaktiviteter
-              </label>
-            </div>
           </div>
         </div>
         
@@ -101,7 +86,7 @@ export function SavePlanModal({
               color: 'white'
             }}
           >
-            Spara plan
+            {isUpdate ? 'Uppdatera plan' : 'Spara plan'}
           </button>
         </div>
       </div>

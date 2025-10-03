@@ -24,11 +24,12 @@ import {
   MessageCircle,
   ArrowRight,
   Plus,
-  Eye
+  Eye,
+  Sprout
 } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { useUserProfile } from '@/lib/useUserProfile';
-import { resourceService } from '@/lib/supabase';
+import { resourceService, supabase } from '@/lib/supabase';
 
 interface PreparednessScore {
   overall: number;
@@ -77,6 +78,11 @@ export function PersonalDashboard({ user }: PersonalDashboardProps = {}) {
   const [resourceCategories, setResourceCategories] = useState<ResourceCategory[]>([]);
   const [criticalAlerts, setCriticalAlerts] = useState<string[]>([]);
   const [quickActions, setQuickActions] = useState<QuickAction[]>([]);
+  const [cultivationProgress, setCultivationProgress] = useState<{completed: number; total: number; percentage: number}>({
+    completed: 0,
+    total: 0,
+    percentage: 0
+  });
 
   // Calculate preparedness score and generate insights
   useEffect(() => {
@@ -204,6 +210,36 @@ export function PersonalDashboard({ user }: PersonalDashboardProps = {}) {
 
     loadResourcesAndCalculate();
   }, [profile, user?.id]);
+
+  // Load cultivation calendar progress
+  useEffect(() => {
+    const loadCultivationProgress = async () => {
+      if (!user?.id) {
+        return;
+      }
+      
+      try {
+        const { data, error } = await supabase
+          .from('cultivation_calendar')
+          .select('is_completed')
+          .eq('user_id', user.id);
+        
+        if (error) {
+          return;
+        }
+        
+        const total = data?.length || 0;
+        const completed = data?.filter(item => item.is_completed).length || 0;
+        const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+        
+        setCultivationProgress({ completed, total, percentage });
+      } catch (error) {
+        // Silently fail if cultivation calendar doesn't exist yet
+      }
+    };
+    
+    loadCultivationProgress();
+  }, [user?.id]);
 
   const getScoreColor = (score: number) => {
     if (score === 0) return '#6b7280'; // gray-500 for loading state
@@ -355,6 +391,70 @@ export function PersonalDashboard({ user }: PersonalDashboardProps = {}) {
         })}
         </div>
       </div>
+
+      {/* Cultivation Calendar Progress */}
+      {cultivationProgress.total > 0 && (
+        <div className="bg-white rounded-xl p-6 shadow-sm border">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center">
+              <Sprout className="w-5 h-5 mr-2" style={{ color: 'var(--color-sage)' }} />
+              <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+                {t('individual.cultivation_calendar_progress')}
+              </h3>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold" style={{ color: 'var(--color-sage)' }}>
+                {cultivationProgress.percentage}%
+              </div>
+              <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                {t('individual.tasks_completed', { 
+                  completed: cultivationProgress.completed, 
+                  total: cultivationProgress.total 
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Progress bar */}
+          <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
+            <div
+              className="h-3 rounded-full transition-all duration-500"
+              style={{ 
+                backgroundColor: 'var(--color-sage)',
+                width: `${cultivationProgress.percentage}%`
+              }}
+            />
+          </div>
+
+          {/* Status message */}
+          <div className="flex items-center justify-between p-3 rounded-lg" 
+               style={{ backgroundColor: 'var(--color-sage)10' }}>
+            <div className="flex items-center">
+              {cultivationProgress.percentage >= 80 ? (
+                <CheckCircle className="w-5 h-5 mr-2" style={{ color: 'var(--color-sage)' }} />
+              ) : cultivationProgress.percentage >= 50 ? (
+                <TrendingUp className="w-5 h-5 mr-2" style={{ color: 'var(--color-crisis-blue)' }} />
+              ) : (
+                <Clock className="w-5 h-5 mr-2" style={{ color: 'var(--color-crisis-orange)' }} />
+              )}
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                {cultivationProgress.percentage >= 80 
+                  ? t('individual.cultivation_progress_excellent')
+                  : cultivationProgress.percentage >= 50 
+                  ? t('individual.cultivation_progress_good')
+                  : t('individual.cultivation_progress_start')}
+              </span>
+            </div>
+            <button 
+              className="text-sm font-medium flex items-center space-x-1" 
+              style={{ color: 'var(--color-sage)' }}
+            >
+              <Calendar className="w-4 h-4" />
+              <span>{t('individual.show_calendar')}</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Quick Actions */}
       {quickActions.length > 0 && (

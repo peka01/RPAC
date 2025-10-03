@@ -11,9 +11,9 @@ import { generateMonthlyTasks } from '@/lib/cultivation/generateMonthlyTasks';
 import { ProfileEditorModal } from './profile-editor-modal';
 import { SavePlanModal } from './Modals/SavePlanModal';
 import { CustomCropModal } from './Modals/CustomCropModal';
-import { ProfileSetup } from './SuperbOdlingsPlanerare/ProfileSetup';
-import { AIGenerationView } from './SuperbOdlingsPlanerare/AIGenerationView';
-import { InteractiveDashboard } from './SuperbOdlingsPlanerare/InteractiveDashboard';
+import { ProfileSetup } from './CultivationPlanner/ProfileSetup';
+import { AIGenerationView } from './CultivationPlanner/AIGenerationView';
+import { InteractiveDashboard } from './CultivationPlanner/InteractiveDashboard';
 import { CheckCircle } from 'lucide-react';
 
 interface SuperbOdlingsplanerareProps {
@@ -88,7 +88,8 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
   const [planName, setPlanName] = useState('');
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveToCalendar, setSaveToCalendar] = useState(false);
-  const [saveReminders, setSaveReminders] = useState(false);
+  const [loadedPlanName, setLoadedPlanName] = useState<string>('');
+  const [loadedPlanId, setLoadedPlanId] = useState<string | null>(null);
 
   // Custom crop modal
   const [showCustomCropModal, setShowCustomCropModal] = useState(false);
@@ -433,15 +434,48 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
       console.log('Final planData structure:', {
         name: planData.plan_data.name,
         nameType: typeof planData.plan_data.name,
-        fullPlanData: planData
+        fullPlanData: planData,
+        isUpdate: !!loadedPlanId,
+        planId: loadedPlanId
       });
 
-      // Save to Supabase
-      const { data, error } = await supabase
-        .from('cultivation_plans')
-        .insert([planData])
-        .select()
-        .single();
+      // Save or update to Supabase
+      let data, error;
+      
+      if (loadedPlanId) {
+        // Update existing plan
+        console.log('Updating existing plan:', loadedPlanId);
+        const updateResult = await supabase
+          .from('cultivation_plans')
+          .update({
+            plan_data: planData.plan_data,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', loadedPlanId)
+          .select()
+          .single();
+        
+        data = updateResult.data;
+        error = updateResult.error;
+      } else {
+        // Insert new plan
+        console.log('Creating new plan');
+        const insertResult = await supabase
+          .from('cultivation_plans')
+          .insert([planData])
+          .select()
+          .single();
+        
+        data = insertResult.data;
+        error = insertResult.error;
+        
+        // Set the new plan as the loaded plan for future saves
+        if (!error && data) {
+          setLoadedPlanId(data.id);
+          const newPlanName = planData.plan_data.name;
+          setLoadedPlanName(newPlanName);
+        }
+      }
 
       if (error) {
         console.error('Error saving plan:', error);
@@ -457,16 +491,11 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
         setShowSaveModal(false);
         setPlanName('');
         setSaveToCalendar(false);
-        setSaveReminders(false);
       }, 3000);
 
       // Save to calendar if requested
       if (saveToCalendar) {
         await saveToCalendarEntries();
-      }
-      
-      if (saveReminders) {
-        await saveRemindersToCalendar();
       }
       
       // Force a refresh of the plans list by triggering a custom event
@@ -534,77 +563,6 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
     }
   };
 
-  const saveRemindersToCalendar = async () => {
-    if (!gardenPlan || !gardenPlan.crops || !user) return;
-    
-    try {
-      console.log('Saving reminders to calendar...');
-      
-      // Delete existing reminders for this user to avoid duplicates
-      await supabase
-        .from('cultivation_reminders')
-        .delete()
-        .eq('user_id', user.id);
-      
-      // Prepare reminders from crops
-      const reminders: any[] = [];
-      const currentYear = new Date().getFullYear();
-      
-      gardenPlan.crops.forEach((crop: any) => {
-        const cropName = crop.name || 'Okänd gröda';
-        
-        // Add sowing reminder (spring - April)
-        reminders.push({
-          user_id: user.id,
-          reminder_type: 'sowing',
-          crop_name: cropName,
-          reminder_date: new Date(currentYear, 3, 15).toISOString().split('T')[0], // April 15
-          is_recurring: true,
-          recurrence_pattern: 'yearly',
-          is_completed: false,
-          notes: `Tid att så ${cropName}`
-        });
-        
-        // Add planting reminder (spring - May)
-        reminders.push({
-          user_id: user.id,
-          reminder_type: 'planting',
-          crop_name: cropName,
-          reminder_date: new Date(currentYear, 4, 15).toISOString().split('T')[0], // May 15
-          is_recurring: true,
-          recurrence_pattern: 'yearly',
-          is_completed: false,
-          notes: `Tid att plantera ${cropName}`
-        });
-        
-        // Add harvesting reminder (autumn - August)
-        reminders.push({
-          user_id: user.id,
-          reminder_type: 'harvesting',
-          crop_name: cropName,
-          reminder_date: new Date(currentYear, 7, 15).toISOString().split('T')[0], // August 15
-          is_recurring: true,
-          recurrence_pattern: 'yearly',
-          is_completed: false,
-          notes: `Tid att skörda ${cropName}`
-        });
-      });
-      
-      if (reminders.length > 0) {
-        const { error } = await supabase
-          .from('cultivation_reminders')
-          .insert(reminders);
-        
-        if (error) {
-          console.error('Error saving reminders:', error);
-        } else {
-          console.log(`Successfully saved ${reminders.length} reminders`);
-        }
-      }
-    } catch (error) {
-      console.error('Error in saveRemindersToCalendar:', error);
-    }
-  };
 
   // Update profile data when profile changes
   useEffect(() => {
@@ -677,6 +635,13 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
   // Load selected plan when provided
   useEffect(() => {
     if (selectedPlan && selectedPlan.plan_data) {
+      // Extract plan name from various possible locations
+      const planName = selectedPlan.title || 
+                      selectedPlan.plan_data?.name || 
+                      selectedPlan.name || 
+                      `Odlingsplan ${new Date(selectedPlan.created_at).toLocaleDateString('sv-SE')}`;
+      setLoadedPlanName(planName);
+      setLoadedPlanId(selectedPlan.id); // Save the plan ID for updates
       loadSelectedPlanData(selectedPlan.plan_data);
     }
   }, [selectedPlan]);
@@ -698,6 +663,12 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
 
           if (!error && data && data.plan_data) {
             console.log('Auto-loading latest plan:', data);
+            const planName = data.title || 
+                            data.plan_data?.name || 
+                            data.name || 
+                            `Odlingsplan ${new Date(data.created_at).toLocaleDateString('sv-SE')}`;
+            setLoadedPlanName(planName);
+            setLoadedPlanId(data.id); // Save the plan ID for updates
             loadSelectedPlanData(data.plan_data);
           }
         } catch (error) {
@@ -765,6 +736,8 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
   const generateGardenPlan = async () => {
     setCurrentStep('generating');
     setLoading(true);
+    setLoadedPlanName(''); // Clear loaded plan name when generating a new plan
+    setLoadedPlanId(null); // Clear plan ID so save creates a new plan
 
     try {
       // Show AI processing steps with realistic timing
@@ -847,7 +820,12 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
             setCropVolumes={setCropVolumes}
             onEditProfile={() => setShowProfileEditor(true)}
             onSavePlan={() => {
-              setPlanName(`Odlingsplan ${new Date().toLocaleDateString('sv-SE')}`);
+              // Pre-fill with loaded plan name if updating, otherwise use date
+              if (loadedPlanId && loadedPlanName) {
+                setPlanName(loadedPlanName);
+              } else {
+                setPlanName(`Odlingsplan ${new Date().toLocaleDateString('sv-SE')}`);
+              }
               setShowSaveModal(true);
             }}
             onNewPlan={() => setCurrentStep('profile')}
@@ -856,6 +834,7 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
             onUpdateCrop={handleUpdateCrop}
             onDeleteCustomCrop={handleDeleteCustomCrop}
             generateMonthlyTasks={generateMonthlyTasksHandler}
+            loadedPlanName={loadedPlanName}
           />
         )}
       </div>
@@ -874,9 +853,8 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
         setPlanName={setPlanName}
         saveToCalendar={saveToCalendar}
         setSaveToCalendar={setSaveToCalendar}
-        saveReminders={saveReminders}
-        setSaveReminders={setSaveReminders}
         onSave={() => savePlanning(planName)}
+        isUpdate={!!loadedPlanId}
       />
 
       <CustomCropModal

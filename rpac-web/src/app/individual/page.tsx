@@ -7,9 +7,7 @@ import { PlantDiagnosis } from '@/components/plant-diagnosis';
 import { PersonalDashboard } from '@/components/personal-dashboard';
 import { CultivationCalendarV2 } from '@/components/cultivation-calendar-v2';
 import { AICultivationAdvisor } from '@/components/ai-cultivation-advisor';
-import { AICultivationPlanner } from '@/components/ai-cultivation-planner';
-import { EnhancedCultivationPlanner } from '@/components/enhanced-cultivation-planner';
-import { SuperbOdlingsplanerare } from '@/components/superb-odlingsplanerare-refactored';
+import { SuperbOdlingsplanerare } from '@/components/CultivationPlanner';
 import { CultivationReminders } from '@/components/cultivation-reminders';
 import { CrisisCultivation } from '@/components/crisis-cultivation';
 import { PersonalAICoach } from '@/components/personal-ai-coach';
@@ -411,11 +409,9 @@ function IndividualPageContent() {
               <ExistingCultivationPlans 
                 user={user}
                 onViewPlan={(plan) => {
-                  console.log('Viewing plan:', plan);
                   setSelectedPlan(plan);
                 }}
                 onEditPlan={(plan) => {
-                  console.log('Editing plan:', plan);
                   setSelectedPlan(plan);
                 }}
               />
@@ -424,10 +420,7 @@ function IndividualPageContent() {
         );
       }
       if (activeSubsection === 'calendar') {
-        console.log('Profile data:', profile);
-        console.log('County:', profile?.county);
         const climateZone = profile?.county ? getClimateZone(profile.county) : 'svealand';
-        console.log('Calculated climate zone:', climateZone);
         const gardenSize = 'medium'; // Default value since garden_size is in cultivation_profiles table
         const experienceLevel = 'beginner'; // Default value since experience_level is in cultivation_profiles table
 

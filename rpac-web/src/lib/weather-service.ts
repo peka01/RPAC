@@ -30,6 +30,14 @@ export interface WeatherForecast {
   maxTempTime?: string;
 }
 
+export interface HourlyForecast {
+  time: string;
+  temperature: number;
+  rainfall: number;
+  weather: string;
+  windSpeed: number;
+}
+
 export class WeatherService {
   private static readonly SMHI_API_BASE = 'https://opendata-download-metfcst.smhi.se/api';
   private static readonly CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
@@ -369,6 +377,124 @@ export class WeatherService {
       console.error('Weather forecast error:', error);
       return [];
     }
+  }
+
+  /**
+   * Get hourly forecast for today (next 12 hours)
+   */
+  static async getHourlyForecast(
+    latitude?: number,
+    longitude?: number,
+    userProfile?: { county?: string; city?: string }
+  ): Promise<HourlyForecast[]> {
+    const coords = userProfile ? this.getUserCoordinates(userProfile) : 
+                   (latitude && longitude ? { lat: latitude, lon: longitude } : { lat: 59.3293, lon: 18.0686 });
+    
+    const { lat, lon } = coords;
+    
+    try {
+      const smhiResponse = await fetch(
+        `https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/${lon}/lat/${lat}/data.json`
+      );
+      
+      if (smhiResponse.ok) {
+        const smhiData = await smhiResponse.json();
+        const timeSeries = smhiData.timeSeries || [];
+        const now = new Date();
+        const next12Hours = new Date(now.getTime() + 12 * 60 * 60 * 1000);
+        
+        const hourlyData: HourlyForecast[] = [];
+        
+        for (const item of timeSeries) {
+          const forecastTime = new Date(item.validTime);
+          
+          // Only include next 12 hours
+          if (forecastTime > now && forecastTime <= next12Hours) {
+            const parameters = item.parameters || [];
+            const getParameter = (name: string) => {
+              const param = parameters.find((p: any) => p.name === name);
+              return param ? param.values[0] : null;
+            };
+            
+            const temp = getParameter('t') || 15;
+            const rainfall = getParameter('pmean') || 0;
+            const windSpeed = getParameter('ws') || 0;
+            
+            hourlyData.push({
+              time: forecastTime.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' }),
+              temperature: Math.round(temp),
+              rainfall: rainfall,
+              weather: this.getWeatherDescription(temp, rainfall, windSpeed),
+              windSpeed: windSpeed
+            });
+          }
+        }
+        
+        return hourlyData;
+      }
+    } catch (error) {
+      console.log('Could not fetch hourly forecast:', error);
+    }
+    
+    return [];
+  }
+
+  /**
+   * Analyze hourly forecast to find next significant weather change
+   */
+  static getNextWeatherChange(hourlyForecast: HourlyForecast[]): string | null {
+    if (hourlyForecast.length === 0) return null;
+    
+    const currentCondition = hourlyForecast[0];
+    const currentHasRain = currentCondition.rainfall > 0.5;
+    const currentTemp = currentCondition.temperature;
+    
+    // Look for rain starting
+    if (!currentHasRain) {
+      for (let i = 1; i < hourlyForecast.length; i++) {
+        if (hourlyForecast[i].rainfall > 0.5) {
+          return `Regn kl ${hourlyForecast[i].time}`;
+        }
+      }
+    }
+    
+    // Look for rain stopping
+    if (currentHasRain) {
+      for (let i = 1; i < hourlyForecast.length; i++) {
+        if (hourlyForecast[i].rainfall <= 0.5) {
+          return `Regn upphör kl ${hourlyForecast[i].time}`;
+        }
+      }
+      return 'Regn hela dagen';
+    }
+    
+    // Look for significant temperature change (> 3 degrees)
+    for (let i = 1; i < hourlyForecast.length; i++) {
+      const tempDiff = hourlyForecast[i].temperature - currentTemp;
+      if (Math.abs(tempDiff) >= 3) {
+        if (tempDiff > 0) {
+          return `Varmare kl ${hourlyForecast[i].time} (${hourlyForecast[i].temperature}°C)`;
+        } else {
+          return `Kallare kl ${hourlyForecast[i].time} (${hourlyForecast[i].temperature}°C)`;
+        }
+      }
+    }
+    
+    // Look for frost
+    for (let i = 1; i < hourlyForecast.length; i++) {
+      if (hourlyForecast[i].temperature < 2) {
+        return `Frost kl ${hourlyForecast[i].time} (${hourlyForecast[i].temperature}°C)`;
+      }
+    }
+    
+    // Look for strong wind
+    for (let i = 1; i < hourlyForecast.length; i++) {
+      if (hourlyForecast[i].windSpeed > 10 && currentCondition.windSpeed <= 10) {
+        return `Hårdare vind kl ${hourlyForecast[i].time}`;
+      }
+    }
+    
+    return null;
   }
 
   /**

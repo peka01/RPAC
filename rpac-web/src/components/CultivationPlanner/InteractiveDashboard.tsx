@@ -60,6 +60,7 @@ interface InteractiveDashboardProps {
   onUpdateCrop: (crop: any) => void;
   onDeleteCustomCrop: (crop: any) => void;
   generateMonthlyTasks: () => any[];
+  loadedPlanName?: string;
 }
 
 export function InteractiveDashboard({
@@ -83,14 +84,15 @@ export function InteractiveDashboard({
   onEditCustomCrop,
   onUpdateCrop,
   onDeleteCustomCrop,
-  generateMonthlyTasks
+  generateMonthlyTasks,
+  loadedPlanName
 }: InteractiveDashboardProps) {
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
-            Din personliga odlingsplan
+            {loadedPlanName || 'Din personliga odlingsplan'}
           </h1>
           <p className="text-lg mt-2" style={{ color: 'var(--text-secondary)' }}>
             Skräddarsydd för {profileData.city}, {profileData.county}
