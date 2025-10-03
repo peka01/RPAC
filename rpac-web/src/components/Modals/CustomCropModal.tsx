@@ -9,6 +9,7 @@ interface CustomCropModalProps {
   setCustomCropDescription: (description: string) => void;
   customCropData: any;
   isValidatingCrop: boolean;
+  isEditing?: boolean;
   onValidate: () => void;
   onAdd: () => void;
 }
@@ -22,6 +23,7 @@ export function CustomCropModal({
   setCustomCropDescription,
   customCropData,
   isValidatingCrop,
+  isEditing = false,
   onValidate,
   onAdd
 }: CustomCropModalProps) {
@@ -32,7 +34,7 @@ export function CustomCropModal({
       <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-            Lägg till egen gröda
+            {isEditing ? 'Redigera anpassad gröda' : 'Lägg till egen gröda'}
           </h2>
           <button
             onClick={onClose}
@@ -125,7 +127,7 @@ export function CustomCropModal({
                 color: 'white'
               }}
             >
-              {customCropData.localTips?.[0]?.includes('finns redan') ? 'Lägg till ändå' : 'Lägg till gröda'}
+              {isEditing ? 'Uppdatera gröda' : (customCropData.localTips?.[0]?.includes('finns redan') ? 'Lägg till ändå' : 'Lägg till gröda')}
             </button>
           )}
         </div>

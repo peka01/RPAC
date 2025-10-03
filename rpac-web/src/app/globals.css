@@ -139,9 +139,59 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Smooth animations and transitions */
+/* Smooth animations and transitions - removed global page transitions */
 * {
+  /* Removed global transition to eliminate page transition animations */
+}
+
+/* Specific transitions for interactive elements only */
+button, 
+a, 
+.modern-button, 
+.crisis-button, 
+.modern-card, 
+.crisis-card,
+nav a,
+.nav-item,
+[role="button"],
+input,
+select,
+textarea {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced slider styles for larger thumb */
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: var(--color-sage);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.slider::-moz-range-thumb {
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: var(--color-sage);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.slider::-moz-range-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Modern scrollbar styling */

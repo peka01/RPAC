@@ -13,13 +13,15 @@ import {
   Heart,
   Leaf,
   Shield,
-  MessageCircle
+  MessageCircle,
+  ChevronDown, 
+  Settings, 
+  LogOut
 } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { ChevronDown, Settings, LogOut } from 'lucide-react';
 
 export function Navigation() {
   const pathname = usePathname();
@@ -34,7 +36,6 @@ export function Navigation() {
     user_metadata?: { name?: string };
   } | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -152,16 +153,6 @@ export function Navigation() {
     }
   }, []);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      setIsScrolled(scrollPosition > 20);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 flex-shrink-0">
       {/* Professional Military Background */}
@@ -171,19 +162,17 @@ export function Navigation() {
       }}></div>
       
       <div className="relative z-10">
-        <div className="container mx-auto px-6">
-          {/* Professional Header */}
-          <div className={`flex items-center justify-between transition-all duration-300 ${isScrolled ? 'h-12' : 'h-16'}`}>
+        <div className="container mx-auto px-4 sm:px-6">
+          {/* Static Classic Top Menu */}
+          <div className="flex items-center justify-between h-16">
             
-            {/* Authority Logo - Mobile Optimized */}
-            <Link href="/dashboard" className="flex items-center space-x-2 sm:space-x-3 hover:opacity-80 transition-opacity duration-200 touch-manipulation">
+            {/* Logo Section */}
+            <Link href="/dashboard" className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200 touch-manipulation">
               <div className="relative">
                 <img 
                   src="/beready-logo2.png" 
                   alt="BE READY" 
-                  className={`transition-all duration-300 ${
-                    isScrolled ? 'h-8 w-auto' : 'h-10 w-auto sm:h-12'
-                  }`}
+                  className="h-10 w-auto sm:h-12"
                 />
                 {/* Professional status indicator */}
                 <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full transition-all duration-500 ${
@@ -194,45 +183,41 @@ export function Navigation() {
               </div>
             </Link>
 
-            {/* Inline Navigation Items - Only when scrolled - Mobile Optimized */}
-            {isScrolled && (
-              <div className="flex items-center space-x-1 sm:space-x-2">
-                {isClient && navigation.slice(0, 4).map((item, index) => {
-                  const normalizedPathname = pathname.replace(/\/$/, '') || '/';
-                  const normalizedHref = item.href.replace(/\/$/, '') || '/';
-                  const isActive = normalizedPathname === normalizedHref || 
-                                 (normalizedHref === '/dashboard' && normalizedPathname === '') ||
-                                 (normalizedHref === '/dashboard' && normalizedPathname === '/');
-                  
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className={`flex items-center space-x-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-300 touch-manipulation ${
-                        isActive
-                          ? 'shadow-sm'
-                          : 'hover:shadow-sm'
-                      }`}
-                      style={{
-                        backgroundColor: isActive ? 'var(--color-primary)' : 'transparent',
-                        color: isActive ? 'white' : 'var(--text-primary)'
-                      }}
-                    >
-                      <item.icon className="w-3 h-3" />
-                      <span className="hidden md:inline">{item.name}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
+            {/* Static Navigation Menu */}
+            <div className="flex items-center space-x-1 sm:space-x-2">
+              {isClient && navigation.map((item, index) => {
+                const normalizedPathname = pathname.replace(/\/$/, '') || '/';
+                const normalizedHref = item.href.replace(/\/$/, '') || '/';
+                const isActive = normalizedPathname === normalizedHref || 
+                               (normalizedHref === '/dashboard' && normalizedPathname === '') ||
+                               (normalizedHref === '/dashboard' && normalizedPathname === '/');
+                
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 touch-manipulation ${
+                      isActive
+                        ? 'shadow-sm'
+                        : 'hover:shadow-sm'
+                    }`}
+                    style={{
+                      backgroundColor: isActive ? 'var(--color-primary)' : 'transparent',
+                      color: isActive ? 'white' : 'var(--text-primary)'
+                    }}
+                  >
+                    <item.icon className="w-4 h-4" />
+                    <span className="hidden sm:inline">{item.name}</span>
+                  </Link>
+                );
+              })}
+            </div>
 
-            {/* Professional Status Bar - Mobile Optimized */}
+            {/* Status and User Section */}
             <div className="flex items-center space-x-2 sm:space-x-3">
               
-              {/* Connection Status - Mobile Optimized */}
-              <div className={`flex items-center space-x-2 rounded-lg text-xs transition-all duration-300 ${
-                isScrolled ? 'px-2 py-1' : 'px-3 py-1'
-              } ${
+              {/* Connection Status */}
+              <div className={`flex items-center space-x-2 rounded-lg text-xs px-3 py-1 ${
                 isOnline 
                   ? 'shadow-sm' 
                   : 'animate-pulse'
@@ -242,61 +227,50 @@ export function Navigation() {
               }}>
                 {isOnline ? (
                   <>
-                    <Wifi className={isScrolled ? "w-3 h-3" : "w-4 h-4"} />
-                    {!isScrolled && <span className="font-semibold hidden sm:inline">Online</span>}
+                    <Wifi className="w-4 h-4" />
+                    <span className="font-semibold hidden sm:inline">Online</span>
                   </>
                 ) : (
                   <>
-                    <WifiOff className={isScrolled ? "w-3 h-3" : "w-4 h-4"} />
-                    {!isScrolled && <span className="font-semibold hidden sm:inline">Offline</span>}
+                    <WifiOff className="w-4 h-4" />
+                    <span className="font-semibold hidden sm:inline">Offline</span>
                   </>
                 )}
               </div>
 
-              {/* Crisis Mode Alert - Mobile Optimized */}
+              {/* Crisis Mode Alert */}
               {isCrisisMode && (
-                <div className={`flex items-center space-x-2 rounded-lg text-xs font-semibold animate-pulse transition-all duration-300 ${
-                  isScrolled ? 'px-2 py-1' : 'px-3 py-1'
-                }`} style={{
+                <div className="flex items-center space-x-2 rounded-lg text-xs font-semibold animate-pulse px-3 py-1" style={{
                   backgroundColor: 'rgba(139, 69, 19, 0.1)',
                   color: 'var(--color-danger)'
                 }}>
-                  <AlertTriangle className={isScrolled ? "w-3 h-3" : "w-4 h-4"} />
-                  {!isScrolled && <span className="hidden sm:inline">Krisläge</span>}
+                  <AlertTriangle className="w-4 h-4" />
+                  <span className="hidden sm:inline">Krisläge</span>
                 </div>
               )}
 
-              {/* Professional User Menu - Mobile Optimized */}
+              {/* User Menu */}
               {user && (
                 <div className="relative user-menu-container">
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}
-                    className={`flex items-center space-x-2 rounded-lg transition-all duration-300 border touch-manipulation ${
-                      isScrolled ? 'px-2 py-1.5' : 'px-3 py-2'
-                    }`}
+                    className="flex items-center space-x-2 rounded-lg transition-all duration-300 border px-3 py-2 touch-manipulation"
                     style={{
                       backgroundColor: 'var(--bg-card)',
                       borderColor: 'var(--color-muted)'
                     }}
                   >
-                    <div className={`rounded-lg flex items-center justify-center font-bold text-white transition-all duration-300 ${
-                      isScrolled ? 'w-5 h-5 text-xs' : 'w-6 h-6 text-xs'
-                    }`} style={{ 
+                    <div className="rounded-lg flex items-center justify-center font-bold text-white w-6 h-6 text-xs" style={{ 
                       backgroundColor: 'var(--color-primary)' 
                     }}>
                       {(user.user_metadata?.name || user.email || 'V').charAt(0).toUpperCase()}
                     </div>
-                    {/* Hide text on mobile when scrolled, show on larger screens */}
-                    {!isScrolled && (
-                      <div className="text-left hidden sm:block">
-                        <div className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
-                          {getTimeOfDayGreeting()}, {user.user_metadata?.name || user.email?.split('@')[0] || t('dashboard.default_user')}
-                        </div>
+                    <div className="text-left hidden sm:block">
+                      <div className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
+                        {user.user_metadata?.name || user.email?.split('@')[0] || t('dashboard.default_user')}
                       </div>
-                    )}
-                    <ChevronDown className={`transition-transform ${showUserMenu ? 'rotate-180' : ''} ${
-                      isScrolled ? 'w-3 h-3' : 'w-3 h-3'
-                    }`} style={{ color: 'var(--text-tertiary)' }} />
+                    </div>
+                    <ChevronDown className={`transition-transform ${showUserMenu ? 'rotate-180' : ''} w-3 h-3`} style={{ color: 'var(--text-tertiary)' }} />
                   </button>
                   
                   {showUserMenu && (
@@ -329,74 +303,6 @@ export function Navigation() {
               )}
             </div>
           </div>
-
-          {/* Professional Navigation Grid - Hidden when scrolled */}
-          {!isScrolled && (
-            <div className="pb-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 max-w-3xl mx-auto px-4 sm:px-0">
-              {isClient && navigation.map((item, index) => {
-                const normalizedPathname = pathname.replace(/\/$/, '') || '/';
-                const normalizedHref = item.href.replace(/\/$/, '') || '/';
-                const isActive = normalizedPathname === normalizedHref || 
-                               (normalizedHref === '/dashboard' && normalizedPathname === '') ||
-                               (normalizedHref === '/dashboard' && normalizedPathname === '/');
-                
-                // Different olive tones for each navigation item
-                const colorVariants = [
-                  { bg: 'var(--color-primary)', border: 'var(--color-primary-dark)', accent: 'var(--color-primary)' },
-                  { bg: 'var(--color-sage)', border: 'var(--color-quaternary)', accent: 'var(--color-sage)' },
-                  { bg: 'var(--color-cool-olive)', border: 'var(--color-tertiary)', accent: 'var(--color-cool-olive)' },
-                  { bg: 'var(--color-khaki)', border: 'var(--color-warm-olive)', accent: 'var(--color-khaki)' }
-                ];
-                const colors = colorVariants[index % colorVariants.length];
-                
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={`group relative overflow-hidden rounded-lg transition-all duration-300 border touch-manipulation ${
-                      isActive
-                        ? 'shadow-md border-2'
-                        : 'shadow-sm hover:shadow-md border'
-                    }`}
-                    style={{
-                      backgroundColor: isActive ? colors.bg : 'var(--bg-card)',
-                      borderColor: isActive ? colors.border : 'var(--color-secondary)'
-                    }}
-                  >
-                    <div className="relative p-4 sm:p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <item.icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${
-                          isActive ? 'text-white' : ''
-                        }`} style={{ 
-                          color: isActive ? 'white' : colors.accent
-                        }} />
-                        <span className="text-xs px-2 py-1 rounded font-mono" style={{
-                          backgroundColor: isActive ? 'rgba(255,255,255,0.2)' : `${colors.bg}15`,
-                          color: isActive ? 'white' : colors.accent
-                        }}>{item.category}</span>
-                      </div>
-                      
-                      <h3 className="font-bold text-sm mb-1" style={{ 
-                        color: isActive ? 'white' : 'var(--text-primary)' 
-                      }}>{item.name}</h3>
-                      <p className="text-xs" style={{ 
-                        color: isActive ? 'rgba(255,255,255,0.8)' : 'var(--text-secondary)' 
-                      }}>{item.description}</p>
-                      
-                      {/* Professional Active Indicator */}
-                      {isActive && (
-                        <div className="absolute top-2 right-2">
-                          <div className="w-2 h-2 bg-white rounded-full"></div>
-                        </div>
-                      )}
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-          )}
         </div>
       </div>
     </nav>

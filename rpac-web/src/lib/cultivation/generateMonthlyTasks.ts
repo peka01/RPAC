@@ -22,11 +22,13 @@ export const generateMonthlyTasks = (
       if (crop) {
         const volume = cropVolumes?.[cropName] || 0;
         
-        if (crop.sowingMonths.includes(month)) {
+        // Defensive: Check if sowingMonths exists and is an array before calling includes
+        if (crop.sowingMonths && Array.isArray(crop.sowingMonths) && crop.sowingMonths.includes(month)) {
           tasks.push(`Så ${cropName} (${volume} plantor)`);
         }
         
-        if (crop.harvestingMonths.includes(month)) {
+        // Defensive: Check if harvestingMonths exists and is an array before calling includes
+        if (crop.harvestingMonths && Array.isArray(crop.harvestingMonths) && crop.harvestingMonths.includes(month)) {
           tasks.push(`Skörda ${cropName} (${volume} plantor)`);
         }
       }
