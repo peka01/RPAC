@@ -1,34 +1,63 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CommunityHub } from '@/components/community-hub';
+import { CommunityHubEnhanced } from '@/components/community-hub-enhanced';
+import { supabase } from '@/lib/supabase';
 import { t } from '@/lib/locales';
-
 import type { User } from '@supabase/supabase-js';
 
 export default function LocalPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Always use demo mode for now
   useEffect(() => {
-    const timer = setTimeout(() => {
-      console.log('LocalPage: Using demo mode');
-      const demoUser = {
-        id: 'demo-user',
-        email: 'demo@rpac.se',
-        user_metadata: { name: 'Demo Användare' }
-      } as unknown as User;
-      setUser(demoUser);
-      setLoading(false);
-    }, 1000);
+    // Check for authenticated user
+    const checkAuth = async () => {
+      try {
+        const { data: { user: authUser }, error } = await supabase.auth.getUser();
+        
+        if (error) throw error;
+        
+        if (authUser) {
+          setUser(authUser);
+        } else {
+          // Fallback to demo mode if no authenticated user
+          const demoUser = {
+            id: 'demo-user',
+            email: 'demo@rpac.se',
+            user_metadata: { name: 'Demo Användare' }
+          } as unknown as User;
+          setUser(demoUser);
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        // Use demo mode on error
+        const demoUser = {
+          id: 'demo-user',
+          email: 'demo@rpac.se',
+          user_metadata: { name: 'Demo Användare' }
+        } as unknown as User;
+        setUser(demoUser);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    return () => clearTimeout(timer);
+    checkAuth();
+
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-lg text-gray-700">{t('loading.loading')}</p>
@@ -39,28 +68,24 @@ export default function LocalPage() {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-700">{t('loading.initializing')}</p>
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Logga in krävs</h2>
+            <p className="text-gray-600 mb-6">
+              För att använda samhällsfunktioner behöver du vara inloggad.
+            </p>
+            <a
+              href="/dashboard"
+              className="inline-block px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Gå till inloggning
+            </a>
+          </div>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="bg-gray-50">
-      <div className="max-w-7xl mx-auto px-6 py-12 space-y-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-2 text-gray-800">
-            {t('local_community.title')}
-          </h1>
-        </div>
-
-        <div className="modern-card">
-          <CommunityHub user={user} />
-        </div>
-      </div>
-    </div>
-  );
+  return <CommunityHubEnhanced user={user} />;
 }

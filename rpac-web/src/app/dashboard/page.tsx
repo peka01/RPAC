@@ -25,7 +25,7 @@ import { MessagingSystem } from '@/components/messaging-system';
 import { ExternalCommunication } from '@/components/external-communication';
 import { WeatherCard } from '@/components/weather-card';
 import { WeatherRibbon } from '@/components/weather-ribbon';
-import { supabase } from '@/lib/supabase';
+import { supabase, communityService, type LocalCommunity } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 
 export default function DashboardPage() {
@@ -38,6 +38,8 @@ export default function DashboardPage() {
     total: 0,
     percentage: 0
   });
+  const [joinedCommunities, setJoinedCommunities] = useState<LocalCommunity[]>([]);
+  const [loadingCommunities, setLoadingCommunities] = useState(false);
   const router = useRouter();
 
 
@@ -60,6 +62,30 @@ export default function DashboardPage() {
       setCultivationProgress({ completed, total, percentage });
     } catch (error) {
       // Silently fail if cultivation calendar doesn't exist yet
+    }
+  };
+
+  // Load joined communities
+  const loadJoinedCommunities = async (userId: string) => {
+    setLoadingCommunities(true);
+    try {
+      // Get user's memberships
+      const membershipIds = await communityService.getUserMemberships(userId);
+      
+      if (membershipIds.length === 0) {
+        setJoinedCommunities([]);
+        return;
+      }
+
+      // Get community details for each membership
+      const allCommunities = await communityService.getCommunities();
+      const joined = allCommunities.filter(c => membershipIds.includes(c.id));
+      setJoinedCommunities(joined);
+    } catch (error) {
+      console.error('Error loading joined communities:', error);
+      setJoinedCommunities([]);
+    } finally {
+      setLoadingCommunities(false);
     }
   };
 
@@ -133,8 +159,11 @@ export default function DashboardPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUser(user);
-        await loadCultivationPlan(user.id);
-        await loadCultivationProgress(user.id);
+        await Promise.all([
+          loadCultivationPlan(user.id),
+          loadCultivationProgress(user.id),
+          loadJoinedCommunities(user.id)
+        ]);
         setLoading(false);
       } else {
         // If no user is authenticated, try to authenticate with demo user
@@ -315,10 +344,14 @@ export default function DashboardPage() {
             </div>
 
             {/* Network Intelligence */}
-            <div className="group bg-white/95 rounded-lg p-4 border shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer" style={{ 
-              backgroundColor: 'var(--bg-card)',
-              borderColor: 'var(--color-cool-olive)'
-            }}>
+            <div 
+              className="group bg-white/95 rounded-lg p-4 border shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer" 
+              style={{ 
+                backgroundColor: 'var(--bg-card)',
+                borderColor: 'var(--color-cool-olive)'
+              }}
+              onClick={() => router.push('/local')}
+            >
               <div className="flex items-center justify-between mb-4">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm" style={{ 
                   background: 'linear-gradient(135deg, var(--color-cool-olive) 0%, var(--color-tertiary) 100%)' 
@@ -326,15 +359,65 @@ export default function DashboardPage() {
                   <Users className="w-5 h-5 text-white" />
                 </div>
                 <div className="text-right">
-                  <div className="text-xl font-bold" style={{ color: 'var(--color-cool-olive)' }}>23</div>
-                  <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{t('dashboard.contacts')}</div>
+                  <div className="text-xl font-bold" style={{ color: 'var(--color-cool-olive)' }}>
+                    {loadingCommunities ? '...' : joinedCommunities.length}
+                  </div>
+                  <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                    {t('dashboard.joined_communities')}
+                  </div>
                 </div>
               </div>
-              <h3 className="text-sm font-bold mb-2" style={{ color: 'var(--text-primary)' }}>{t('dashboard.network')}</h3>
-              <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>{t('dashboard.community_status_description')}</p>
+              <h3 className="text-sm font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+                {t('dashboard.network')}
+              </h3>
+              
+              {loadingCommunities ? (
+                <div className="flex items-center space-x-2 mb-3">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2" style={{ borderColor: 'var(--color-cool-olive)' }}></div>
+                  <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Laddar...</p>
+                </div>
+              ) : joinedCommunities.length > 0 ? (
+                <div className="space-y-2 mb-3">
+                  {joinedCommunities.slice(0, 2).map((community) => (
+                    <div 
+                      key={community.id} 
+                      className="flex items-center space-x-2 text-xs p-2 rounded" 
+                      style={{ backgroundColor: 'rgba(110, 127, 94, 0.05)' }}
+                    >
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--color-cool-olive)' }}></div>
+                      <span className="flex-1 font-medium truncate" style={{ color: 'var(--text-primary)' }}>
+                        {community.community_name}
+                      </span>
+                      <span style={{ color: 'var(--text-tertiary)' }}>
+                        {community.member_count || 0} 👥
+                      </span>
+                    </div>
+                  ))}
+                  {joinedCommunities.length > 2 && (
+                    <p className="text-xs text-center" style={{ color: 'var(--text-tertiary)' }}>
+                      +{joinedCommunities.length - 2} till
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="mb-3">
+                  <p className="text-xs mb-2" style={{ color: 'var(--text-secondary)' }}>
+                    {t('dashboard.no_communities')}
+                  </p>
+                  <div className="bg-gray-50 rounded-lg p-2 border" style={{ 
+                    backgroundColor: 'rgba(110, 127, 94, 0.05)',
+                    borderColor: 'rgba(110, 127, 94, 0.2)'
+                  }}>
+                    <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                      {t('dashboard.search_communities')}
+                    </p>
+                  </div>
+                </div>
+              )}
+              
               <div className="flex items-center space-x-2 text-xs" style={{ color: 'var(--color-cool-olive)' }}>
                 <MessageCircle className="w-3 h-3" />
-                <span>{t('dashboard.messages_count')}</span>
+                <span>{t('dashboard.view_communities')} →</span>
               </div>
             </div>
 

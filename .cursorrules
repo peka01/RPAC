@@ -1,2 +1,170 @@
-# Add directories or file patterns to ignore during indexing (e.g. foo/ or *.csv)
-Before doing anything, consult the documentation in the docs-folder. @llm_instructions is a good start.
+# RPAC Development Rules - MUST FOLLOW
+
+## 📖 MANDATORY: Read Documentation First
+Before doing ANYTHING, consult these files in ORDER:
+1. `docs/llm_instructions.md` - Current development status and patterns
+2. `docs/conventions.md` - Core design philosophy and rules
+3. `docs/architecture.md` - Technical architecture
+4. `docs/roadmap.md` - Current priorities and sprint focus
+
+## 🎨 COLOR PALETTE - MILITARY-GRADE OLIVE GREEN (NOT BLUE!)
+**CRITICAL**: RPAC uses olive green, NOT blue colors!
+
+### Primary Colors (USE THESE):
+- Primary Olive Green: `#3D4A2B` or `bg-[#3D4A2B]`
+- Dark Olive: `#2A331E` or `bg-[#2A331E]`
+- Light Olive: `#5C6B47` or `bg-[#5C6B47]`
+- Olive Gray: `#4A5239` or `bg-[#4A5239]`
+- Muted Olive: `#707C5F` or `text-[#707C5F]`
+
+### Accent Colors (Minimal Use):
+- Warnings: Muted amber `#B8860B`
+- Critical: Muted red `#8B4513`
+- Success: Muted green `#556B2F`
+
+### ❌ FORBIDDEN:
+- NO `bg-blue-*`, `text-blue-*`, `border-blue-*`
+- NO generic blue colors anywhere in components
+- Exception: Existing components already using olive green are correct
+
+## 📝 TEXT & LOCALIZATION - ZERO TOLERANCE POLICY
+**MANDATORY**: ALL user-facing text MUST use `t()` function from `/lib/locales/sv.json`
+
+### ❌ FORBIDDEN - Hardcoded Swedish Text:
+```tsx
+// WRONG - Never do this!
+<h1>Hitta lokala samhällen</h1>
+<button>Spara platsinformation</button>
+<p>Ditt postnummer</p>
+```
+
+### ✅ CORRECT - Always use t() function:
+```tsx
+// RIGHT - Always do this!
+<h1>{t('community.find_local')}</h1>
+<button>{t('profile.save_location')}</button>
+<p>{t('profile.postal_code')}</p>
+```
+
+### Process for New Text:
+1. Add key to `rpac-web/src/lib/locales/sv.json`
+2. Use `t('category.key_name')` in component
+3. Check for Swedish characters (åäöÅÄÖ) in code - if found outside JSON, it's a BUG
+
+## 🎯 UX PHILOSOPHY - Semi-Military Visual + Everyday Swedish Text
+
+### Visual Design (Military-Inspired):
+- Clean, direct layouts
+- Clear visual hierarchy
+- Olive green color scheme
+- Minimal, focused animations
+- Professional spacing
+
+### Text Content (Everyday Swedish):
+- ✅ Use: "Laddar ditt hem", "Hämtar information"
+- ❌ Never: "Initialiserar system", "Operativ databas"
+- Warm, helpful tone (not cold or institutional)
+- Words anyone understands immediately
+- NO military jargon in text
+
+## 📱 MOBILE-FIRST REQUIREMENTS
+- All touch targets minimum 44px
+- Touch-optimized interactions
+- Responsive breakpoints (sm:, md:, lg:, xl:)
+- Test on mobile viewports
+
+## 🏗️ PROVEN PATTERNS - USE THESE!
+Copy from existing successful components:
+- **Emoji Section Headers**: 🏠🌱🛠️📚
+- **Card-based Progressive Disclosure**: Summary → Detail
+- **Seasonal Color Coding**: Natural visual cues
+- **useEffect Dependencies**: Smart performance optimization
+- **Component Key Props**: Prevent React re-mounting
+
+## 📚 DOCUMENTATION STANDARDS
+- Update `docs/dev_notes.md` for new features (NOT separate markdown files)
+- Swedish for user-facing documentation
+- English for technical API documentation is acceptable
+- Follow existing dev_notes.md format with dates and sections
+
+## ✅ PRE-COMMIT CHECKLIST
+Before finishing ANY task, verify:
+- [ ] No hardcoded Swedish text (search for åäöÅÄÖ in .tsx files)
+- [ ] Using olive green colors (#3D4A2B family), NOT blue
+- [ ] All text uses t() function from sv.json
+- [ ] Mobile-optimized (44px touch targets)
+- [ ] Follows proven UX patterns
+- [ ] Updated dev_notes.md with changes
+- [ ] Matches visual style of cultivation calendar components
+
+## 🚫 COMMON MISTAKES TO AVOID
+1. Using blue colors instead of olive green
+2. Hardcoding Swedish text instead of t()
+3. Creating separate documentation markdown files
+4. Technical/military jargon in user-facing text
+5. Not following mobile-first design
+6. Not matching existing component visual styles
+
+## 🎯 CURRENT PRIORITIES (Check roadmap.md for updates)
+- Phase 1 (Individual): ✅ COMPLETED
+- Phase 2 (Local Community): 🔄 IN PROGRESS
+- Phase 3 (Regional): 📋 PLANNED
+
+## 🗄️ DATABASE MIGRATIONS - ZERO TOLERANCE FOR ERRORS
+**CRITICAL**: ALL SQL migration scripts MUST be tested and error-free before delivery.
+
+### ❌ FORBIDDEN SQL Mistakes:
+```sql
+-- WRONG - PostgreSQL doesn't support IF NOT EXISTS for policies
+CREATE POLICY IF NOT EXISTS "policy_name" ...
+
+-- WRONG - Creating index on non-existent column
+CREATE INDEX idx_name ON table(column_that_doesnt_exist);
+
+-- WRONG - Referencing wrong table name
+ALTER TABLE users ... -- when it's actually user_profiles
+```
+
+### ✅ CORRECT SQL Patterns:
+```sql
+-- RIGHT - Drop first, then create policy
+DROP POLICY IF EXISTS "policy_name" ON table_name;
+CREATE POLICY "policy_name" ...
+
+-- RIGHT - Check if column exists before creating index
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns 
+             WHERE table_name = 'messages' AND column_name = 'is_emergency') THEN
+    CREATE INDEX IF NOT EXISTS idx_name ON table(column);
+  END IF;
+END $$;
+
+-- RIGHT - Use conditional column addition
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'user_profiles' AND column_name = 'postal_code') THEN
+    ALTER TABLE user_profiles ADD COLUMN postal_code VARCHAR(10);
+  END IF;
+END $$;
+```
+
+### Pre-Delivery SQL Checklist:
+- [ ] Verify all table names match actual schema
+- [ ] Verify all column names exist in referenced tables
+- [ ] Use DROP POLICY IF EXISTS before CREATE POLICY
+- [ ] Wrap conditional logic in DO $$ blocks
+- [ ] Test CREATE INDEX statements reference existing columns
+- [ ] No `IF NOT EXISTS` on CREATE POLICY statements
+- [ ] All foreign keys reference existing tables/columns
+
+## 💡 WHEN IN DOUBT
+1. Look at existing cultivation calendar components
+2. Check conventions.md for the rule
+3. Ask before implementing if unsure
+4. Match existing patterns, don't create new ones
+5. **For SQL: Check supabase-schema-complete.sql for correct table/column names**
+
+---
+**Remember**: RPAC = Professional capability (military visual design) + Human warmth (everyday Swedish text)

@@ -246,6 +246,61 @@ export const communityService = {
     
     if (error) throw error
     return data
+  },
+
+  async deleteCommunity(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('local_communities')
+      .delete()
+      .eq('id', id)
+    
+    if (error) throw error
+  },
+
+  async joinCommunity(communityId: string, userId: string): Promise<void> {
+    const { error } = await supabase
+      .from('community_memberships')
+      .insert({
+        community_id: communityId,
+        user_id: userId,
+        role: 'member'
+      })
+    
+    if (error) throw error
+
+    // Increment member count
+    const { error: updateError } = await supabase.rpc('increment_community_members', {
+      community_id: communityId
+    })
+    
+    if (updateError) console.error('Error updating member count:', updateError)
+  },
+
+  async leaveCommunity(communityId: string, userId: string): Promise<void> {
+    const { error } = await supabase
+      .from('community_memberships')
+      .delete()
+      .eq('community_id', communityId)
+      .eq('user_id', userId)
+    
+    if (error) throw error
+
+    // Decrement member count
+    const { error: updateError } = await supabase.rpc('decrement_community_members', {
+      community_id: communityId
+    })
+    
+    if (updateError) console.error('Error updating member count:', updateError)
+  },
+
+  async getUserMemberships(userId: string): Promise<string[]> {
+    const { data, error } = await supabase
+      .from('community_memberships')
+      .select('community_id')
+      .eq('user_id', userId)
+    
+    if (error) throw error
+    return data?.map(m => m.community_id) || []
   }
 }
 
@@ -395,3 +450,9 @@ export const authService = {
     return data
   }
 }
+
+// Export messaging and geographic services
+export { messagingService } from './messaging-service'
+export { geographicService } from './geographic-service'
+export type { Message, Contact, UserPresence } from './messaging-service'
+export type { PostalCodeArea, NearbyArea } from './geographic-service'

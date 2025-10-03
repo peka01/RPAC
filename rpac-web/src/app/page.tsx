@@ -33,12 +33,14 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('handleLogin called', { isSignUp, email, name });
     setLoading(true);
     setError('');
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        console.log('Attempting signup...');
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -47,12 +49,26 @@ export default function LoginPage() {
             }
           }
         });
+        console.log('Signup result:', { data, error });
+        console.log('User created:', data.user?.id);
+        console.log('Session:', data.session);
         if (error) throw error;
+        
+        // Check if email confirmation is required
+        if (data.user && !data.session) {
+          console.log('Email confirmation required');
+          setError('Ett bekräftelsemail har skickats till ' + email + '. Kontrollera din inkorg och klicka på länken för att aktivera ditt konto.');
+          setLoading(false);
+          return;
+        }
+        console.log('Signup successful, session created');
       } else {
+        console.log('Attempting login...');
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password
         });
+        console.log('Login result:', { error });
         if (error) throw error;
       }
       
