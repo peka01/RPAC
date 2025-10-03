@@ -30,6 +30,32 @@ RPAC är en modern, web-först applikation för krisberedskap och ömsesidig hj�
 - **Database Migration** - Fullständig migrering från localStorage till Supabase
 - **Production Ready** - Säker, skalbar och underhållbar datalager
 
+## 📱 Mobile Development Standards
+
+**IMPORTANT**: All mobile development MUST follow the established patterns in `../docs/MOBILE_UX_STANDARDS.md`
+
+This comprehensive guide represents best-in-class mobile UX implementation that rivals top consumer apps like Instagram, Apple Health, and Spotify. 
+
+**Key Principles:**
+- Separate mobile components (not just responsive CSS)
+- Minimum 44px touch targets (48px+ preferred)
+- Hardware-accelerated 60fps animations
+- Bottom sheet modals with backdrop blur
+- Hero headers with gradients
+- Consistent color psychology
+- Fixed positioning patterns (`bottom-16`, `pb-32`)
+
+**Reference Components:**
+- `src/components/individual-mobile-nav.tsx` - Navigation patterns
+- `src/components/personal-dashboard-mobile.tsx` - Score displays
+- `src/components/cultivation-reminders-mobile.tsx` - CRUD operations
+- `src/components/crisis-cultivation-mobile.tsx` - Multi-step wizards
+- `src/components/plant-diagnosis-mobile.tsx` - Camera & AI
+
+📚 **Complete documentation:** `../docs/MOBILE_UX_STANDARDS.md`
+
+---
+
 ## 🏗️ Arkitektur
 
 ```

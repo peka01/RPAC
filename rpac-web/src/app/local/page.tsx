@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CommunityHubEnhanced } from '@/components/community-hub-enhanced';
+import { CommunityHubResponsive } from '@/components/community-hub-responsive';
 import { supabase } from '@/lib/supabase';
 import { t } from '@/lib/locales';
 import type { User } from '@supabase/supabase-js';
@@ -87,5 +87,5 @@ export default function LocalPage() {
     );
   }
 
-  return <CommunityHubEnhanced user={user} />;
+  return <CommunityHubResponsive user={user} />;
 }

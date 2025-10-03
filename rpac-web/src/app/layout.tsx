@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
 import { WeatherProviderWrapper } from '@/components/WeatherProviderWrapper';
-import { Navigation } from '@/components/navigation';
+import { ResponsiveLayoutWrapper } from '@/components/responsive-layout-wrapper';
 import { t } from '@/lib/locales';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -50,10 +50,9 @@ export default function RootLayout({
             {/* Main content with modern spacing */}
             <div className="relative z-10">
               <WeatherProviderWrapper>
-                <Navigation />
-                <main className="pt-20" style={{ scrollBehavior: 'auto' }}>
+                <ResponsiveLayoutWrapper>
                   {children}
-                </main>
+                </ResponsiveLayoutWrapper>
               </WeatherProviderWrapper>
             </div>
           </div>

@@ -5,13 +5,19 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { SupabaseResourceInventory } from '@/components/supabase-resource-inventory';
 import { PlantDiagnosis } from '@/components/plant-diagnosis';
 import { PersonalDashboard } from '@/components/personal-dashboard';
+import { PersonalDashboardResponsive } from '@/components/personal-dashboard-responsive';
 import { CultivationCalendarV2 } from '@/components/cultivation-calendar-v2';
+import { CultivationCalendarMobile } from '@/components/cultivation-calendar-mobile';
+import { CultivationPlannerMobile } from '@/components/cultivation-planner-mobile';
+import { CultivationResponsiveWrapper } from '@/components/cultivation-responsive-wrapper';
 import { AICultivationAdvisor } from '@/components/ai-cultivation-advisor';
 import { SuperbOdlingsplanerare } from '@/components/CultivationPlanner';
 import { CultivationReminders } from '@/components/cultivation-reminders';
 import { CrisisCultivation } from '@/components/crisis-cultivation';
 import { PersonalAICoach } from '@/components/personal-ai-coach';
 import { ExistingCultivationPlans } from '@/components/existing-cultivation-plans';
+import { IndividualMobileNav } from '@/components/individual-mobile-nav';
+import { ResponsiveCultivationTool } from '@/components/responsive-cultivation-tools';
 import { useUserProfile } from '@/lib/useUserProfile';
 import { supabase } from '@/lib/supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
@@ -186,9 +192,7 @@ function IndividualPageContent() {
     // Home Section - Show PersonalDashboard when home is clicked
     if (activeSection === 'home') {
       return (
-        <div className="modern-card">
-          <PersonalDashboard user={user} />
-        </div>
+        <PersonalDashboardResponsive user={user} />
       );
     }
 
@@ -400,23 +404,35 @@ function IndividualPageContent() {
     if (activeSection === 'cultivation' && activeSubsection) {
       if (activeSubsection === 'ai-planner') {
         return (
-          <div className="space-y-6">
-            {/* AI Planner Component */}
-            <SuperbOdlingsplanerare user={user} selectedPlan={selectedPlan} />
-            
-            {/* Existing Cultivation Plans - Moved to bottom */}
-            <div className="modern-card p-6">
-              <ExistingCultivationPlans 
+          <CultivationResponsiveWrapper
+            mobileComponent={
+              <CultivationPlannerMobile 
                 user={user}
-                onViewPlan={(plan) => {
-                  setSelectedPlan(plan);
-                }}
-                onEditPlan={(plan) => {
+                onPlanCreated={(plan) => {
                   setSelectedPlan(plan);
                 }}
               />
-            </div>
-          </div>
+            }
+            desktopComponent={
+              <div className="space-y-6">
+                {/* AI Planner Component */}
+                <SuperbOdlingsplanerare user={user} selectedPlan={selectedPlan} />
+                
+                {/* Existing Cultivation Plans - Moved to bottom */}
+                <div className="modern-card p-6">
+                  <ExistingCultivationPlans 
+                    user={user}
+                    onViewPlan={(plan) => {
+                      setSelectedPlan(plan);
+                    }}
+                    onEditPlan={(plan) => {
+                      setSelectedPlan(plan);
+                    }}
+                  />
+                </div>
+              </div>
+            }
+          />
         );
       }
       if (activeSubsection === 'calendar') {
@@ -425,49 +441,55 @@ function IndividualPageContent() {
         const experienceLevel = 'beginner'; // Default value since experience_level is in cultivation_profiles table
 
         return (
-          <div className="space-y-8">
-            <div className="modern-card">
-              <CultivationCalendarV2 
+          <CultivationResponsiveWrapper
+            mobileComponent={
+              <CultivationCalendarMobile 
                 climateZone={climateZone}
-                gardenSize={gardenSize}
+                gardenSize={'50'}
               />
-            </div>
-            <div className="modern-card">
-              <AICultivationAdvisor 
-                user={user}
-                crisisMode={false}
-              />
-            </div>
-          </div>
+            }
+            desktopComponent={
+              <div className="space-y-8">
+                <div className="modern-card">
+                  <CultivationCalendarV2 
+                    climateZone={climateZone}
+                    gardenSize={gardenSize}
+                  />
+                </div>
+                <div className="modern-card">
+                  <AICultivationAdvisor 
+                    user={user}
+                    crisisMode={false}
+                  />
+                </div>
+              </div>
+            }
+          />
         );
       }
       if (activeSubsection === 'reminders') {
         return (
-          <div className="modern-card">
-            <CultivationReminders 
-              user={user}
-              climateZone={profile?.county ? getClimateZone(profile.county) : 'svealand'}
-              crisisMode={false}
-            />
-          </div>
+          <ResponsiveCultivationTool 
+            user={user}
+            tool="reminders"
+            climateZone={profile?.county ? getClimateZone(profile.county) : 'svealand'}
+          />
         );
       }
       if (activeSubsection === 'crisis') {
         return (
-          <div className="modern-card">
-            <CrisisCultivation 
-              urgencyLevel="medium"
-              availableSpace="both"
-              timeframe={30}
-            />
-          </div>
+          <ResponsiveCultivationTool 
+            user={user}
+            tool="crisis"
+          />
         );
       }
       if (activeSubsection === 'diagnosis') {
         return (
-          <div className="modern-card">
-            <PlantDiagnosis />
-          </div>
+          <ResponsiveCultivationTool 
+            user={user}
+            tool="diagnosis"
+          />
         );
       }
     }
@@ -495,9 +517,17 @@ function IndividualPageContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      <div className="container mx-auto px-6 py-8">
-        {/* Header */}
-        <div className="mb-8">
+      {/* Mobile Navigation Component */}
+      <IndividualMobileNav
+        navigationSections={navigationSections}
+        activeSection={activeSection}
+        activeSubsection={activeSubsection}
+        onSectionChange={handleSectionChange}
+      />
+
+      <div className="container mx-auto px-6 py-8 lg:py-8 pt-0 lg:pt-8">
+        {/* Desktop Header (hidden on mobile) */}
+        <div className="mb-8 hidden lg:block">
           <h1 className="text-4xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
             {t('individual.title')}
           </h1>
@@ -508,8 +538,8 @@ function IndividualPageContent() {
 
         {/* Main Content with Navigation */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Navigation Sidebar */}
-          <div className="lg:col-span-1">
+          {/* Desktop Navigation Sidebar (hidden on mobile) */}
+          <div className="lg:col-span-1 hidden lg:block">
             <div className="modern-card p-6">
               <nav className="space-y-2">
                 {navigationSections.map((section) => {
@@ -562,7 +592,7 @@ function IndividualPageContent() {
           </div>
 
           {/* Content Area */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 w-full">
             {renderContent()}
           </div>
         </div>

@@ -28,6 +28,16 @@ export const calculateGardenProduction = (
     gardenPlanCrops: gardenPlan?.crops?.length || 0
   });
   
+  // Safety check for undefined or null selectedCrops
+  if (!selectedCrops || !Array.isArray(selectedCrops)) {
+    console.warn('⚠️ selectedCrops is undefined or not an array, returning zero production');
+    return {
+      calories: 0,
+      cost: 0,
+      spaceUsed: 0
+    };
+  }
+  
   selectedCrops.forEach(cropName => {
     const plantCount = volumes[cropName] || 0;
     

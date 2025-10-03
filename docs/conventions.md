@@ -56,6 +56,33 @@ We design for humans in crisis with clarity and reliability. Visual design uses 
 - **Professional Trauma-Awareness** - Design that maintains dignity and control during vulnerability
 - **Mission-Focus Optimization** - Interactions that maintain concentration on critical tasks
 
+### 📱 Mobile UX Standards - MANDATORY
+
+**All mobile development MUST follow:** `docs/MOBILE_UX_STANDARDS.md`
+
+This comprehensive guide establishes best-in-class mobile patterns that rival top consumer apps (Instagram, Apple Health, Spotify). It represents the gold standard for mobile development in RPAC.
+
+**Key Requirements:**
+- **Separate mobile components** (not responsive CSS)
+- **Responsive wrapper pattern** at 768px breakpoint
+- **44px+ touch targets** (48px+ preferred)
+- **60fps animations** (hardware-accelerated)
+- **Fixed positioning:** `bottom-16` for buttons, `pb-32` for content
+- **Bottom sheet modals** with backdrop blur
+- **Hero headers** with gradients and stats
+- **Consistent color psychology** across all mobile screens
+
+**Reference these exemplary components:**
+- `individual-mobile-nav.tsx` - Navigation patterns
+- `personal-dashboard-mobile.tsx` - Score displays, stat cards
+- `cultivation-reminders-mobile.tsx` - CRUD, modals
+- `crisis-cultivation-mobile.tsx` - Multi-step wizards
+- `plant-diagnosis-mobile.tsx` - Camera, AI chat
+
+See complete documentation: `docs/MOBILE_UX_STANDARDS.md`
+
+---
+
 ### Military-Grade Color Palette
 - **Primary Olive Green**: `#3D4A2B` - Main actions, navigation, primary elements
 - **Dark Olive**: `#2A331E` - Hover states, active elements, emphasis
