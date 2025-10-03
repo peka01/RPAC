@@ -139,7 +139,7 @@ export function ExistingCultivationPlans({ user, onViewPlan, onEditPlan }: Exist
         <div className="text-center text-red-600">
           <p>{error}</p>
           <button 
-            onClick={loadPlans}
+            onClick={() => loadPlans()}
             className="mt-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
           >
             Försök igen
