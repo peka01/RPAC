@@ -330,7 +330,7 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
     setEditForm({
       name: community.community_name,
       description: community.description || '',
-      isPublic: community.is_public
+      isPublic: community.is_public ?? true
     });
     setShowEditModal(true);
   };
