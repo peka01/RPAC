@@ -893,9 +893,10 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
           if (!customCropName.trim()) return;
           
           setIsValidatingCrop(true);
+          const cropName = customCropName.trim();
+          const description = customCropDescription.trim();
+          
           try {
-            const cropName = customCropName.trim();
-            const description = customCropDescription.trim();
             
             // Check if crop already exists (case-insensitive)
             const existingCrop = gardenPlan?.crops?.find((crop: any) => 
