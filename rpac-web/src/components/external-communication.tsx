@@ -298,9 +298,7 @@ export function ExternalCommunication() {
   };
 
   return (
-    <div className="bg-white/95 rounded-xl p-6 border shadow-lg resize-y overflow-auto overflow-x-hidden" style={{ 
-      backgroundColor: 'var(--bg-card)',
-      borderColor: 'var(--color-sage)',
+    <div className="modern-card p-6 resize-y overflow-auto overflow-x-hidden" style={{ 
       minHeight: '500px',
       height: '600px',
       maxHeight: '800px'

@@ -261,9 +261,9 @@ export function MessagingSystemV2({ user, communityId, initialTab = 'community' 
   }
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg shadow-lg overflow-hidden">
+    <div className="modern-card p-6 flex flex-col h-full overflow-hidden">
       {/* Header */}
-      <div className="p-6 border-b border-gray-200">
+      <div className="border-b border-gray-200 pb-6 mb-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-md bg-gradient-to-br from-[#3D4A2B] to-[#5C6B47]">
