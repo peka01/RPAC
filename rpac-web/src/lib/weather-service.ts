@@ -379,17 +379,11 @@ export class WeatherService {
     const currentMonth = new Date().getMonth() + 1;
     const isGrowingSeason = currentMonth >= 3 && currentMonth <= 10;
     
-    // Debug logging
-    console.log('Weather warnings - forecast data:', forecast);
-    console.log('Current month:', currentMonth, 'Growing season:', isGrowingSeason);
-    
     forecast.forEach((day, index) => {
       const date = new Date(day.date);
       const dayName = index === 0 ? 'Idag' : 
                      index === 1 ? 'Imorgon' : 
                      date.toLocaleDateString('sv-SE', { weekday: 'long' });
-      
-      console.log(`Day ${index}: ${dayName}, min temp: ${day.temperature.min}°C, max temp: ${day.temperature.max}°C`);
       
       // Frost warnings (critical for cultivation)
       if (day.temperature.min < 2) {

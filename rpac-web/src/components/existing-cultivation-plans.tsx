@@ -34,16 +34,52 @@ export function ExistingCultivationPlans({ user, onViewPlan, onEditPlan }: Exist
   const [plans, setPlans] = useState<CultivationPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
       loadPlans();
+      
+      // Subscribe to real-time changes in cultivation_plans table
+      const channel = supabase
+        .channel('cultivation_plans_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'cultivation_plans',
+            filter: `user_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('Cultivation plan changed via Realtime:', payload);
+            // Reload plans when any change occurs (without showing loading spinner)
+            loadPlans(false);
+          }
+        )
+        .subscribe();
+      
+      // Also listen for custom events from the planner component
+      const handlePlanSaved = () => {
+        console.log('Cultivation plan saved event received');
+        loadPlans(false);
+      };
+      
+      window.addEventListener('cultivation-plan-saved', handlePlanSaved);
+      
+      return () => {
+        supabase.removeChannel(channel);
+        window.removeEventListener('cultivation-plan-saved', handlePlanSaved);
+      };
     }
   }, [user?.id]);
 
-  const loadPlans = async () => {
+  const loadPlans = async (showLoading = true) => {
     try {
-      setLoading(true);
+      // Only show loading spinner on initial load or manual refresh
+      if (showLoading && !initialLoadComplete) {
+        setLoading(true);
+      }
       setError(null);
       
       // Check if user is authenticated
@@ -51,6 +87,7 @@ export function ExistingCultivationPlans({ user, onViewPlan, onEditPlan }: Exist
       if (!currentUser) {
         console.log('No authenticated user, skipping plan loading');
         setPlans([]);
+        setInitialLoadComplete(true);
         return;
       }
 
@@ -68,6 +105,7 @@ export function ExistingCultivationPlans({ user, onViewPlan, onEditPlan }: Exist
         } else {
           throw error;
         }
+        setInitialLoadComplete(true);
         return;
       }
 
@@ -91,11 +129,15 @@ export function ExistingCultivationPlans({ user, onViewPlan, onEditPlan }: Exist
         }
       }
       setPlans(data || []);
+      setInitialLoadComplete(true);
     } catch (error) {
       console.error('Error loading cultivation plans:', error);
       setError('Kunde inte ladda odlingsplaner');
+      setInitialLoadComplete(true);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   };
 
@@ -169,7 +211,8 @@ export function ExistingCultivationPlans({ user, onViewPlan, onEditPlan }: Exist
     );
   }
 
-  if (plans.length === 0) {
+  // Only show empty state if not loading and truly no plans
+  if (!loading && plans.length === 0) {
     return (
       <div className="modern-card p-6">
         <div className="text-center">
@@ -216,7 +259,16 @@ export function ExistingCultivationPlans({ user, onViewPlan, onEditPlan }: Exist
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
                   <h4 className="font-bold text-lg mb-1" style={{ color: 'var(--text-primary)' }}>
-                    {plan.title || plan.plan_data?.name || plan.name || 'Namnlös odlingsplan'}
+                    {(() => {
+                      // Robust plan name extraction with fallback
+                      const name = plan.title || plan.plan_data?.name || plan.name;
+                      // Ensure we always return a string, not an object
+                      if (typeof name === 'string' && name.trim().length > 0) {
+                        return name;
+                      }
+                      // If name is an object or invalid, use fallback with date
+                      return `Odlingsplan ${new Date(plan.created_at).toLocaleDateString('sv-SE')}`;
+                    })()}
                   </h4>
                   {plan.description && (
                     <p className="text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>

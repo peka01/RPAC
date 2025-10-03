@@ -133,7 +133,7 @@ export function CultivationCalendar({
       const { data: dbItems, error } = await supabase
         .from('cultivation_calendar')
         .select('*')
-        .order('date', { ascending: true });
+        .order('created_at', { ascending: true });
 
       if (error) {
         console.error('Error loading calendar from database:', error);

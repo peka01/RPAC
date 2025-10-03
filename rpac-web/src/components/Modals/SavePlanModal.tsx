@@ -91,7 +91,10 @@ export function SavePlanModal({
             Avbryt
           </button>
           <button
-            onClick={onSave}
+            onClick={() => {
+              console.log('SavePlanModal: Saving with planName:', planName);
+              onSave();
+            }}
             className="px-6 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-lg"
             style={{ 
               backgroundColor: 'var(--color-sage)',

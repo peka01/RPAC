@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { SupabaseResourceInventory } from '@/components/supabase-resource-inventory';
 import { PlantDiagnosis } from '@/components/plant-diagnosis';
 import { PersonalDashboard } from '@/components/personal-dashboard';
-import { CultivationCalendar } from '@/components/cultivation-calendar';
+import { CultivationCalendarV2 } from '@/components/cultivation-calendar-v2';
 import { AICultivationAdvisor } from '@/components/ai-cultivation-advisor';
 import { AICultivationPlanner } from '@/components/ai-cultivation-planner';
 import { EnhancedCultivationPlanner } from '@/components/enhanced-cultivation-planner';
@@ -434,10 +434,9 @@ function IndividualPageContent() {
         return (
           <div className="space-y-8">
             <div className="modern-card">
-              <CultivationCalendar 
+              <CultivationCalendarV2 
                 climateZone={climateZone}
                 gardenSize={gardenSize}
-                crisisMode={false}
               />
             </div>
             <div className="modern-card">

@@ -215,7 +215,7 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
       // Load the latest cultivation plan with saved crop data
       const { data, error } = await supabase
         .from('cultivation_plans')
-        .select('crops')
+        .select('plan_data')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(1)
@@ -226,8 +226,8 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
         return;
       }
       
-      if (data?.crops && Array.isArray(data.crops) && data.crops.length > 0) {
-        console.log('Loaded saved crop data from database:', data.crops);
+      if (data?.plan_data?.gardenPlan?.crops && Array.isArray(data.plan_data.gardenPlan.crops) && data.plan_data.gardenPlan.crops.length > 0) {
+        console.log('Loaded saved crop data from database:', data.plan_data.gardenPlan.crops);
         // The crop data will be loaded when the garden plan is set
         setCropDataLoaded(true);
       }
@@ -240,16 +240,37 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
     if (!user?.id || !gardenPlan) return;
     
     try {
-      // Update the cultivation plan in the database with the new crop data
+      // Get the latest plan to update
+      const { data: latestPlan, error: fetchError } = await supabase
+        .from('cultivation_plans')
+        .select('id, plan_data')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (fetchError || !latestPlan) {
+        console.log('No existing plan to update');
+        return;
+      }
+      
+      // Update the plan_data with new crop information
+      const updatedPlanData = {
+        ...latestPlan.plan_data,
+        gardenPlan: {
+          ...latestPlan.plan_data.gardenPlan,
+          crops: gardenPlan.crops
+        }
+      };
+      
+      // Update the cultivation plan in the database
       const { error } = await supabase
         .from('cultivation_plans')
         .update({
-          crops: gardenPlan.crops,
+          plan_data: updatedPlanData,
           updated_at: new Date().toISOString()
         })
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1);
+        .eq('id', latestPlan.id);
       
       if (error) {
         console.error('Error saving updated crop to database:', error);
@@ -313,83 +334,107 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
 
       const planNameToUse = customName || planName || `Odlingsplan ${new Date().toLocaleDateString('sv-SE')}`;
       
+      console.log('Saving plan with name:', {
+        customName,
+        planName,
+        planNameToUse,
+        typeOfPlanNameToUse: typeof planNameToUse
+      });
+      
+      // Create clean profile data
+      const cleanProfileData = {
+        household_size: profileData.household_size || 1,
+        has_children: profileData.has_children || false,
+        garden_size: adjustableGardenSize,
+        county: profileData.county || profile?.county || 'stockholm',
+        experience_level: profileData.experience_level || profile?.experience_level || 'beginner',
+        climate_zone: profileData.climate_zone || 'Svealand'
+      };
+
       // Clean all data to avoid circular references
       const cleanRealTimeStats = realTimeStats ? {
-        gardenProduction: realTimeStats.gardenProduction,
-        selfSufficiencyPercent: realTimeStats.selfSufficiencyPercent,
-        caloriesFromGroceries: realTimeStats.caloriesFromGroceries,
-        totalCost: realTimeStats.totalCost,
-        totalSpace: realTimeStats.totalSpace
+        gardenProduction: Number(realTimeStats.gardenProduction) || 0,
+        selfSufficiencyPercent: Number(realTimeStats.selfSufficiencyPercent) || 0,
+        caloriesFromGroceries: Number(realTimeStats.caloriesFromGroceries) || 0,
+        totalCost: Number(realTimeStats.totalCost) || 0,
+        totalSpace: Number(realTimeStats.totalSpace) || 0
       } : null;
 
-      // Clean gardenPlan to avoid circular references
+      // Clean gardenPlan to avoid circular references - ensure all values are primitive
       const cleanGardenPlan = gardenPlan ? {
-        selfSufficiencyPercent: gardenPlan.selfSufficiencyPercent,
-        caloriesFromGarden: gardenPlan.caloriesFromGarden,
-        caloriesFromGroceries: gardenPlan.caloriesFromGroceries,
-        annualCalorieNeed: gardenPlan.annualCalorieNeed,
-        gardenProduction: gardenPlan.gardenProduction,
-        grocerySuggestions: gardenPlan.grocerySuggestions,
-        crops: gardenPlan.crops,
-        monthlyTasks: gardenPlan.monthlyTasks,
-        estimatedCost: gardenPlan.estimatedCost
+        selfSufficiencyPercent: Number(gardenPlan.selfSufficiencyPercent) || 0,
+        caloriesFromGarden: Number(gardenPlan.caloriesFromGarden) || 0,
+        caloriesFromGroceries: Number(gardenPlan.caloriesFromGroceries) || 0,
+        annualCalorieNeed: Number(gardenPlan.annualCalorieNeed) || 0,
+        gardenProduction: Number(gardenPlan.gardenProduction) || 0,
+        grocerySuggestions: Array.isArray(gardenPlan.grocerySuggestions) ? gardenPlan.grocerySuggestions.map((item: any) => ({
+          name: String(item.name || ''),
+          amount: String(item.amount || ''),
+          reason: String(item.reason || '')
+        })) : [],
+        crops: Array.isArray(gardenPlan.crops) ? gardenPlan.crops.map((crop: any) => {
+          // Debug: Log crop properties before cleaning
+          console.log(`🔍 Cleaning crop ${crop.name}:`, {
+            hasDifficulty: !!crop.difficulty,
+            difficulty: crop.difficulty,
+            hasYield: !!crop.yield,
+            yield: crop.yield,
+            hasCalories: !!crop.calories,
+            calories: crop.calories
+          });
+          
+          return {
+            name: String(crop.name || ''),
+            amount: Number(crop.amount) || 0,
+            spaceRequired: Number(crop.spaceRequired) || 0,
+            yield: Number(crop.yield) || 0, // CRITICAL: Include yield for production calculations
+            calories: Number(crop.calories) || 0,
+            // CRITICAL: Include sowingMonths and harvestingMonths to prevent runtime errors
+            sowingMonths: Array.isArray(crop.sowingMonths) ? crop.sowingMonths.map(String) : [],
+            harvestingMonths: Array.isArray(crop.harvestingMonths) ? crop.harvestingMonths.map(String) : [],
+            // Include all other important crop properties - PRESERVE the original value!
+            difficulty: crop.difficulty || 'intermediate', // Keep as string, don't convert
+            description: String(crop.description || ''),
+            scientificName: String(crop.scientificName || ''),
+            suitability: String(crop.suitability || 'good'),
+            growingTime: Number(crop.growingTime) || 0,
+            isCustom: Boolean(crop.isCustom),
+            // Nutrition data
+            protein: Number(crop.protein) || 0,
+            carbs: Number(crop.carbs) || 0,
+            fat: Number(crop.fat) || 0,
+            fiber: Number(crop.fiber) || 0,
+            caloriesPer100g: Number(crop.caloriesPer100g) || 0,
+            // Additional properties that might be needed
+            color: crop.color || '#90EE90',
+            icon: crop.icon || '🌱',
+            nutritionalHighlights: Array.isArray(crop.nutritionalHighlights) ? crop.nutritionalHighlights : []
+          };
+        }) : [],
+        monthlyTasks: gardenPlan.monthlyTasks || [],
+        estimatedCost: Number(gardenPlan.estimatedCost) || 0
       } : null;
 
       const planData = {
         plan_data: {
-          name: planNameToUse,
-          profile: profileData,
+          name: String(planNameToUse),
+          profile: cleanProfileData,
           gardenPlan: cleanGardenPlan,
-          selectedCrops: selectedCrops,
-          cropVolumes: cropVolumes,
-          adjustableGardenSize: adjustableGardenSize,
-          cultivationIntensity: cultivationIntensity,
+          selectedCrops: Array.isArray(selectedCrops) ? selectedCrops.map(String) : [],
+          cropVolumes: cropVolumes ? JSON.parse(JSON.stringify(cropVolumes)) : {},
+          adjustableGardenSize: Number(adjustableGardenSize),
+          cultivationIntensity: String(cultivationIntensity),
           realTimeStats: cleanRealTimeStats,
           created_at: new Date().toISOString()
         },
         user_id: user?.id
       };
 
-      // Debug: Log what we're saving
-      console.log('Saving plan with realTimeStats:', {
-        realTimeStats: realTimeStats,
-        selfSufficiencyPercent: realTimeStats?.selfSufficiencyPercent,
-        gardenPlanSelfSufficiency: gardenPlan?.selfSufficiencyPercent
+      console.log('Final planData structure:', {
+        name: planData.plan_data.name,
+        nameType: typeof planData.plan_data.name,
+        fullPlanData: planData
       });
-
-      // Create a safe JSON string to test for circular references
-      try {
-        JSON.stringify(planData);
-      } catch (jsonError) {
-        console.error('Circular reference detected in planData:', jsonError);
-        // Create a minimal safe version
-        const safePlanData = {
-          plan_data: {
-            name: planNameToUse,
-            profile: profileData,
-            selectedCrops: selectedCrops,
-            cropVolumes: cropVolumes,
-            adjustableGardenSize: adjustableGardenSize,
-            cultivationIntensity: cultivationIntensity,
-            created_at: new Date().toISOString()
-          },
-          user_id: user?.id
-        };
-        
-        const { data: safeData, error: safeError } = await supabase
-          .from('cultivation_plans')
-          .insert([safePlanData])
-          .select()
-          .single();
-          
-        if (safeError) {
-          console.error('Error saving plan (safe version):', safeError);
-          return;
-        }
-        
-        console.log('Plan saved successfully (safe version)');
-        return;
-      }
 
       // Save to Supabase
       const { data, error } = await supabase
@@ -403,7 +448,7 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
         return;
       }
 
-      console.log('Plan saved successfully:', data);
+      console.log('Plan saved successfully, returned data:', data);
       setSaveSuccess(true);
       
       // Auto-dismiss success message
@@ -423,6 +468,10 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
       if (saveReminders) {
         await saveRemindersToCalendar();
       }
+      
+      // Force a refresh of the plans list by triggering a custom event
+      console.log('Dispatching cultivation-plan-saved event');
+      window.dispatchEvent(new CustomEvent('cultivation-plan-saved'));
 
     } catch (error) {
       console.error('Error saving planning:', error);
@@ -430,13 +479,131 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
   };
 
   const saveToCalendarEntries = async () => {
-    // Implementation for saving to calendar
-    console.log('Saving to calendar entries...');
+    if (!gardenPlan || !gardenPlan.monthlyTasks || !user) return;
+    
+    try {
+      console.log('Saving to calendar entries...');
+      
+      // Delete existing calendar entries for this user to avoid duplicates
+      await supabase
+        .from('cultivation_calendar')
+        .delete()
+        .eq('user_id', user.id);
+      
+      // Prepare calendar entries from monthlyTasks
+      const calendarEntries: any[] = [];
+      
+      gardenPlan.monthlyTasks.forEach((task: any) => {
+        if (task.tasks && Array.isArray(task.tasks)) {
+          task.tasks.forEach((taskItem: string) => {
+            // Determine activity type from task description
+            let activity = 'maintenance';
+            const taskLower = taskItem.toLowerCase();
+            if (taskLower.includes('så')) activity = 'sowing';
+            else if (taskLower.includes('plantera') || taskLower.includes('plantering')) activity = 'planting';
+            else if (taskLower.includes('skörda') || taskLower.includes('skörd')) activity = 'harvesting';
+            
+            calendarEntries.push({
+              user_id: user.id,
+              crop_name: task.month || 'Allmän aktivitet',
+              crop_type: 'general',
+              month: task.month || '',
+              activity: activity,
+              climate_zone: profileData.climate_zone || 'Svealand',
+              garden_size: String(adjustableGardenSize),
+              is_completed: false,
+              notes: taskItem
+            });
+          });
+        }
+      });
+      
+      if (calendarEntries.length > 0) {
+        const { error } = await supabase
+          .from('cultivation_calendar')
+          .insert(calendarEntries);
+        
+        if (error) {
+          console.error('Error saving calendar entries:', error);
+        } else {
+          console.log(`Successfully saved ${calendarEntries.length} calendar entries`);
+        }
+      }
+    } catch (error) {
+      console.error('Error in saveToCalendarEntries:', error);
+    }
   };
 
   const saveRemindersToCalendar = async () => {
-    // Implementation for saving reminders
-    console.log('Saving reminders to calendar...');
+    if (!gardenPlan || !gardenPlan.crops || !user) return;
+    
+    try {
+      console.log('Saving reminders to calendar...');
+      
+      // Delete existing reminders for this user to avoid duplicates
+      await supabase
+        .from('cultivation_reminders')
+        .delete()
+        .eq('user_id', user.id);
+      
+      // Prepare reminders from crops
+      const reminders: any[] = [];
+      const currentYear = new Date().getFullYear();
+      
+      gardenPlan.crops.forEach((crop: any) => {
+        const cropName = crop.name || 'Okänd gröda';
+        
+        // Add sowing reminder (spring - April)
+        reminders.push({
+          user_id: user.id,
+          reminder_type: 'sowing',
+          crop_name: cropName,
+          reminder_date: new Date(currentYear, 3, 15).toISOString().split('T')[0], // April 15
+          is_recurring: true,
+          recurrence_pattern: 'yearly',
+          is_completed: false,
+          notes: `Tid att så ${cropName}`
+        });
+        
+        // Add planting reminder (spring - May)
+        reminders.push({
+          user_id: user.id,
+          reminder_type: 'planting',
+          crop_name: cropName,
+          reminder_date: new Date(currentYear, 4, 15).toISOString().split('T')[0], // May 15
+          is_recurring: true,
+          recurrence_pattern: 'yearly',
+          is_completed: false,
+          notes: `Tid att plantera ${cropName}`
+        });
+        
+        // Add harvesting reminder (autumn - August)
+        reminders.push({
+          user_id: user.id,
+          reminder_type: 'harvesting',
+          crop_name: cropName,
+          reminder_date: new Date(currentYear, 7, 15).toISOString().split('T')[0], // August 15
+          is_recurring: true,
+          recurrence_pattern: 'yearly',
+          is_completed: false,
+          notes: `Tid att skörda ${cropName}`
+        });
+      });
+      
+      if (reminders.length > 0) {
+        const { error } = await supabase
+          .from('cultivation_reminders')
+          .insert(reminders);
+        
+        if (error) {
+          console.error('Error saving reminders:', error);
+        } else {
+          console.log(`Successfully saved ${reminders.length} reminders`);
+        }
+      }
+    } catch (error) {
+      console.error('Error in saveRemindersToCalendar:', error);
+    }
   };
 
   // Update profile data when profile changes
@@ -513,6 +680,34 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
       loadSelectedPlanData(selectedPlan.plan_data);
     }
   }, [selectedPlan]);
+
+  // Auto-load primary plan on component mount if no plan is selected
+  useEffect(() => {
+    const loadPrimaryPlan = async () => {
+      // Only load if no plan is selected and user is authenticated
+      if (!selectedPlan && user?.id) {
+        try {
+          // Try to load primary plan, but gracefully handle if is_primary column doesn't exist
+          const { data, error } = await supabase
+            .from('cultivation_plans')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (!error && data && data.plan_data) {
+            console.log('Auto-loading latest plan:', data);
+            loadSelectedPlanData(data.plan_data);
+          }
+        } catch (error) {
+          console.log('No plan to auto-load:', error);
+        }
+      }
+    };
+
+    loadPrimaryPlan();
+  }, [user?.id, selectedPlan]);
 
   const loadSelectedPlanData = (planData: any) => {
     try {
@@ -681,7 +876,7 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
         setSaveToCalendar={setSaveToCalendar}
         saveReminders={saveReminders}
         setSaveReminders={setSaveReminders}
-        onSave={savePlanning}
+        onSave={() => savePlanning(planName)}
       />
 
       <CustomCropModal
