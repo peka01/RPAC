@@ -25,6 +25,7 @@ import { MessagingSystemV2 } from '@/components/messaging-system-v2';
 import { ExternalCommunication } from '@/components/external-communication';
 import { WeatherCard } from '@/components/weather-card';
 import { WeatherRibbon } from '@/components/weather-ribbon';
+import { DashboardResponsive } from '@/components/dashboard-responsive';
 import { supabase, communityService, type LocalCommunity } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 
@@ -305,7 +306,7 @@ export default function DashboardPage() {
 
   const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || t('dashboard.default_user');
 
-  return (
+  const desktopContent = (
     <div className="relative" style={{ background: 'var(--bg-primary)' }}>
       {/* Weather Ribbon - Full width, above all content */}
       <WeatherRibbon user={user} />
@@ -625,5 +626,9 @@ export default function DashboardPage() {
 
       </div>
     </div>
+  );
+
+  return (
+    <DashboardResponsive user={user} desktopContent={desktopContent} />
   );
 }
