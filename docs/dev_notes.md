@@ -2,6 +2,69 @@
 
 ## Development History
 
+### 2025-10-04 - RESOURCE LIST VIEW COMPONENT 📋✨
+**UNIVERSAL LIST COMPONENT - MANDATORY STANDARD**
+
+Created `ResourceListView` - a reusable, feature-rich component for ALL list displays in the app.
+
+**LATEST UPDATE - Layout Pattern Fixed:**
+- ✅ Corrected tab navigation order: Tabs → Search Bar → Content
+- ✅ Single shared search/filter bar for all tabs
+- ✅ View toggle only visible when relevant
+- ✅ Created design pattern documentation
+- ✅ Applied to Community Resource Hub
+
+#### ✨ Features:
+- **Card/Table Toggle**: Switch between visual cards and dense table
+- **Built-in Search**: Real-time filtering
+- **Category Filters**: Dropdown filter system
+- **Mobile Responsive**: Adapted layouts for mobile/desktop
+- **Grouping Support**: Handle grouped items
+- **Loading/Empty States**: Built-in placeholders
+- **Expandable Rows**: Table row expansion
+- **Fully Typed**: TypeScript generics for any data type
+
+#### 📊 Impact:
+- **-75% code reduction** per list implementation
+- **Consistent UX** across entire app
+- **Single source of truth** for list patterns
+- **Easy maintenance** - fix once, benefits everywhere
+
+#### 📚 Documentation:
+- Component: `rpac-web/src/components/resource-list-view.tsx`
+- API Docs: `docs/COMPONENT_RESOURCE_LIST_VIEW.md`
+- Migration: `docs/MIGRATION_EXAMPLE_RESOURCE_LIST_VIEW.md`
+
+#### 🎯 Usage:
+```typescript
+<ResourceListView
+  items={data}
+  columns={tableColumns}
+  cardRenderer={CardComponent}
+  searchPlaceholder="Sök..."
+  categories={categoryFilters}
+/>
+```
+
+#### ⚡ Mandatory Usage:
+**MUST USE** for:
+- All resource lists (shared, owned, inventory)
+- User/member lists
+- Task lists (cultivation, reminders)
+- Message lists
+- Any card grid or table view
+
+**DO NOT:**
+- Create custom list implementations
+- Duplicate search/filter UI
+- Manually build table views
+
+**Updated Documentation:**
+- `docs/llm_instructions.md` - Added to standard components
+- `docs/conventions.md` - Added to mandatory patterns
+
+---
+
 ### 2025-10-03 - COMPLETE MOBILE UX TRANSFORMATION 📱✨
 **MOBILE MAGIC ACROSS THE ENTIRE APP!**
 

@@ -775,7 +775,7 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
                                   <Plus size={14} style={{ color: 'var(--color-sage)' }} />
                                 </button>
                               )}
-                              {isFilled && resource.quantity > 0 && (
+                              {resource.quantity > 0 && (
                                 <button
                                   onClick={() => setSharingResource(resource)}
                                   className="p-1.5 hover:bg-white/20 rounded transition-colors"
@@ -855,7 +855,7 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
                                 <Plus size={16} style={{ color: 'var(--color-sage)' }} />
                               </button>
                             )}
-                            {isFilled && resource.quantity > 0 && (
+                            {resource.quantity > 0 && (
                               <button
                                 onClick={() => setSharingResource(resource)}
                                 className="p-2 hover:bg-white/20 rounded transition-colors"

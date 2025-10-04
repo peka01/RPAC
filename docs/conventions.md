@@ -83,6 +83,68 @@ See complete documentation: `docs/MOBILE_UX_STANDARDS.md`
 
 ---
 
+### 📋 Standard Reusable Components - MANDATORY
+
+#### **ResourceListView** - Universal List Component
+
+**ALWAYS USE** `ResourceListView` for any list display in the app. Do NOT create custom list implementations.
+
+**Component:** `rpac-web/src/components/resource-list-view.tsx`
+
+**Use for:**
+- ✅ Resources lists (shared, owned, inventory)
+- ✅ User lists (members, profiles, contributors)
+- ✅ Task lists (cultivation, reminders, help requests)
+- ✅ Message lists (notifications, updates)
+- ✅ Any data displayed as cards AND/OR table
+- ✅ Any list needing search/filter functionality
+
+**Built-in Features:**
+- Card/table view toggle
+- Search bar with filtering
+- Category-based filters
+- Loading and empty states
+- Mobile responsive layouts
+- Grouped item support
+- Expandable table rows
+- Custom action buttons
+
+**Quick Usage:**
+```typescript
+import { ResourceListView } from '@/components/resource-list-view';
+
+<ResourceListView
+  items={data}
+  columns={tableColumns}          // Table view config
+  cardRenderer={CardComponent}    // Card view config
+  searchPlaceholder="Sök..."      // Optional
+  categories={categoryFilters}    // Optional
+  filterable={true}               // Optional
+  showViewToggle={true}           // Optional
+/>
+```
+
+**Full Documentation:**
+- API Reference: `docs/COMPONENT_RESOURCE_LIST_VIEW.md`
+- Migration Guide: `docs/MIGRATION_EXAMPLE_RESOURCE_LIST_VIEW.md`
+
+**Benefits:**
+- **-75% less code** per list implementation
+- **Consistent UX** across entire application
+- **Single source of truth** for list patterns
+- **Mobile optimized** out of the box
+- **Easy maintenance** - fix once, works everywhere
+
+**DO NOT:**
+- ❌ Build custom table components
+- ❌ Create custom search/filter UI
+- ❌ Manually implement card/table toggle
+- ❌ Duplicate list functionality
+
+**Exception:** Only create custom implementation if ResourceListView genuinely cannot support your specific use case (very rare).
+
+---
+
 ### Military-Grade Color Palette
 - **Primary Olive Green**: `#3D4A2B` - Main actions, navigation, primary elements
 - **Dark Olive**: `#2A331E` - Hover states, active elements, emphasis

@@ -31,6 +31,7 @@ export function CommunityHubEnhanced({ user }: CommunityHubEnhancedProps) {
   const [activeCommunityId, setActiveCommunityId] = useState<string | undefined>();
   const [userCommunities, setUserCommunities] = useState<LocalCommunity[]>([]);
   const [loadingCommunities, setLoadingCommunities] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { profile, loading } = useUserProfile(user);
   const userPostalCode = profile?.postal_code;
 
@@ -40,6 +41,20 @@ export function CommunityHubEnhanced({ user }: CommunityHubEnhancedProps) {
       loadUserCommunities();
     }
   }, [user]);
+
+  // Check admin status when active community changes
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (activeCommunityId && user && user.id !== 'demo-user') {
+        const adminStatus = await communityService.isUserAdmin(activeCommunityId, user.id);
+        setIsAdmin(adminStatus);
+      } else {
+        setIsAdmin(false);
+      }
+    };
+    
+    checkAdminStatus();
+  }, [activeCommunityId, user]);
 
   const loadUserCommunities = async () => {
     if (!user || user.id === 'demo-user') return;
@@ -238,7 +253,7 @@ export function CommunityHubEnhanced({ user }: CommunityHubEnhancedProps) {
                   user={user}
                   communityId={activeCommunityId}
                   communityName={userCommunities.find(c => c.id === activeCommunityId)?.community_name || 'Samhälle'}
-                  isAdmin={false}
+                  isAdmin={isAdmin}
                 />
               ) : (
                 <div className="text-center py-12">

@@ -315,6 +315,27 @@ export const communityService = {
     
     if (error) throw error
     return data?.map(m => m.community_id) || []
+  },
+
+  async getUserRole(communityId: string, userId: string): Promise<'admin' | 'moderator' | 'member' | null> {
+    const { data, error } = await supabase
+      .from('community_memberships')
+      .select('role')
+      .eq('community_id', communityId)
+      .eq('user_id', userId)
+      .single()
+    
+    if (error) {
+      console.error('Error getting user role:', error)
+      return null
+    }
+    
+    return data?.role || 'member'
+  },
+
+  async isUserAdmin(communityId: string, userId: string): Promise<boolean> {
+    const role = await this.getUserRole(communityId, userId)
+    return role === 'admin' || role === 'moderator'
   }
 }
 

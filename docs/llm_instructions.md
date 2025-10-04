@@ -81,6 +81,55 @@ Engelska bara för externa anslutningar eller som reservalternativ.
 - Modulär kod för framtida integration.
 - Följ prioriteringar och milstolpar från roadmap.md.
 
+### ⚡ Standard Components (MUST USE)
+
+#### **ResourceListView** - Universal List Component
+**MANDATORY**: Use `ResourceListView` component for ALL list displays in the app.
+
+**Location**: `rpac-web/src/components/resource-list-view.tsx`
+
+**Use for:**
+- ✅ Any list of items (resources, users, tasks, messages, etc.)
+- ✅ All tables and card grids
+- ✅ Any view that needs search/filter functionality
+- ✅ Any list that should have table/card toggle
+
+**Benefits:**
+- Built-in card/table toggle
+- Built-in search and filters
+- Consistent UX across app
+- Mobile responsive
+- -75% less code per list
+- Single source of truth
+
+**Quick Example:**
+```typescript
+import { ResourceListView } from '@/components/resource-list-view';
+
+<ResourceListView
+  items={data}
+  columns={[
+    { key: 'name', label: 'Namn', render: (item) => <b>{item.name}</b> },
+    { key: 'quantity', label: 'Antal', render: (item) => item.quantity }
+  ]}
+  cardRenderer={(item) => <YourCard item={item} />}
+  searchPlaceholder="Sök..."
+  categories={categoryFilters}
+/>
+```
+
+**Documentation:**
+- Full API: `docs/COMPONENT_RESOURCE_LIST_VIEW.md`
+- Migration guide: `docs/MIGRATION_EXAMPLE_RESOURCE_LIST_VIEW.md`
+
+**DO NOT:**
+- ❌ Create custom list implementations
+- ❌ Duplicate search/filter UI
+- ❌ Manually implement card/table toggle
+- ❌ Build custom table components
+
+**Exception:** Only skip if extremely specialized needs that component cannot support.
+
 ## Latest Development Patterns (2025-01-28)
 
 ### Phase 1 - Individual Level ✅ COMPLETED

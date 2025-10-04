@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Package,
   Heart,
@@ -26,10 +26,16 @@ import {
   Zap,
   Share2,
   Check,
-  ArrowRight
+  ArrowRight,
+  Grid3x3,
+  List
 } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { resourceSharingService, type SharedResource, type HelpRequest } from '@/lib/resource-sharing-service';
+import { communityResourceService, type CommunityResource } from '@/lib/community-resource-service';
+import { SharedResourceActionsModal } from './shared-resource-actions-modal';
+import { CommunityResourceModal } from './community-resource-modal';
+import { ResourceListView } from './resource-list-view';
 import type { User } from '@supabase/supabase-js';
 
 interface CommunityResourceHubProps {
@@ -63,17 +69,21 @@ export function CommunityResourceHub({
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   
   // Data states
   const [sharedResources, setSharedResources] = useState<SharedResource[]>([]);
-  const [communityResources, setCommunityResources] = useState<any[]>([]);
+  const [communityResources, setCommunityResources] = useState<CommunityResource[]>([]);
   const [helpRequests, setHelpRequests] = useState<HelpRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   // Modal states
   const [showAddCommunityResource, setShowAddCommunityResource] = useState(false);
+  const [editingCommunityResource, setEditingCommunityResource] = useState<CommunityResource | null>(null);
   const [showAddHelpRequest, setShowAddHelpRequest] = useState(false);
+
+  const [managingResource, setManagingResource] = useState<SharedResource | null>(null);
 
   useEffect(() => {
     if (communityId) {
@@ -86,15 +96,15 @@ export function CommunityResourceHub({
     setError(null);
     
     try {
-      const [shared, help] = await Promise.all([
+      const [shared, owned, help] = await Promise.all([
         resourceSharingService.getCommunityResources(communityId),
+        communityResourceService.getCommunityResources(communityId),
         resourceSharingService.getCommunityHelpRequests(communityId)
       ]);
       
       setSharedResources(shared);
+      setCommunityResources(owned);
       setHelpRequests(help);
-      // TODO: Load community-owned resources from database
-      setCommunityResources([]);
     } catch (err) {
       console.error('Error loading community resources:', err);
       setError('Kunde inte ladda samhällets resurser');
@@ -103,22 +113,12 @@ export function CommunityResourceHub({
     }
   };
 
-  // Calculate statistics
-  const stats = {
-    totalShared: sharedResources.length,
-    availableShared: sharedResources.filter(r => r.status === 'available').length,
-    totalOwned: communityResources.length,
-    activeHelp: helpRequests.filter(r => r.status === 'open' || r.status === 'in_progress').length,
-    resolvedHelp: helpRequests.filter(r => r.status === 'resolved').length,
-    contributors: new Set(sharedResources.map(r => r.user_id)).size
-  };
-
   // Filter resources based on category and search
   const filterResources = (resources: any[]) => {
     let filtered = resources;
     
     if (categoryFilter !== 'all') {
-      filtered = filtered.filter(r => r.category === categoryFilter);
+      filtered = filtered.filter(r => r.category === categoryFilter || r.resource_category === categoryFilter);
     }
     
     if (searchQuery) {
@@ -132,8 +132,36 @@ export function CommunityResourceHub({
     return filtered;
   };
 
+  // Group shared resources by resource name
+  const groupSharedResources = (resources: SharedResource[]) => {
+    const grouped = new Map<string, SharedResource[]>();
+    
+    resources.forEach(resource => {
+      const key = resource.resource_name?.toLowerCase() || 'unknown';
+      if (!grouped.has(key)) {
+        grouped.set(key, []);
+      }
+      grouped.get(key)!.push(resource);
+    });
+    
+    return Array.from(grouped.values());
+  };
+
+  // Apply filters
   const filteredShared = filterResources(sharedResources);
+  const groupedSharedResources = groupSharedResources(filteredShared);
+  const filteredOwned = filterResources(communityResources);
   const filteredHelp = filterResources(helpRequests);
+
+  // Calculate statistics
+  const stats = {
+    totalShared: sharedResources.length,
+    availableShared: sharedResources.filter(r => r.status === 'available').length,
+    totalOwned: communityResources.length,
+    activeHelp: helpRequests.filter(r => r.status === 'open' || r.status === 'in_progress').length,
+    resolvedHelp: helpRequests.filter(r => r.status === 'resolved').length,
+    contributors: new Set(sharedResources.map(r => r.user_id)).size
+  };
 
   if (loading) {
     return (
@@ -142,6 +170,251 @@ export function CommunityResourceHub({
       </div>
     );
   }
+
+  // Community Resource Handlers
+  const handleAddCommunityResource = async (resource: Partial<CommunityResource>) => {
+    try {
+      await communityResourceService.addCommunityResource({
+        communityId,
+        resourceName: resource.resource_name!,
+        resourceType: resource.resource_type!,
+        category: resource.category!,
+        quantity: resource.quantity || 1,
+        unit: resource.unit,
+        location: resource.location,
+        usageInstructions: resource.usage_instructions,
+        bookingRequired: resource.booking_required || false,
+        notes: resource.notes,
+        createdBy: user.id
+      });
+      await loadAllData();
+      setShowAddCommunityResource(false);
+      setEditingCommunityResource(null);
+    } catch (err) {
+      console.error('Error adding community resource:', err);
+      throw err;
+    }
+  };
+
+  const handleEditCommunityResource = async (resource: Partial<CommunityResource>) => {
+    try {
+      if (!editingCommunityResource) return;
+      await communityResourceService.updateCommunityResource(editingCommunityResource.id, resource);
+      await loadAllData();
+      setShowAddCommunityResource(false);
+      setEditingCommunityResource(null);
+    } catch (err) {
+      console.error('Error updating community resource:', err);
+      throw err;
+    }
+  };
+
+  const handleDeleteCommunityResource = async (resourceId: string) => {
+    if (!confirm('Är du säker på att du vill ta bort denna resurs?')) return;
+    
+    try {
+      await communityResourceService.deleteCommunityResource(resourceId);
+      await loadAllData();
+    } catch (err) {
+      console.error('Error deleting community resource:', err);
+      alert('Kunde inte ta bort resursen');
+    }
+  };
+
+  async function handleRequestResource(resource: SharedResource) {
+    try {
+      await resourceSharingService.requestResource(resource.id, user.id);
+      await loadAllData();
+    } catch (err) {
+      console.error('Error requesting resource:', err);
+      setError('Kunde inte begära resurs');
+    }
+  }
+
+  function handleRespondToHelp(request: HelpRequest) {
+    if (onSendMessage) {
+      onSendMessage(`Jag kan hjälpa till med: "${request.title}". Låt oss prata om detaljerna.`);
+    }
+  }
+
+  async function handleUpdateResource(resourceId: string, updates: Partial<SharedResource>) {
+    try {
+      await resourceSharingService.updateSharedResourceSimple(resourceId, updates);
+      await loadAllData();
+    } catch (err) {
+      console.error('Error updating resource:', err);
+      throw err;
+    }
+  }
+
+  async function handleDeleteResource(resourceId: string) {
+    try {
+      await resourceSharingService.deleteSharedResource(resourceId);
+      await loadAllData();
+    } catch (err) {
+      console.error('Error deleting resource:', err);
+      throw err;
+    }
+  }
+
+  // Resource type configuration for display
+  const resourceTypeConfig = {
+    equipment: { emoji: '🔧', label: 'Utrustning' },
+    facility: { emoji: '🏢', label: 'Facilitet' },
+    skill: { emoji: '🎓', label: 'Kompetens' },
+    vehicle: { emoji: '🚗', label: 'Fordon' },
+    other: { emoji: '✨', label: 'Övrigt' }
+  };
+
+  // Render Tier 2: Community-Owned Resources View
+  const renderOwnedResourcesView = () => {
+    return (
+      <ResourceListView
+        items={filteredOwned}
+        loading={loading}
+        loadingMessage="Laddar samhällets resurser..."
+        
+        // Table columns
+        columns={[
+          {
+            key: 'resource',
+            label: 'Resurs',
+            render: (resource) => {
+              const typeConfig = resourceTypeConfig[resource.resource_type as keyof typeof resourceTypeConfig] || resourceTypeConfig.other;
+              const category = categoryConfig[resource.category as keyof typeof categoryConfig] || categoryConfig.other;
+              return (
+                <div className="flex items-center gap-3">
+                  <span className="text-xl flex-shrink-0">{typeConfig.emoji}</span>
+                  <div className="min-w-0">
+                    <div className="font-semibold text-gray-900">{resource.resource_name}</div>
+                    <div className="text-xs text-gray-500">{category.label} • {typeConfig.label}</div>
+                  </div>
+                </div>
+              );
+            }
+          },
+          {
+            key: 'quantity',
+            label: 'Antal',
+            render: (resource) => (
+              <div>
+                <div className="font-semibold text-gray-900">
+                  {resource.quantity} {resource.unit || 'st'}
+                </div>
+                {resource.booking_required && (
+                  <div className="text-xs text-[#556B2F]">Bokning krävs</div>
+                )}
+              </div>
+            )
+          },
+          {
+            key: 'location',
+            label: 'Plats',
+            render: (resource) => (
+              <div className="text-sm text-gray-600 truncate max-w-[150px]">
+                {resource.location || '—'}
+              </div>
+            )
+          },
+          {
+            key: 'status',
+            label: 'Status',
+            render: (resource) => (
+              <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                resource.status === 'available' ? 'bg-green-100 text-green-800' :
+                resource.status === 'maintenance' ? 'bg-yellow-100 text-yellow-800' :
+                'bg-gray-100 text-gray-800'
+              }`}>
+                {resource.status === 'available' ? 'Tillgänglig' :
+                 resource.status === 'maintenance' ? 'Underhåll' :
+                 resource.status === 'unavailable' ? 'Ej tillgänglig' : 'Okänd'}
+              </span>
+            )
+          },
+          {
+            key: 'actions',
+            label: 'Åtgärder',
+            align: 'right',
+            render: (resource) => (
+              isAdmin ? (
+                <div className="flex gap-2 justify-end">
+                  <button
+                    onClick={() => {
+                      setEditingCommunityResource(resource);
+                      setShowAddCommunityResource(true);
+                    }}
+                    className="px-3 py-1.5 bg-[#5C6B47] text-white rounded text-sm font-medium hover:bg-[#4A5239] transition-all"
+                  >
+                    Redigera
+                  </button>
+                  <button
+                    onClick={() => handleDeleteCommunityResource(resource.id)}
+                    className="px-3 py-1.5 bg-red-100 text-red-700 rounded text-sm font-medium hover:bg-red-200 transition-all"
+                  >
+                    Ta bort
+                  </button>
+                </div>
+              ) : resource.booking_required ? (
+                <button
+                  onClick={() => alert('Bokningsfunktion kommer snart!')}
+                  className="px-3 py-1.5 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded text-sm font-medium hover:shadow-md transition-all"
+                >
+                  Boka
+                </button>
+              ) : null
+            )
+          }
+        ]}
+        
+        // Card renderer
+        cardRenderer={(resource) => (
+          <CommunityResourceCard
+            resource={resource}
+            currentUserId={user.id}
+            isAdmin={isAdmin}
+            onEdit={() => {
+              setEditingCommunityResource(resource);
+              setShowAddCommunityResource(true);
+            }}
+            onDelete={() => handleDeleteCommunityResource(resource.id)}
+            onBook={() => alert('Bokningsfunktion kommer snart!')}
+          />
+        )}
+        
+        // Empty state
+        emptyState={
+          <div className="text-center py-12 bg-white rounded-xl shadow-md">
+            <Building2 size={64} className="mx-auto mb-4 text-gray-300" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Inga samhällsresurser ännu
+            </h3>
+            <p className="text-gray-600 mb-6">
+              {isAdmin 
+                ? 'Lägg till gemensam utrustning, faciliteter eller kompetenser som samhället kan använda.' 
+                : 'Samhället har inte registrerat några resurser ännu.'}
+            </p>
+            {isAdmin && (
+              <button
+                onClick={() => setShowAddCommunityResource(true)}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-xl font-bold hover:shadow-lg transition-all"
+              >
+                <Plus size={20} />
+                <span>Lägg till första resursen</span>
+              </button>
+            )}
+          </div>
+        }
+        
+        // Parent handles all controls - no duplicate UI
+        searchable={false}
+        filterable={false}
+        showViewToggle={false}
+        
+        // Use controlled viewMode from parent
+        viewMode={viewMode}
+      />
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -198,76 +471,6 @@ export function CommunityResourceHub({
         </div>
       </div>
 
-      {/* Search and Filter Bar */}
-      <div className="bg-white rounded-xl p-4 shadow-md">
-        <div className="flex flex-col md:flex-row gap-4">
-          {/* Search */}
-          <div className="flex-1 relative">
-            <Search size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Sök efter resurser..."
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B] focus:border-transparent"
-            />
-          </div>
-
-          {/* Filter Toggle */}
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
-              showFilters || categoryFilter !== 'all'
-                ? 'bg-[#3D4A2B] text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            <Filter size={20} />
-            <span>Filter</span>
-            {categoryFilter !== 'all' && (
-              <span className="bg-white text-[#3D4A2B] px-2 py-0.5 rounded-full text-xs font-bold">
-                1
-              </span>
-            )}
-          </button>
-        </div>
-
-        {/* Category Filters */}
-        {showFilters && (
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setCategoryFilter('all')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                  categoryFilter === 'all'
-                    ? 'bg-[#3D4A2B] text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                Alla kategorier
-              </button>
-              {(Object.keys(categoryConfig) as CategoryFilter[]).filter(k => k !== 'all').map(cat => {
-                const config = categoryConfig[cat as keyof typeof categoryConfig];
-                return (
-                  <button
-                    key={cat}
-                    onClick={() => setCategoryFilter(cat)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
-                      categoryFilter === cat
-                        ? 'bg-[#3D4A2B] text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    <span>{config.emoji}</span>
-                    <span>{config.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-
       {/* Three-Tier Navigation */}
       <div className="flex gap-2 flex-wrap">
         <button
@@ -318,6 +521,118 @@ export function CommunityResourceHub({
         </button>
       </div>
 
+      {/* Search and Filter Bar */}
+      <div className="bg-white rounded-xl p-4 shadow-md">
+        <div className="flex items-center gap-2">
+          {/* Search */}
+          <div className="flex-1 relative min-w-0">
+            <Search size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Sök..."
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B] focus:border-transparent"
+            />
+          </div>
+
+          {/* View Toggle - For shared and owned resources */}
+          {(activeTab === 'shared' || activeTab === 'owned') && (
+            <div className="flex bg-gray-100 rounded-lg p-1 flex-shrink-0">
+              <button
+                onClick={() => setViewMode('cards')}
+                className={`flex items-center justify-center p-2 rounded-md font-medium transition-all ${
+                  viewMode === 'cards'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+                title="Kortvy"
+              >
+                <Grid3x3 size={18} />
+              </button>
+              <button
+                onClick={() => setViewMode('table')}
+                className={`flex items-center justify-center p-2 rounded-md font-medium transition-all ${
+                  viewMode === 'table'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+                title="Tabellvy"
+              >
+                <List size={18} />
+              </button>
+            </div>
+          )}
+
+          {/* Filter Toggle */}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all flex-shrink-0 ${
+              showFilters || categoryFilter !== 'all'
+                ? 'bg-[#3D4A2B] text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <Filter size={20} />
+            <span className="hidden sm:inline">Filter</span>
+            {categoryFilter !== 'all' && (
+              <span className="bg-white text-[#3D4A2B] px-2 py-0.5 rounded-full text-xs font-bold">
+                1
+              </span>
+            )}
+          </button>
+
+          {/* Add Resource Button - Only for admins on owned tab */}
+          {activeTab === 'owned' && isAdmin && (
+            <button
+              onClick={() => {
+                setEditingCommunityResource(null);
+                setShowAddCommunityResource(true);
+              }}
+              className="flex items-center gap-2 px-4 py-3 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-lg font-bold hover:shadow-lg transition-all flex-shrink-0"
+            >
+              <Plus size={20} />
+              <span className="hidden md:inline">Lägg till</span>
+            </button>
+          )}
+        </div>
+
+        {/* Category Filters */}
+        {showFilters && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setCategoryFilter('all')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  categoryFilter === 'all'
+                    ? 'bg-[#3D4A2B] text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Alla kategorier
+              </button>
+              {(Object.keys(categoryConfig) as CategoryFilter[]).filter(k => k !== 'all').map(cat => {
+                const config = categoryConfig[cat as keyof typeof categoryConfig];
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setCategoryFilter(cat)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                      categoryFilter === cat
+                        ? 'bg-[#3D4A2B] text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    <span>{config.emoji}</span>
+                    <span>{config.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Content Area */}
       <div className="min-h-[400px]">
         {/* Tier 1: Shared from Members */}
@@ -334,48 +649,31 @@ export function CommunityResourceHub({
                   💡 Gå till din resursinventering för att dela dina resurser
                 </div>
               </div>
-            ) : (
+            ) : viewMode === 'cards' ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredShared.map(resource => (
-                  <SharedResourceCard
-                    key={resource.id}
-                    resource={resource}
+                {groupedSharedResources.map((resourceGroup, idx) => (
+                  <GroupedSharedResourceCard
+                    key={resourceGroup[0].id}
+                    resources={resourceGroup}
                     currentUserId={user.id}
-                    onRequest={() => handleRequestResource(resource)}
+                    onRequest={(resource) => handleRequestResource(resource)}
+                    onManage={(resource) => setManagingResource(resource)}
                   />
                 ))}
               </div>
+            ) : (
+              <SharedResourcesTableView
+                groupedResources={groupedSharedResources}
+                currentUserId={user.id}
+                onRequest={(resource) => handleRequestResource(resource)}
+                onManage={(resource) => setManagingResource(resource)}
+              />
             )}
           </div>
         )}
 
         {/* Tier 2: Community-Owned Resources */}
-        {activeTab === 'owned' && (
-          <div className="space-y-4">
-            {communityResources.length === 0 ? (
-              <div className="bg-white rounded-xl p-12 text-center shadow-md">
-                <Building2 size={48} className="mx-auto mb-4 text-gray-300" />
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Inga samhällsresurser än</h3>
-                <p className="text-gray-600 mb-6">
-                  Samhället kan ha gemensam utrustning, verktyg och faciliteter
-                </p>
-                {isAdmin && (
-                  <button
-                    onClick={() => setShowAddCommunityResource(true)}
-                    className="px-8 py-4 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-xl font-bold hover:shadow-lg transition-all"
-                  >
-                    <Plus size={20} className="inline mr-2" />
-                    Lägg till samhällsresurs
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Community resources will go here */}
-              </div>
-            )}
-          </div>
-        )}
+        {activeTab === 'owned' && renderOwnedResourcesView()}
 
         {/* Tier 3: Help Requests */}
         {activeTab === 'help' && (
@@ -423,95 +721,477 @@ export function CommunityResourceHub({
           {error}
         </div>
       )}
+
+      {/* Shared Resource Actions Modal */}
+      {managingResource && (
+        <SharedResourceActionsModal
+          isOpen={!!managingResource}
+          onClose={() => setManagingResource(null)}
+          resource={managingResource}
+          onUpdate={(updates) => handleUpdateResource(managingResource.id, updates)}
+          onDelete={() => handleDeleteResource(managingResource.id)}
+        />
+      )}
+
+      {/* Community Resource Modal */}
+      {showAddCommunityResource && (
+        <CommunityResourceModal
+          isOpen={showAddCommunityResource}
+          onClose={() => {
+            setShowAddCommunityResource(false);
+            setEditingCommunityResource(null);
+          }}
+          onSubmit={editingCommunityResource ? handleEditCommunityResource : handleAddCommunityResource}
+          resource={editingCommunityResource || undefined}
+          mode={editingCommunityResource ? 'edit' : 'add'}
+        />
+      )}
     </div>
   );
-
-  async function handleRequestResource(resource: SharedResource) {
-    try {
-      await resourceSharingService.requestResource(resource.id, user.id);
-      await loadAllData();
-    } catch (err) {
-      console.error('Error requesting resource:', err);
-      setError('Kunde inte begära resurs');
-    }
-  }
-
-  function handleRespondToHelp(request: HelpRequest) {
-    if (onSendMessage) {
-      onSendMessage(`Jag kan hjälpa till med: "${request.title}". Låt oss prata om detaljerna.`);
-    }
-  }
 }
 
-// Shared Resource Card Component
-function SharedResourceCard({ resource, currentUserId, onRequest }: any) {
-  const category = categoryConfig[resource.category as keyof typeof categoryConfig] || categoryConfig.other;
+// Shared Resources Table View Component
+function SharedResourcesTableView({ groupedResources, currentUserId, onRequest, onManage }: { 
+  groupedResources: SharedResource[][], 
+  currentUserId: string, 
+  onRequest: (resource: SharedResource) => void, 
+  onManage: (resource: SharedResource) => void 
+}) {
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+  const toggleRow = (resourceName: string) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(resourceName)) {
+      newExpanded.delete(resourceName);
+    } else {
+      newExpanded.add(resourceName);
+    }
+    setExpandedRows(newExpanded);
+  };
+
+  return (
+    <div className="bg-white rounded-xl shadow-md overflow-hidden">
+      {/* Desktop Table */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Resurs</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Antal</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Delat av</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Plats</th>
+              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">Åtgärd</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {groupedResources.map((resourceGroup) => {
+              const firstResource = resourceGroup[0];
+              const category = categoryConfig[firstResource.resource_category as keyof typeof categoryConfig] || categoryConfig.other;
+              const totalQuantity = resourceGroup.reduce((sum, r) => sum + r.shared_quantity, 0);
+              const isExpanded = expandedRows.has(firstResource.resource_name || '');
+              const hasMyResource = resourceGroup.some(r => r.user_id === currentUserId);
+
+              return (
+                <React.Fragment key={firstResource.id}>
+                  {/* Main Row */}
+                  <tr className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl flex-shrink-0">{category.emoji}</span>
+                        <div className="min-w-0">
+                          <div className="font-semibold text-gray-900 flex items-center gap-2">
+                            {firstResource.resource_name}
+                            {hasMyResource && (
+                              <span className="text-xs text-[#556B2F] font-medium">(Du)</span>
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-500">{category.label}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="font-semibold text-gray-900">
+                        {totalQuantity} {firstResource.resource_unit || 'st'}
+                      </div>
+                      {resourceGroup.length > 1 && (
+                        <div className="text-xs text-gray-500">{resourceGroup.length} personer</div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="text-sm text-gray-700 truncate max-w-[200px]">
+                        {resourceGroup.map(r => r.sharer_name || 'Okänd').join(' • ')}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="text-sm text-gray-600 truncate max-w-[150px]">
+                        {resourceGroup.length === 1 
+                          ? (firstResource.location || '—')
+                          : `${resourceGroup.filter(r => r.location).length} platser`
+                        }
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {resourceGroup.length === 1 ? (
+                        resourceGroup[0].user_id === currentUserId ? (
+                          <button
+                            onClick={() => onManage(resourceGroup[0])}
+                            className="px-3 py-1.5 bg-[#5C6B47] text-white rounded text-sm font-medium hover:bg-[#4A5239] transition-all"
+                          >
+                            Hantera
+                          </button>
+                        ) : resourceGroup[0].status === 'available' ? (
+                          <button
+                            onClick={() => onRequest(resourceGroup[0])}
+                            className="px-3 py-1.5 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded text-sm font-medium hover:shadow-md transition-all"
+                          >
+                            Be om
+                          </button>
+                        ) : (
+                          <span className="text-xs text-gray-500">Ej tillgänglig</span>
+                        )
+                      ) : (
+                        <button
+                          onClick={() => toggleRow(firstResource.resource_name || '')}
+                          className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded text-sm font-medium hover:bg-gray-200 transition-all"
+                        >
+                          {isExpanded ? '▲ Dölj' : '▼ Visa alla'}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+
+                  {/* Expanded Rows */}
+                  {isExpanded && resourceGroup.length > 1 && resourceGroup.map((resource, idx) => {
+                    const isOwner = resource.user_id === currentUserId;
+                    const isAvailable = resource.status === 'available';
+
+                    return (
+                      <tr key={resource.id} className="bg-gray-50 hover:bg-gray-100 transition-colors">
+                        <td className="px-4 py-2 pl-12">
+                          <div className="text-sm text-gray-600">↳ {resource.sharer_name || 'Okänd'}</div>
+                        </td>
+                        <td className="px-4 py-2">
+                          <div className="text-sm text-gray-700">{resource.shared_quantity} {resource.resource_unit || 'st'}</div>
+                        </td>
+                        <td className="px-4 py-2">
+                          {isOwner && <span className="text-xs text-[#556B2F] font-medium">Du</span>}
+                        </td>
+                        <td className="px-4 py-2">
+                          <div className="text-sm text-gray-600">{resource.location || '—'}</div>
+                          {resource.notes && (
+                            <div className="text-xs text-gray-500 italic mt-0.5">"{resource.notes}"</div>
+                          )}
+                        </td>
+                        <td className="px-4 py-2 text-right">
+                          {isOwner ? (
+                            <button
+                              onClick={() => onManage(resource)}
+                              className="px-3 py-1 bg-[#5C6B47] text-white rounded text-xs font-medium hover:bg-[#4A5239] transition-all"
+                            >
+                              Hantera
+                            </button>
+                          ) : isAvailable ? (
+                            <button
+                              onClick={() => onRequest(resource)}
+                              className="px-3 py-1 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded text-xs font-medium hover:shadow-md transition-all"
+                            >
+                              Be om
+                            </button>
+                          ) : (
+                            <span className="text-xs text-gray-500">Ej tillgänglig</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </React.Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile List View */}
+      <div className="md:hidden divide-y divide-gray-100">
+        {groupedResources.map((resourceGroup) => {
+          const firstResource = resourceGroup[0];
+          const category = categoryConfig[firstResource.resource_category as keyof typeof categoryConfig] || categoryConfig.other;
+          const totalQuantity = resourceGroup.reduce((sum, r) => sum + r.shared_quantity, 0);
+          const isExpanded = expandedRows.has(firstResource.resource_name || '');
+          const hasMyResource = resourceGroup.some(r => r.user_id === currentUserId);
+
+          return (
+            <div key={firstResource.id} className="p-4">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <span className="text-xl flex-shrink-0">{category.emoji}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-semibold text-gray-900 truncate">
+                      {firstResource.resource_name}
+                      {hasMyResource && <span className="text-xs text-[#556B2F] ml-1">(Du)</span>}
+                    </div>
+                    <div className="text-xs text-gray-500">{category.label}</div>
+                  </div>
+                </div>
+                <div className="text-right flex-shrink-0 ml-2">
+                  <div className="font-bold text-gray-900">{totalQuantity} {firstResource.resource_unit || 'st'}</div>
+                  {resourceGroup.length > 1 && (
+                    <div className="text-xs text-gray-500">{resourceGroup.length} pers</div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="text-xs text-gray-600 mb-2 truncate">
+                {resourceGroup.map(r => r.sharer_name || 'Okänd').join(' • ')}
+              </div>
+
+              {resourceGroup.length === 1 ? (
+                <div className="mt-3">
+                  {resourceGroup[0].user_id === currentUserId ? (
+                    <button
+                      onClick={() => onManage(resourceGroup[0])}
+                      className="w-full py-2 bg-[#5C6B47] text-white rounded text-sm font-medium"
+                    >
+                      Hantera
+                    </button>
+                  ) : resourceGroup[0].status === 'available' ? (
+                    <button
+                      onClick={() => onRequest(resourceGroup[0])}
+                      className="w-full py-2 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded text-sm font-medium"
+                    >
+                      Be om
+                    </button>
+                  ) : (
+                    <div className="text-center text-xs text-gray-500 py-2">Ej tillgänglig</div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={() => toggleRow(firstResource.resource_name || '')}
+                  className="w-full mt-2 py-2 bg-gray-100 text-gray-700 rounded text-sm font-medium"
+                >
+                  {isExpanded ? '▲ Dölj' : `▼ Visa alla (${resourceGroup.length})`}
+                </button>
+              )}
+
+              {isExpanded && resourceGroup.map((resource) => (
+                <div key={resource.id} className="mt-3 ml-4 pl-4 border-l-2 border-gray-200">
+                  <div className="text-sm font-medium text-gray-900 mb-1">
+                    {resource.sharer_name || 'Okänd'} • {resource.shared_quantity} {resource.resource_unit || 'st'}
+                  </div>
+                  {resource.location && (
+                    <div className="text-xs text-gray-600 mb-1">📍 {resource.location}</div>
+                  )}
+                  {resource.user_id === currentUserId ? (
+                    <button
+                      onClick={() => onManage(resource)}
+                      className="w-full py-1.5 bg-[#5C6B47] text-white rounded text-xs font-medium mt-2"
+                    >
+                      Hantera
+                    </button>
+                  ) : resource.status === 'available' ? (
+                    <button
+                      onClick={() => onRequest(resource)}
+                      className="w-full py-1.5 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded text-xs font-medium mt-2"
+                    >
+                      Be om
+                    </button>
+                  ) : (
+                    <div className="text-center text-xs text-gray-500 py-1.5 mt-2">Ej tillgänglig</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Grouped Shared Resource Card Component (for resources shared by multiple people)
+function GroupedSharedResourceCard({ resources, currentUserId, onRequest, onManage }: { resources: SharedResource[], currentUserId: string, onRequest: (resource: SharedResource) => void, onManage: (resource: SharedResource) => void }) {
+  const [expanded, setExpanded] = useState(false);
+  const firstResource = resources[0];
+  const category = categoryConfig[firstResource.resource_category as keyof typeof categoryConfig] || categoryConfig.other;
+  const totalQuantity = resources.reduce((sum, r) => sum + r.shared_quantity, 0);
+  const hasMyResource = resources.some(r => r.user_id === currentUserId);
+
+  // If only one resource, show single card
+  if (resources.length === 1) {
+    return <SharedResourceCard resource={firstResource} currentUserId={currentUserId} onRequest={() => onRequest(firstResource)} onManage={() => onManage(firstResource)} />;
+  }
+
+  return (
+    <div className="bg-white rounded-xl p-5 shadow-md hover:shadow-xl transition-all border-2 border-transparent hover:border-[#3D4A2B]">
+      {/* Header - Compact */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div 
+            className="w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: `${category.color}20` }}
+          >
+            <span className="text-xl">{category.emoji}</span>
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="font-bold text-gray-900 truncate">{firstResource.resource_name}</h3>
+            <p className="text-xs text-gray-500">{category.label}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+          {hasMyResource && (
+            <span className="text-[#556B2F] text-xs font-medium">Du</span>
+          )}
+          <span className="bg-[#556B2F]/10 text-[#556B2F] px-2 py-1 rounded text-xs font-bold whitespace-nowrap">
+            {resources.length} pers
+          </span>
+        </div>
+      </div>
+
+      {/* Key Info - Simplified */}
+      <div className="mb-4">
+        <div className="text-lg font-bold text-gray-900 mb-1">
+          {totalQuantity} {firstResource.resource_unit || 'st'}
+        </div>
+        <div className="text-xs text-gray-500 truncate">
+          {resources.map(r => r.sharer_name || 'Okänd').join(' • ')}
+        </div>
+      </div>
+
+      {/* Expandable List */}
+      {!expanded ? (
+        <button
+          onClick={() => setExpanded(true)}
+          className="w-full py-2.5 bg-gray-50 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-100 transition-all"
+        >
+          Visa detaljer →
+        </button>
+      ) : (
+        <div className="space-y-2.5">
+          <button
+            onClick={() => setExpanded(false)}
+            className="w-full py-1.5 text-xs text-gray-500 hover:text-gray-700 transition-all"
+          >
+            ▲ Dölj
+          </button>
+          
+          {resources.map((resource) => {
+            const isOwner = resource.user_id === currentUserId;
+            const isAvailable = resource.status === 'available';
+            
+            return (
+              <div key={resource.id} className="border-t pt-2.5">
+                {/* Contributor info - minimal */}
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-gray-900">
+                    {resource.sharer_name || 'Okänd'}
+                    {isOwner && <span className="text-xs text-[#556B2F] font-normal ml-1">(du)</span>}
+                  </span>
+                  <span className="text-sm font-medium text-gray-700">
+                    {resource.shared_quantity} {resource.resource_unit || 'st'}
+                  </span>
+                </div>
+                
+                {/* Optional details - only if present */}
+                {(resource.location || resource.notes) && (
+                  <div className="text-xs text-gray-600 mb-2 space-y-0.5">
+                    {resource.location && <div>📍 {resource.location}</div>}
+                    {resource.notes && <div className="italic">"{resource.notes}"</div>}
+                  </div>
+                )}
+
+                {/* Action button - compact */}
+                {isOwner ? (
+                  <button
+                    onClick={() => onManage(resource)}
+                    className="w-full py-2 bg-[#5C6B47] text-white rounded-lg text-sm font-medium hover:bg-[#4A5239] transition-all"
+                  >
+                    Hantera
+                  </button>
+                ) : isAvailable ? (
+                  <button
+                    onClick={() => onRequest(resource)}
+                    className="w-full py-2 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-lg text-sm font-medium hover:shadow-lg transition-all"
+                  >
+                    Be om denna
+                  </button>
+                ) : (
+                  <div className="w-full py-2 bg-gray-100 text-gray-500 rounded-lg text-xs text-center">
+                    Ej tillgänglig
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Single Shared Resource Card Component
+function SharedResourceCard({ resource, currentUserId, onRequest, onManage }: any) {
+  const category = categoryConfig[resource.resource_category as keyof typeof categoryConfig] || categoryConfig.other;
   const isOwner = resource.user_id === currentUserId;
   const isAvailable = resource.status === 'available';
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all border-2 border-transparent hover:border-[#3D4A2B]">
+    <div className="bg-white rounded-xl p-5 shadow-md hover:shadow-xl transition-all border-2 border-transparent hover:border-[#3D4A2B]">
+      {/* Header - Compact */}
       <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
           <div 
-            className="w-12 h-12 rounded-xl flex items-center justify-center"
+            className="w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0"
             style={{ backgroundColor: `${category.color}20` }}
           >
-            <span className="text-2xl">{category.emoji}</span>
+            <span className="text-xl">{category.emoji}</span>
           </div>
-          <div>
-            <h3 className="font-bold text-gray-900">{resource.resource_name}</h3>
-            <p className="text-sm text-gray-600">{category.label}</p>
+          <div className="min-w-0 flex-1">
+            <h3 className="font-bold text-gray-900 truncate">{resource.resource_name}</h3>
+            <p className="text-xs text-gray-500">{category.label}</p>
           </div>
         </div>
         {isOwner && (
-          <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">
-            Din resurs
+          <span className="text-[#556B2F] text-xs font-medium flex-shrink-0 ml-2">Du</span>
+        )}
+      </div>
+
+      {/* Key Info - Clean layout */}
+      <div className="mb-4">
+        <div className="flex items-baseline gap-2 mb-2">
+          <span className="text-lg font-bold text-gray-900">
+            {resource.shared_quantity} {resource.resource_unit || 'st'}
           </span>
-        )}
-      </div>
-
-      <div className="space-y-2 mb-4">
-        <div className="flex items-center gap-2 text-sm text-gray-700">
-          <Package size={16} className="text-gray-400" />
-          <span className="font-semibold">{resource.quantity} {resource.unit}</span>
         </div>
-        {resource.location && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <MapPin size={16} className="text-gray-400" />
-            <span>{resource.location}</span>
-          </div>
-        )}
-        {resource.available_until && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Clock size={16} className="text-gray-400" />
-            <span>Till {new Date(resource.available_until).toLocaleDateString('sv-SE')}</span>
-          </div>
-        )}
-        {resource.shared_by_name && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <UserIcon size={16} className="text-gray-400" />
-            <span>{resource.shared_by_name}</span>
+        <div className="text-sm font-medium text-gray-700 mb-1">
+          {resource.sharer_name || 'Okänd'}
+        </div>
+        {/* Optional details - only if present */}
+        {(resource.location || resource.notes) && (
+          <div className="text-xs text-gray-600 mt-2 space-y-0.5">
+            {resource.location && <div>📍 {resource.location}</div>}
+            {resource.notes && <div className="italic">"{resource.notes}"</div>}
           </div>
         )}
       </div>
 
-      {resource.notes && (
-        <p className="text-sm text-gray-600 mb-4 italic">"{resource.notes}"</p>
-      )}
-
-      {!isOwner && isAvailable && (
+      {/* Action button */}
+      {isOwner ? (
+        <button
+          onClick={onManage}
+          className="w-full py-2.5 bg-[#5C6B47] text-white rounded-lg text-sm font-medium hover:bg-[#4A5239] transition-all"
+        >
+          Hantera
+        </button>
+      ) : isAvailable ? (
         <button
           onClick={onRequest}
-          className="w-full py-3 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-lg font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2"
+          className="w-full py-2.5 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-lg text-sm font-medium hover:shadow-lg transition-all"
         >
-          <Send size={18} />
-          <span>Be om denna resurs</span>
+          Be om denna
         </button>
-      )}
-
-      {!isAvailable && (
-        <div className="w-full py-3 bg-gray-100 text-gray-500 rounded-lg font-medium text-center">
+      ) : (
+        <div className="w-full py-2.5 bg-gray-100 text-gray-500 rounded-lg text-xs text-center">
           Ej tillgänglig
         </div>
       )}
@@ -584,6 +1264,127 @@ function HelpRequestCard({ request, currentUserId, onRespond }: any) {
           <span>Jag kan hjälpa till</span>
         </button>
       )}
+    </div>
+  );
+}
+
+// Community Resource Card Component
+function CommunityResourceCard({ resource, currentUserId, isAdmin, onEdit, onDelete, onBook }: any) {
+  const category = categoryConfig[resource.category as keyof typeof categoryConfig] || categoryConfig.other;
+  const isAvailable = resource.status === 'available';
+  const needsBooking = resource.booking_required;
+
+  const statusConfig: Record<string, { label: string; color: string; bgColor: string }> = {
+    available: { label: 'Tillgänglig', color: 'text-green-700', bgColor: 'bg-green-100' },
+    in_use: { label: 'I bruk', color: 'text-blue-700', bgColor: 'bg-blue-100' },
+    maintenance: { label: 'Underhåll', color: 'text-yellow-700', bgColor: 'bg-yellow-100' },
+    broken: { label: 'Trasig', color: 'text-red-700', bgColor: 'bg-red-100' }
+  };
+
+  const typeConfig: Record<string, { label: string; emoji: string }> = {
+    equipment: { label: 'Utrustning', emoji: '🔧' },
+    facility: { label: 'Facilitet', emoji: '🏛️' },
+    skill: { label: 'Kompetens', emoji: '📚' },
+    information: { label: 'Information', emoji: 'ℹ️' }
+  };
+
+  const currentStatus = statusConfig[resource.status] || statusConfig.available;
+  const resourceType = typeConfig[resource.resource_type] || typeConfig.equipment;
+
+  return (
+    <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all border-2 border-transparent hover:border-[#3D4A2B]">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3 flex-1">
+          <div 
+            className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: `${category.color}20` }}
+          >
+            <span className="text-3xl">{category.emoji}</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-lg text-gray-900 truncate">{resource.resource_name}</h3>
+            <div className="flex items-center gap-2 text-sm">
+              <span>{resourceType.emoji}</span>
+              <span className="text-gray-600">{resourceType.label}</span>
+            </div>
+          </div>
+        </div>
+        <span className={`px-3 py-1 rounded-full text-xs font-bold ${currentStatus.bgColor} ${currentStatus.color} whitespace-nowrap`}>
+          {currentStatus.label}
+        </span>
+      </div>
+
+      {/* Details */}
+      <div className="space-y-2 mb-4">
+        <div className="flex items-center gap-2 text-sm text-gray-700">
+          <Package size={16} className="text-gray-400" />
+          <span className="font-semibold">{resource.quantity} {resource.unit}</span>
+        </div>
+        {resource.location && (
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <MapPin size={16} className="text-gray-400" />
+            <span>{resource.location}</span>
+          </div>
+        )}
+        {resource.responsible_user_name && (
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <UserIcon size={16} className="text-gray-400" />
+            <span>Ansvarig: {resource.responsible_user_name}</span>
+          </div>
+        )}
+        {needsBooking && (
+          <div className="flex items-center gap-2 text-sm text-[#B8860B]">
+            <Calendar size={16} />
+            <span className="font-semibold">Kräver bokning</span>
+          </div>
+        )}
+      </div>
+
+      {/* Usage Instructions */}
+      {resource.usage_instructions && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+          <p className="text-sm text-blue-900">
+            <strong>Instruktioner:</strong> {resource.usage_instructions}
+          </p>
+        </div>
+      )}
+
+      {/* Notes */}
+      {resource.notes && (
+        <p className="text-sm text-gray-600 mb-4 italic">"{resource.notes}"</p>
+      )}
+
+      {/* Actions */}
+      <div className="space-y-2">
+        {isAvailable && needsBooking && (
+          <button
+            onClick={onBook}
+            className="w-full py-3 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-lg font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2"
+          >
+            <Calendar size={18} />
+            <span>Boka resurs</span>
+          </button>
+        )}
+        
+        {isAdmin && (
+          <div className="flex gap-2">
+            <button
+              onClick={onEdit}
+              className="flex-1 py-3 bg-[#5C6B47] text-white rounded-lg font-bold hover:bg-[#4A5239] transition-all flex items-center justify-center gap-2"
+            >
+              <Edit2 size={18} />
+              <span>Redigera</span>
+            </button>
+            <button
+              onClick={onDelete}
+              className="px-4 py-3 bg-red-100 text-red-700 rounded-lg font-bold hover:bg-red-200 transition-all"
+            >
+              <Trash2 size={18} />
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

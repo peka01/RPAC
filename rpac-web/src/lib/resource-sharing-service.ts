@@ -166,6 +166,33 @@ export const resourceSharingService = {
   },
 
   /**
+   * Update shared resource (simple version for modal)
+   */
+  async updateSharedResourceSimple(resourceId: string, updates: Partial<SharedResource>): Promise<void> {
+    const { error } = await supabase
+      .from('resource_sharing')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', resourceId);
+
+    if (error) throw error;
+  },
+
+  /**
+   * Delete shared resource
+   */
+  async deleteSharedResource(resourceId: string): Promise<void> {
+    const { error} = await supabase
+      .from('resource_sharing')
+      .delete()
+      .eq('id', resourceId);
+
+    if (error) throw error;
+  },
+
+  /**
    * Update shared resource
    */
   async updateSharedResource(params: {
