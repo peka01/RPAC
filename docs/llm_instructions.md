@@ -4,6 +4,22 @@
 
 Detta projekt är **RPAC - Resilience & Preparedness AI Companion**, fokuserat på svenskspråkiga, offline-redo kris- och beredskapsverktyg.
 
+## ⚠️ CRITICAL: Development Server Location
+
+**ALWAYS start the development server from the `rpac-web` directory!**
+
+```bash
+# ❌ WRONG - Do NOT run from project root
+cd C:\Users\Per Karlsson\code\RPAC
+npm run dev  # ERROR: Cannot find package.json
+
+# ✅ CORRECT - Always run from rpac-web subdirectory
+cd C:\Users\Per Karlsson\code\RPAC\rpac-web
+npm run dev  # SUCCESS!
+```
+
+**Common Mistake**: Running `npm run dev` from the root `RPAC` directory will fail because `package.json` is located in the `rpac-web` subdirectory.
+
 ## Current Status (October 3, 2025)
 
 **Phase 1 (Individual Level)**: ✅ COMPLETE

@@ -4,6 +4,29 @@
 
 RPAC är en modern, web-först applikation för krisberedskap och ömsesidig hjälp, byggd med framtidssäker teknologi och svensk-först design.
 
+## ⚠️ CRITICAL: Development Server Setup
+
+**ALWAYS run the dev server from the `rpac-web` directory!**
+
+```bash
+# ❌ WRONG - Do NOT run from RPAC root
+cd C:\Users\Per Karlsson\code\RPAC
+npm run dev  # ERROR: Cannot find package.json
+
+# ✅ CORRECT - Always run from rpac-web
+cd C:\Users\Per Karlsson\code\RPAC\rpac-web
+npm run dev  # SUCCESS - Server starts at localhost:3000
+```
+
+**Quick Commands** (from `rpac-web` directory):
+```bash
+npm run dev           # Start dev server
+npm run build         # Production build
+npm run lint          # Run linter
+```
+
+See `../docs/DEVELOPMENT_SETUP.md` for complete troubleshooting guide.
+
 ## 🚀 Teknisk Stack
 
 ### Frontend
