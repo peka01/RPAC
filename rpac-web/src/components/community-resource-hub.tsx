@@ -108,7 +108,7 @@ export function CommunityResourceHub({
     totalShared: sharedResources.length,
     availableShared: sharedResources.filter(r => r.status === 'available').length,
     totalOwned: communityResources.length,
-    activeHelp: helpRequests.filter(r => r.status === 'active').length,
+    activeHelp: helpRequests.filter(r => r.status === 'open' || r.status === 'in_progress').length,
     resolvedHelp: helpRequests.filter(r => r.status === 'resolved').length,
     contributors: new Set(sharedResources.map(r => r.user_id)).size
   };
@@ -569,7 +569,7 @@ function HelpRequestCard({ request, currentUserId, onRespond }: any) {
         )}
       </div>
 
-      {!isOwner && request.status === 'active' && (
+      {!isOwner && (request.status === 'open' || request.status === 'in_progress') && (
         <button
           onClick={onRespond}
           className="w-full py-3 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-lg font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2"
