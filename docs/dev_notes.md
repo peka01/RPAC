@@ -91,12 +91,14 @@ Completed comprehensive mobile optimization for ALL features, including the main
    - Empty states per month
    - **Design Pattern**: Calm app meets calendar
 
-7. **`cultivation-planner-mobile.tsx`**: AI cultivation planner (ENHANCED)
+7. **`cultivation-planner-mobile.tsx`**: AI cultivation planner (FULLY ENHANCED ✨)
    - Step-by-step wizard
    - AI generation with progress
    - Interactive dashboard with stats
-   - Edit crops, monthly tasks, grocery lists
-   - Save/load plans
+   - **ADD CROPS**: Select from preloaded Swedish crops OR create custom crops
+   - Edit crop volumes and adjust parameters
+   - Monthly tasks, grocery lists
+   - Save/load/delete plans with plan selection screen
    - **Design Pattern**: Onboarding flow meets productivity app
 
 #### 🔧 Responsive Wrappers Created:
@@ -221,6 +223,152 @@ className="min-h-screen ... pb-32"
 8. **Status Colors**: Consistent color coding across app
 9. **Empty States**: Always provide guidance and CTAs
 10. **Loading States**: Animated, branded, informative
+
+---
+
+### 2025-10-04 - Mobile Crop Management: Add Crops Feature ✅ (REFINED)
+
+**Problem**: Mobile users could adjust existing crop volumes and remove crops, but had NO WAY to add new crops - neither from the preloaded Swedish crops list nor custom crops. This was a critical feature gap compared to desktop.
+
+**Solution**: Implemented complete crop addition workflow using bottom-sheet MODALS (not separate screens) integrated into the "Anpassa Grödor" screen for superior UX:
+
+#### 🌱 New Feature: "Lägg till Grödor" (Add Crops Modal)
+
+**Integration Location**: 
+- Lives in the "Anpassa Grödor" screen (NOT on dashboard)
+- Prominent "Lägg till grödor" button at top of crop list (gradient, full-width)
+- Dashboard keeps original 3-button layout
+
+**Add Crops Bottom-Sheet Modal**:
+- **Sticky Header**: Title "Lägg till grödor" with X close button
+- **"Skapa egen gröda" Button**: Prominent at top (gradient)
+- **Available Crops Section**:
+  - Lists all crops NOT yet in the plan
+  - Beautiful bordered cards with:
+    - Large crop emoji (4xl size)
+    - Crop name, description (line-clamped)
+    - Difficulty badge (color-coded: green/amber/red)
+    - Space requirement info
+    - "Anpassad" badge for custom crops
+  - **Two States per Crop**:
+    - **Not Added**: "Lägg till" button → One-tap adds with default quantity
+    - **Already Added**: ✓ "Tillagd i planen" + inline volume controls (+/-) → Adjust quantity immediately!
+- **Smart Filtering**: Dynamically updates as crops are added/removed
+- **Empty State**: "Alla grödor är tillagda!" with encouragement to create custom
+- **85vh max height** with smooth scrolling
+- **Modal persists**: Doesn't close when adding crops → batch adding!
+
+**Custom Crop Bottom-Sheet Modal**:
+- **Sticky Header**: "Skapa egen gröda" with back arrow → returns to add crops modal
+- **Form Fields**:
+  - Crop Name (required): Large input, olive green focus
+  - Description (optional): Textarea
+  - Space per plant: Slider with +/- (0.1m² steps, starts at 0.5m²)
+  - Expected yield: Slider with +/- (0.5kg steps, starts at 5kg)
+- **Info Box**: Blue accent with helpful tips
+- **"Skapa gröda" Button**: 
+  - Disabled until name entered
+  - Loading spinner state
+  - Success → Returns to add crops modal (not closes!)
+- **Immediate Volume Control**: Custom crop appears in modal, ready to adjust
+
+#### 💻 Technical Implementation:
+
+**New State Variables**:
+```typescript
+const [customCropName, setCustomCropName] = useState('');
+const [customCropDescription, setCustomCropDescription] = useState('');
+const [customCropSpaceRequired, setCustomCropSpaceRequired] = useState(0.5);
+const [customCropYield, setCustomCropYield] = useState(5);
+const [isAddingCustomCrop, setIsAddingCustomCrop] = useState(false);
+const [showAddCropsModal, setShowAddCropsModal] = useState(false);
+const [showCustomCropModal, setShowCustomCropModal] = useState(false);
+```
+
+**Modal Architecture**: Bottom sheets, not route/step changes!
+
+**Core Functions**:
+
+1. **`addCrop(cropName: string)`**:
+   - Checks if crop already selected
+   - Adds to `selectedCrops` array
+   - Calculates default quantity: `Math.max(2, Math.floor(adjustableGardenSize / 10))`
+   - Updates `cropVolumes` state
+   - Instant feedback, no recalculation needed
+
+2. **`addCustomCrop()`**:
+   - Validates crop name
+   - Creates custom crop object with user parameters
+   - Adds to garden plan's crops array
+   - Adds to selected crops with default volume
+   - Resets form and switches back to add crops modal
+
+**Modal Flow**:
+```
+Edit Crops Screen → Click "Lägg till grödor"
+  ↓
+Add Crops Modal (bottom sheet)
+  ├─→ Click crop → Adds to plan → Shows volume controls IN SAME MODAL
+  ├─→ Adjust added crop volume → Updates immediately IN SAME MODAL
+  └─→ Click "Skapa egen gröda"
+      ↓
+      Custom Crop Modal (bottom sheet)
+        → Fill form → Click "Skapa gröda"
+        ↓
+      Returns to Add Crops Modal (custom crop now appears with volume controls!)
+```
+
+**Key UX Innovation**: **Set quantity immediately without screen jumping!**
+- Add a crop → Volume controls appear right in the modal
+- No need to close modal and find crop in main list
+- Batch add multiple crops and set quantities all in one flow
+- Modal only closes when user clicks X or taps backdrop
+
+#### 🎨 UX Features:
+
+✅ **Zero Screen Jumping**: Add + set quantity all in one modal  
+✅ **Batch Operations**: Add multiple crops without closing modal  
+✅ **Immediate Feedback**: Volume controls appear instantly after adding  
+✅ **Discoverability**: Prominent button in "Anpassa Grödor" screen  
+✅ **Visual Hierarchy**: Clear separation between preloaded and custom  
+✅ **Touch Optimized**: All buttons 44px+, active:scale-98 feedback  
+✅ **Loading States**: Spinner during custom crop creation  
+✅ **Empty States**: Helpful message when no more crops to add  
+✅ **Form Validation**: Create button disabled until name entered  
+✅ **Smart Defaults**: Reasonable starting values for space and yield  
+✅ **Informative**: Difficulty badges, space requirements visible  
+✅ **Reversible**: All added crops can be adjusted or removed later  
+✅ **Smooth Modals**: 85vh bottom sheets with smooth slide-in animations  
+✅ **Sticky Headers**: Modal titles stay visible while scrolling  
+
+#### 📊 Result:
+
+**FULL FEATURE PARITY WITH DESKTOP + BETTER UX!** 🎉
+
+Mobile users can now:
+- ✅ Add crops from 20 preloaded Swedish crops
+- ✅ Create custom crops with adjustable parameters
+- ✅ **SET QUANTITIES IMMEDIATELY** without screen jumping
+- ✅ Batch add multiple crops in one flow
+- ✅ Adjust volumes of all crops (in modal OR main screen)
+- ✅ Remove individual crops
+- ✅ Delete entire plans
+- ✅ Save/load multiple plans
+- ✅ All with beautiful, touch-optimized mobile UX
+
+**Files Modified**:
+- `rpac-web/src/components/cultivation-planner-mobile.tsx`
+  - Added modal state management
+  - Implemented addCrop() and addCustomCrop() functions
+  - Created two bottom-sheet modals (~300 lines)
+  - Integrated into "Anpassa Grödor" screen
+  - Removed unused step types
+
+**Mobile Cultivation Planner = COMPLETE** ✨
+
+**UX Innovation**: The inline volume controls in the add modal are a mobile-first pattern that's actually BETTER than the desktop experience!
+
+---
 
 #### 🚀 Performance Optimizations:
 

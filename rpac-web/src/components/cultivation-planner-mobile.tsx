@@ -26,7 +26,8 @@ import {
   RefreshCw,
   ChevronDown,
   Info,
-  Trash2
+  Trash2,
+  Pencil
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { calculateGardenProduction } from '@/lib/cultivation/calculateGardenProduction';
@@ -82,6 +83,18 @@ export function CultivationPlannerMobile({ user, onPlanCreated }: CultivationPla
   const [currentPlanName, setCurrentPlanName] = useState(''); // Display name for loaded plan
   const [saveToCalendar, setSaveToCalendar] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Custom crop state
+  const [customCropName, setCustomCropName] = useState('');
+  const [customCropDescription, setCustomCropDescription] = useState('');
+  const [customCropSpaceRequired, setCustomCropSpaceRequired] = useState(0.5);
+  const [customCropYield, setCustomCropYield] = useState(5);
+  const [isAddingCustomCrop, setIsAddingCustomCrop] = useState(false);
+  const [editingCustomCrop, setEditingCustomCrop] = useState<any>(null);
+  
+  // Add crops modal state
+  const [showAddCropsModal, setShowAddCropsModal] = useState(false);
+  const [showCustomCropModal, setShowCustomCropModal] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -328,6 +341,163 @@ export function CultivationPlannerMobile({ user, onPlanCreated }: CultivationPla
     } finally {
       setLoading(false);
     }
+  };
+
+  // Add crop from available crops
+  const addCrop = (cropName: string) => {
+    if (selectedCrops.includes(cropName)) return;
+    
+    setSelectedCrops([...selectedCrops, cropName]);
+    
+    // Set default quantity
+    const defaultQuantity = Math.max(2, Math.floor(adjustableGardenSize / 10));
+    setCropVolumes({
+      ...cropVolumes,
+      [cropName]: defaultQuantity
+    });
+    
+    // Don't close modal - user might want to add more crops
+  };
+
+  // Add or update custom crop
+  const addCustomCrop = async () => {
+    if (!customCropName.trim()) {
+      alert('Vänligen ange ett namn för grödan');
+      return;
+    }
+
+    setIsAddingCustomCrop(true);
+
+    try {
+      const cropName = customCropName.trim();
+
+      // Check if crop already exists (case-insensitive, excluding the one being edited)
+      const existingCrop = gardenPlan?.crops?.find((c: any) => 
+        c.name.toLowerCase() === cropName.toLowerCase() &&
+        (!editingCustomCrop || c.name !== editingCustomCrop.name)
+      );
+
+      if (existingCrop) {
+        alert(`En gröda med namnet "${existingCrop.name}" finns redan i planen.`);
+        setIsAddingCustomCrop(false);
+        return;
+      }
+
+      if (editingCustomCrop) {
+        // UPDATE existing custom crop
+        const updatedPlan = {
+          ...gardenPlan,
+          crops: gardenPlan.crops.map((c: any) => 
+            c.name === editingCustomCrop.name
+              ? {
+                  ...c,
+                  name: cropName,
+                  scientificName: cropName,
+                  description: customCropDescription.trim() || `Anpassad gröda: ${cropName}`,
+                  spaceRequired: customCropSpaceRequired,
+                  yield: customCropYield,
+                }
+              : c
+          )
+        };
+        setGardenPlan(updatedPlan);
+
+        // If crop was selected, update its name in selectedCrops and volumes
+        if (selectedCrops.includes(editingCustomCrop.name)) {
+          const updatedSelectedCrops = selectedCrops.map(name => 
+            name === editingCustomCrop.name ? cropName : name
+          );
+          setSelectedCrops(updatedSelectedCrops);
+
+          if (editingCustomCrop.name !== cropName) {
+            const volume = cropVolumes[editingCustomCrop.name];
+            const newVolumes = { ...cropVolumes };
+            delete newVolumes[editingCustomCrop.name];
+            newVolumes[cropName] = volume;
+            setCropVolumes(newVolumes);
+          }
+        }
+      } else {
+        // CREATE new custom crop
+        const customCrop = {
+          name: cropName,
+          scientificName: cropName,
+          description: customCropDescription.trim() || `Anpassad gröda: ${cropName}`,
+          difficulty: 'beginner' as const,
+          sowingMonths: ['April', 'Maj'],
+          harvestingMonths: ['Augusti', 'September'],
+          spaceRequired: customCropSpaceRequired,
+          yield: customCropYield,
+          calories: 200,
+          nutritionalHighlights: ['Anpassad gröda'],
+          color: '#8B4513',
+          icon: '🌱',
+          isCustom: true,
+          localTips: ['Anpassad gröda - justera inställningarna efter behov']
+        };
+
+        // Add to garden plan crops
+        const updatedPlan = {
+          ...gardenPlan,
+          crops: [...(gardenPlan?.crops || []), customCrop]
+        };
+        setGardenPlan(updatedPlan);
+
+        // Add to selected crops with default volume
+        setSelectedCrops([...selectedCrops, customCrop.name]);
+        setCropVolumes({
+          ...cropVolumes,
+          [customCrop.name]: Math.max(2, Math.floor(adjustableGardenSize / 10))
+        });
+      }
+
+      // Reset form and close modal
+      setCustomCropName('');
+      setCustomCropDescription('');
+      setCustomCropSpaceRequired(0.5);
+      setCustomCropYield(5);
+      setEditingCustomCrop(null);
+      setShowCustomCropModal(false);
+      setShowAddCropsModal(true); // Back to add crops modal
+    } catch (error) {
+      console.error('Error adding custom crop:', error);
+      alert('Kunde inte spara grödan');
+    } finally {
+      setIsAddingCustomCrop(false);
+    }
+  };
+
+  // Edit custom crop
+  const editCustomCrop = (crop: any) => {
+    setEditingCustomCrop(crop);
+    setCustomCropName(crop.name);
+    setCustomCropDescription(crop.description?.replace(`Anpassad gröda: ${crop.name}`, '').trim() || '');
+    setCustomCropSpaceRequired(crop.spaceRequired || 0.5);
+    setCustomCropYield(crop.yield || 5);
+    setShowAddCropsModal(false);
+    setShowCustomCropModal(true);
+  };
+
+  // Delete custom crop
+  const deleteCustomCrop = (cropName: string) => {
+    if (!confirm(`Är du säker på att du vill ta bort "${cropName}"?`)) {
+      return;
+    }
+
+    // Remove from garden plan
+    const updatedPlan = {
+      ...gardenPlan,
+      crops: gardenPlan.crops.filter((c: any) => c.name !== cropName)
+    };
+    setGardenPlan(updatedPlan);
+
+    // Remove from selected crops
+    setSelectedCrops(selectedCrops.filter(name => name !== cropName));
+
+    // Remove volumes
+    const newVolumes = { ...cropVolumes };
+    delete newVolumes[cropName];
+    setCropVolumes(newVolumes);
   };
 
   const savePlan = async () => {
@@ -1019,8 +1189,19 @@ export function CultivationPlannerMobile({ user, onPlanCreated }: CultivationPla
             <h1 className="text-2xl font-bold flex-1">Anpassa Grödor</h1>
           </div>
           <p className="text-white/80 text-sm">
-            Justera antal plantor per gröda eller ta bort grödor
+            Lägg till, justera eller ta bort grödor
           </p>
+        </div>
+
+        {/* Add Crops Button */}
+        <div className="px-6 mb-6">
+          <button
+            onClick={() => setShowAddCropsModal(true)}
+            className="w-full bg-gradient-to-r from-[#556B2F] to-[#3D4A2B] text-white py-4 px-6 rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98 flex items-center justify-center gap-2"
+          >
+            <Plus size={24} strokeWidth={2.5} />
+            <span>Lägg till grödor</span>
+          </button>
         </div>
 
         {/* Crops List */}
@@ -1119,6 +1300,348 @@ export function CultivationPlannerMobile({ user, onPlanCreated }: CultivationPla
             )}
           </button>
         </div>
+
+        {/* Add Crops Modal */}
+        {showAddCropsModal && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end animate-fade-in">
+            <div className="bg-white rounded-t-3xl w-full max-h-[85vh] overflow-y-auto animate-slide-in-bottom">
+              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-6 rounded-t-3xl">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-2xl font-bold text-gray-900">Lägg till grödor</h3>
+                  <button
+                    onClick={() => setShowAddCropsModal(false)}
+                    className="p-2 hover:bg-gray-100 rounded-full transition-all touch-manipulation active:scale-95"
+                  >
+                    <X size={24} className="text-gray-600" />
+                  </button>
+                </div>
+                <p className="text-sm text-gray-600">Välj grödor att lägga till i din plan</p>
+              </div>
+
+              <div className="px-6 py-4">
+                {/* Add Custom Crop Button */}
+                <button
+                  onClick={() => {
+                    setShowAddCropsModal(false);
+                    setShowCustomCropModal(true);
+                  }}
+                  className="w-full bg-gradient-to-r from-[#556B2F] to-[#3D4A2B] text-white py-4 px-6 rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98 flex items-center justify-center gap-2 mb-6"
+                >
+                  <Plus size={24} strokeWidth={2.5} />
+                  <span>Skapa egen gröda</span>
+                </button>
+
+                {/* Available Crops */}
+                {(() => {
+                  // Get all crops from garden plan
+                  const allCrops = gardenPlan.crops || [];
+                  
+                  // Create a map to deduplicate crops by name (in case there are duplicates in the plan)
+                  const uniqueCropsMap = new Map();
+                  allCrops.forEach((crop: any) => {
+                    if (!uniqueCropsMap.has(crop.name)) {
+                      uniqueCropsMap.set(crop.name, crop);
+                    }
+                  });
+                  
+                  const availableCrops = Array.from(uniqueCropsMap.values());
+
+                  return availableCrops.length > 0 ? (
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-bold text-gray-700 mb-3">Tillgängliga grödor</h4>
+                      {availableCrops.map((crop: any) => {
+                        const isAdded = selectedCrops.includes(crop.name);
+                        const volume = cropVolumes[crop.name] || Math.max(2, Math.floor(adjustableGardenSize / 10));
+
+                        return (
+                          <div
+                            key={`modal-crop-${crop.name}`}
+                            className={`bg-white border-2 rounded-2xl p-4 shadow-sm transition-all ${
+                              isAdded ? 'border-[#3D4A2B] bg-[#3D4A2B]/5' : 'border-gray-200'
+                            }`}
+                          >
+                            <div className="flex items-center gap-4 mb-3">
+                              <div className="text-4xl">{crop.icon || '🌱'}</div>
+                              <div className="flex-1">
+                                <h3 className="font-bold text-lg text-gray-900">{crop.name}</h3>
+                                <p className="text-sm text-gray-600 line-clamp-1">{crop.description}</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                    crop.difficulty === 'beginner' ? 'bg-green-100 text-green-800' :
+                                    crop.difficulty === 'intermediate' ? 'bg-amber-100 text-amber-800' :
+                                    'bg-red-100 text-red-800'
+                                  }`}>
+                                    {crop.difficulty === 'beginner' ? 'Nybörjare' :
+                                     crop.difficulty === 'intermediate' ? 'Medel' : 'Avancerad'}
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    {crop.spaceRequired}m²
+                                  </span>
+                                  {crop.isCustom && (
+                                    <span className="px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                      Anpassad
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              {crop.isCustom && (
+                                <div className="flex flex-col gap-2">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      editCustomCrop(crop);
+                                    }}
+                                    className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all touch-manipulation active:scale-95"
+                                    aria-label="Redigera"
+                                  >
+                                    <Pencil size={16} strokeWidth={2.5} />
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteCustomCrop(crop.name);
+                                    }}
+                                    className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all touch-manipulation active:scale-95"
+                                    aria-label="Ta bort"
+                                  >
+                                    <Trash2 size={16} strokeWidth={2.5} />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Quantity Controls - Always Visible */}
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-3">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (isAdded) {
+                                      updateCropVolume(crop.name, -1);
+                                    } else {
+                                      // For not-yet-added crops, adjust the preview volume
+                                      const currentPreview = cropVolumes[crop.name] || Math.max(2, Math.floor(adjustableGardenSize / 10));
+                                      if (currentPreview > 1) {
+                                        setCropVolumes({
+                                          ...cropVolumes,
+                                          [crop.name]: currentPreview - 1
+                                        });
+                                      }
+                                    }
+                                  }}
+                                  disabled={volume <= 1}
+                                  className="p-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all touch-manipulation active:scale-95"
+                                >
+                                  <Minus size={18} strokeWidth={2.5} />
+                                </button>
+                                <div className="flex-1 bg-[#3D4A2B]/10 rounded-lg py-2 text-center">
+                                  <div className="text-xl font-bold text-[#3D4A2B]">{volume}</div>
+                                  <div className="text-xs text-gray-600">plantor</div>
+                                </div>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (isAdded) {
+                                      updateCropVolume(crop.name, 1);
+                                    } else {
+                                      // For not-yet-added crops, adjust the preview volume
+                                      const currentPreview = cropVolumes[crop.name] || Math.max(2, Math.floor(adjustableGardenSize / 10));
+                                      setCropVolumes({
+                                        ...cropVolumes,
+                                        [crop.name]: currentPreview + 1
+                                      });
+                                    }
+                                  }}
+                                  className="p-2 bg-[#3D4A2B] text-white rounded-lg hover:bg-[#2A331E] transition-all touch-manipulation active:scale-95"
+                                >
+                                  <Plus size={18} strokeWidth={2.5} />
+                                </button>
+                              </div>
+
+                              {/* Add Button or Status */}
+                              {!isAdded ? (
+                                <button
+                                  onClick={() => addCrop(crop.name)}
+                                  className="w-full bg-gradient-to-r from-[#556B2F] to-[#3D4A2B] text-white py-3 px-4 rounded-xl font-bold hover:shadow-lg transition-all touch-manipulation active:scale-98 flex items-center justify-center gap-2"
+                                >
+                                  <Plus size={20} strokeWidth={2.5} />
+                                  <span>Lägg till ({volume} plantor)</span>
+                                </button>
+                              ) : (
+                                <div className="flex items-center justify-center gap-2 py-2 bg-[#3D4A2B]/10 rounded-xl">
+                                  <Check size={18} className="text-[#3D4A2B]" strokeWidth={2.5} />
+                                  <span className="text-sm font-bold text-[#3D4A2B]">Tillagd i planen</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50 rounded-2xl p-8 text-center">
+                      <div className="text-6xl mb-4">✅</div>
+                      <p className="text-gray-700 font-medium">Alla grödor är tillagda!</p>
+                      <p className="text-sm text-gray-500 mt-2">Du kan skapa en egen gröda ovan</p>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              <div className="h-24" />
+            </div>
+          </div>
+        )}
+
+        {/* Custom Crop Modal */}
+        {showCustomCropModal && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end animate-fade-in">
+            <div className="bg-white rounded-t-3xl w-full max-h-[85vh] overflow-y-auto animate-slide-in-bottom">
+              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-6 rounded-t-3xl">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    {editingCustomCrop ? 'Redigera gröda' : 'Skapa egen gröda'}
+                  </h3>
+                  <button
+                    onClick={() => {
+                      setShowCustomCropModal(false);
+                      setShowAddCropsModal(true);
+                      setEditingCustomCrop(null);
+                      setCustomCropName('');
+                      setCustomCropDescription('');
+                      setCustomCropSpaceRequired(0.5);
+                      setCustomCropYield(5);
+                    }}
+                    className="p-2 hover:bg-gray-100 rounded-full transition-all touch-manipulation active:scale-95"
+                  >
+                    <X size={24} className="text-gray-600" />
+                  </button>
+                </div>
+                <p className="text-sm text-gray-600">
+                  {editingCustomCrop ? 'Uppdatera grödens parametrar' : 'Anpassa parametrar efter dina behov'}
+                </p>
+              </div>
+
+              <div className="px-6 py-4 space-y-4">
+                {/* Crop Name */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    🌱 Grödans namn *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="T.ex. Körsbärstomater"
+                    value={customCropName}
+                    onChange={(e) => setCustomCropName(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#3D4A2B] outline-none"
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    📝 Beskrivning (valfri)
+                  </label>
+                  <textarea
+                    placeholder="Beskriv grödan..."
+                    value={customCropDescription}
+                    onChange={(e) => setCustomCropDescription(e.target.value)}
+                    rows={3}
+                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#3D4A2B] outline-none resize-none"
+                  />
+                </div>
+
+                {/* Space Required */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    📏 Utrymme per växt (m²)
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setCustomCropSpaceRequired(Math.max(0.1, customCropSpaceRequired - 0.1))}
+                      className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all touch-manipulation active:scale-95"
+                    >
+                      <Minus size={20} strokeWidth={2.5} />
+                    </button>
+                    <div className="flex-1 bg-[#3D4A2B]/10 rounded-xl py-3 text-center">
+                      <div className="text-2xl font-bold text-[#3D4A2B]">
+                        {customCropSpaceRequired.toFixed(1)}
+                      </div>
+                      <div className="text-xs text-gray-600">m²</div>
+                    </div>
+                    <button
+                      onClick={() => setCustomCropSpaceRequired(customCropSpaceRequired + 0.1)}
+                      className="p-3 bg-[#3D4A2B] text-white rounded-xl hover:bg-[#2A331E] transition-all touch-manipulation active:scale-95"
+                    >
+                      <Plus size={20} strokeWidth={2.5} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Expected Yield */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    🎯 Förväntad skörd (kg per växt)
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setCustomCropYield(Math.max(0.5, customCropYield - 0.5))}
+                      className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all touch-manipulation active:scale-95"
+                    >
+                      <Minus size={20} strokeWidth={2.5} />
+                    </button>
+                    <div className="flex-1 bg-[#3D4A2B]/10 rounded-xl py-3 text-center">
+                      <div className="text-2xl font-bold text-[#3D4A2B]">
+                        {customCropYield.toFixed(1)}
+                      </div>
+                      <div className="text-xs text-gray-600">kg</div>
+                    </div>
+                    <button
+                      onClick={() => setCustomCropYield(customCropYield + 0.5)}
+                      className="p-3 bg-[#3D4A2B] text-white rounded-xl hover:bg-[#2A331E] transition-all touch-manipulation active:scale-95"
+                    >
+                      <Plus size={20} strokeWidth={2.5} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Info */}
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm text-blue-800">
+                      <p className="font-medium mb-1">Tips för anpassade grödor</p>
+                      <p className="text-blue-700">
+                        Du kan justera mängden direkt efter du lagt till grödan.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  onClick={addCustomCrop}
+                  disabled={!customCropName.trim() || isAddingCustomCrop}
+                  className="w-full bg-gradient-to-r from-[#556B2F] to-[#3D4A2B] text-white py-4 px-6 rounded-2xl font-bold hover:shadow-xl transition-all touch-manipulation active:scale-98 flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isAddingCustomCrop ? (
+                    <>
+                      <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent" />
+                      <span>{editingCustomCrop ? 'Sparar...' : 'Skapar...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check size={24} strokeWidth={2.5} />
+                      <span>{editingCustomCrop ? 'Spara ändringar' : 'Skapa gröda'}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <div className="h-24" />
+            </div>
+          </div>
+        )}
       </div>
     );
   }
