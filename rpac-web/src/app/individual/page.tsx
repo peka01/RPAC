@@ -3,6 +3,8 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { SupabaseResourceInventory } from '@/components/supabase-resource-inventory';
+import { ResourceManagementHub } from '@/components/resource-management-hub';
+import { IndividualDashboard } from '@/components/individual-dashboard';
 import { PlantDiagnosis } from '@/components/plant-diagnosis';
 import { PersonalDashboard } from '@/components/personal-dashboard';
 import { PersonalDashboardResponsive } from '@/components/personal-dashboard-responsive';
@@ -22,7 +24,7 @@ import { useUserProfile } from '@/lib/useUserProfile';
 import { supabase } from '@/lib/supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { t } from '@/lib/locales';
-import { Home, Sprout, BookOpen, Bot } from 'lucide-react';
+import { Home, Sprout, BookOpen, Bot, Users } from 'lucide-react';
 
 function IndividualPageContent() {
   const [user, setUser] = useState<SupabaseUser | null>(null);
@@ -85,21 +87,7 @@ function IndividualPageContent() {
       id: 'resources',
       title: t('individual.resources_development'),
       icon: BookOpen,
-      description: t('individual.resources_description'),
-      subsections: [
-        {
-          id: 'inventory',
-          title: t('individual.resource_inventory'),
-          description: t('individual.inventory_description'),
-          priority: 'high' as const
-        },
-        {
-          id: 'ai-coach',
-          title: 'Personlig AI-coach',
-          description: 'Få personliga råd och tips för din beredskap och odling',
-          priority: 'high' as const
-        }
-      ]
+      description: t('individual.resources_description')
     }
   ];
 
@@ -188,11 +176,25 @@ function IndividualPageContent() {
     return countyToClimateZone[county] || 'svealand';
   };
 
+  const handleNavigationFromDashboard = (section: string, subsection?: string) => {
+    console.log('Dashboard navigation:', section, subsection);
+    if (section === 'resources') {
+      setActiveSection('resources');
+      setActiveSubsection(subsection || 'inventory');
+    } else if (section === 'cultivation') {
+      setActiveSection('cultivation');
+      setActiveSubsection(subsection || 'calendar');
+    }
+  };
+
   const renderContent = () => {
-    // Home Section - Show PersonalDashboard when home is clicked
+    // Home Section - Show IndividualDashboard when home is clicked
     if (activeSection === 'home') {
       return (
-        <PersonalDashboardResponsive user={user} />
+        <IndividualDashboard 
+          user={{ id: user.id, email: user.email }} 
+          onNavigate={handleNavigationFromDashboard}
+        />
       );
     }
 
@@ -333,70 +335,10 @@ function IndividualPageContent() {
       );
     }
 
-    // Resources Section - Landing page (only when no subsection selected)
+    // Resources Section - Specialized landing page focused on resource management
     if (activeSection === 'resources' && !activeSubsection) {
       return (
-        <div className="space-y-6">
-          <div className="modern-card p-8">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
-                {t('individual.resources_development')}
-              </h2>
-              <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-                {t('individual.resources_description')}
-              </p>
-            </div>
-            
-            {/* Resources Tools Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div className="text-center p-6 rounded-lg border" style={{ 
-                backgroundColor: 'var(--bg-card)',
-                borderColor: 'var(--color-quaternary)'
-              }}>
-                <BookOpen className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--color-primary)' }} />
-                <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                  {t('individual.resource_inventory')}
-                </h3>
-                <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
-                  {t('individual.inventory_description')}
-                </p>
-                <button
-                  onClick={() => handleSectionChange('resources', 'inventory')}
-                  className="px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-md"
-                  style={{ 
-                    backgroundColor: 'var(--color-primary)',
-                    color: 'white'
-                  }}
-                >
-                  Visa inventering
-                </button>
-              </div>
-              
-              <div className="text-center p-6 rounded-lg border" style={{ 
-                backgroundColor: 'var(--bg-card)',
-                borderColor: 'var(--color-quaternary)'
-              }}>
-                <Bot className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--color-sage)' }} />
-                <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                  Personlig AI-coach
-                </h3>
-                <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
-                  Få personliga råd och tips för din beredskap och odling
-                </p>
-                <button
-                  onClick={() => handleSectionChange('resources', 'ai-coach')}
-                  className="px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-md"
-                  style={{ 
-                    backgroundColor: 'var(--color-sage)',
-                    color: 'white'
-                  }}
-                >
-                  Starta AI-coach
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ResourceManagementHub user={{ id: user.id }} />
       );
     }
 
@@ -494,108 +436,103 @@ function IndividualPageContent() {
       }
     }
 
-    // Handle subsection navigation for resources
-    if (activeSection === 'resources' && activeSubsection) {
-      if (activeSubsection === 'inventory') {
-        return (
-          <div className="modern-card">
-            <SupabaseResourceInventory user={{ id: user.id }} />
-          </div>
-        );
-      }
-      if (activeSubsection === 'ai-coach') {
-        return (
-          <div className="space-y-6">
-            <PersonalAICoach user={user} userProfile={profile || {}} />
-          </div>
-        );
-      }
+    // AI Coach (accessed from main nav button)
+    if (activeSection === 'ai-coach') {
+      return (
+        <div className="space-y-6">
+          <PersonalAICoach user={user} userProfile={profile || {}} />
+        </div>
+      );
     }
 
     return null;
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-[#5C6B47]/10 via-white to-[#707C5F]/10">
       {/* Mobile Navigation Component */}
-      <IndividualMobileNav
-        navigationSections={navigationSections}
-        activeSection={activeSection}
-        activeSubsection={activeSubsection}
-        onSectionChange={handleSectionChange}
-      />
+      <div className="lg:hidden">
+        <IndividualMobileNav
+          navigationSections={navigationSections}
+          activeSection={activeSection}
+          activeSubsection={activeSubsection}
+          onSectionChange={handleSectionChange}
+        />
+      </div>
 
-      <div className="container mx-auto px-6 py-8 lg:py-8 pt-0 lg:pt-8">
-        {/* Desktop Header (hidden on mobile) */}
-        <div className="mb-8 hidden lg:block">
-          <h1 className="text-4xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
-            {t('individual.title')}
-          </h1>
-          <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-            {t('individual.subtitle')}
-          </p>
-        </div>
-
-        {/* Main Content with Navigation */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Desktop Navigation Sidebar (hidden on mobile) */}
-          <div className="lg:col-span-1 hidden lg:block">
-            <div className="modern-card p-6">
-              <nav className="space-y-2">
-                {navigationSections.map((section) => {
-                  const Icon = section.icon;
-                  const isActive = activeSection === section.id;
-                  
-                  return (
-                    <div key={section.id} className="space-y-1">
-                      <button
-                        onClick={() => handleSectionChange(section.id)}
-                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-                          isActive
-                            ? 'text-white shadow-lg'
-                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                        }`}
-                        style={isActive ? { 
-                          background: 'linear-gradient(135deg, #3D4A2B 0%, #2A331E 100%)'
-                        } : {}}
-                      >
-                        <Icon className="w-5 h-5" />
-                        <span className="font-medium">{section.title}</span>
-                      </button>
-                      
-                      {/* Subsections */}
-                      {isActive && section.subsections && section.subsections.length > 0 && (
-                        <div className="ml-6 space-y-1">
-                          {section.subsections.map((subsection) => (
-                            <button
-                              key={subsection.id}
-                              onClick={() => handleSectionChange(section.id, subsection.id)}
-                              className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left text-sm transition-all duration-200 ${
-                                activeSubsection === subsection.id
-                                  ? 'text-white shadow-md'
-                                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
-                              }`}
-                              style={activeSubsection === subsection.id ? { 
-                                background: 'linear-gradient(135deg, #5C6B47 0%, #4A5239 100%)'
-                              } : {}}
-                            >
-                              <span className="font-medium">{subsection.title}</span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </nav>
+      {/* Header with Navigation */}
+      <div className="bg-gradient-to-r from-[#3D4A2B] to-[#2A331E] text-white shadow-lg">
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">{t('individual.title')}</h1>
+              <p className="text-[#C8D5B9]">
+                {t('individual.subtitle')}
+              </p>
             </div>
+            {profile?.household_size && profile.household_size > 1 && (
+              <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <Users size={16} />
+                  <span>{profile.household_size} personer i hushållet</span>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Content Area */}
-          <div className="lg:col-span-3 w-full">
-            {renderContent()}
+          {/* Navigation Tabs */}
+          <div className="flex gap-2 flex-wrap">
+            <button
+              onClick={() => handleSectionChange('home')}
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
+                activeSection === 'home'
+                  ? 'bg-white text-[#3D4A2B] shadow-md'
+                  : 'bg-[#5C6B47]/30 text-white hover:bg-[#5C6B47]/50'
+              }`}
+            >
+              <Home size={20} />
+              {t('individual.home_status')}
+            </button>
+            <button
+              onClick={() => handleSectionChange('cultivation')}
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
+                activeSection === 'cultivation'
+                  ? 'bg-white text-[#3D4A2B] shadow-md'
+                  : 'bg-[#5C6B47]/30 text-white hover:bg-[#5C6B47]/50'
+              }`}
+            >
+              <Sprout size={20} />
+              {t('individual.cultivation_planning')}
+            </button>
+            <button
+              onClick={() => handleSectionChange('resources')}
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
+                activeSection === 'resources'
+                  ? 'bg-white text-[#3D4A2B] shadow-md'
+                  : 'bg-[#5C6B47]/30 text-white hover:bg-[#5C6B47]/50'
+              }`}
+            >
+              <BookOpen size={20} />
+              {t('individual.resources_development')}
+            </button>
+            <button
+              onClick={() => handleSectionChange('ai-coach')}
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
+                activeSection === 'ai-coach'
+                  ? 'bg-white text-[#3D4A2B] shadow-md'
+                  : 'bg-[#5C6B47]/30 text-white hover:bg-[#5C6B47]/50'
+              }`}
+            >
+              <Bot size={20} />
+              AI-coach
+            </button>
           </div>
         </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {renderContent()}
       </div>
     </div>
   );

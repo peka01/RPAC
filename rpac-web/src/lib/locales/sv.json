@@ -104,7 +104,7 @@
     "reminders_description": "Automatiska påminnelser för odlingsuppgifter",
     "crisis_cultivation": "Krisodling",
     "crisis_description": "Snabbväxande grödor för kriser",
-    "resources_development": "Resurser & utveckling",
+    "resources_development": "Resurser",
     "resources_description": "Hantera dina resurser och utveckla färdigheter",
     "resource_inventory": "Resursinventering",
     "inventory_description": "Översikt av dina förnödenheter och utrustning",
@@ -526,7 +526,160 @@
       "single": "resurs",
       "multiple": "resurser"
     },
-    "days": "dagar"
+    "days": "dagar",
+    "dashboard": {
+      "title": "Min beredskapsstatus",
+      "preparedness_score": "Beredskapspoäng",
+      "self_sufficiency_days": "Du klarar: {days} dagar själv",
+      "next_step": "Nästa steg: {action}",
+      "add_water_supply": "Lägg till vattenförsörjning",
+      "add_food_supply": "Lägg till matförråd",
+      "add_medicine": "Lägg till medicin",
+      "add_energy": "Lägg till energiförsörjning",
+      "excellent": "Utmärkt",
+      "good": "Bra",
+      "fair": "Godkänt",
+      "needs_attention": "Behöver uppmärksamhet",
+      "critical": "Kritiskt"
+    },
+    "categories": {
+      "food": "Mat",
+      "water": "Vatten",
+      "medicine": "Medicin",
+      "energy": "Energi",
+      "tools": "Verktyg",
+      "other": "Övrigt"
+    },
+    "quick_add": {
+      "title": "Lägg till snabbt",
+      "templates": "Vanliga resurser",
+      "custom": "Egen vara",
+      "one_week": "1 vecka",
+      "one_month": "1 månad"
+    },
+    "sharing": {
+      "share_with_community": "Dela med samhället",
+      "share_excess": "Dela överskott",
+      "you_have_excess": "Du har {amount} överskott",
+      "share_amount": "Dela {amount}",
+      "available_until": "Tillgänglig till",
+      "shared_successfully": "Delad med samhället",
+      "stop_sharing": "Sluta dela",
+      "is_shareable": "Delningsbar",
+      "mark_shareable": "Markera som delbar",
+      "select_community": "Välj samhälle",
+      "quantity_to_share": "Antal att dela",
+      "no_communities": "Du är inte medlem i något samhälle än. Gå med i ett samhälle för att kunna dela resurser.",
+      "share_button": "Dela resurs",
+      "sharing": "Delar...",
+      "shared": "Delad!",
+      "share_resource_title": "Dela resurs med samhälle"
+    },
+    "expiry": {
+      "good": "God hållbarhet",
+      "use_soon": "Använd snart",
+      "use_this_week": "Använd denna vecka",
+      "expires_soon": "Utgår snart!",
+      "expired": "Utgången - ersätt",
+      "unlimited": "Obegränsad hållbarhet"
+    },
+    "analytics": {
+      "title": "Insikter",
+      "consumption_trends": "Förbrukningstrender",
+      "cost_optimization": "Kostnadsoptimering",
+      "self_sufficiency": "Självförsörjningsgrad"
+    }
+  },
+  "community_resources": {
+    "title": "Samhällets resurser",
+    "dashboard": {
+      "title": "Resursöversikt",
+      "community_score": "Samhällspoäng",
+      "active_members": "Aktiva medlemmar",
+      "shared_resources": "Delade resurser",
+      "community_owned": "Gemensamma resurser",
+      "help_requests": "Aktuella behov"
+    },
+    "tiers": {
+      "shared_from_members": "Delade från medlemmar",
+      "community_owned": "Samhällets gemensamma resurser",
+      "help_requests": "Aktuella behov"
+    },
+    "shared": {
+      "from": "Från",
+      "available_for": "Tillgänglig i",
+      "request": "Begär",
+      "days": "dagar",
+      "no_resources": "Inga delade resurser just nu"
+    },
+    "owned": {
+      "status": "Status",
+      "location": "Plats",
+      "responsible": "Ansvarig",
+      "last_maintenance": "Senast testad",
+      "book_usage": "Boka användning",
+      "add_resource": "Lägg till samhällsresurs",
+      "no_resources": "Inga gemensamma resurser än"
+    },
+    "help": {
+      "create_request": "Skapa förfrågan",
+      "urgency": "Brådskande",
+      "respond": "Jag kan hjälpa",
+      "anonymous": "Anonym",
+      "hours_ago": "timmar sedan",
+      "no_requests": "Inga aktiva förfrågningar"
+    },
+    "crud": {
+      "add_title": "Lägg till samhällsresurs",
+      "edit_title": "Redigera samhällsresurs",
+      "resource_type": "Typ av resurs",
+      "types": {
+        "equipment": "Utrustning",
+        "facility": "Plats",
+        "skill": "Kunskap",
+        "information": "Information"
+      },
+      "resource_name": "Namn",
+      "location": "Plats",
+      "responsible_person": "Ansvarig",
+      "next_maintenance": "Nästa underhåll",
+      "available_for_all": "Tillgänglig för alla",
+      "booking_required": "Bokning krävs",
+      "add_photo": "Lägg till foto",
+      "add_instructions": "Lägg till instruktioner",
+      "usage_instructions": "Användningsinstruktioner",
+      "notes": "Anteckningar",
+      "save": "Spara",
+      "cancel": "Avbryt",
+      "delete_confirm": "Är du säker på att du vill ta bort denna resurs?",
+      "resource_added": "Resurs tillagd",
+      "resource_updated": "Resurs uppdaterad",
+      "resource_deleted": "Resurs borttagen"
+    },
+    "booking": {
+      "title": "Boka resurs",
+      "start_time": "Starttid",
+      "end_time": "Sluttid",
+      "purpose": "Syfte",
+      "request_booking": "Begär bokning",
+      "booking_requested": "Bokning begärd",
+      "booking_approved": "Bokning godkänd",
+      "booking_rejected": "Bokning nekad",
+      "pending": "Väntar på godkännande",
+      "approved": "Godkänd",
+      "rejected": "Nekad",
+      "cancelled": "Avbruten"
+    },
+    "status": {
+      "available": "Tillgänglig",
+      "in_use": "I bruk",
+      "maintenance": "Underhåll",
+      "broken": "Trasig"
+    },
+    "permissions": {
+      "admin_only": "Endast administratörer kan hantera samhällets resurser",
+      "members_can_view": "Medlemmar kan se och begära resurser"
+    }
   },
   "cultivation": {
     "title": "Odlingskalender",

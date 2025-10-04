@@ -19,8 +19,10 @@ import {
   Calendar,
   TrendingUp,
   Sun,
-  Leaf
+  Leaf,
+  Share2
 } from 'lucide-react';
+import { ResourceShareToCommunityModal } from './resource-share-to-community-modal';
 
 interface SupabaseResourceInventoryProps {
   user: { id: string; email?: string; user_metadata?: { name?: string } };
@@ -84,6 +86,7 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [sharingResource, setSharingResource] = useState<Resource | null>(null);
   
   // Get user profile for family size
   const { profile: userProfile } = useUserProfile(user as any);
@@ -411,9 +414,8 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
         <div className="w-full h-full rounded-full" style={{ background: 'linear-gradient(135deg, var(--color-sage) 0%, var(--color-quaternary) 100%)' }}></div>
       </div>
       <div className="absolute bottom-0 left-0 w-20 h-20 opacity-[0.02]">
-        <div className="w-full h-full rounded-full animate-pulse" style={{ 
-          background: 'linear-gradient(135deg, var(--color-khaki) 0%, var(--color-warm-olive) 100%)',
-          animationDelay: '2s' 
+        <div className="w-full h-full rounded-full" style={{ 
+          background: 'linear-gradient(135deg, var(--color-khaki) 0%, var(--color-warm-olive) 100%)'
         }}></div>
       </div>
 
@@ -427,11 +429,10 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
               <Shield className="w-7 h-7 text-white" />
             </div>
             {/* Resource Status Indicator */}
-            <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full animate-pulse" style={{
+            <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full" style={{
               backgroundColor: resourceHealthScore > 70 ? 'var(--color-sage)' : 
                               resourceHealthScore > 40 ? 'var(--color-warning)' : 'var(--color-danger)'
             }}>
-              <div className="absolute inset-0 rounded-full bg-current animate-ping opacity-50"></div>
             </div>
           </div>
           <div>
@@ -467,12 +468,11 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
             days_remaining: 30
           });
         }}
-        className="group w-full mb-6 text-white p-5 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] relative overflow-hidden"
+        className="w-full mb-6 text-white p-5 rounded-lg shadow-md hover:shadow-lg transition-all relative overflow-hidden"
         style={{ background: 'linear-gradient(135deg, var(--color-sage) 0%, var(--color-quaternary) 100%)' }}
       >
-        <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
         <div className="relative flex items-center justify-center space-x-3">
-          <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center group-hover:rotate-90 transition-transform duration-300">
+          <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
             <Plus className="w-6 h-6" />
           </div>
           <div className="text-left">
@@ -775,6 +775,15 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
                                   <Plus size={14} style={{ color: 'var(--color-sage)' }} />
                                 </button>
                               )}
+                              {isFilled && resource.quantity > 0 && (
+                                <button
+                                  onClick={() => setSharingResource(resource)}
+                                  className="p-1.5 hover:bg-white/20 rounded transition-colors"
+                                  title="Dela med samhälle"
+                                >
+                                  <Share2 size={14} style={{ color: 'var(--color-sage)' }} />
+                                </button>
+                              )}
                               <button
                                 onClick={() => handleEdit(resource)}
                                 className="p-1.5 hover:bg-white/20 rounded transition-colors"
@@ -844,6 +853,15 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
                                 title="Snabbfyll"
                               >
                                 <Plus size={16} style={{ color: 'var(--color-sage)' }} />
+                              </button>
+                            )}
+                            {isFilled && resource.quantity > 0 && (
+                              <button
+                                onClick={() => setSharingResource(resource)}
+                                className="p-2 hover:bg-white/20 rounded transition-colors"
+                                title="Dela med samhälle"
+                              >
+                                <Share2 size={16} style={{ color: 'var(--color-sage)' }} />
                               </button>
                             )}
                             <button
@@ -924,6 +942,20 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
             {t('resources.no_resources_message')}
           </p>
         </div>
+      )}
+
+      {/* Resource Sharing Modal */}
+      {sharingResource && (
+        <ResourceShareToCommunityModal
+          isOpen={!!sharingResource}
+          onClose={() => setSharingResource(null)}
+          resource={sharingResource}
+          userId={user.id}
+          onSuccess={() => {
+            setSharingResource(null);
+            loadResources();
+          }}
+        />
       )}
     </div>
   );

@@ -90,8 +90,35 @@
 - **Member Tracking**: ✅ Complete - Accurate member counts with database functions
 - **Three-Level Filtering**: ✅ Complete - Närområdet (0-50km), Länet (county), Regionen
 - **External Communication**: ✅ Complete - Radio and web-based communication
-- **Resource Sharing**: ❌ **NEXT FEATURE** - Community-wide resource inventory
-- **Help Request System**: ❌ **NEXT FEATURE** - Emergency assistance coordination
+- **Resource Sharing**: 🔄 **IN PROGRESS** - Desktop hub complete, mobile + sharing flow next
+- **Help Request System**: ✅ Complete - Emergency assistance coordination in messaging
+
+#### **Resource Management Status** 🔄 **IN PROGRESS** (2025-10-04)
+**MAJOR INITIATIVE**: World-class resource management for crisis preparedness
+
+##### Phase 1: Individual Resource Management (IN PROGRESS)
+- ✅ **Desktop Resource Hub**: Category health dashboard with analytics
+- ✅ **MSB Integration**: Pre-loaded recommendations from "Om krisen eller kriget kommer"
+- ✅ **Database Schema**: Enhanced tables for individual & community resources
+- ✅ **Localization**: Comprehensive Swedish strings for all features
+- ✅ **Smart Analytics**: Preparedness score, self-sufficiency days, category health
+- 🔄 **Quick-Add Modal**: Template-based resource addition (NEXT)
+- 🔄 **Mobile Component**: Mobile-optimized resource hub (NEXT)
+- 📋 **Sharing Bridge**: Connect individual inventory to community (PLANNED)
+
+##### Phase 2: Community Resource Management (PLANNED)
+- 📋 **Community Resource Hub**: Three-tier display (shared, owned, help requests)
+- 📋 **Admin CRUD**: Community-owned resource management
+- 📋 **Booking System**: Reserve shared tools/equipment
+- 📋 **Resource Discovery**: Category-based browsing and search
+- 📋 **Analytics Dashboard**: Community resource insights
+
+##### Phase 3: Advanced Features (FUTURE)
+- 📋 **Notifications**: Expiry warnings, sharing requests
+- 📋 **Map View**: Geographic resource distribution
+- 📋 **Photo Upload**: Visual inventory management
+- 📋 **Barcode Scanning**: Quick item addition
+- 📋 **Trends**: Resource analytics over time
 
 #### **Local Level Status** ✅ **IMPLEMENTED**
 - **Components**: Community discovery, hub, messaging system fully functional
@@ -267,17 +294,138 @@
   - Myndighetskommunikation
   - Automatiska varningar och alerter
 
-- [ ] **Gemensam resursinventering**
-  - Samhällsövergripande resursöversikt
-  - Överskott/brist-matchning
-  - Resursförfrågningar och erbjudanden
-
-- [ ] **Ömsesidig hjälp-system**
+- [x] **Ömsesidig hjälp-system** ✅
   - Begäran och erbjudande av hjälp
   - Kompetensmatching (VVS, el, trädgård, etc.)
   - Hjälphistorik och betygsystem
 
-### Sprint 2.3: Lokala AI-tjänster
+### Sprint 2.3: Resource Management System 🔄 **IN PROGRESS** (2025-10-04)
+**Prioritet: HÖGSTA** - Key feature for crisis preparedness
+
+#### **Sprint 2.3.1: Individual Resource Management** 🔄 **IN PROGRESS**
+**Estimated Time**: 2-3 weeks
+
+- [x] **Desktop Resource Hub** ✅ (2025-10-04)
+  - Hero header with preparedness stats (score, days, next action)
+  - Category health dashboard (6 interactive cards)
+  - MSB status banner with progress tracking
+  - View toggle (Dashboard ↔ Inventory)
+  - Smart analytics and calculations
+  - Olive green RPAC design compliance
+
+- [ ] **Quick-Add Modal** 📋 **NEXT**
+  - Template-based resource addition
+  - Common items quick-add (1-week kit, 1-month kit)
+  - Category-specific templates
+  - MSB recommendation templates
+  - Custom resource form
+  - Family size scaling
+
+- [ ] **Mobile Resource Hub** 📋 **NEXT**
+  - Separate mobile component (not responsive CSS)
+  - Hero header with gradient and stats grid
+  - Category health cards (mobile-optimized)
+  - Bottom sheet modals for add/edit
+  - Floating action button (bottom-24)
+  - Touch-optimized (44px+ targets)
+  - Following cultivation mobile patterns
+
+- [ ] **Sharing Integration** 📋 **PLANNED**
+  - "Share this" button on each resource
+  - "Share excess" suggestions
+  - Share to community modal
+  - Shareable resource indicators
+  - Integration with resource_sharing table
+
+#### **Sprint 2.3.2: Community Resource Management** 📋 **PLANNED**
+**Estimated Time**: 2-3 weeks
+
+- [ ] **Community Resource Hub (Desktop)**
+  - Three-tier display:
+    1. Shared from Members
+    2. Community-Owned Resources
+    3. Active Help Requests
+  - Tab navigation between tiers
+  - Category-based filtering
+  - Search functionality
+  - Admin controls (edit/delete)
+
+- [ ] **Community Resource Hub (Mobile)**
+  - Mobile-optimized three-tier display
+  - Bottom sheet for resource details
+  - Full-screen admin CRUD modals
+  - Touch-optimized interactions
+  - Pull-to-refresh
+
+- [ ] **Admin CRUD for Community Resources**
+  - Add community-owned resources (equipment, facilities, skills)
+  - Edit resource details (location, responsible, status)
+  - Delete with confirmation
+  - Maintenance tracking (last checked, next service)
+  - Photo upload for resources
+  - Usage instructions field
+
+- [ ] **Booking System**
+  - Request resource usage (date/time)
+  - Booking approval/rejection
+  - Booking calendar view
+  - Usage purpose field
+  - Status tracking (pending, approved, rejected, cancelled)
+  - Notifications for booking updates
+
+- [ ] **Resource Discovery**
+  - Browse by category
+  - Filter by availability
+  - Sort by distance/date
+  - Search by name/description
+  - Map view of resources (future)
+
+- [ ] **Analytics Dashboard**
+  - Community preparedness score
+  - Total shared resources
+  - Active members contributing
+  - Most shared categories
+  - Help requests resolved
+  - Resource utilization stats
+
+#### **Sprint 2.3.3: Integration & Polish** 📋 **FUTURE**
+**Estimated Time**: 1-2 weeks
+
+- [ ] **Dashboard Integration**
+  - Resource widget on personal dashboard
+  - Quick stats (preparedness score, days)
+  - Recent activity feed
+  - Quick actions (add resource, share)
+
+- [ ] **Notifications**
+  - Resource expiring soon (7 days warning)
+  - Resource expired (action needed)
+  - Share request received
+  - Booking approved/rejected
+  - Help request response
+
+- [ ] **Photo Upload**
+  - Take photo of resource
+  - Upload from gallery
+  - Image preview
+  - Supabase Storage integration
+  - Image optimization
+
+- [ ] **Advanced Search**
+  - Full-text search
+  - Multi-category filter
+  - Date range filter
+  - Shareable only filter
+  - Export results
+
+- [ ] **Trends & Analytics**
+  - Resource addition over time
+  - Consumption patterns
+  - Category health trends
+  - Community comparison
+  - Recommendations based on trends
+
+### Sprint 2.4: Lokala AI-tjänster
 **Prioritet: Medium**
 
 - [ ] **Samhällsanalys**
