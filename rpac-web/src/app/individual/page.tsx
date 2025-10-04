@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { SupabaseResourceInventory } from '@/components/supabase-resource-inventory';
-import { ResourceManagementHub } from '@/components/resource-management-hub';
+import { ResourceManagementHubResponsive } from '@/components/resource-management-hub-responsive';
 import { IndividualDashboard } from '@/components/individual-dashboard';
 import { PlantDiagnosis } from '@/components/plant-diagnosis';
 import { PersonalDashboard } from '@/components/personal-dashboard';
@@ -338,7 +338,7 @@ function IndividualPageContent() {
     // Resources Section - Specialized landing page focused on resource management
     if (activeSection === 'resources' && !activeSubsection) {
       return (
-        <ResourceManagementHub user={{ id: user.id }} />
+        <ResourceManagementHubResponsive user={{ id: user.id }} />
       );
     }
 

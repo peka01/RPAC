@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { CommunityDiscoveryMobile } from './community-discovery-mobile';
 import { MessagingSystemMobile } from './messaging-system-mobile';
+import { CommunityResourceHubMobile } from './community-resource-hub-mobile';
 import { useUserProfile } from '@/lib/useUserProfile';
 import { communityService, type LocalCommunity } from '@/lib/supabase';
 import { t } from '@/lib/locales';
@@ -24,11 +25,12 @@ interface CommunityHubMobileEnhancedProps {
 }
 
 export function CommunityHubMobileEnhanced({ user }: CommunityHubMobileEnhancedProps) {
-  const [activeView, setActiveView] = useState<'home' | 'discovery' | 'messaging'>('home');
+  const [activeView, setActiveView] = useState<'home' | 'discovery' | 'messaging' | 'resources'>('home');
   const [activeCommunityId, setActiveCommunityId] = useState<string | undefined>();
   const [userCommunities, setUserCommunities] = useState<LocalCommunity[]>([]);
   const [loadingCommunities, setLoadingCommunities] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { profile, loading } = useUserProfile(user);
   const userPostalCode = profile?.postal_code;
 
@@ -38,6 +40,20 @@ export function CommunityHubMobileEnhanced({ user }: CommunityHubMobileEnhancedP
       loadUserCommunities();
     }
   }, [user]);
+
+  // Check admin status when active community changes
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (activeCommunityId && user && user.id !== 'demo-user') {
+        const adminStatus = await communityService.isUserAdmin(activeCommunityId, user.id);
+        setIsAdmin(adminStatus);
+      } else {
+        setIsAdmin(false);
+      }
+    };
+    
+    checkAdminStatus();
+  }, [activeCommunityId, user]);
 
   const loadUserCommunities = async () => {
     if (!user || user.id === 'demo-user') return;
@@ -82,16 +98,16 @@ export function CommunityHubMobileEnhanced({ user }: CommunityHubMobileEnhancedP
   // Mobile Bottom Navigation
   const BottomNav = () => (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-[#5C6B47]/20 shadow-2xl z-50 safe-area-pb">
-      <div className="flex items-center justify-around px-2 py-3">
+      <div className="flex items-center justify-around px-1 py-3">
         <button
           onClick={() => setActiveView('home')}
-          className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all touch-manipulation ${
+          className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all touch-manipulation ${
             activeView === 'home'
               ? 'bg-[#3D4A2B] text-white scale-105'
               : 'text-gray-600 active:scale-95'
           }`}
         >
-          <Home size={24} strokeWidth={activeView === 'home' ? 2.5 : 2} />
+          <Home size={22} strokeWidth={activeView === 'home' ? 2.5 : 2} />
           <span className={`text-xs font-medium ${activeView === 'home' ? 'font-bold' : ''}`}>
             Hem
           </span>
@@ -99,27 +115,41 @@ export function CommunityHubMobileEnhanced({ user }: CommunityHubMobileEnhancedP
 
         <button
           onClick={() => setActiveView('discovery')}
-          className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all touch-manipulation ${
+          className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all touch-manipulation ${
             activeView === 'discovery'
               ? 'bg-[#3D4A2B] text-white scale-105'
               : 'text-gray-600 active:scale-95'
           }`}
         >
-          <Search size={24} strokeWidth={activeView === 'discovery' ? 2.5 : 2} />
+          <Search size={22} strokeWidth={activeView === 'discovery' ? 2.5 : 2} />
           <span className={`text-xs font-medium ${activeView === 'discovery' ? 'font-bold' : ''}`}>
             Hitta
           </span>
         </button>
 
         <button
+          onClick={() => setActiveView('resources')}
+          className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all touch-manipulation ${
+            activeView === 'resources'
+              ? 'bg-[#3D4A2B] text-white scale-105'
+              : 'text-gray-600 active:scale-95'
+          }`}
+        >
+          <Package size={22} strokeWidth={activeView === 'resources' ? 2.5 : 2} />
+          <span className={`text-xs font-medium ${activeView === 'resources' ? 'font-bold' : ''}`}>
+            Resurser
+          </span>
+        </button>
+
+        <button
           onClick={() => setActiveView('messaging')}
-          className={`relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all touch-manipulation ${
+          className={`relative flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all touch-manipulation ${
             activeView === 'messaging'
               ? 'bg-[#3D4A2B] text-white scale-105'
               : 'text-gray-600 active:scale-95'
           }`}
         >
-          <MessageCircle size={24} strokeWidth={activeView === 'messaging' ? 2.5 : 2} />
+          <MessageCircle size={22} strokeWidth={activeView === 'messaging' ? 2.5 : 2} />
           {unreadCount > 0 && (
             <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-bounce">
               {unreadCount > 9 ? '9+' : unreadCount}
@@ -278,6 +308,37 @@ export function CommunityHubMobileEnhanced({ user }: CommunityHubMobileEnhancedP
               userPostalCode={userPostalCode}
               onJoinCommunity={handleJoinCommunity}
             />
+          </div>
+        )}
+
+        {activeView === 'resources' && (
+          <div className="pb-24">
+            {userCommunities.length > 0 && activeCommunityId ? (
+              <CommunityResourceHubMobile
+                user={user}
+                communityId={activeCommunityId}
+                communityName={userCommunities.find(c => c.id === activeCommunityId)?.community_name || 'Samhälle'}
+                isAdmin={isAdmin}
+              />
+            ) : (
+              <div className="flex items-center justify-center min-h-screen px-4">
+                <div className="text-center">
+                  <div className="bg-[#5C6B47]/10 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+                    <Package className="text-[#5C6B47]" size={48} />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">Inget samhälle valt</h3>
+                  <p className="text-gray-600 mb-8">
+                    Gå med i ett samhälle för att se och dela resurser
+                  </p>
+                  <button
+                    onClick={() => setActiveView('discovery')}
+                    className="px-8 py-4 bg-[#3D4A2B] text-white font-bold rounded-xl hover:bg-[#2A331E] transition-all touch-manipulation active:scale-95"
+                  >
+                    Hitta samhällen
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
