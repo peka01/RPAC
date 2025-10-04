@@ -522,12 +522,18 @@ function SharedResourceCard({ resource, currentUserId, onRequest }: any) {
 // Help Request Card Component
 function HelpRequestCard({ request, currentUserId, onRespond }: any) {
   const isOwner = request.user_id === currentUserId;
-  const urgencyColors = {
+  const urgencyColors: Record<string, string> = {
     low: 'bg-green-100 text-green-700',
     medium: 'bg-yellow-100 text-yellow-700',
-    high: 'bg-red-100 text-red-700'
+    high: 'bg-red-100 text-red-700',
+    critical: 'bg-red-200 text-red-800'
   };
-  const urgencyLabels = { low: 'Låg', medium: 'Medel', high: 'Hög' };
+  const urgencyLabels: Record<string, string> = { 
+    low: 'Låg', 
+    medium: 'Medel', 
+    high: 'Hög',
+    critical: 'Kritisk'
+  };
 
   return (
     <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all border-2 border-transparent hover:border-[#3D4A2B]">
