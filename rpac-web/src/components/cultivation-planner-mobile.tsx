@@ -53,7 +53,7 @@ interface UserProfile {
 
 export function CultivationPlannerMobile({ user, onPlanCreated }: CultivationPlannerMobileProps) {
   const { profile, refreshProfile } = useUserProfile(user);
-  const [step, setStep] = useState<'welcome' | 'profile' | 'generating' | 'dashboard' | 'edit-crops' | 'monthly-tasks' | 'grocery' | 'settings'>('welcome');
+  const [step, setStep] = useState<'welcome' | 'profile' | 'generating' | 'dashboard' | 'edit-crops' | 'monthly-tasks' | 'grocery' | 'settings' | 'select-plan'>('welcome');
   const [loading, setLoading] = useState(false);
   const [gardenPlan, setGardenPlan] = useState<any>(null);
   const [selectedCrops, setSelectedCrops] = useState<string[]>([]);
@@ -61,6 +61,7 @@ export function CultivationPlannerMobile({ user, onPlanCreated }: CultivationPla
   const [adjustableGardenSize, setAdjustableGardenSize] = useState(50);
   const [cultivationIntensity, setCultivationIntensity] = useState<'low' | 'medium' | 'high'>('medium');
   const [realTimeStats, setRealTimeStats] = useState<any>(null);
+  const [savedPlans, setSavedPlans] = useState<any[]>([]);
   
   const [profileData, setProfileData] = useState<UserProfile>({
     household_size: 1,
@@ -77,6 +78,7 @@ export function CultivationPlannerMobile({ user, onPlanCreated }: CultivationPla
   // Save plan state
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [planName, setPlanName] = useState('');
+  const [currentPlanName, setCurrentPlanName] = useState(''); // Display name for loaded plan
   const [saveToCalendar, setSaveToCalendar] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -95,6 +97,79 @@ export function CultivationPlannerMobile({ user, onPlanCreated }: CultivationPla
       });
     }
   }, [profile]);
+
+  // Load all saved plans on mount
+  useEffect(() => {
+    const loadSavedPlans = async () => {
+      if (!user?.id) return;
+
+      try {
+        // Load all plans
+        const { data: allPlans, error: allError } = await supabase
+          .from('cultivation_plans')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (allPlans && !allError) {
+          setSavedPlans(allPlans);
+        }
+
+        // Load primary plan
+        const { data, error } = await supabase
+          .from('cultivation_plans')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('is_primary', true)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (data && !error) {
+          loadPlanData(data);
+          setStep('dashboard');
+        }
+      } catch (error) {
+        console.error('Error loading saved plans:', error);
+      }
+    };
+
+    loadSavedPlans();
+  }, [user?.id]);
+
+  // Helper function to load plan data
+  const loadPlanData = (data: any) => {
+    const planData = data.plan_data || {};
+    
+    if (planData.gardenPlan) setGardenPlan(planData.gardenPlan);
+    if (planData.selectedCrops) setSelectedCrops(planData.selectedCrops);
+    if (planData.cropVolumes) setCropVolumes(planData.cropVolumes);
+    if (planData.adjustableGardenSize) setAdjustableGardenSize(planData.adjustableGardenSize);
+    if (planData.cultivationIntensity) setCultivationIntensity(planData.cultivationIntensity);
+    if (planData.realTimeStats) setRealTimeStats(planData.realTimeStats);
+    if (planData.profile) setProfileData(planData.profile);
+    
+    const displayName = planData.name || data.title || 'Min Odlingsplan';
+    setCurrentPlanName(displayName);
+  };
+
+  // Load a specific plan
+  const loadSpecificPlan = async (planId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('cultivation_plans')
+        .select('*')
+        .eq('id', planId)
+        .single();
+
+      if (data && !error) {
+        loadPlanData(data);
+        setStep('dashboard');
+      }
+    } catch (error) {
+      console.error('Error loading plan:', error);
+    }
+  };
 
   // Recalculate stats when crops/volumes/intensity change
   useEffect(() => {
@@ -332,6 +407,74 @@ export function CultivationPlannerMobile({ user, onPlanCreated }: CultivationPla
       return rest;
     });
   };
+
+  // Plan Selection Screen
+  if (step === 'select-plan') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#5C6B47]/5 to-[#707C5F]/5">
+        <div className="bg-gradient-to-br from-[#3D4A2B] to-[#2A331E] text-white px-6 py-8 rounded-b-3xl shadow-2xl mb-6">
+          <div className="flex items-center gap-3 mb-4">
+            <button
+              onClick={() => setStep('dashboard')}
+              className="p-2 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-all active:scale-95 touch-manipulation"
+            >
+              <ArrowRight size={20} className="rotate-180" />
+            </button>
+            <h1 className="text-2xl font-bold flex-1">Välj Odlingsplan</h1>
+          </div>
+          <p className="text-white/80 text-sm">Du har {savedPlans.length} sparade planer</p>
+        </div>
+
+        <div className="px-6 space-y-4 pb-32">
+          {savedPlans.map((plan) => {
+            const planData = plan.plan_data || {};
+            const displayName = planData.name || plan.title || 'Namnlös plan';
+            const isPrimary = plan.is_primary;
+            const createdAt = new Date(plan.created_at).toLocaleDateString('sv-SE');
+            const cropCount = planData.selectedCrops?.length || 0;
+
+            return (
+              <button
+                key={plan.id}
+                onClick={() => loadSpecificPlan(plan.id)}
+                className={`w-full bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98 text-left ${
+                  isPrimary ? 'ring-2 ring-[#3D4A2B]' : ''
+                }`}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="font-bold text-lg text-gray-900">{displayName}</h3>
+                      {isPrimary && (
+                        <span className="px-2 py-1 bg-[#3D4A2B] text-white text-xs font-bold rounded-full">
+                          Aktiv
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600">Skapad {createdAt}</p>
+                  </div>
+                  <ChevronRight size={20} className="text-gray-400 mt-1" strokeWidth={2} />
+                </div>
+
+                <div className="flex items-center gap-6 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Leaf size={16} className="text-green-600" strokeWidth={2} />
+                    <span className="text-gray-700">{cropCount} grödor</span>
+                  </div>
+                  {planData.realTimeStats?.selfSufficiencyPercent && (
+                    <div className="flex items-center gap-2">
+                      <TrendingUp size={16} className="text-blue-600" strokeWidth={2} />
+                      <span className="text-gray-700">{planData.realTimeStats.selfSufficiencyPercent}% självförsörjning</span>
+                    </div>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
 
   // Welcome Screen
   if (step === 'welcome') {
@@ -574,7 +717,7 @@ export function CultivationPlannerMobile({ user, onPlanCreated }: CultivationPla
               <Sprout size={32} className="text-white" strokeWidth={2} />
             </div>
             <div className="flex-1">
-              <h1 className="text-2xl font-bold mb-1">Din Odlingsplan</h1>
+              <h1 className="text-2xl font-bold mb-1">{currentPlanName || 'Din Odlingsplan'}</h1>
               <p className="text-white/80 text-sm">{profileData.climate_zone} • {adjustableGardenSize}m²</p>
             </div>
             <button 
@@ -1035,6 +1178,25 @@ export function CultivationPlannerMobile({ user, onPlanCreated }: CultivationPla
         </div>
 
         <div className="px-6 space-y-6">
+          {/* Select Plan Button */}
+          {savedPlans.length > 0 && (
+            <button
+              onClick={() => setStep('select-plan')}
+              className="w-full bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98 flex items-center justify-between"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <Leaf size={24} className="text-blue-600" strokeWidth={2} />
+                </div>
+                <div className="text-left">
+                  <div className="font-bold text-gray-900">Byt odlingsplan</div>
+                  <div className="text-sm text-gray-600">{savedPlans.length} sparade planer</div>
+                </div>
+              </div>
+              <ChevronRight size={20} className="text-gray-400" strokeWidth={2} />
+            </button>
+          )}
+
           {/* Garden Size Slider */}
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <label className="block text-sm font-bold text-gray-700 mb-4">
