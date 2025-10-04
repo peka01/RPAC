@@ -20,6 +20,25 @@ npm run dev  # SUCCESS!
 
 **Common Mistake**: Running `npm run dev` from the root `RPAC` directory will fail because `package.json` is located in the `rpac-web` subdirectory.
 
+### ⚡ Build vs Development Server
+
+**FOR AI ASSISTANTS**: Do NOT run `npm run build` after every code change!
+
+- **During development**: Use `npm run dev` only (hot reload handles updates)
+- **Build ONLY when**: Testing production build, pre-deployment, or verifying build passes
+- **Development workflow**: Start dev server once, make changes, browser auto-refreshes
+
+```bash
+# ✅ Typical workflow
+cd rpac-web
+npm run dev              # Start once
+# Make changes to code...
+# Changes appear automatically in browser!
+
+# ❌ Do NOT do this unnecessarily
+npm run build            # Only for production testing!
+```
+
 ## Current Status (October 3, 2025)
 
 **Phase 1 (Individual Level)**: ✅ COMPLETE

@@ -25,7 +25,8 @@ import {
   Leaf,
   RefreshCw,
   ChevronDown,
-  Info
+  Info,
+  Trash2
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { calculateGardenProduction } from '@/lib/cultivation/calculateGardenProduction';
@@ -168,6 +169,48 @@ export function CultivationPlannerMobile({ user, onPlanCreated }: CultivationPla
       }
     } catch (error) {
       console.error('Error loading plan:', error);
+    }
+  };
+
+  // Delete a plan
+  const deletePlan = async (planId: string, event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent loading the plan when clicking delete
+
+    if (!confirm('Är du säker på att du vill ta bort denna odlingsplan?')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('cultivation_plans')
+        .delete()
+        .eq('id', planId);
+
+      if (error) {
+        console.error('Error deleting plan:', error);
+        alert('Kunde inte ta bort planen');
+        return;
+      }
+
+      // Remove from local state
+      setSavedPlans(prev => prev.filter(p => p.id !== planId));
+
+      // If we deleted the current plan, reset to welcome screen
+      if (savedPlans.find(p => p.id === planId)?.is_primary) {
+        setGardenPlan(null);
+        setSelectedCrops([]);
+        setCropVolumes({});
+        setCurrentPlanName('');
+        setStep('welcome');
+      }
+
+      // If no plans left, go to welcome
+      if (savedPlans.length <= 1) {
+        setStep('welcome');
+      }
+    } catch (error) {
+      console.error('Error deleting plan:', error);
+      alert('Kunde inte ta bort planen');
     }
   };
 
@@ -434,41 +477,51 @@ export function CultivationPlannerMobile({ user, onPlanCreated }: CultivationPla
             const cropCount = planData.selectedCrops?.length || 0;
 
             return (
-              <button
-                key={plan.id}
-                onClick={() => loadSpecificPlan(plan.id)}
-                className={`w-full bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98 text-left ${
-                  isPrimary ? 'ring-2 ring-[#3D4A2B]' : ''
-                }`}
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-bold text-lg text-gray-900">{displayName}</h3>
-                      {isPrimary && (
-                        <span className="px-2 py-1 bg-[#3D4A2B] text-white text-xs font-bold rounded-full">
-                          Aktiv
-                        </span>
-                      )}
+              <div key={plan.id} className="relative">
+                <button
+                  onClick={() => loadSpecificPlan(plan.id)}
+                  className={`w-full bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98 text-left ${
+                    isPrimary ? 'ring-2 ring-[#3D4A2B]' : ''
+                  }`}
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-bold text-lg text-gray-900">{displayName}</h3>
+                        {isPrimary && (
+                          <span className="px-2 py-1 bg-[#3D4A2B] text-white text-xs font-bold rounded-full">
+                            Aktiv
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600">Skapad {createdAt}</p>
                     </div>
-                    <p className="text-sm text-gray-600">Skapad {createdAt}</p>
+                    <ChevronRight size={20} className="text-gray-400 mt-1" strokeWidth={2} />
                   </div>
-                  <ChevronRight size={20} className="text-gray-400 mt-1" strokeWidth={2} />
-                </div>
 
-                <div className="flex items-center gap-6 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Leaf size={16} className="text-green-600" strokeWidth={2} />
-                    <span className="text-gray-700">{cropCount} grödor</span>
-                  </div>
-                  {planData.realTimeStats?.selfSufficiencyPercent && (
+                  <div className="flex items-center gap-6 text-sm">
                     <div className="flex items-center gap-2">
-                      <TrendingUp size={16} className="text-blue-600" strokeWidth={2} />
-                      <span className="text-gray-700">{planData.realTimeStats.selfSufficiencyPercent}% självförsörjning</span>
+                      <Leaf size={16} className="text-green-600" strokeWidth={2} />
+                      <span className="text-gray-700">{cropCount} grödor</span>
                     </div>
-                  )}
-                </div>
-              </button>
+                    {planData.realTimeStats?.selfSufficiencyPercent && (
+                      <div className="flex items-center gap-2">
+                        <TrendingUp size={16} className="text-blue-600" strokeWidth={2} />
+                        <span className="text-gray-700">{planData.realTimeStats.selfSufficiencyPercent}% självförsörjning</span>
+                      </div>
+                    )}
+                  </div>
+                </button>
+
+                {/* Delete Button */}
+                <button
+                  onClick={(e) => deletePlan(plan.id, e)}
+                  className="absolute top-4 right-4 p-2 bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition-all touch-manipulation active:scale-95 z-10"
+                  aria-label="Ta bort plan"
+                >
+                  <Trash2 size={18} strokeWidth={2} />
+                </button>
+              </div>
             );
           })}
         </div>

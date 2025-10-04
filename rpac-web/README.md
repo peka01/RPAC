@@ -20,10 +20,12 @@ npm run dev  # SUCCESS - Server starts at localhost:3000
 
 **Quick Commands** (from `rpac-web` directory):
 ```bash
-npm run dev           # Start dev server
-npm run build         # Production build
+npm run dev           # Start dev server (use this for development!)
+npm run build         # Production build (only for deployment/testing)
 npm run lint          # Run linter
 ```
+
+**💡 Development Tip**: Use `npm run dev` for daily work - it has hot reload! Only run `npm run build` when testing production builds or before deployment.
 
 See `../docs/DEVELOPMENT_SETUP.md` for complete troubleshooting guide.
 

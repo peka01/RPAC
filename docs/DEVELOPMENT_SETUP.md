@@ -40,11 +40,13 @@ npm run dev
 # Navigate to the correct directory FIRST
 cd rpac-web
 
-# Development server
+# Development server (USE THIS FOR DAILY WORK)
 npm run dev              # Start dev server at localhost:3000
+                         # Hot reload - changes appear automatically
+                         # NO BUILD NEEDED during development!
 
-# Building
-npm run build            # Production build
+# Building (ONLY when needed - see below)
+npm run build            # Production build - ONLY for deployment or final testing
 npm run build:analyze    # Build with bundle analyzer
 
 # Code quality
@@ -53,6 +55,32 @@ npm run type-check       # Check TypeScript types
 
 # Cleaning
 rm -rf .next out         # Clear build cache (if errors occur)
+```
+
+### ⚡ When to Build vs When NOT to Build
+
+**✅ Use `npm run dev` (NO BUILD) for:**
+- Daily development work
+- Testing changes in the browser
+- Hot reload / live updates
+- Quick iterations
+- Most development tasks
+
+**🚫 Do NOT run `npm run build` unless:**
+- Preparing for production deployment
+- Final integration testing before release
+- Testing production-specific optimizations
+- Verifying no build errors before commit/push
+- Troubleshooting production-only issues
+
+**💡 Development Workflow:**
+```bash
+cd rpac-web
+npm run dev              # Start ONCE
+# Make code changes...
+# Browser auto-refreshes!
+# Keep working...
+# No build needed!
 ```
 
 ## 🔧 Troubleshooting
