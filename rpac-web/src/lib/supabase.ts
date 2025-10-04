@@ -8,7 +8,7 @@ export interface Resource {
   id: string
   user_id: string
   name: string
-  category: 'food' | 'water' | 'medicine' | 'energy' | 'tools' | 'other'
+  category: 'food' | 'water' | 'medicine' | 'energy' | 'tools' | 'machinery' | 'other'
   quantity: number
   unit: string
   days_remaining: number

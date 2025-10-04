@@ -64,7 +64,8 @@ export function ResourceManagementHubMobile({ user }: ResourceManagementHubMobil
     const msbFulfillmentPercent = totalMsbRecommendations > 0 
       ? Math.round((fulfilledMsbRecommendations / totalMsbRecommendations) * 100)
       : 0;
-    const sharedCount = resources.filter(r => r.is_shared_to_community).length;
+    // Note: Shared resources count would require querying shared_resources table
+    const sharedCount = 0;
     
     return { total, msbFulfillmentPercent, sharedCount };
   }, [resources]);

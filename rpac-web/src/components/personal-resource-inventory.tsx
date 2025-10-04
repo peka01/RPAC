@@ -79,8 +79,9 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
       ? Math.round((fulfilledMsbRecommendations / totalMsbRecommendations) * 100)
       : 0;
     
-    // Calculate shared resources
-    const sharedCount = resources.filter(r => r.is_shared_to_community).length;
+    // Note: Shared resources count would require querying shared_resources table
+    // For now, we'll set it to 0 or could be calculated separately
+    const sharedCount = 0;
     
     return { total, filled, empty, expiringSoon, msbCount, msbFulfillmentPercent, sharedCount };
   }, [resources]);
