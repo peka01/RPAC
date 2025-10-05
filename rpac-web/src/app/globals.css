@@ -157,6 +157,15 @@
   --radius-xl: 24px;
   --radius-full: 9999px;
   
+  /* Subtle Olive Gradient System - Inspired by sustainability aesthetics */
+  /* These gradients add depth without distraction, maintaining RPAC's grounded olive palette */
+  --gradient-olive-subtle: linear-gradient(135deg, rgba(74, 82, 57, 0.03) 0%, rgba(92, 107, 71, 0.05) 100%);
+  --gradient-olive-card: linear-gradient(135deg, rgba(92, 107, 71, 0.04) 0%, rgba(74, 82, 57, 0.06) 100%);
+  --gradient-olive-section: linear-gradient(180deg, rgba(248, 249, 246, 1) 0%, rgba(240, 242, 236, 1) 100%);
+  --gradient-olive-hero: linear-gradient(135deg, #2A331E 0%, #3D4A2B 50%, #4A5239 100%);
+  --gradient-olive-warm: linear-gradient(135deg, rgba(139, 134, 78, 0.06) 0%, rgba(107, 93, 58, 0.04) 100%);
+  --gradient-olive-cool: linear-gradient(135deg, rgba(92, 107, 71, 0.05) 0%, rgba(58, 75, 74, 0.03) 100%);
+  
   /* Legacy variables for compatibility */
   --background: var(--bg-primary);
   --foreground: var(--text-primary);

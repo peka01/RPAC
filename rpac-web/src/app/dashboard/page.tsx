@@ -320,23 +320,23 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
             {/* Mitt hem - Beredskap */}
             <div 
-              className="group bg-white rounded-xl p-6 border border-gray-200 hover:border-[#3D4A2B]/30 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
+              className="group bg-[#5C6B47] rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer"
               onClick={() => router.push('/individual')}
             >
               <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#3D4A2B] to-[#2A331E] flex items-center justify-center">
+                <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center">
                   <Shield className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-[#3D4A2B]">-</div>
-                  <div className="text-xs text-gray-500">Beredskapspoäng</div>
+                  <div className="text-2xl font-bold text-white">-</div>
+                  <div className="text-xs text-white/80">Beredskapspoäng</div>
                 </div>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Mitt hem</h3>
-              <p className="text-sm text-gray-600 mb-4">
+              <h3 className="text-lg font-bold text-white mb-2">Mitt hem</h3>
+              <p className="text-sm text-white/90 mb-4">
                 Din personliga beredskap och resurser
               </p>
-              <div className="flex items-center text-sm text-[#3D4A2B] font-medium">
+              <div className="flex items-center text-sm text-white font-medium">
                 <span>Se detaljer</span>
                 <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -346,24 +346,24 @@ export default function DashboardPage() {
 
             {/* Lokalt samhälle */}
             <div 
-              className="group bg-white rounded-xl p-6 border border-gray-200 hover:border-[#3D4A2B]/30 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
+              className="group bg-[#5C6B47] rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer"
               onClick={() => router.push('/local')}
             >
               <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#5C6B47] to-[#3D4A2B] flex items-center justify-center">
+                <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center">
                   <Users className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-[#5C6B47]">
+                  <div className="text-2xl font-bold text-white">
                     {loadingCommunities ? '...' : joinedCommunities.length}
                   </div>
-                  <div className="text-xs text-gray-500">Samhällen</div>
+                  <div className="text-xs text-white/80">Samhällen</div>
                 </div>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Lokalt</h3>
+              <h3 className="text-lg font-bold text-white mb-2">Lokalt</h3>
               
               {loadingCommunities ? (
-                <p className="text-sm text-gray-600 mb-4">Laddar samhällen...</p>
+                <p className="text-sm text-white/90 mb-4">Laddar samhällen...</p>
               ) : joinedCommunities.length > 0 ? (
                 <div className="space-y-2 mb-4">
                   {joinedCommunities.slice(0, 2).map((community) => (
@@ -371,24 +371,24 @@ export default function DashboardPage() {
                       key={community.id} 
                       className="flex items-center gap-2 text-sm"
                     >
-                      <div className="w-2 h-2 rounded-full bg-[#5C6B47]"></div>
-                      <span className="flex-1 truncate text-gray-700">{community.community_name}</span>
-                      <span className="text-gray-500 text-xs">{community.member_count || 0}</span>
+                      <div className="w-2 h-2 rounded-full bg-white"></div>
+                      <span className="flex-1 truncate text-white">{community.community_name}</span>
+                      <span className="text-white/80 text-xs">{community.member_count || 0}</span>
                     </div>
                   ))}
                   {joinedCommunities.length > 2 && (
-                    <p className="text-xs text-gray-500 text-center pt-1">
+                    <p className="text-xs text-white/80 text-center pt-1">
                       +{joinedCommunities.length - 2} till
                     </p>
                   )}
                 </div>
               ) : (
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-white/90 mb-4">
                   Hitta och anslut till lokala samhällen
                 </p>
               )}
               
-              <div className="flex items-center text-sm text-[#5C6B47] font-medium">
+              <div className="flex items-center text-sm text-white font-medium">
                 <span>{joinedCommunities.length > 0 ? 'Hantera samhällen' : 'Hitta samhällen'}</span>
                 <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -398,7 +398,7 @@ export default function DashboardPage() {
 
             {/* Min odling */}
             <div 
-              className="group bg-white rounded-xl p-6 border border-gray-200 hover:border-[#3D4A2B]/30 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
+              className="group bg-[#5C6B47] rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer"
               onClick={() => {
                 const destination = cultivationProgress.total > 0 
                   ? '/individual?section=cultivation&subsection=calendar'
@@ -407,17 +407,17 @@ export default function DashboardPage() {
               }}
             >
               <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#A08E5A] to-[#5C6B47] flex items-center justify-center">
+                <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center">
                   <Leaf className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-[#A08E5A]">
+                  <div className="text-2xl font-bold text-white">
                     {cultivationPlan?.self_sufficiency_percent || cultivationPlan?.selfSufficiencyPercent || '0'}%
                   </div>
-                  <div className="text-xs text-gray-500">Självförsörjning</div>
+                  <div className="text-xs text-white/80">Självförsörjning</div>
                 </div>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">
+              <h3 className="text-lg font-bold text-white mb-2">
                 {cultivationPlan ? cultivationPlan.title || cultivationPlan.name : 'Min odling'}
               </h3>
               
@@ -426,34 +426,34 @@ export default function DashboardPage() {
                   {/* Plan Stats */}
                   <div className="flex items-center gap-4 text-sm">
                     <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full bg-[#A08E5A]"></div>
-                      <span className="text-gray-700">{cultivationPlan.crops?.length || 0} grödor</span>
+                      <div className="w-2 h-2 rounded-full bg-white"></div>
+                      <span className="text-white">{cultivationPlan.crops?.length || 0} grödor</span>
                     </div>
                     {cultivationPlan.estimated_cost && (
                       <div className="flex items-center gap-1.5">
-                        <div className="w-2 h-2 rounded-full bg-[#5C6B47]"></div>
-                        <span className="text-gray-700">{Math.round(cultivationPlan.estimated_cost)} kr</span>
+                        <div className="w-2 h-2 rounded-full bg-white/80"></div>
+                        <span className="text-white">{Math.round(cultivationPlan.estimated_cost)} kr</span>
                       </div>
                     )}
                   </div>
 
                   {/* Calendar Progress */}
                   {cultivationProgress.total > 0 && (
-                    <div className="pt-3 border-t border-gray-100">
+                    <div className="pt-3 border-t border-white/20">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-700">Kalender</span>
-                        <span className="text-sm font-bold text-[#A08E5A]">
+                        <span className="text-sm font-medium text-white">Kalender</span>
+                        <span className="text-sm font-bold text-white">
                           {cultivationProgress.percentage}%
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 rounded-full h-2 bg-gray-100">
+                        <div className="flex-1 rounded-full h-2 bg-white/20">
                           <div 
-                            className="h-2 rounded-full bg-gradient-to-r from-[#A08E5A] to-[#5C6B47] transition-all duration-500" 
+                            className="h-2 rounded-full bg-white transition-all duration-500" 
                             style={{ width: `${cultivationProgress.percentage}%` }}
                           ></div>
                         </div>
-                        <span className="text-xs text-gray-500 whitespace-nowrap">
+                        <span className="text-xs text-white/80 whitespace-nowrap">
                           {cultivationProgress.completed}/{cultivationProgress.total}
                         </span>
                       </div>
@@ -461,12 +461,12 @@ export default function DashboardPage() {
                   )}
                 </div>
               ) : (
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-white/90 mb-4">
                   Skapa din första odlingsplan med AI
                 </p>
               )}
               
-              <div className="flex items-center text-sm text-[#A08E5A] font-medium">
+              <div className="flex items-center text-sm text-white font-medium">
                 <span>{cultivationPlan ? 'Se odlingsplan' : 'Skapa plan'}</span>
                 <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

@@ -207,54 +207,64 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => router.push('/individual')}
-            className="bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98 text-left"
+            className="bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98 text-left relative overflow-hidden"
           >
-            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-3">
+            {/* Subtle warm olive gradient for cultivation */}
+            <div className="absolute inset-0 opacity-50 pointer-events-none" style={{ background: 'var(--gradient-olive-warm)' }}></div>
+            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-3 relative z-10">
               <Home size={24} className="text-green-600" strokeWidth={2} />
             </div>
-            <h4 className="font-bold text-gray-900 mb-1">Min Odling</h4>
-            <p className="text-xs text-gray-600">Planera & följ upp</p>
+            <h4 className="font-bold text-gray-900 mb-1 relative z-10">Min Odling</h4>
+            <p className="text-xs text-gray-600 relative z-10">Planera & följ upp</p>
           </button>
 
           <button
             onClick={() => router.push('/local')}
-            className="bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98 text-left"
+            className="bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98 text-left relative overflow-hidden"
           >
-            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-3">
+            {/* Subtle olive gradient for community */}
+            <div className="absolute inset-0 opacity-50 pointer-events-none" style={{ background: 'var(--gradient-olive-card)' }}></div>
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-3 relative z-10">
               <Users size={24} className="text-blue-600" strokeWidth={2} />
             </div>
-            <h4 className="font-bold text-gray-900 mb-1">Samhälle</h4>
-            <p className="text-xs text-gray-600">Samarbeta lokalt</p>
+            <h4 className="font-bold text-gray-900 mb-1 relative z-10">Samhälle</h4>
+            <p className="text-xs text-gray-600 relative z-10">Samarbeta lokalt</p>
           </button>
 
           <button
             onClick={() => router.push('/individual?section=cultivation&subsection=calendar')}
-            className="bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98 text-left"
+            className="bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98 text-left relative overflow-hidden"
           >
-            <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-3">
+            {/* Subtle warm gradient for cultivation */}
+            <div className="absolute inset-0 opacity-50 pointer-events-none" style={{ background: 'var(--gradient-olive-warm)' }}></div>
+            <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-3 relative z-10">
               <Calendar size={24} className="text-amber-600" strokeWidth={2} />
             </div>
-            <h4 className="font-bold text-gray-900 mb-1">Kalender</h4>
-            <p className="text-xs text-gray-600">Odlingsuppgifter</p>
+            <h4 className="font-bold text-gray-900 mb-1 relative z-10">Kalender</h4>
+            <p className="text-xs text-gray-600 relative z-10">Odlingsuppgifter</p>
           </button>
 
           <button
             onClick={() => router.push('/individual?section=cultivation&subsection=reminders')}
-            className="bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98 text-left"
+            className="bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98 text-left relative overflow-hidden"
           >
-            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-3">
+            {/* Subtle standard gradient */}
+            <div className="absolute inset-0 opacity-50 pointer-events-none" style={{ background: 'var(--gradient-olive-subtle)' }}></div>
+            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-3 relative z-10">
               <CheckCircle size={24} className="text-purple-600" strokeWidth={2} />
             </div>
-            <h4 className="font-bold text-gray-900 mb-1">Påminnelser</h4>
-            <p className="text-xs text-gray-600">Kommande uppgifter</p>
+            <h4 className="font-bold text-gray-900 mb-1 relative z-10">Påminnelser</h4>
+            <p className="text-xs text-gray-600 relative z-10">Kommande uppgifter</p>
           </button>
         </div>
       </div>
 
       {/* Preparedness Overview */}
       <div className="px-6 mb-6">
-        <div className="bg-white rounded-2xl p-6 shadow-lg">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-white rounded-2xl p-6 shadow-lg relative overflow-hidden">
+          {/* Subtle gradient depth */}
+          <div className="absolute inset-0 opacity-40 pointer-events-none" style={{ background: 'var(--gradient-olive-subtle)' }}></div>
+          <div className="flex items-center justify-between mb-4 relative z-10">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
                 <Shield size={24} className="text-white" strokeWidth={2} />
@@ -270,14 +280,14 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
             </div>
           </div>
 
-          <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
+          <div className="w-full bg-gray-200 rounded-full h-3 mb-4 relative z-10">
             <div
               className="h-3 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 transition-all duration-500"
               style={{ width: `${preparednesScore}%` }}
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-green-50 rounded-xl">
+          <div className="flex items-center justify-between p-3 bg-green-50 rounded-xl relative z-10">
             <div className="flex items-center gap-2">
               <CheckCircle size={16} className="text-green-600" strokeWidth={2.5} />
               <span className="text-sm text-gray-700">Alla system operativa</span>
@@ -296,8 +306,10 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
       {/* Cultivation Progress */}
       {cultivationProgress.total > 0 && (
         <div className="px-6 mb-6">
-          <div className="bg-white rounded-2xl p-6 shadow-lg">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-white rounded-2xl p-6 shadow-lg relative overflow-hidden">
+            {/* Subtle warm gradient for cultivation theme */}
+            <div className="absolute inset-0 opacity-40 pointer-events-none" style={{ background: 'var(--gradient-olive-warm)' }}></div>
+            <div className="flex items-center justify-between mb-4 relative z-10">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center">
                   <Sprout size={24} className="text-white" strokeWidth={2} />
@@ -312,7 +324,7 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
               </div>
             </div>
 
-            <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
+            <div className="w-full bg-gray-200 rounded-full h-3 mb-4 relative z-10">
               <div
                 className="h-3 rounded-full bg-gradient-to-r from-green-400 to-green-600 transition-all duration-500"
                 style={{ width: `${cultivationProgress.percentage}%` }}
@@ -321,7 +333,7 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
 
             <button 
               onClick={() => router.push('/individual?section=cultivation&subsection=calendar')}
-              className="w-full py-3 px-4 bg-green-50 text-green-700 font-bold rounded-xl hover:bg-green-100 transition-all touch-manipulation active:scale-98 flex items-center justify-center gap-2"
+              className="w-full py-3 px-4 bg-green-50 text-green-700 font-bold rounded-xl hover:bg-green-100 transition-all touch-manipulation active:scale-98 flex items-center justify-center gap-2 relative z-10"
             >
               <Calendar size={18} strokeWidth={2.5} />
               Visa kalender
@@ -332,8 +344,10 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
 
       {/* Communities */}
       <div className="px-6 mb-6">
-        <div className="bg-white rounded-2xl p-6 shadow-lg">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-white rounded-2xl p-6 shadow-lg relative overflow-hidden">
+          {/* Subtle gradient for community theme */}
+          <div className="absolute inset-0 opacity-40 pointer-events-none" style={{ background: 'var(--gradient-olive-card)' }}></div>
+          <div className="flex items-center justify-between mb-4 relative z-10">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center">
                 <Users size={24} className="text-white" strokeWidth={2} />
@@ -349,7 +363,7 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
           </div>
 
           {joinedCommunities.length > 0 ? (
-            <div className="space-y-2 mb-4">
+            <div className="space-y-2 mb-4 relative z-10">
               {joinedCommunities.slice(0, 3).map((community) => (
                 <div key={community.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
                   <div className="flex items-center gap-3">
@@ -366,14 +380,14 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
               ))}
             </div>
           ) : (
-            <div className="text-center py-4 mb-4">
+            <div className="text-center py-4 mb-4 relative z-10">
               <p className="text-gray-600 text-sm mb-3">Du har inte gått med i några samhällen än</p>
             </div>
           )}
 
           <button 
             onClick={() => router.push('/local')}
-            className="w-full py-3 px-4 bg-blue-50 text-blue-700 font-bold rounded-xl hover:bg-blue-100 transition-all touch-manipulation active:scale-98 flex items-center justify-center gap-2"
+            className="w-full py-3 px-4 bg-blue-50 text-blue-700 font-bold rounded-xl hover:bg-blue-100 transition-all touch-manipulation active:scale-98 flex items-center justify-center gap-2 relative z-10"
           >
             <Users size={18} strokeWidth={2.5} />
             {joinedCommunities.length > 0 ? 'Hantera samhällen' : 'Hitta samhällen'}

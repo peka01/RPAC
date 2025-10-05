@@ -75,20 +75,20 @@ export function WeatherRibbon({ user }: WeatherRibbonProps) {
     const forecastLower = weather.forecast?.toLowerCase() || '';
     const temp = weather.temperature;
 
-    // Frost warning - cool olive with slight blue tint
+    // Frost warning - cool olive with subtle depth
     if (temp < 0 || extremeWeatherWarnings.some(w => w.toLowerCase().includes('frost'))) {
-      return 'linear-gradient(135deg, #5C6B47 0%, #4A5239 100%)';
+      return 'linear-gradient(135deg, #5C6B47 0%, #4A5239 50%, #3D4A2B 100%)';
     }
-    // Sunny - warm olive/khaki
+    // Sunny - warm olive/khaki with golden tones
     if (forecastLower.includes('klar') || forecastLower.includes('sol')) {
-      return 'linear-gradient(135deg, #8B864E 0%, #6B5D3A 100%)';
+      return 'linear-gradient(135deg, #8B864E 0%, #7A7540 50%, #6B5D3A 100%)';
     }
-    // Rainy - muted sage/olive
+    // Rainy - muted sage/olive with depth
     if (forecastLower.includes('regn')) {
-      return 'linear-gradient(135deg, #6B7F56 0%, #5C6B47 100%)';
+      return 'linear-gradient(135deg, #6B7F56 0%, #5C6B47 50%, #4A5239 100%)';
     }
-    // Cloudy - muted olive gray (default)
-    return 'linear-gradient(135deg, #707C5F 0%, #5A6B4F 100%)';
+    // Cloudy - muted olive gray with subtle transition (default)
+    return 'linear-gradient(135deg, #707C5F 0%, #5A6B4F 50%, #4A5239 100%)';
   };
 
   const getDetailedWeatherInsight = () => {
