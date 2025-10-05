@@ -146,11 +146,11 @@ export function CommunityDashboard({ user, community, onNavigate }: CommunityDas
           </div>
           <div className="flex-1">
             <h3 className="text-lg font-bold text-gray-900 mb-2">
-              Samhället är aktivt och redo
+              {community.community_name} är igång
             </h3>
             <p className="text-gray-700">
-              {community.member_count} medlemmar bidrar till gemensam beredskap. 
-              {stats.availableResources > 0 && ` ${stats.availableResources} resurser är tillgängliga att dela.`}
+              {community.member_count} medlemmar bidrar redan. 
+              {stats.availableResources > 0 && ` ${stats.availableResources} resurser finns tillgängliga.`}
               {stats.helpRequests > 0 && ` ${stats.helpRequests} personer behöver hjälp just nu.`}
             </p>
           </div>

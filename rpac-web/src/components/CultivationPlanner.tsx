@@ -798,7 +798,6 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
         {currentStep === 'profile' && (
           <ProfileSetup
             profileData={profileData}
-            onEditProfile={() => setShowProfileEditor(true)}
             onGeneratePlan={generateGardenPlan}
           />
         )}
@@ -818,7 +817,6 @@ export function SuperbOdlingsplanerare({ user, selectedPlan }: SuperbOdlingsplan
             setSelectedCrops={setSelectedCrops}
             cropVolumes={cropVolumes}
             setCropVolumes={setCropVolumes}
-            onEditProfile={() => setShowProfileEditor(true)}
             onSavePlan={() => {
               // Pre-fill with loaded plan name if updating, otherwise use date
               if (loadedPlanId && loadedPlanName) {

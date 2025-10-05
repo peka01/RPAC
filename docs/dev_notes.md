@@ -1,6 +1,98 @@
+### 2025-10-05 - TOP NAVIGATION MINIMAL-INK REFINEMENT ✅
+Refined the prominent nav into a minimal-ink variant that feels calmer and more confident under stress.
+
+### 2025-10-05 - LAYOUT BACKGROUND MODERNIZATION ✅
+Modernized app background for clarity using a soft olive-tinted gradient with subtle radial accents.
+
+#### Changes
+- Replaced slate/gray gradient with olive-tinted whites (no blue)
+- Added two very subtle olive radial accents for depth
+- Preserved excellent contrast and calm, professional tone
+
+#### Impact
+- Cleaner, more modern feel that highlights content
+- Consistent with RPAC olive palette and minimal-ink philosophy
+
+### 2025-10-05 - DASHBOARD CARD REDESIGN ✅
+Redesigned Översikt dashboard cards to match modern patterns from Lokalt page with real, useful data.
+
+#### Changes
+- Applied minimal-ink card pattern: white bg, subtle borders, clean shadows
+- Larger icons (48px), better spacing (p-6), rounded-xl borders
+- Real data display: cultivation stats, community lists, progress bars
+- Actionable CTAs with hover animations ("Se detaljer" arrow)
+- Consistent olive gradient icons per card topic
+
+#### Cards Updated
+1. **Mitt hem**: Links to /individual, shows beredskapspoäng
+2. **Lokalt**: Real community list (2 max) with member counts, dynamic CTA
+3. **Min odling**: Self-sufficiency %, crops count, cost, calendar progress bar
+
+#### Design Pattern
+- Icon gradient (top-left) + stat (top-right)
+- Clear title + descriptive text
+- Real data preview (lists/progress bars)
+- CTA with arrow that slides on hover
+- Touch-optimized: group hover states, proper routing
+
+#### Impact
+- Cards now show real information users care about
+- Follows Lokalt page's proven UX patterns
+- Cleaner, more modern aesthetic with better hierarchy
+- Actionable: all cards route to relevant sections
+
+#### Changes
+- Removed borders, per-item boxes, and underlines
+- Active state via olive text color and subtle icon glow (drop-shadow)
+- Hover feedback: tiny translate/scale for discoverability
+- Status/user controls flattened (no boxes), preserved 44px hit targets
+
+#### Rationale
+- Reduces visual noise; relies on typography, spacing, and color
+- Maintains large targets and legibility without heavy chrome
+- Fits RPAC’s semi-military visual language with human calm
+
 # Beready (RPAC) Development Notes
 
 ## Development History
+
+### 2025-10-05 - TOP NAVIGATION PROMINENCE REDESIGN ✅
+Implemented a more prominent, professional top navigation aligned with RPAC's olive brand and UX rules.
+
+#### Key Improvements
+- Taller bar: h-20 (80px) for clearer hierarchy
+- Larger logo: h-14 for better brand presence
+- Bigger nav items: px-5 py-3, text-base, font-semibold
+- Larger icons: 20px, always visible
+- Increased spacing: gap-3 between icon and text
+- Clearer borders: visible on inactive items for scannability
+- Active state polish: olive green bottom accent bar + shadow-md
+- Clean background: plain white (no glassmorphism)
+- Subtle transitions: lightweight, professional animations
+- Proper z-index: z-50, sits above content
+- Touch optimization: `touch-manipulation` across interactive elements
+
+#### Technical Changes
+- Updated `rpac-web/src/components/navigation.tsx`:
+  - Adjusted container height from h-16 → h-20
+  - Logo size from h-12 → h-14
+  - Nav link padding from px-3 py-2 → px-5 py-3
+  - Icon size from 16px → 20px
+  - Text sizing from text-sm → text-base, font-semibold
+  - Added active bottom accent bar using `#3D4A2B`
+  - Switched background to solid white with clearer border
+  - Preserved Next.js `Link` usage and routing
+
+#### Compliance
+- Color palette: Olive greens only (`#3D4A2B` family), no blue
+- Localization: All labels via `t()` from `sv.json`
+- Mobile-first: Desktop nav hidden on mobile via `ResponsiveLayoutWrapper`; spacing `pt-20` preserved
+- UX patterns: Professional, non-flashy, subtle transitions
+
+#### Impact
+- **Readability**: 25% larger targets improve scanning and touch accuracy
+- **Brand presence**: Stronger, confident top-level navigation
+- **Consistency**: Matches cultivation calendar visual standards
 
 ### 2025-10-04 - PERSONAL INVENTORY UX REDESIGN COMPLETE 🎨📋✨
 **MAJOR UX OVERHAUL - SIMPLIFIED & BEAUTIFUL!**

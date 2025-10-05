@@ -56,14 +56,13 @@ export function ResourceManagementHubMobile({ user }: ResourceManagementHubMobil
   // Calculate statistics
   const stats = useMemo(() => {
     const total = resources.length;
-    const totalMsbRecommendations = Object.values(msbRecommendations)
-      .flat()
-      .filter(item => item.is_msb)
-      .length;
-    const fulfilledMsbRecommendations = resources.filter(r => r.is_msb_recommended && r.is_filled).length;
-    const msbFulfillmentPercent = totalMsbRecommendations > 0 
-      ? Math.round((fulfilledMsbRecommendations / totalMsbRecommendations) * 100)
-      : 0;
+    
+    // Calculate MSB fulfillment based on categories covered
+    const msbCategories = ['food', 'water', 'medicine', 'energy', 'tools', 'other'];
+    const msbResourcesAdded = resources.filter(r => r.is_msb_recommended && r.quantity > 0);
+    const msbCategoriesWithResources = new Set(msbResourcesAdded.map(r => r.category));
+    const msbFulfillmentPercent = Math.round((msbCategoriesWithResources.size / msbCategories.length) * 100);
+    
     // Note: Shared resources count would require querying shared_resources table
     const sharedCount = 0;
     

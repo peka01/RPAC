@@ -1,8 +1,8 @@
 {
   "navigation": {
     "overview": "Översikt",
-    "individual": "Personlig",
-    "local": "Lokal",
+    "individual": "Mitt hem",
+    "local": "Lokalt",
     "regional": "Regionalt",
     "settings": "Inställningar",
     "sign_out": "Logga ut",
@@ -165,7 +165,7 @@
   "auth": {
     "create_account": "Skapa konto",
     "sign_in": "Logga in",
-    "welcome_back": "Välkommen tillbaka",
+    "welcome_back": "Välkommen till Beready",
     "start_journey": "Börja din beredskapsresa idag",
     "continue": "Logga in för att fortsätta",
     "already_have_account": "Har du redan ett konto?",
@@ -182,8 +182,7 @@
     "demo_login_failed": "Demo-inloggning misslyckades",
     "minimum_characters": "Minst 6 tecken",
     "choose_secure_password": "Välj ett säkert lösenord",
-    "your_password": "Ditt lösenord",
-    "app_description": "Beready hjälper dig och din familj att förbereda er för svåra tider"
+    "your_password": "Ditt lösenord"
   },
   "loading": {
     "loading": "Laddar...",
@@ -191,7 +190,7 @@
   },
   "local_community": {
     "title": "Mitt närområde",
-    "navigation_title": "Lokal samhällsnavigering",
+    "navigation_title": "Lokalt",
     "navigation_description": "Hitta och anslut till lokala beredskapsamhällen i ditt område",
     "find_communities": "Hitta samhällen",
     "messages": "Meddelanden",
@@ -325,7 +324,6 @@
   },
   "metadata": {
     "app_title": "Beready - Beredskap & krisverktyg",
-    "app_description": "Beready - Ett komplett krisverktyg för beredskap och ömsesidig hjälp",
     "keywords_crisis": "krisberedskap",
     "keywords_resilience": "resiliens",
     "keywords_swedish": "svenska",
@@ -506,7 +504,6 @@
     "error_occurred": "Ett oväntat fel inträffade",
     "msb_empty": "MSB-rekommendation ej ifylld",
     "msb_fill": "Fyll i när du skaffat",
-    "quick_fill": "Snabbfyll",
     "empty_resource": "Töm resurs",
     "load_msb_resources": "Ladda MSB-resurser",
     "msb_supplies_description": "MSB-rekommenderade förnödenheter visas nedan. Fyll i dessa allt eftersom du skaffar dem",
@@ -550,13 +547,6 @@
       "tools": "Verktyg",
       "other": "Övrigt"
     },
-    "quick_add": {
-      "title": "Lägg till snabbt",
-      "templates": "Vanliga resurser",
-      "custom": "Egen vara",
-      "one_week": "1 vecka",
-      "one_month": "1 månad"
-    },
     "sharing": {
       "share_with_community": "Dela med samhället",
       "share_excess": "Dela överskott",
@@ -591,7 +581,7 @@
     }
   },
   "community_resources": {
-    "title": "Samhällets resurser",
+    "title": "Resurser",
     "dashboard": {
       "title": "Resursöversikt",
       "community_score": "Samhällspoäng",

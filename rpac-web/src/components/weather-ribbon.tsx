@@ -321,13 +321,13 @@ export function WeatherRibbon({ user }: WeatherRibbonProps) {
 
           {/* Right: Time & Mini Forecast */}
           <div className="flex items-center space-x-4">
-            <div className="hidden lg:flex items-center space-x-1">
+            <div className="hidden lg:flex items-center space-x-3">
               {forecast.slice(0, 5).map((day, index) => {
                 const DayIcon = getWeatherIcon(day.weather);
                 return (
-                  <div key={index} className="flex flex-col items-center opacity-70 hover:opacity-100 transition-opacity">
-                    <DayIcon className="w-3 h-3" />
-                    <span className="text-xs">{Math.round(day.temperature.max)}°</span>
+                  <div key={index} className="flex flex-col items-center opacity-70 hover:opacity-100 transition-opacity gap-1">
+                    <DayIcon className="w-5 h-5" />
+                    <span className="text-sm font-medium">{Math.round(day.temperature.max)}°</span>
                   </div>
                 );
               })}

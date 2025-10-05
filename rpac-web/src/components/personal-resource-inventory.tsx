@@ -61,45 +61,40 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
   // Calculate statistics
   const stats = useMemo(() => {
     const total = resources.length;
-    const filled = resources.filter(r => r.is_filled).length;
-    const empty = total - filled;
+    const withQuantity = resources.filter(r => r.quantity > 0).length;
+    const empty = total - withQuantity;
     const expiringSoon = resources.filter(r => 
-      r.is_filled && r.days_remaining < 30 && r.days_remaining < 99999
+      r.quantity > 0 && r.days_remaining < 30 && r.days_remaining < 99999
     ).length;
     const msbCount = resources.filter(r => r.is_msb_recommended).length;
     
-    // Calculate MSB fulfillment
-    const totalMsbRecommendations = Object.values(msbRecommendations)
-      .flat()
-      .filter(item => item.is_msb)
-      .length;
-    
-    const fulfilledMsbRecommendations = resources.filter(r => r.is_msb_recommended && r.is_filled).length;
-    const msbFulfillmentPercent = totalMsbRecommendations > 0 
-      ? Math.round((fulfilledMsbRecommendations / totalMsbRecommendations) * 100)
-      : 0;
+    // Calculate MSB fulfillment based on categories covered
+    const msbCategories = ['food', 'water', 'medicine', 'energy', 'tools', 'other'];
+    const msbResourcesAdded = resources.filter(r => r.is_msb_recommended && r.quantity > 0);
+    const msbCategoriesWithResources = new Set(msbResourcesAdded.map(r => r.category));
+    const msbFulfillmentPercent = Math.round((msbCategoriesWithResources.size / msbCategories.length) * 100);
     
     // Note: Shared resources count would require querying shared_resources table
     // For now, we'll set it to 0 or could be calculated separately
     const sharedCount = 0;
     
-    return { total, filled, empty, expiringSoon, msbCount, msbFulfillmentPercent, sharedCount };
+    return { total, filled: withQuantity, empty, expiringSoon, msbCount, msbFulfillmentPercent, sharedCount };
   }, [resources]);
 
   // Category statistics
   const categoryStats = useMemo(() => {
     return (Object.keys(categoryConfig) as CategoryKey[]).map(catKey => {
       const categoryResources = resources.filter(r => r.category === catKey);
-      const categoryFilled = categoryResources.filter(r => r.is_filled).length;
+      const categoryWithQuantity = categoryResources.filter(r => r.quantity > 0).length;
       const fillRate = categoryResources.length > 0 
-        ? Math.round((categoryFilled / categoryResources.length) * 100)
+        ? Math.round((categoryWithQuantity / categoryResources.length) * 100)
         : 0;
       
       return {
         key: catKey,
         config: categoryConfig[catKey],
         total: categoryResources.length,
-        filled: categoryFilled,
+        filled: categoryWithQuantity,
         fillRate
       };
     });

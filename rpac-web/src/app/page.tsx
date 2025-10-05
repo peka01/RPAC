@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { t } from '@/lib/locales';
-import { User, LogIn, UserPlus, X, AlertTriangle } from 'lucide-react';
+import { User, LogIn, UserPlus, X, AlertTriangle, Shield } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 export default function LoginPage() {
@@ -183,15 +183,9 @@ export default function LoginPage() {
 
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center p-3" 
-               style={{ backgroundColor: 'var(--color-primary)', color: 'white' }}>
-            <div className="flex justify-center">
-              <img 
-                src="/beready-logo2.png" 
-                alt="BE READY" 
-                className="h-10 w-auto"
-              />
-            </div>
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" 
+               style={{ backgroundColor: 'var(--color-primary)' }}>
+            <Shield className="w-8 h-8 text-white" strokeWidth={2.5} />
           </div>
           <h3 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
             {isSignUp ? t('auth.create_account') : t('auth.welcome_back')}
@@ -336,10 +330,6 @@ export default function LoginPage() {
               </>
             )}
           </button>
-          
-          <p className="text-xs text-center mt-2" style={{ color: 'var(--text-tertiary)' }}>
-            Demo-kontot skapas automatiskt om det inte finns
-          </p>
         </div>
 
         {/* Toggle Auth Mode */}
@@ -360,12 +350,6 @@ export default function LoginPage() {
           >
             {isSignUp ? t('auth.sign_in_here') : t('auth.register_here')}
           </button>
-        </div>
-
-        <div className="mt-4 text-center">
-          <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-            {t('auth.app_description')}
-          </p>
         </div>
       </div>
     </div>

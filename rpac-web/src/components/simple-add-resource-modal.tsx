@@ -184,7 +184,6 @@ export function SimpleAddResourceModal({
     quantity: 1,
     unit: 'st',
     days_remaining: 365,
-    is_filled: false,
     is_msb_recommended: false
   });
 
@@ -202,7 +201,6 @@ export function SimpleAddResourceModal({
       quantity: 1,
       unit: 'st',
       days_remaining: 365,
-      is_filled: false,
       is_msb_recommended: false
     });
     setError(null);
@@ -225,7 +223,6 @@ export function SimpleAddResourceModal({
       quantity: item.quantity,
       unit: item.unit,
       days_remaining: item.days_remaining,
-      is_filled: false,
       is_msb_recommended: item.is_msb
     });
   };
@@ -238,7 +235,6 @@ export function SimpleAddResourceModal({
       quantity: 1,
       unit: 'st',
       days_remaining: 365,
-      is_filled: false,
       is_msb_recommended: false
     });
   };
@@ -263,7 +259,6 @@ export function SimpleAddResourceModal({
         unit: form.unit,
         days_remaining: form.days_remaining,
         is_msb_recommended: form.is_msb_recommended,
-        is_filled: form.is_filled
       });
 
       setSuccess(true);

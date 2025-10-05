@@ -28,19 +28,19 @@ export function MobileNavigation() {
     {
       href: '/individual',
       icon: User,
-      label: 'Personlig',
+      label: t('navigation.individual'),
       description: t('navigation.descriptions.individual_preparedness')
     },
     {
       href: '/local',
       icon: Users,
-      label: 'Lokal',
+      label: t('navigation.local'),
       description: t('navigation.descriptions.community_resources')
     },
     {
       href: '/regional',
       icon: Globe,
-      label: 'Regional',
+      label: t('navigation.regional'),
       description: t('navigation.descriptions.regional_coordination')
     },
   ];

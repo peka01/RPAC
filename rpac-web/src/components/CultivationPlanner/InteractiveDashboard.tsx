@@ -52,7 +52,6 @@ interface InteractiveDashboardProps {
   setSelectedCrops: (crops: string[]) => void;
   cropVolumes: Record<string, number>;
   setCropVolumes: (volumes: Record<string, number>) => void;
-  onEditProfile: () => void;
   onSavePlan: () => void;
   onNewPlan: () => void;
   onAddCustomCrop: () => void;
@@ -77,7 +76,6 @@ export function InteractiveDashboard({
   setSelectedCrops,
   cropVolumes,
   setCropVolumes,
-  onEditProfile,
   onSavePlan,
   onNewPlan,
   onAddCustomCrop,
@@ -89,27 +87,13 @@ export function InteractiveDashboard({
 }: InteractiveDashboardProps) {
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
-            {loadedPlanName || 'Din personliga odlingsplan'}
-          </h1>
-          <p className="text-lg mt-2" style={{ color: 'var(--text-secondary)' }}>
-            Skräddarsydd för {profileData.city}, {profileData.county}
-          </p>
-        </div>
-        <button
-          onClick={onEditProfile}
-          className="flex items-center space-x-2 px-4 py-2 rounded-lg border transition-all duration-200 hover:shadow-md"
-          style={{ 
-            backgroundColor: 'white',
-            color: 'var(--color-sage)',
-            borderColor: 'var(--color-sage)'
-          }}
-        >
-          <Settings className="w-4 h-4" />
-          <span>Redigera profil</span>
-        </button>
+      <div>
+        <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
+          {loadedPlanName || 'Din personliga odlingsplan'}
+        </h1>
+        <p className="text-lg mt-2" style={{ color: 'var(--text-secondary)' }}>
+          Skräddarsydd för {profileData.city}, {profileData.county}
+        </p>
       </div>
 
       {gardenPlan && (

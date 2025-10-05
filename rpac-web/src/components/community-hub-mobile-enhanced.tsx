@@ -10,7 +10,10 @@ import {
   Bell,
   Package,
   ChevronRight,
-  MapPin
+  MapPin,
+  ChevronLeft,
+  Send,
+  Share2
 } from 'lucide-react';
 import { CommunityDiscoveryMobile } from './community-discovery-mobile';
 import { MessagingSystemMobile } from './messaging-system-mobile';
@@ -25,7 +28,7 @@ interface CommunityHubMobileEnhancedProps {
 }
 
 export function CommunityHubMobileEnhanced({ user }: CommunityHubMobileEnhancedProps) {
-  const [activeView, setActiveView] = useState<'home' | 'discovery' | 'messaging' | 'resources'>('home');
+  const [activeView, setActiveView] = useState<'home' | 'discovery' | 'messaging' | 'resources' | 'community-detail'>('home');
   const [activeCommunityId, setActiveCommunityId] = useState<string | undefined>();
   const [userCommunities, setUserCommunities] = useState<LocalCommunity[]>([]);
   const [loadingCommunities, setLoadingCommunities] = useState(false);
@@ -229,7 +232,7 @@ export function CommunityHubMobileEnhanced({ user }: CommunityHubMobileEnhancedP
                 key={community.id}
                 onClick={() => {
                   setActiveCommunityId(community.id);
-                  setActiveView('messaging');
+                  setActiveView('community-detail');
                 }}
                 className="w-full bg-white rounded-2xl p-4 shadow-md border border-[#5C6B47]/20 hover:shadow-lg transition-all touch-manipulation active:scale-98"
               >
@@ -276,6 +279,23 @@ export function CommunityHubMobileEnhanced({ user }: CommunityHubMobileEnhancedP
 
       {/* Action Cards */}
       <div className="space-y-3">
+        {userCommunities.length > 0 && (
+          <button
+            onClick={() => setActiveView('resources')}
+            className="w-full bg-gradient-to-r from-[#A08E5A] to-[#5C6B47] text-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98"
+          >
+            <div className="flex items-center gap-4">
+              <div className="bg-white/20 rounded-full p-3">
+                <Package size={24} />
+              </div>
+              <div className="flex-1 text-left">
+                <h3 className="font-bold text-lg mb-1">Resursdelning</h3>
+                <p className="text-[#C8D5B9] text-sm">Dela och begär resurser</p>
+              </div>
+              <ChevronRight size={24} />
+            </div>
+          </button>
+        )}
         <button
           onClick={() => setActiveView('discovery')}
           className="w-full bg-gradient-to-r from-[#556B2F] to-[#3D4A2B] text-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98"
@@ -295,11 +315,137 @@ export function CommunityHubMobileEnhanced({ user }: CommunityHubMobileEnhancedP
     </div>
   );
 
+  // Community Detail View - Shows when clicking on a specific community
+  const CommunityDetailView = () => {
+    const activeCommunity = userCommunities.find(c => c.id === activeCommunityId);
+    
+    if (!activeCommunity) {
+      return null;
+    }
+
+    return (
+      <div className="min-h-screen bg-white pb-24">
+        {/* Header */}
+        <div className="bg-gradient-to-br from-[#3D4A2B] to-[#2A331E] text-white px-4 py-6">
+          <div className="flex items-center gap-3 mb-4">
+            <button
+              onClick={() => setActiveView('home')}
+              className="p-2 hover:bg-white/10 rounded-full touch-manipulation"
+            >
+              <ChevronLeft size={24} strokeWidth={2.5} />
+            </button>
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold">{activeCommunity.community_name}</h1>
+              <div className="flex items-center gap-2 text-[#C8D5B9] text-sm mt-1">
+                <MapPin size={14} />
+                <span>{activeCommunity.location}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Users size={16} />
+                <span className="text-2xl font-bold">{activeCommunity.member_count || 0}</span>
+              </div>
+              <p className="text-[#C8D5B9] text-xs">Medlemmar</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Bell size={16} />
+                <span className="text-2xl font-bold">{unreadCount > 0 ? unreadCount : '0'}</span>
+              </div>
+              <p className="text-[#C8D5B9] text-xs">Olästa meddelanden</p>
+            </div>
+          </div>
+        </div>
+
+        {/* About Section */}
+        <div className="px-4 py-6">
+          <div className="bg-[#5C6B47]/5 rounded-2xl p-5 mb-6">
+            <h3 className="font-bold text-gray-900 mb-2">Om samhället</h3>
+            <p className="text-gray-600 text-sm leading-relaxed">
+              {activeCommunity.description || 'Ett lokalt samhälle för att dela resurser och stötta varandra i beredskapsfrågor.'}
+            </p>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="space-y-3">
+            <button
+              onClick={() => setActiveView('messaging')}
+              className="w-full bg-gradient-to-r from-[#3D4A2B] to-[#2A331E] text-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98"
+            >
+              <div className="flex items-center gap-4">
+                <div className="bg-white/20 rounded-full p-3">
+                  <MessageCircle size={24} />
+                </div>
+                <div className="flex-1 text-left">
+                  <h3 className="font-bold text-lg mb-1">Meddelanden</h3>
+                  <p className="text-[#C8D5B9] text-sm">Chatta med samhället</p>
+                </div>
+                {unreadCount > 0 && (
+                  <div className="bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </div>
+                )}
+                <ChevronRight size={24} />
+              </div>
+            </button>
+
+            <button
+              onClick={() => setActiveView('resources')}
+              className="w-full bg-gradient-to-r from-[#A08E5A] to-[#5C6B47] text-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98"
+            >
+              <div className="flex items-center gap-4">
+                <div className="bg-white/20 rounded-full p-3">
+                  <Package size={24} />
+                </div>
+                <div className="flex-1 text-left">
+                  <h3 className="font-bold text-lg mb-1">Resursdelning</h3>
+                  <p className="text-[#C8D5B9] text-sm">Dela och begär resurser</p>
+                </div>
+                <ChevronRight size={24} />
+              </div>
+            </button>
+
+            <button
+              onClick={() => {
+                // Share functionality placeholder
+                if (navigator.share) {
+                  navigator.share({
+                    title: activeCommunity.community_name,
+                    text: `Gå med i ${activeCommunity.community_name} på BE READY`,
+                  }).catch(() => {});
+                }
+              }}
+              className="w-full bg-white border-2 border-[#5C6B47]/30 rounded-2xl p-5 shadow-md hover:shadow-lg transition-all touch-manipulation active:scale-98"
+            >
+              <div className="flex items-center gap-4">
+                <div className="bg-[#5C6B47]/10 rounded-full p-3">
+                  <Share2 size={24} className="text-[#3D4A2B]" />
+                </div>
+                <div className="flex-1 text-left">
+                  <h3 className="font-bold text-lg text-gray-900 mb-1">Bjud in medlemmar</h3>
+                  <p className="text-gray-600 text-sm">Dela samhället med andra</p>
+                </div>
+                <ChevronRight size={24} className="text-gray-400" />
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#5C6B47]/10 via-white to-[#707C5F]/10 relative">
       {/* Content Area */}
       <div className="min-h-screen">
         {activeView === 'home' && <HomeView />}
+        
+        {activeView === 'community-detail' && <CommunityDetailView />}
         
         {activeView === 'discovery' && (
           <div className="pb-24 px-4 pt-6">

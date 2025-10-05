@@ -59,44 +59,64 @@ export function IndividualDashboard({ user, onNavigate }: IndividualDashboardPro
     loadDashboardData();
   }, [user.id]);
 
+  // Refresh data when component becomes visible (e.g., after navigating back from resources page)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadDashboardData();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [user.id]);
+
   const loadDashboardData = async () => {
     try {
       setLoading(true);
       const data = await resourceService.getResources(user.id);
       setResources(data);
 
-      // Calculate statistics
-      const filled = data.filter(r => r.is_filled);
+      // Calculate statistics based on added resources (not is_filled)
+      const addedResources = data; // All resources in DB are "added"
       const msb = data.filter(r => r.is_msb_recommended);
-      const msbFilled = msb.filter(r => r.is_filled);
-      const expiring = filled.filter(r => r.days_remaining < 30 && r.days_remaining < 99999);
-      const critical = data.filter(r => r.is_msb_recommended && !r.is_filled && r.msb_priority === 'high');
-
-      // Calculate preparedness score
-      const score = msb.length > 0 ? Math.round((msbFilled.length / msb.length) * 100) : 0;
-
-      // Calculate self-sufficiency (simplified)
-      const familySize = profile?.household_size || 1;
-      const waterResources = filled.filter(r => r.category === 'water');
-      const foodResources = filled.filter(r => r.category === 'food');
+      const msbAdded = msb.filter(r => r.quantity > 0); // Has resources added
+      const expiring = addedResources.filter(r => r.days_remaining < 30 && r.days_remaining < 99999 && r.quantity > 0);
       
+      // MSB categories we recommend (6 total)
+      const msbCategories = ['food', 'water', 'medicine', 'energy', 'tools', 'other'];
+      const msbCategoriesWithResources = new Set(msbAdded.map(r => r.category));
+      const msbCategoriesCompleted = msbCategoriesWithResources.size;
+
+      // Calculate preparedness score based on MSB categories covered
+      const score = Math.round((msbCategoriesCompleted / msbCategories.length) * 100);
+
+      // Calculate self-sufficiency
+      const familySize = profile?.household_size || 1;
+      const waterResources = addedResources.filter(r => r.category === 'water' && r.quantity > 0);
+      const foodResources = addedResources.filter(r => r.category === 'food' && r.quantity > 0);
+      
+      // Water: Assume each quantity unit = 1 liter, need 2L per person per day
       const waterDays = waterResources.length > 0 
         ? waterResources.reduce((sum, r) => sum + r.quantity, 0) / (2 * familySize)
         : 0;
+      
+      // Food: Use minimum days_remaining of all food items
       const foodDays = foodResources.length > 0
         ? Math.min(...foodResources.map(r => r.days_remaining < 99999 ? r.days_remaining : 365))
         : 0;
       
+      // Self-sufficiency is limited by the resource you have least of
       const days = Math.min(Math.floor(waterDays), Math.floor(foodDays));
 
       setStats({
         totalResources: data.length,
-        filledResources: filled.length,
-        msbCompleted: msbFilled.length,
-        msbTotal: msb.length,
+        filledResources: addedResources.length, // Renamed but still tracks added resources
+        msbCompleted: msbCategoriesCompleted,
+        msbTotal: msbCategories.length,
         preparednessScore: score,
         selfSufficiencyDays: days,
-        criticalItems: critical.length,
+        criticalItems: msbCategories.length - msbCategoriesCompleted, // Categories not yet covered
         expiringSoon: expiring.length
       });
     } catch (error) {
@@ -108,8 +128,8 @@ export function IndividualDashboard({ user, onNavigate }: IndividualDashboardPro
 
   const getCategoryHealth = (category: CategoryKey) => {
     const categoryResources = resources.filter(r => r.category === category);
-    const filled = categoryResources.filter(r => r.is_filled);
-    return categoryResources.length > 0 ? Math.round((filled.length / categoryResources.length) * 100) : 0;
+    const withQuantity = categoryResources.filter(r => r.quantity > 0);
+    return categoryResources.length > 0 ? Math.round((withQuantity.length / categoryResources.length) * 100) : 0;
   };
 
   if (loading) {
@@ -188,8 +208,8 @@ export function IndividualDashboard({ user, onNavigate }: IndividualDashboardPro
               <span className="text-white/80 text-sm">Resurser</span>
               <Package size={20} className="text-white/80" />
             </div>
-            <div className="text-3xl font-bold">{stats.filledResources}</div>
-            <div className="text-white/80 text-xs mt-1">Ifyllda resurser</div>
+            <div className="text-3xl font-bold">{stats.totalResources}</div>
+            <div className="text-white/80 text-xs mt-1">Tillagda resurser</div>
           </div>
         </div>
       </div>
@@ -307,7 +327,7 @@ export function IndividualDashboard({ user, onNavigate }: IndividualDashboardPro
             </div>
           </div>
           <div className="text-sm text-gray-600">
-            {stats.filledResources} av {stats.totalResources} resurser ifyllda
+            {stats.totalResources} {stats.totalResources === 1 ? 'resurs tillagd' : 'resurser tillagda'}
           </div>
         </button>
 

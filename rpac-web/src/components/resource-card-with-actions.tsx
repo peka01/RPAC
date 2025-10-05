@@ -34,8 +34,8 @@ export function ResourceCardWithActions({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const config = categoryConfig[resource.category as CategoryKey];
   
-  const isExpiringSoon = resource.is_filled && resource.days_remaining < 30 && resource.days_remaining < 99999;
-  const isExpired = resource.is_filled && resource.days_remaining <= 0;
+  const isExpiringSoon = resource.quantity > 0 && resource.days_remaining < 30 && resource.days_remaining < 99999;
+  const isExpired = resource.quantity > 0 && resource.days_remaining <= 0;
 
   const handleDeleteClick = () => {
     if (showDeleteConfirm) {
@@ -75,7 +75,7 @@ export function ResourceCardWithActions({
           </div>
 
           {/* Status Badge */}
-          {resource.is_filled && (
+          {resource.quantity > 0 && (
             <div className="flex-shrink-0 ml-3">
               {isExpired ? (
                 <div className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
@@ -174,8 +174,8 @@ export function ResourceTableRow({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const config = categoryConfig[resource.category as CategoryKey];
   
-  const isExpiringSoon = resource.is_filled && resource.days_remaining < 30 && resource.days_remaining < 99999;
-  const isExpired = resource.is_filled && resource.days_remaining <= 0;
+  const isExpiringSoon = resource.quantity > 0 && resource.days_remaining < 30 && resource.days_remaining < 99999;
+  const isExpired = resource.quantity > 0 && resource.days_remaining <= 0;
 
   const handleDeleteClick = () => {
     if (showDeleteConfirm) {

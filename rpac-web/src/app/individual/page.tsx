@@ -342,6 +342,16 @@ function IndividualPageContent() {
       );
     }
 
+    // Handle subsection navigation for resources
+    if (activeSection === 'resources' && activeSubsection) {
+      if (activeSubsection === 'inventory') {
+        return <SupabaseResourceInventory user={user} />;
+      }
+      if (activeSubsection === 'ai-coach') {
+        return <PersonalAICoach user={user} />;
+      }
+    }
+
     // Handle subsection navigation for cultivation
     if (activeSection === 'cultivation' && activeSubsection) {
       if (activeSubsection === 'ai-planner') {

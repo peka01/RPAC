@@ -1,4 +1,5 @@
-import { TreePine, Settings, Target, Calendar, TrendingUp, Sparkles, ArrowRight } from 'lucide-react';
+import { TreePine, Settings, Target, Calendar, TrendingUp, Sparkles, ArrowRight, ExternalLink } from 'lucide-react';
+import Link from 'next/link';
 
 interface UserProfile {
   household_size: number;
@@ -17,11 +18,10 @@ interface UserProfile {
 
 interface ProfileSetupProps {
   profileData: UserProfile;
-  onEditProfile: () => void;
   onGeneratePlan: () => void;
 }
 
-export function ProfileSetup({ profileData, onEditProfile, onGeneratePlan }: ProfileSetupProps) {
+export function ProfileSetup({ profileData, onGeneratePlan }: ProfileSetupProps) {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="text-center mb-8">
@@ -45,13 +45,14 @@ export function ProfileSetup({ profileData, onEditProfile, onGeneratePlan }: Pro
               <Settings className="w-5 h-5" />
               <span>Din profil</span>
             </h2>
-            <button
-              onClick={onEditProfile}
-              className="px-4 py-2 rounded-lg font-medium text-white hover:shadow-md transition-all duration-200"
+            <Link
+              href="/settings"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white hover:shadow-md transition-all duration-200"
               style={{ backgroundColor: 'var(--color-sage)' }}
             >
-              Redigera profil
-            </button>
+              <span>Redigera profil</span>
+              <ExternalLink className="w-4 h-4" />
+            </Link>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6" key={`profile-${profileData.household_size}-${profileData.city}-${profileData.county}`}>

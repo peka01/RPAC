@@ -22,7 +22,6 @@ export function EditResourceModal({
     quantity: resource.quantity,
     unit: resource.unit,
     days_remaining: resource.days_remaining,
-    is_filled: resource.is_filled
   });
 
   const [loading, setLoading] = useState(false);

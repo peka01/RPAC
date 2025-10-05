@@ -35,8 +35,8 @@ export function MessagingSystemMobile({ user, communityId, onUnreadCountChange }
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [activeContact, setActiveContact] = useState<Contact | null>(null);
   const [newMessage, setNewMessage] = useState('');
-  const [activeTab, setActiveTab] = useState<'community' | 'direct' | 'resources'>('community');
-  const [view, setView] = useState<'tabs' | 'contacts' | 'chat' | 'resources'>('tabs');
+  const [activeTab, setActiveTab] = useState<'community' | 'direct'>('community');
+  const [view, setView] = useState<'tabs' | 'contacts' | 'chat'>('tabs');
   const [isConnected, setIsConnected] = useState(true);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -269,26 +269,6 @@ export function MessagingSystemMobile({ user, communityId, onUnreadCountChange }
             </div>
           </button>
 
-          {/* Resources Card */}
-          <button
-            onClick={() => {
-              setActiveTab('resources');
-              setView('resources');
-            }}
-            className="w-full bg-white border-2 border-[#5C6B47]/30 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98"
-          >
-            <div className="flex items-center gap-4">
-              <div className="bg-[#556B2F] rounded-2xl p-4">
-                <Package className="text-white" size={32} strokeWidth={2.5} />
-              </div>
-              <div className="flex-1 text-left">
-                <h3 className="text-xl font-bold text-gray-900 mb-1">Resursdelning</h3>
-                <p className="text-gray-600 text-sm">Dela och begär resurser</p>
-              </div>
-              <ChevronLeft className="rotate-180 text-gray-400" size={24} />
-            </div>
-          </button>
-
           {/* Emergency Button */}
           <button
             onClick={() => {
@@ -384,36 +364,6 @@ export function MessagingSystemMobile({ user, communityId, onUnreadCountChange }
               </button>
             ))
           )}
-        </div>
-      </div>
-    );
-  }
-
-  // Resources View
-  if (view === 'resources') {
-    return (
-      <div className="min-h-screen bg-white">
-        <div className="sticky top-0 bg-gradient-to-r from-[#3D4A2B] to-[#2A331E] text-white px-4 py-4 shadow-lg z-10">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setView('tabs')}
-              className="p-2 hover:bg-white/10 rounded-full touch-manipulation"
-            >
-              <ChevronLeft size={24} strokeWidth={2.5} />
-            </button>
-            <div className="flex-1">
-              <h2 className="text-xl font-bold">Resursdelning</h2>
-              <p className="text-[#C8D5B9] text-sm">Dela och begär resurser</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-4">
-          <div className="text-center py-16">
-            <Package size={64} className="mx-auto mb-4 text-gray-300" />
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Resursdelning</h3>
-            <p className="text-gray-600 text-sm">Funktionen kommer snart</p>
-          </div>
         </div>
       </div>
     );

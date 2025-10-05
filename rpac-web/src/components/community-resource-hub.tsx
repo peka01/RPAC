@@ -422,12 +422,12 @@ export function CommunityResourceHub({
       <div className="bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-2xl p-8 shadow-2xl">
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold mb-2">📦 Samhällets resurser</h1>
+            <h1 className="text-3xl font-bold mb-2">📦 Resurser</h1>
             <p className="text-white/80 text-lg">{communityName}</p>
           </div>
           <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
             <Users size={20} />
-            <span className="font-bold">{stats.contributors} bidragande</span>
+            <span className="font-bold">{stats.contributors} bidragare</span>
           </div>
         </div>
 
@@ -445,7 +445,7 @@ export function CommunityResourceHub({
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
             <div className="flex items-center gap-2 mb-2">
               <Building2 size={18} className="text-white/80" />
-              <span className="text-white/80 text-sm">Samhällets resurser</span>
+              <span className="text-white/80 text-sm">Gemensamma resurser</span>
             </div>
             <div className="text-3xl font-bold">{stats.totalOwned}</div>
             <div className="text-white/80 text-xs mt-1">Gemensamma tillgångar</div>
@@ -463,7 +463,7 @@ export function CommunityResourceHub({
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
             <div className="flex items-center gap-2 mb-2">
               <CheckCircle size={18} className="text-white/80" />
-              <span className="text-white/80 text-sm">Sammarbete</span>
+              <span className="text-white/80 text-sm">Samarbete</span>
             </div>
             <div className="text-3xl font-bold">{stats.contributors}</div>
             <div className="text-white/80 text-xs mt-1">Aktiva medlemmar</div>
@@ -497,7 +497,7 @@ export function CommunityResourceHub({
           }`}
         >
           <Building2 size={20} />
-          <span>Samhällets resurser</span>
+          <span>Gemensamma resurser</span>
           <span className="bg-white/20 text-white px-2 py-0.5 rounded-full text-xs font-bold">
             {stats.totalOwned}
           </span>
@@ -681,7 +681,7 @@ export function CommunityResourceHub({
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="text-xl font-bold text-gray-900">Aktiva hjälpförfrågningar</h3>
-                <p className="text-gray-600">Samhället hjälper varandra</p>
+                <p className="text-gray-600">Vi hjälper varandra!</p>
               </div>
               <button
                 onClick={() => setShowAddHelpRequest(true)}

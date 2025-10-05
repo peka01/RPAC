@@ -53,17 +53,8 @@ interface ProfileData {
   emergency_contact_phone: string;
   emergency_contact_relation: string;
   
-  // Medical
-  medical_conditions: string;
-  medications: string;
-  allergies: string;
-  blood_type: string;
-  special_needs: string;
-  
   // Household
   household_size: number;
-  has_children: boolean;
-  has_elderly: boolean;
   has_pets: boolean;
   pet_types: string;
 }
@@ -127,14 +118,7 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
     emergency_contact_name: '',
     emergency_contact_phone: '',
     emergency_contact_relation: '',
-    medical_conditions: '',
-    medications: '',
-    allergies: '',
-    blood_type: '',
-    special_needs: '',
     household_size: 1,
-    has_children: false,
-    has_elderly: false,
     has_pets: false,
     pet_types: ''
   });
@@ -148,7 +132,6 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
     identity: true,
     location: false,
     emergency: false,
-    medical: false,
     household: false
   });
   
@@ -186,14 +169,7 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
           emergency_contact_name: data.emergency_contact_name || '',
           emergency_contact_phone: data.emergency_contact_phone || '',
           emergency_contact_relation: data.emergency_contact_relation || '',
-          medical_conditions: data.medical_conditions || '',
-          medications: data.medications || '',
-          allergies: data.allergies || '',
-          blood_type: data.blood_type || '',
-          special_needs: data.special_needs || '',
           household_size: data.household_size || 1,
-          has_children: data.has_children || false,
-          has_elderly: data.has_elderly || false,
           has_pets: data.has_pets || false,
           pet_types: data.pet_types || ''
         });
@@ -295,14 +271,7 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
         emergency_contact_name: profile.emergency_contact_name || '',
         emergency_contact_phone: profile.emergency_contact_phone || '',
         emergency_contact_relation: profile.emergency_contact_relation || '',
-        medical_conditions: profile.medical_conditions || '',
-        medications: profile.medications || '',
-        allergies: profile.allergies || '',
-        blood_type: profile.blood_type || '',
-        special_needs: profile.special_needs || '',
         household_size: profile.household_size || 1,
-        has_children: profile.has_children || false,
-        has_elderly: profile.has_elderly || false,
         has_pets: profile.has_pets || false,
         pet_types: profile.pet_types || ''
       };
@@ -315,10 +284,6 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
         address: validatedData.address ? sanitizeHtml(validatedData.address) : '',
         emergency_contact_name: validatedData.emergency_contact_name ? sanitizeHtml(validatedData.emergency_contact_name) : '',
         emergency_contact_relation: validatedData.emergency_contact_relation ? sanitizeHtml(validatedData.emergency_contact_relation) : '',
-        medical_conditions: validatedData.medical_conditions ? sanitizeHtml(validatedData.medical_conditions) : '',
-        medications: validatedData.medications ? sanitizeHtml(validatedData.medications) : '',
-        allergies: validatedData.allergies ? sanitizeHtml(validatedData.allergies) : '',
-        special_needs: validatedData.special_needs ? sanitizeHtml(validatedData.special_needs) : '',
         pet_types: validatedData.pet_types ? sanitizeHtml(validatedData.pet_types) : ''
       };
 
@@ -552,61 +517,6 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
             </div>
           </div>
 
-          {/* Privacy Preferences */}
-          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-5 border border-gray-200">
-            <div className="flex items-center gap-2 mb-4">
-              <Shield className="text-[#3D4A2B]" size={18} />
-              <h4 className="font-semibold text-gray-900">Synlighet</h4>
-            </div>
-            <p className="text-sm text-gray-600 mb-4">
-              Välj hur ditt namn visas för andra användare
-            </p>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {[
-                { value: 'display_name', label: 'Visningsnamn', emoji: '👤' },
-                { value: 'first_last', label: 'För- & efternamn', emoji: '👥' },
-                { value: 'initials', label: 'Initialer', emoji: '🔒' },
-                { value: 'email', label: 'E-postprefix', emoji: '📧' }
-              ].map((option) => (
-                <label
-                  key={option.value}
-                  className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                    profile.name_display_preference === option.value
-                      ? 'border-[#3D4A2B] bg-white shadow-sm'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="name_display_preference"
-                    value={option.value}
-                    checked={profile.name_display_preference === option.value}
-                    onChange={handleInputChange('name_display_preference')}
-                    className="text-[#3D4A2B] focus:ring-[#3D4A2B]"
-                  />
-                  <span className="text-xl">{option.emoji}</span>
-                  <span className="text-sm font-medium text-gray-900">{option.label}</span>
-                </label>
-              ))}
-            </div>
-
-            {/* Preview */}
-            <div className="mt-4 p-3 bg-white rounded-lg border border-gray-200">
-              <p className="text-xs font-medium text-gray-500 mb-2">Förhandsgranskning:</p>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-[#3D4A2B] to-[#5C6B47] flex items-center justify-center">
-                  {avatarPreview ? (
-                    <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
-                  ) : (
-                    <User size={16} className="text-white" />
-                  )}
-                </div>
-                <span className="font-medium text-gray-900">{getDisplayNamePreview()}</span>
-              </div>
-            </div>
-          </div>
-
           {/* Contact Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
             <div>
@@ -759,82 +669,6 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
         </div>
       </SectionComponent>
 
-      {/* Medical Information */}
-      <SectionComponent 
-        title="Medicinsk information" 
-        icon={Heart} 
-        sectionKey="medical"
-        expandedSections={expandedSections}
-        toggleSection={toggleSection}
-      >
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Medicinska tillstånd</label>
-              <textarea
-                value={profile.medical_conditions}
-                onChange={handleInputChange('medical_conditions')}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
-                rows={2}
-                placeholder="t.ex. diabetes, astma..."
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Mediciner</label>
-              <textarea
-                value={profile.medications}
-                onChange={handleInputChange('medications')}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
-                rows={2}
-                placeholder="Regelbunden medicinering..."
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Allergier</label>
-              <input
-                type="text"
-                value={profile.allergies}
-                onChange={handleInputChange('allergies')}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
-                placeholder="Födoämnen, medicin..."
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Blodgrupp</label>
-              <select
-                value={profile.blood_type}
-                onChange={handleInputChange('blood_type')}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
-              >
-                <option value="">Välj blodgrupp</option>
-                <option value="A+">A+</option>
-                <option value="A-">A-</option>
-                <option value="B+">B+</option>
-                <option value="B-">B-</option>
-                <option value="AB+">AB+</option>
-                <option value="AB-">AB-</option>
-                <option value="O+">O+</option>
-                <option value="O-">O-</option>
-              </select>
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Särskilda behov</label>
-              <textarea
-                value={profile.special_needs}
-                onChange={handleInputChange('special_needs')}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
-                rows={2}
-                placeholder="Funktionsvariationer, hjälpbehov..."
-              />
-            </div>
-          </div>
-        </div>
-      </SectionComponent>
-
       {/* Household */}
       <SectionComponent 
         title="Hushållsinformation" 
@@ -856,26 +690,6 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
           </div>
 
           <div className="space-y-3">
-            <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={profile.has_children}
-                onChange={handleCheckboxChange('has_children')}
-                className="w-5 h-5 text-[#3D4A2B] rounded focus:ring-[#3D4A2B]"
-              />
-              <span className="text-sm font-medium text-gray-900">Barn i hushållet</span>
-            </label>
-
-            <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={profile.has_elderly}
-                onChange={handleCheckboxChange('has_elderly')}
-                className="w-5 h-5 text-[#3D4A2B] rounded focus:ring-[#3D4A2B]"
-              />
-              <span className="text-sm font-medium text-gray-900">Äldre i hushållet</span>
-            </label>
-
             <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
               <input
                 type="checkbox"

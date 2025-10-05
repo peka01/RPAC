@@ -141,37 +141,37 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
     // Create MSB recommended resources + some demo filled ones
     const msbRecommendedResources = [
             // MSB Food recommendations
-            { name: 'Konserver och burkar', category: 'food', unit: 'burkar', msb_priority: 'high', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
-            { name: 'Knäckebröd eller hårt bröd', category: 'food', unit: 'paket', msb_priority: 'high', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
-            { name: 'Kött- eller fiskkonserver', category: 'food', unit: 'burkar', msb_priority: 'high', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
-            { name: 'Frukt och nötter', category: 'food', unit: 'kg', msb_priority: 'medium', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
+            { name: 'Konserver och burkar', category: 'food', unit: 'burkar', msb_priority: 'high', is_msb_recommended: true, quantity: 0, days_remaining: 0 },
+            { name: 'Knäckebröd eller hårt bröd', category: 'food', unit: 'paket', msb_priority: 'high', is_msb_recommended: true, quantity: 0, days_remaining: 0 },
+            { name: 'Kött- eller fiskkonserver', category: 'food', unit: 'burkar', msb_priority: 'high', is_msb_recommended: true, quantity: 0, days_remaining: 0 },
+            { name: 'Frukt och nötter', category: 'food', unit: 'kg', msb_priority: 'medium', is_msb_recommended: true, quantity: 0, days_remaining: 0 },
             
             // MSB Water recommendations  
-            { name: 'Dricksvatten', category: 'water', unit: 'liter', msb_priority: 'high', is_msb_recommended: true, quantity: 14, days_remaining: 7, is_filled: true }, // Demo: 1 week supply for 1 person (2L per day)
-            { name: 'Vattenreningstavletter', category: 'water', unit: 'förpackningar', msb_priority: 'medium', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
-            { name: 'Extra vattenbehållare', category: 'water', unit: 'stycken', msb_priority: 'medium', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
+            { name: 'Dricksvatten', category: 'water', unit: 'liter', msb_priority: 'high', is_msb_recommended: true, quantity: 14, days_remaining: 7 }, // Demo: 1 week supply for 1 person (2L per day)
+            { name: 'Vattenreningstavletter', category: 'water', unit: 'förpackningar', msb_priority: 'medium', is_msb_recommended: true, quantity: 0, days_remaining: 0 },
+            { name: 'Extra vattenbehållare', category: 'water', unit: 'stycken', msb_priority: 'medium', is_msb_recommended: true, quantity: 0, days_remaining: 0 },
             
             // MSB Medicine recommendations
-            { name: 'Receptbelagda mediciner', category: 'medicine', unit: 'dagars förbrukning', msb_priority: 'high', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
-            { name: 'Första hjälpen-kit', category: 'medicine', unit: 'kit', msb_priority: 'high', is_msb_recommended: true, quantity: 1, days_remaining: 365, is_filled: true }, // Demo: filled
-            { name: 'Smärtstillande', category: 'medicine', unit: 'förpackningar', msb_priority: 'medium', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
-            { name: 'Termometer', category: 'medicine', unit: 'stycken', msb_priority: 'medium', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
+            { name: 'Receptbelagda mediciner', category: 'medicine', unit: 'dagars förbrukning', msb_priority: 'high', is_msb_recommended: true, quantity: 0, days_remaining: 0 },
+            { name: 'Första hjälpen-kit', category: 'medicine', unit: 'kit', msb_priority: 'high', is_msb_recommended: true, quantity: 1, days_remaining: 365 }, // Demo: has quantity
+            { name: 'Smärtstillande', category: 'medicine', unit: 'förpackningar', msb_priority: 'medium', is_msb_recommended: true, quantity: 0, days_remaining: 0 },
+            { name: 'Termometer', category: 'medicine', unit: 'stycken', msb_priority: 'medium', is_msb_recommended: true, quantity: 0, days_remaining: 0 },
             
             // MSB Energy recommendations
-            { name: 'Batterier (olika storlekar)', category: 'energy', unit: 'förpackningar', msb_priority: 'high', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
-            { name: 'Ficklampor', category: 'energy', unit: 'stycken', msb_priority: 'high', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
-            { name: 'Batteridriven radio', category: 'energy', unit: 'stycken', msb_priority: 'high', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
-            { name: 'Ljus och tändstickor', category: 'energy', unit: 'förpackningar', msb_priority: 'medium', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
+            { name: 'Batterier (olika storlekar)', category: 'energy', unit: 'förpackningar', msb_priority: 'high', is_msb_recommended: true, quantity: 0, days_remaining: 0 },
+            { name: 'Ficklampor', category: 'energy', unit: 'stycken', msb_priority: 'high', is_msb_recommended: true, quantity: 0, days_remaining: 0 },
+            { name: 'Batteridriven radio', category: 'energy', unit: 'stycken', msb_priority: 'high', is_msb_recommended: true, quantity: 0, days_remaining: 0 },
+            { name: 'Ljus och tändstickor', category: 'energy', unit: 'förpackningar', msb_priority: 'medium', is_msb_recommended: true, quantity: 0, days_remaining: 0 },
             
             // MSB Tools recommendations
-            { name: 'Multiverktyg eller kniv', category: 'tools', unit: 'styck', msb_priority: 'medium', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
+            { name: 'Multiverktyg eller kniv', category: 'tools', unit: 'styck', msb_priority: 'medium', is_msb_recommended: true, quantity: 0, days_remaining: 0 },
             
             // MSB Other recommendations
-            { name: 'Kontanter', category: 'other', unit: 'mindre mängder', msb_priority: 'high', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
-            { name: 'Varma filtar', category: 'other', unit: 'stycken', msb_priority: 'high', is_msb_recommended: true, quantity: 0, days_remaining: 0, is_filled: false },
+            { name: 'Kontanter', category: 'other', unit: 'mindre mängder', msb_priority: 'high', is_msb_recommended: true, quantity: 0, days_remaining: 0 },
+            { name: 'Varma filtar', category: 'other', unit: 'stycken', msb_priority: 'high', is_msb_recommended: true, quantity: 0, days_remaining: 0 },
             
             // User added example
-            { name: 'Extra ris och pasta', category: 'food', unit: 'kg', is_msb_recommended: false, quantity: 5, days_remaining: 90, is_filled: true }
+            { name: 'Extra ris och pasta', category: 'food', unit: 'kg', is_msb_recommended: false, quantity: 5, days_remaining: 90 }
           ];
 
     return msbRecommendedResources.map((item, index) => ({
@@ -184,7 +184,6 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
       days_remaining: item.days_remaining,
       is_msb_recommended: item.is_msb_recommended,
       msb_priority: item.msb_priority as 'high' | 'medium' | 'low' | undefined,
-      is_filled: item.is_filled,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     }));
@@ -244,8 +243,8 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
   };
 
   // Function to get urgency color based on days remaining
-  const getUrgencyColor = (daysRemaining: number, isMsbRecommended?: boolean, isFilled?: boolean): string => {
-    if (!isFilled) return 'bg-gray-100 text-gray-500'; // Empty MSB resources
+  const getUrgencyColor = (daysRemaining: number, isMsbRecommended?: boolean, hasQuantity?: boolean): string => {
+    if (!hasQuantity) return 'bg-gray-100 text-gray-500'; // Empty resources
     
     if (daysRemaining >= 99999) return 'bg-green-100 text-green-800'; // Unlimited shelf life
     if (daysRemaining > 365) return 'bg-green-100 text-green-800'; // More than 1 year
@@ -331,7 +330,6 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
                   resource.category === 'other' ? 1 : // Other items (like cash) are typically 1 per family
                   1, // Default to 1 for non-consumables
         days_remaining: automaticShelfLife, // Use calculated shelf life
-        is_filled: true,
         updated_at: new Date().toISOString()
       };
       
@@ -351,7 +349,6 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
         await resourceService.updateResource(id, {
           quantity: 0,
           days_remaining: 0,
-          is_filled: false,
           updated_at: new Date().toISOString()
         });
         loadResources();
@@ -689,8 +686,8 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
                   <tbody>
                     {categoryResources.map((resource) => {
                       const isMsbRecommended = resource.is_msb_recommended;
-                      const isFilled = resource.is_filled;
-                      const isEmpty = isMsbRecommended && !isFilled;
+                      const hasQuantity = resource.quantity > 0;
+                      const isEmpty = isMsbRecommended && !hasQuantity;
                       
                       return (
                         <tr 
@@ -738,7 +735,7 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
                             {isEmpty ? (
                               <span className="text-gray-400 italic text-sm">-</span>
                             ) : (
-                              <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getUrgencyColor(resource.days_remaining, isMsbRecommended, isFilled)}`}>
+                              <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getUrgencyColor(resource.days_remaining, isMsbRecommended, hasQuantity)}`}>
                                 {resource.days_remaining >= 99999 ? '∞' : `${resource.days_remaining}d`}
                               </span>
                             )}
@@ -811,8 +808,8 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
                 <div className="lg:hidden space-y-3">
                   {categoryResources.map((resource) => {
                     const isMsbRecommended = resource.is_msb_recommended;
-                    const isFilled = resource.is_filled;
-                    const isEmpty = isMsbRecommended && !isFilled;
+                    const hasQuantity = resource.quantity > 0;
+                    const isEmpty = isMsbRecommended && !hasQuantity;
                     
                     return (
                       <div 
@@ -899,7 +896,7 @@ export function SupabaseResourceInventory({ user }: SupabaseResourceInventoryPro
                               {isEmpty ? (
                                 <span className="text-gray-400 italic">-</span>
                               ) : (
-                                <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getUrgencyColor(resource.days_remaining, isMsbRecommended, isFilled)}`}>
+                                <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getUrgencyColor(resource.days_remaining, isMsbRecommended, hasQuantity)}`}>
                                   {resource.days_remaining >= 99999 ? '∞' : `${resource.days_remaining}d`}
                                 </span>
                               )}
