@@ -30,6 +30,20 @@
   }
 }
 
+@keyframes spin-fade {
+  0% {
+    transform: rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: rotate(360deg);
+    opacity: 1;
+  }
+}
+
 .animate-fade-in {
   animation: fade-in 0.2s ease-out;
 }
@@ -40,6 +54,10 @@
 
 .animate-slide-in-bottom {
   animation: slide-in-bottom 0.3s ease-out;
+}
+
+.animate-spin-fade {
+  animation: spin-fade 1.5s linear infinite;
 }
 
 /* Touch optimization */

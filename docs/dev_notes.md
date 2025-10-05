@@ -1,3 +1,41 @@
+### 2025-10-05 - LOADING SCREEN & GLOBAL SPINNER REDESIGN ✅
+Redesigned the loading experience with clean, centered layout and created a reusable animated spinner component.
+
+#### Changes
+- **Loading Screen Redesign:**
+  - Replaced shield icon with BE READY logo (`beready-logo2.png`)
+  - Removed progress bar and verbose loading text
+  - Centered logo, spinner, and text vertically and horizontally
+  - Clean gradient background (`from-gray-50 to-gray-100`)
+  - Simplified text to just "Laddar"
+
+- **Global Spinner Component:**
+  - Created `LoadingSpinner` component (`rpac-web/src/components/loading-spinner.tsx`)
+  - Animated shield icon with clockwise rotation + fade effect
+  - Olive green background (`#5C6B47`) matching RPAC palette
+  - Multiple sizes: `sm`, `md`, `lg`, `xl`
+  - Configurable text and visibility
+  - Added global `animate-spin-fade` CSS class for reuse
+
+#### Animation Details
+- **spin-fade effect:** 360° clockwise rotation with opacity fade (1 → 0.5 → 1)
+- Duration: 1.5s linear infinite
+- Smooth, professional loading indication
+
+#### Usage
+```tsx
+import { LoadingSpinner } from '@/components/loading-spinner';
+
+<LoadingSpinner size="lg" text="Laddar" />
+<LoadingSpinner size="md" showText={false} />
+```
+
+#### Impact
+- Cleaner, more professional loading experience
+- Reusable spinner component for entire app
+- Consistent with RPAC's olive green brand identity
+- Reduced visual clutter and loading anxiety
+
 ### 2025-10-05 - TOP NAVIGATION MINIMAL-INK REFINEMENT ✅
 Refined the prominent nav into a minimal-ink variant that feels calmer and more confident under stress.
 

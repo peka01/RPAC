@@ -236,62 +236,52 @@ export default function DashboardPage() {
     };
   }, [router]);
 
-  // Professional military loading experience
+  // Professional loading experience
   if (loading) {
     return (
-      <div className="h-full overflow-hidden flex items-center justify-center relative" style={{ background: 'var(--bg-primary)' }}>
-        {/* Professional background patterns */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-20 left-20 w-32 h-32 opacity-[0.02]">
-            <div className="w-full h-full rounded-full" style={{ backgroundColor: 'var(--color-primary)' }}></div>
-          </div>
-          <div className="absolute bottom-20 right-20 w-24 h-24 opacity-[0.02]">
-            <div className="w-full h-full rounded-full" style={{ backgroundColor: 'var(--color-secondary)' }}></div>
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        {/* Beready Logo */}
+        <div className="mb-12">
+          <img
+            src="/beready-logo2.png"
+            alt="BE READY"
+            className="h-20 w-auto"
+          />
+        </div>
+
+        {/* Animated Shield Spinner */}
+        <div className="relative mb-6">
+          <div 
+            className="w-20 h-20 rounded-xl flex items-center justify-center bg-[#5C6B47] animate-spin-fade shadow-lg"
+          >
+            <Shield className="w-10 h-10 text-white" strokeWidth={2} />
           </div>
         </div>
-        
-        <div className="text-center z-10 max-w-md mx-auto px-6">
-          {/* Military-style loading indicator */}
-          <div className="mb-8">
-            <div className="w-20 h-20 rounded-lg flex items-center justify-center mx-auto shadow-lg mb-6" style={{ 
-              background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)' 
-            }}>
-              <Shield className="w-10 h-10 text-white" />
-            </div>
-            
-            {/* Clean progress bar */}
-            <div className="w-64 mx-auto">
-              <div className="flex justify-between text-xs mb-2" style={{ color: 'var(--text-secondary)' }}>
-                <span>{t('dashboard.loading_progress')}</span>
-                <span>75%</span>
-              </div>
-              <div className="h-2 rounded-full border" style={{ 
-                backgroundColor: 'var(--bg-card)', 
-                borderColor: 'var(--color-secondary)' 
-              }}>
-                <div 
-                  className="h-full rounded-full" 
-                  style={{ 
-                    background: 'linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
-                    width: '75%',
-                    transition: 'none' // Remove animations to prevent flashing
-                  }}
-                ></div>
-              </div>
-              <div className="flex justify-between text-xs mt-2" style={{ color: 'var(--text-tertiary)' }}>
-                <span>{t('dashboard.loading_status_start')}</span>
-                <span>{t('dashboard.loading_status_end')}</span>
-              </div>
-            </div>
-          </div>
-          
-          <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
-            {t('dashboard.loading_title')}
-          </h2>
-          <p style={{ color: 'var(--text-secondary)' }}>
-            {t('dashboard.loading_description')}
-          </p>
-        </div>
+
+        {/* Loading Text */}
+        <p className="text-base font-medium text-gray-700">
+          Laddar
+        </p>
+
+        <style jsx>{`
+          @keyframes spin-fade {
+            0% {
+              transform: rotate(0deg);
+              opacity: 1;
+            }
+            50% {
+              opacity: 0.5;
+            }
+            100% {
+              transform: rotate(360deg);
+              opacity: 1;
+            }
+          }
+
+          .animate-spin-fade {
+            animation: spin-fade 1.5s linear infinite;
+          }
+        `}</style>
       </div>
     );
   }
@@ -482,17 +472,19 @@ export default function DashboardPage() {
                 <MessagingSystemV2 user={user} communityId={joinedCommunities[0].id} />
               )}
               {user && joinedCommunities.length === 0 && (
-                <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-                  <MessageCircle className="mx-auto mb-4 text-gray-400" size={48} />
-                  <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                <div className="bg-white rounded-xl shadow-lg p-8 text-center border border-gray-100">
+                  <div className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                    <MessageCircle className="text-gray-400" size={32} />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">
                     Gå med i ett samhälle för att börja kommunicera
                   </h3>
-                  <p className="text-sm text-gray-500 mb-4">
+                  <p className="text-sm text-gray-600 mb-6">
                     Hitta och anslut till lokala samhällen via fliken "Samhälle"
                   </p>
                   <button
                     onClick={() => router.push('/local')}
-                    className="px-4 py-2 bg-[#3D4A2B] text-white rounded-lg hover:bg-[#2A331E] transition-colors"
+                    className="px-6 py-3 bg-[#5C6B47] text-white rounded-lg hover:bg-[#4A5239] transition-all shadow-md hover:shadow-lg font-medium"
                   >
                     Hitta samhällen
                   </button>
@@ -522,22 +514,17 @@ export default function DashboardPage() {
             <StatusCard />
           </div>
 
-          {/* Professional Status Update */}
-          <div className="rounded-lg p-3 border shadow-sm" style={{ 
-            background: 'linear-gradient(135deg, var(--bg-olive-light) 0%, var(--bg-card) 100%)',
-            borderColor: 'var(--color-secondary)'
-          }}>
+          {/* Professional Status Update - Light neutral status card */}
+          <div className="rounded-xl p-4 bg-gradient-to-br from-amber-50 to-green-50 border border-green-100 shadow-sm">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center shadow-sm" style={{ 
-                backgroundColor: 'var(--color-primary)' 
-              }}>
-                <CheckCircle className="w-4 h-4 text-white" />
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-[#5C6B47]">
+                <CheckCircle className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{t('dashboard.daily_update_complete')}</h3>
-                <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{t('dashboard.daily_update_description')}</p>
+                <h3 className="text-sm font-bold text-gray-900">{t('dashboard.daily_update_complete')}</h3>
+                <p className="text-xs text-gray-600">{t('dashboard.daily_update_description')}</p>
               </div>
-              <div className="text-lg" style={{ color: 'var(--color-primary)' }}>✓</div>
+              <div className="text-2xl text-[#5C6B47]">✓</div>
             </div>
           </div>
 
