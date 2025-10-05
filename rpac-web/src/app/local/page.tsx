@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { CommunityHubResponsive } from '@/components/community-hub-responsive';
+import { LoadingSpinner } from '@/components/loading-spinner';
 import { supabase } from '@/lib/supabase';
 import { t } from '@/lib/locales';
 import type { User } from '@supabase/supabase-js';
@@ -57,11 +58,8 @@ export default function LocalPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-700">{t('loading.loading')}</p>
-        </div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <LoadingSpinner size="xl" text="Laddar" />
       </div>
     );
   }

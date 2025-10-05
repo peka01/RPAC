@@ -30,11 +30,18 @@ import { LoadingSpinner } from '@/components/loading-spinner';
 <LoadingSpinner size="md" showText={false} />
 ```
 
+#### Applied To All Pages
+- ✅ Dashboard (`/dashboard`)
+- ✅ Local/Samhälle (`/local`)
+- ✅ Regional (`/regional`)
+- ✅ Settings (`/settings`)
+
 #### Impact
-- Cleaner, more professional loading experience
-- Reusable spinner component for entire app
+- Cleaner, more professional loading experience across entire app
+- Reusable spinner component for consistent UX
 - Consistent with RPAC's olive green brand identity
 - Reduced visual clutter and loading anxiety
+- Eliminated old blue spinners and progress bars
 
 ### 2025-10-05 - TOP NAVIGATION MINIMAL-INK REFINEMENT ✅
 Refined the prominent nav into a minimal-ink variant that feels calmer and more confident under stress.

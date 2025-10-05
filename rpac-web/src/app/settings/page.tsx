@@ -26,6 +26,7 @@ import {
   Sun as SunIcon
 } from 'lucide-react';
 import { UnifiedProfileSettings } from '@/components/unified-profile-settings';
+import { LoadingSpinner } from '@/components/loading-spinner';
 import { useUserProfile } from '@/lib/useUserProfile';
 import { supabase } from '@/lib/supabase';
 import { t } from '@/lib/locales';
@@ -179,12 +180,8 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto mb-4" 
-               style={{ borderColor: 'var(--color-sage)' }}></div>
-          <p style={{ color: 'var(--text-secondary)' }}>{t('settings.loading_settings')}</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        <LoadingSpinner size="xl" text="Laddar" />
       </div>
     );
   }

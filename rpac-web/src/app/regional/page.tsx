@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { MapPin, Users, TrendingUp, AlertTriangle } from 'lucide-react';
+import { LoadingSpinner } from '@/components/loading-spinner';
 import { t } from '@/lib/locales';
 import type { User } from '@supabase/supabase-js';
 
@@ -27,22 +28,16 @@ export default function RegionalPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-700">{t('loading.loading')}</p>
-        </div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <LoadingSpinner size="xl" text="Laddar" />
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-700">{t('loading.starting')}</p>
-        </div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <LoadingSpinner size="xl" text="Startar" />
       </div>
     );
   }
