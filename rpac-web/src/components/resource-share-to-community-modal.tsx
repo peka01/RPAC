@@ -129,13 +129,17 @@ export function ResourceShareToCommunityModal({
       setSubmitting(true);
       setError(null);
 
-      // Share resource (resource_sharing table uses resource_id, not embedded data)
+      // Share resource with community (with denormalized fields for easier querying)
       const { supabase } = await import('@/lib/supabase');
       const { error: shareError } = await supabase
         .from('resource_sharing')
         .insert([{
           user_id: userId,
+          community_id: shareForm.communityId,
           resource_id: resource.id,
+          resource_name: resource.name,
+          resource_category: resource.category,
+          resource_unit: resource.unit,
           shared_quantity: shareForm.sharedQuantity,
           available_until: shareForm.availableUntil || null,
           location: shareForm.location || null,
@@ -143,16 +147,22 @@ export function ResourceShareToCommunityModal({
           status: 'available'
         }]);
 
-      if (shareError) throw shareError;
+      if (shareError) {
+        console.error('Supabase error details:', shareError);
+        throw shareError;
+      }
 
       setSuccess(true);
       setTimeout(() => {
         onSuccess();
         onClose();
       }, 1500);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error sharing resource:', err);
-      setError('Kunde inte dela resurs. Försök igen.');
+      console.error('Error message:', err?.message);
+      console.error('Error details:', err?.details);
+      console.error('Error hint:', err?.hint);
+      setError(err?.message || 'Kunde inte dela resurs. Försök igen.');
     } finally {
       setSubmitting(false);
     }

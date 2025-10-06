@@ -384,7 +384,7 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
                 <div 
                   key={cat.key} 
                   id={`category-${cat.key}`}
-                  className="bg-white rounded-xl shadow-md border-2 border-gray-100 overflow-hidden scroll-mt-4"
+                  className="bg-white rounded-xl shadow-md border-2 border-gray-100 overflow-visible scroll-mt-4"
                 >
                   {/* Sticky Category Header */}
                   <button
