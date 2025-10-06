@@ -384,9 +384,7 @@ export function KRISterAssistant({ user, userProfile = {}, currentPage, currentA
             temperature: weather.temperature,
             humidity: weather.humidity,
             forecast: weather.forecast,
-            windSpeed: weather.windSpeed,
-            precipitation: weather.precipitation,
-            warnings: weather.warnings
+            windSpeed: weather.windSpeed
           } : undefined
         },
         userQuestion: inputMessage.trim(),
