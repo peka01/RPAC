@@ -15,8 +15,12 @@ export const metadata: Metadata = {
   authors: [{ name: 'RPAC Team' }],
   manifest: '/manifest.json',
   icons: {
-    icon: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
+    icon: [
+      { url: '/favicon.ico', sizes: '16x16 32x32', type: 'image/x-icon' },
+      { url: '/beready-shield.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: '/beready-shield.png',
+    shortcut: '/favicon.ico',
   },
 };
 

@@ -21,7 +21,7 @@ import {
   Monitor
 } from 'lucide-react';
 import { UnifiedProfileSettings } from '@/components/unified-profile-settings';
-import { LoadingSpinner } from '@/components/loading-spinner';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { useUserProfile } from '@/lib/useUserProfile';
 import { supabase } from '@/lib/supabase';
 import { t } from '@/lib/locales';

@@ -19,6 +19,7 @@ import {
   ChevronRight,
   ArrowRight
 } from 'lucide-react';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { StatusCard } from '@/components/status-card';
 import { PreparednessOverview } from '@/components/preparedness-overview';
 import { ResourceSummaryCard } from '@/components/resource-summary-card';
@@ -251,39 +252,8 @@ export default function DashboardPage() {
           />
         </div>
 
-        {/* Animated Shield Spinner */}
-        <div className="relative mb-6">
-          <div 
-            className="w-20 h-20 rounded-xl flex items-center justify-center bg-[#5C6B47] animate-spin-fade shadow-lg"
-          >
-            <Shield className="w-10 h-10 text-white" strokeWidth={2} />
-          </div>
-        </div>
-
-        {/* Loading Text */}
-        <p className="text-base font-medium text-gray-700">
-          Laddar
-        </p>
-
-        <style jsx>{`
-          @keyframes spin-fade {
-            0% {
-              transform: rotate(0deg);
-              opacity: 1;
-            }
-            50% {
-              opacity: 0.5;
-            }
-            100% {
-              transform: rotate(360deg);
-              opacity: 1;
-            }
-          }
-
-          .animate-spin-fade {
-            animation: spin-fade 1.5s linear infinite;
-          }
-        `}</style>
+        {/* 3D Orbital Loading Spinner */}
+        <LoadingSpinner size="lg" text="Laddar" />
       </div>
     );
   }

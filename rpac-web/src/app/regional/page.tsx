@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { MapPin, Users, TrendingUp, AlertTriangle } from 'lucide-react';
-import { LoadingSpinner } from '@/components/loading-spinner';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { t } from '@/lib/locales';
 import type { User } from '@supabase/supabase-js';
 

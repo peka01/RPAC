@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { CommunityHubResponsive } from '@/components/community-hub-responsive';
-import { LoadingSpinner } from '@/components/loading-spinner';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { supabase } from '@/lib/supabase';
 import { t } from '@/lib/locales';
 import type { User } from '@supabase/supabase-js';
