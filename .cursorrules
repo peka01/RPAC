@@ -1,11 +1,15 @@
-# RPAC Development Rules - MUST FOLLOW
+# Beready Development Rules - MUST FOLLOW
 
 ## 📖 MANDATORY: Read Documentation First
+
+**NEW CHAT?** Start here: `docs/NEW_CHAT_ONBOARDING.md` (Complete onboarding guide)
+
 Before doing ANYTHING, consult these files in ORDER:
 1. `docs/llm_instructions.md` - Current development status and patterns
 2. `docs/conventions.md` - Core design philosophy and rules
 3. `docs/architecture.md` - Technical architecture
 4. `docs/roadmap.md` - Current priorities and sprint focus
+5. `docs/dev_notes.md` - Development history (for feature context)
 
 ## 🎨 COLOR PALETTE - MILITARY-GRADE OLIVE GREEN (NOT BLUE!)
 **CRITICAL**: RPAC uses olive green, NOT blue colors!
@@ -167,4 +171,4 @@ END $$;
 5. **For SQL: Check supabase-schema-complete.sql for correct table/column names**
 
 ---
-**Remember**: RPAC = Professional capability (military visual design) + Human warmth (everyday Swedish text)
+**Remember**: Beready = Professional capability (military visual design) + Human warmth (everyday Swedish text)

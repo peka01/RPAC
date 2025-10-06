@@ -1,3 +1,77 @@
+### 2025-10-06 - DOCUMENTATION CLEANUP & ONBOARDING OVERHAUL ✅
+Massive documentation consolidation: reduced from 68 files to 11 core files for single source of truth.
+
+#### Problem
+- 68 documentation files with massive redundancy
+- Many `*_COMPLETE_*.md`, `SESSION_*.md`, `FIX_*.md` files duplicating information
+- Confusing for new chats and team members
+- Information scattered across multiple files
+- Mobile patterns, component standards, and design patterns in separate docs
+
+#### Solution
+**Deleted 57 redundant files:**
+- 16 `*_COMPLETE_*.md` files (feature complete docs)
+- 10 `SESSION_*.md` files (temporary session notes)
+- 6 `FIX_*.md` / `BUGFIX_*.md` files (applied fixes)
+- 9 `MOBILE_UX_*.md` files (mobile patterns)
+- 14 `RESOURCE_MANAGEMENT_*.md` files (resource docs)
+- 2 setup guides (`ADMIN_SETUP_GUIDE.md`, `DEVELOPMENT_SETUP.md`)
+
+**Consolidated essential patterns into core docs:**
+- Mobile UX standards → `conventions.md`
+- Tabbed list design pattern → `conventions.md`
+- Component standards → `conventions.md` + `llm_instructions.md`
+- All feature history → Already in `dev_notes.md` or git history
+
+**Created new onboarding system:**
+- `NEW_CHAT_ONBOARDING.md` - Complete onboarding guide for AI chats
+- `START_NEW_CHAT.md` - Copy-paste prompts for starting new chat sessions
+- Updated `.cursorrules` to point to single source of truth
+
+#### Final Documentation Structure (11 Core Files)
+**Always Relevant:**
+1. `NEW_CHAT_ONBOARDING.md` - Start here for new chats
+2. `charter.md` - Vision, mission, goals
+3. `architecture.md` - Technical decisions
+4. `roadmap.md` - Priorities and sprint focus
+5. `conventions.md` - Rules, patterns, standards
+6. `llm_instructions.md` - Current status, components
+7. `dev_notes.md` - Development history (this file)
+
+**Reference/Domain:**
+8. `README.md` - Project overview
+9. `msb_integration.md` - MSB integration specs
+10. `msb_trackable_resources.md` - Resource specs
+11. `PRODUCTION_DEPLOYMENT.md` - Deployment guide
+
+#### Impact
+- ✅ Single source of truth for all development standards
+- ✅ Easy onboarding for new chats (just read 6 core files)
+- ✅ No more duplicate/contradictory documentation
+- ✅ Clear documentation hierarchy
+- ✅ Mobile patterns now in `conventions.md` (not separate file)
+- ✅ Component standards consolidated
+- ✅ Copy-paste prompts for starting new chat sessions
+
+#### Starting New Chats
+**Full context prompt:**
+```
+Read these files: docs/NEW_CHAT_ONBOARDING.md, docs/charter.md, 
+docs/architecture.md, docs/roadmap.md, docs/conventions.md, 
+docs/llm_instructions.md
+```
+
+**Quick context prompt:**
+```
+RPAC = Swedish crisis app (Next.js + Supabase). 
+Olive green (#3D4A2B), NOT blue. All text via t() from sv.json. 
+Mobile-first. Use ResourceListView for lists. Dev: cd rpac-web && npm run dev
+```
+
+See `docs/START_NEW_CHAT.md` for complete onboarding instructions.
+
+---
+
 ### 2025-10-05 - LOADING SCREEN & GLOBAL SPINNER REDESIGN ✅
 Redesigned the loading experience with clean, centered layout and created a reusable animated spinner component.
 

@@ -58,28 +58,102 @@ We design for humans in crisis with clarity and reliability. Visual design uses 
 
 ### 📱 Mobile UX Standards - MANDATORY
 
-**All mobile development MUST follow:** `docs/MOBILE_UX_STANDARDS.md`
+**Mobile-first development** is the standard for all RPAC features.
 
-This comprehensive guide establishes best-in-class mobile patterns that rival top consumer apps (Instagram, Apple Health, Spotify). It represents the gold standard for mobile development in RPAC.
+#### Component Architecture Pattern
 
-**Key Requirements:**
-- **Separate mobile components** (not responsive CSS)
-- **Responsive wrapper pattern** at 768px breakpoint
-- **44px+ touch targets** (48px+ preferred)
-- **60fps animations** (hardware-accelerated)
-- **Fixed positioning:** `bottom-16` for buttons, `pb-32` for content
-- **Bottom sheet modals** with backdrop blur
-- **Hero headers** with gradients and stats
-- **Consistent color psychology** across all mobile screens
+**ALWAYS use separate mobile components, NOT responsive CSS.**
 
-**Reference these exemplary components:**
-- `individual-mobile-nav.tsx` - Navigation patterns
-- `personal-dashboard-mobile.tsx` - Score displays, stat cards
-- `cultivation-reminders-mobile.tsx` - CRUD, modals
-- `crisis-cultivation-mobile.tsx` - Multi-step wizards
-- `plant-diagnosis-mobile.tsx` - Camera, AI chat
+```
+component-name.tsx              ← Desktop/tablet version
+component-name-mobile.tsx       ← Mobile-optimized version
+component-name-responsive.tsx   ← Wrapper that switches based on screen width
+```
 
-See complete documentation: `docs/MOBILE_UX_STANDARDS.md`
+**Responsive Wrapper Template:**
+```tsx
+'use client';
+import { useState, useEffect } from 'react';
+
+export function ComponentNameResponsive(props) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return isMobile ? <ComponentNameMobile {...props} /> : <ComponentNameDesktop {...props} />;
+}
+```
+
+#### Touch Optimization Requirements
+
+**MANDATORY minimums:**
+- **44px × 44px**: Apple HIG minimum (secondary actions)
+- **48px × 48px**: Preferred minimum (primary actions)
+- **56px × 56px**: Comfortable target (important actions)
+
+**Touch feedback (required):**
+```tsx
+className="touch-manipulation active:scale-98 transition-all"
+```
+
+#### Layout Standards
+
+**Safe area positioning (critical):**
+- Main content: `pb-32` (128px) - clears nav + breathing room
+- Fixed buttons: `bottom-16` (64px) - sits above nav bar
+- Floating buttons: `bottom-32` (128px) - extra clearance
+
+**Standard padding:** `px-6` (24px) for horizontal spacing
+
+#### Animation Standards
+
+**USE:** `transform`, `opacity` (GPU-accelerated)  
+**AVOID:** `width`, `height`, `top`, `left` (CPU-intensive)
+
+**Timing:**
+- Fast: 150-200ms (UI feedback)
+- Medium: 250-350ms (modals, cards)
+- Slow: 400-500ms (large transitions)
+
+**Easing:** `cubic-bezier(0.16, 1, 0.3, 1)` for entry animations
+
+#### Visual Patterns
+
+**Hero Header:**
+```tsx
+<div className="bg-gradient-to-br from-[color1] to-[color2] text-white px-6 py-8 rounded-b-3xl shadow-2xl mb-6">
+  <div className="flex items-center gap-3 mb-6">
+    <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+      <Icon size={32} className="text-white" strokeWidth={2} />
+    </div>
+    <div className="flex-1">
+      <h1 className="text-2xl font-bold mb-1">Title</h1>
+      <p className="text-white/80 text-sm">Subtitle</p>
+    </div>
+  </div>
+</div>
+```
+
+**Bottom Sheet Modal:**
+```tsx
+<div className="fixed inset-0 z-50 flex items-end animate-fade-in pointer-events-none">
+  <div className="bg-white rounded-t-3xl p-6 w-full max-h-[90vh] overflow-y-auto animate-slide-in-bottom pointer-events-auto">
+    {/* Content */}
+  </div>
+</div>
+```
+
+**Reference Components:**
+- `individual-mobile-nav.tsx` - Floating menu, slide-in drawer
+- `personal-dashboard-mobile.tsx` - Score display, stat cards
+- `cultivation-reminders-mobile.tsx` - Bottom sheets, CRUD
+- `crisis-cultivation-mobile.tsx` - Multi-step wizard
+- `cultivation-calendar-mobile.tsx` - Swipeable navigation
 
 ---
 
@@ -142,6 +216,64 @@ import { ResourceListView } from '@/components/resource-list-view';
 - ❌ Duplicate list functionality
 
 **Exception:** Only create custom implementation if ResourceListView genuinely cannot support your specific use case (very rare).
+
+#### Tabbed Lists Design Pattern
+
+When displaying multiple related lists in tabs, use this layout order:
+
+```
+1. Hero/Stats Section (optional)
+2. Tab Navigation (buttons to switch views)
+3. Search/Filter Bar (SINGLE, SHARED across all tabs)
+4. Content Area (tab-specific content)
+```
+
+**Key Principles:**
+- ONE search bar for ALL tabs (not per-tab)
+- Parent component manages search state
+- ResourceListView has `searchable={false}`, `filterable={false}`, `showViewToggle={false}`
+- View toggle only visible for tabs that need it
+- Search position consistent (doesn't jump when switching tabs)
+
+**Example:**
+```tsx
+const [activeTab, setActiveTab] = useState('shared');
+const [searchQuery, setSearchQuery] = useState('');
+const [viewMode, setViewMode] = useState('cards');
+
+return (
+  <>
+    {/* 1. Tabs */}
+    <div className="flex gap-2">
+      <button onClick={() => setActiveTab('shared')}>Delade</button>
+      <button onClick={() => setActiveTab('owned')}>Ägda</button>
+    </div>
+
+    {/* 2. SINGLE search bar */}
+    <div className="flex gap-4">
+      <input 
+        value={searchQuery} 
+        onChange={(e) => setSearchQuery(e.target.value)}
+        placeholder="Sök..."
+      />
+      {/* View toggle only for certain tabs */}
+      {(activeTab === 'shared' || activeTab === 'owned') && (
+        <ViewToggle value={viewMode} onChange={setViewMode} />
+      )}
+    </div>
+
+    {/* 3. Content (filtered by parent) */}
+    {activeTab === 'shared' && (
+      <ResourceListView
+        items={filteredItems}
+        searchable={false}  // Parent handles search
+        showViewToggle={false}  // Parent handles toggle
+        defaultViewMode={viewMode}
+      />
+    )}
+  </>
+);
+```
 
 ---
 
