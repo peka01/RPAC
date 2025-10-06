@@ -7,18 +7,9 @@ import { IndividualDashboard } from '@/components/individual-dashboard';
 import { PlantDiagnosis } from '@/components/plant-diagnosis';
 import { PersonalDashboard } from '@/components/personal-dashboard';
 import { PersonalDashboardResponsive } from '@/components/personal-dashboard-responsive';
-import { CultivationCalendarV2 } from '@/components/cultivation-calendar-v2';
-import { CultivationCalendarMobile } from '@/components/cultivation-calendar-mobile';
-import { CultivationPlannerMobile } from '@/components/cultivation-planner-mobile';
-import { CultivationResponsiveWrapper } from '@/components/cultivation-responsive-wrapper';
-import { AICultivationAdvisor } from '@/components/ai-cultivation-advisor';
-import { SuperbOdlingsplanerare } from '@/components/CultivationPlanner';
-import { CultivationReminders } from '@/components/cultivation-reminders';
-import { CrisisCultivation } from '@/components/crisis-cultivation';
+import { SimpleCultivationResponsive } from '@/components/simple-cultivation-responsive';
 import { PersonalAICoach } from '@/components/personal-ai-coach';
-import { ExistingCultivationPlans } from '@/components/existing-cultivation-plans';
 import { IndividualMobileNav } from '@/components/individual-mobile-nav';
-import { ResponsiveCultivationTool } from '@/components/responsive-cultivation-tools';
 import { useUserProfile } from '@/lib/useUserProfile';
 import { supabase } from '@/lib/supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
@@ -51,34 +42,10 @@ function IndividualPageContent() {
       description: t('individual.cultivation_description'),
       subsections: [
         {
-          id: 'ai-planner',
+          id: 'planner',
           title: 'Odlingsplanering',
-          description: 'Personlig odlingsplan baserad på näringsbehov',
+          description: 'Skapa och hantera dina odlingsplaner med grödor och näringsvärden',
           priority: 'high' as const
-        },
-        {
-          id: 'calendar',
-          title: t('individual.calendar_advisor'),
-          description: t('individual.calendar_description'),
-          priority: 'high' as const
-        },
-        {
-          id: 'reminders',
-          title: t('individual.reminders'),
-          description: t('individual.reminders_description'),
-          priority: 'medium' as const
-        },
-        {
-          id: 'crisis',
-          title: t('individual.crisis_cultivation'),
-          description: t('individual.crisis_description'),
-          priority: 'low' as const
-        },
-        {
-          id: 'diagnosis',
-          title: t('individual.plant_diagnosis'),
-          description: t('individual.diagnosis_description'),
-          priority: 'medium' as const
         }
       ]
     },
@@ -225,14 +192,14 @@ function IndividualPageContent() {
                   Personlig odlingsplan baserad på näringsbehov
                 </p>
                 <button
-                  onClick={() => handleSectionChange('cultivation', 'ai-planner')}
+                  onClick={() => handleSectionChange('cultivation', 'planner')}
                   className="px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-md"
                   style={{ 
                     backgroundColor: 'var(--color-primary)',
                     color: 'white'
                   }}
                 >
-                  Starta planering
+                  Hantera planer
                 </button>
               </div>
               
@@ -352,97 +319,13 @@ function IndividualPageContent() {
     }
 
     // Handle subsection navigation for cultivation
-    if (activeSection === 'cultivation' && activeSubsection) {
-      if (activeSubsection === 'ai-planner') {
-        return (
-          <CultivationResponsiveWrapper
-            mobileComponent={
-              <CultivationPlannerMobile 
-                user={user}
-                onPlanCreated={(plan) => {
-                  setSelectedPlan(plan);
-                }}
-              />
-            }
-            desktopComponent={
-              <div className="space-y-6">
-                {/* AI Planner Component */}
-                <SuperbOdlingsplanerare user={user} selectedPlan={selectedPlan} />
-                
-                {/* Existing Cultivation Plans - Moved to bottom */}
-                <div className="modern-card p-6">
-                  <ExistingCultivationPlans 
-                    user={user}
-                    onViewPlan={(plan) => {
-                      setSelectedPlan(plan);
-                    }}
-                    onEditPlan={(plan) => {
-                      setSelectedPlan(plan);
-                    }}
-                  />
-                </div>
-              </div>
-            }
-          />
-        );
-      }
-      if (activeSubsection === 'calendar') {
-        const climateZone = profile?.county ? getClimateZone(profile.county) : 'svealand';
-        const gardenSize = 'medium'; // Default value since garden_size is in cultivation_profiles table
-        const experienceLevel = 'beginner'; // Default value since experience_level is in cultivation_profiles table
-
-        return (
-          <CultivationResponsiveWrapper
-            mobileComponent={
-              <CultivationCalendarMobile 
-                climateZone={climateZone}
-                gardenSize={'50'}
-              />
-            }
-            desktopComponent={
-              <div className="space-y-8">
-                <div className="modern-card">
-                  <CultivationCalendarV2 
-                    climateZone={climateZone}
-                    gardenSize={gardenSize}
-                  />
-                </div>
-                <div className="modern-card">
-                  <AICultivationAdvisor 
-                    user={user}
-                    crisisMode={false}
-                  />
-                </div>
-              </div>
-            }
-          />
-        );
-      }
-      if (activeSubsection === 'reminders') {
-        return (
-          <ResponsiveCultivationTool 
-            user={user}
-            tool="reminders"
-            climateZone={profile?.county ? getClimateZone(profile.county) : 'svealand'}
-          />
-        );
-      }
-      if (activeSubsection === 'crisis') {
-        return (
-          <ResponsiveCultivationTool 
-            user={user}
-            tool="crisis"
-          />
-        );
-      }
-      if (activeSubsection === 'diagnosis') {
-        return (
-          <ResponsiveCultivationTool 
-            user={user}
-            tool="diagnosis"
-          />
-        );
-      }
+    if (activeSection === 'cultivation' && activeSubsection === 'planner') {
+      return (
+        <SimpleCultivationResponsive 
+          userId={user.id}
+          householdSize={2}
+        />
+      );
     }
 
     // AI Coach (accessed from main nav button)
