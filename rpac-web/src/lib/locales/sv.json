@@ -28,7 +28,6 @@
     "personal_resources": "Personliga resurser & verktyg",
     "cultivation_planning": "Min odling",
     "guides_development": "Guider & personlig utveckling",
-    "plant_diagnosis": "Växtdiagnos & hälsa",
     "guides": "Steg-för-steg guider",
     "guides_description": "Steg-för-steg guider för krisberedskap",
     "personal_coach": "Min hjälpare",
@@ -98,30 +97,17 @@
     "quick_status": "Snabbstatus",
     "status_description": "Kort översikt av din beredskap",
     "cultivation_description": "Planera och hantera din odling",
-    "calendar_advisor": "Odlingskalender",
-    "calendar_description": "Månadsvis odlingsplan med påminnelser",
-    "reminders": "Påminnelser",
-    "reminders_description": "Automatiska påminnelser för odlingsuppgifter",
-    "crisis_cultivation": "Krisodling",
-    "crisis_description": "Snabbväxande grödor för kriser",
     "resources_development": "Resurser",
     "resources_description": "Hantera dina resurser och utveckla färdigheter",
     "resource_inventory": "Resursinventering",
     "inventory_description": "Översikt av dina förnödenheter och utrustning",
-    "diagnosis_description": "AI-driven växtdiagnos och hälsokontroll",
     "nutrition_calculator": "Näringsberäkning",
     "nutrition_description": "Beräkna kalorier och näring från din odling",
     "guides_coach": "Guider & coach",
     "status_placeholder": "Din beredskapsstatus uppdateras kontinuerligt",
     "recent_activity": "Senaste aktivitet",
     "activity_placeholder": "Senaste aktiviteter visas här när de sker",
-    "no_pets": "Inga husdjur",
-    "cultivation_calendar_progress": "Odlingskalender framsteg",
-    "tasks_completed": "{completed} av {total} uppgifter",
-    "cultivation_progress_excellent": "Utmärkt arbete! Du ligger bra till med din odling",
-    "cultivation_progress_good": "Bra framsteg! Fortsätt att bocka av uppgifter",
-    "cultivation_progress_start": "Kom igång med dina odlingsuppgifter för säsongen",
-    "show_calendar": "Visa kalender"
+    "no_pets": "Inga husdjur"
   },
   "preparedness": {
     "overall_score": "Hur förberedd du är",
@@ -886,69 +872,10 @@
     "login_required": "Du måste vara inloggad för att komma åt inställningar.",
     "tabs": {
       "profile": "Profil",
-      "cultivation": "Odlingsprofil",
       "security": "Säkerhet",
       "notifications": "Notifieringar",
       "privacy": "Integritet",
       "preferences": "Inställningar"
-    },
-    "cultivation_profile": {
-      "title": "Odlingsprofil",
-      "description": "Ange dina odlingsförutsättningar för personlig planering",
-      "climate_zones": {
-        "gotaland": "Götaland (Sydligaste Sverige)",
-        "svealand": "Svealand (Mellersta Sverige)",
-        "norrland": "Norrland (Nordligaste Sverige)"
-      },
-      "experience_levels": {
-        "beginner": "Nybörjare",
-        "intermediate": "Mellannivå",
-        "advanced": "Avancerad"
-      },
-      "garden_sizes": {
-        "small": "Liten (balkong/fönster)",
-        "medium": "Medelstor (kolonilott)",
-        "large": "Stor (större trädgård)"
-      },
-      "garden_types": {
-        "outdoor": "Utomhus",
-        "greenhouse": "Växthus",
-        "mixed": "Blandat"
-      },
-      "soil_types": {
-        "sandy": "Sandjord",
-        "clay": "Lerjord",
-        "loamy": "Lerjord",
-        "unknown": "Okänd"
-      },
-      "sun_conditions": {
-        "full_sun": "Full sol (6+ timmar)",
-        "partial_sun": "Delvis sol (3-6 timmar)",
-        "shade": "Skugga (mindre än 3 timmar)"
-      },
-      "water_access": {
-        "excellent": "Utmärkt (kranvatten nära)",
-        "good": "Bra (vattentank/brunn)",
-        "limited": "Begränsad (regnvattensamling)"
-      },
-      "time_available": {
-        "limited": "Begränsad (1-3 timmar)",
-        "moderate": "Måttlig (3-8 timmar)",
-        "extensive": "Omfattande (8+ timmar)"
-      },
-      "budget": {
-        "low": "Låg (0-2000 kr)",
-        "medium": "Medium (2000-5000 kr)",
-        "high": "Hög (5000+ kr)"
-      },
-      "goals": {
-        "self_sufficiency": "Självförsörjning",
-        "healthy_food": "Hälsosam mat",
-        "cost_saving": "Kostnadsbesparing",
-        "hobby": "Hobby & avkoppling",
-        "eco_friendly": "Miljövänlig livsstil",
-        "crisis_preparedness": "Krisberedskap"
-      }
     },
     "security": {
       "title": "Säkerhet & Lösenord",

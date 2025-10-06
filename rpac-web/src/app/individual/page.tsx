@@ -4,7 +4,6 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ResourceManagementHubResponsive } from '@/components/resource-management-hub-responsive';
 import { IndividualDashboard } from '@/components/individual-dashboard';
-import { PlantDiagnosis } from '@/components/plant-diagnosis';
 import { PersonalDashboard } from '@/components/personal-dashboard';
 import { PersonalDashboardResponsive } from '@/components/personal-dashboard-responsive';
 import { SimpleCultivationResponsive } from '@/components/simple-cultivation-responsive';
@@ -39,15 +38,7 @@ function IndividualPageContent() {
       id: 'cultivation',
       title: t('individual.cultivation_planning'),
       icon: Sprout,
-      description: t('individual.cultivation_description'),
-      subsections: [
-        {
-          id: 'planner',
-          title: 'Odlingsplanering',
-          description: 'Skapa och hantera dina odlingsplaner med grödor och näringsvärden',
-          priority: 'high' as const
-        }
-      ]
+      description: t('individual.cultivation_description')
     },
     {
       id: 'resources',
@@ -149,7 +140,7 @@ function IndividualPageContent() {
       setActiveSubsection(subsection || 'inventory');
     } else if (section === 'cultivation') {
       setActiveSection('cultivation');
-      setActiveSubsection(subsection || 'calendar');
+      setActiveSubsection('');
     }
   };
 
@@ -164,140 +155,13 @@ function IndividualPageContent() {
       );
     }
 
-    // Cultivation Section - Landing page (only when no subsection selected)
-    if (activeSection === 'cultivation' && !activeSubsection) {
+    // Cultivation Section - Directly show the simple cultivation manager
+    if (activeSection === 'cultivation') {
       return (
-        <div className="space-y-6">
-          <div className="modern-card p-8">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
-                {t('individual.cultivation_planning')}
-              </h2>
-              <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-                {t('individual.cultivation_description')}
-              </p>
-            </div>
-            
-            {/* Cultivation Tools Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="text-center p-6 rounded-lg border" style={{ 
-                backgroundColor: 'var(--bg-card)',
-                borderColor: 'var(--color-quaternary)'
-              }}>
-                <Sprout className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--color-primary)' }} />
-                <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                  AI Odlingsplanerare
-                </h3>
-                <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
-                  Personlig odlingsplan baserad på näringsbehov
-                </p>
-                <button
-                  onClick={() => handleSectionChange('cultivation', 'planner')}
-                  className="px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-md"
-                  style={{ 
-                    backgroundColor: 'var(--color-primary)',
-                    color: 'white'
-                  }}
-                >
-                  Hantera planer
-                </button>
-              </div>
-              
-              <div className="text-center p-6 rounded-lg border" style={{ 
-                backgroundColor: 'var(--bg-card)',
-                borderColor: 'var(--color-quaternary)'
-              }}>
-                <Sprout className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--color-primary)' }} />
-                <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                  {t('individual.calendar_advisor')}
-                </h3>
-                <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
-                  {t('individual.calendar_description')}
-                </p>
-                <button
-                  onClick={() => handleSectionChange('cultivation', 'calendar')}
-                  className="px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-md"
-                  style={{ 
-                    backgroundColor: 'var(--color-secondary)',
-                    color: 'white'
-                  }}
-                >
-                  Öppna kalender
-                </button>
-              </div>
-              
-              <div className="text-center p-6 rounded-lg border" style={{ 
-                backgroundColor: 'var(--bg-card)',
-                borderColor: 'var(--color-quaternary)'
-              }}>
-                <Sprout className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--color-primary)' }} />
-                <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                  {t('individual.reminders')}
-                </h3>
-                <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
-                  {t('individual.reminders_description')}
-                </p>
-                <button
-                  onClick={() => handleSectionChange('cultivation', 'reminders')}
-                  className="px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-md"
-                  style={{ 
-                    backgroundColor: 'var(--color-sage)',
-                    color: 'white'
-                  }}
-                >
-                  Visa påminnelser
-                </button>
-              </div>
-              
-              <div className="text-center p-6 rounded-lg border" style={{ 
-                backgroundColor: 'var(--bg-card)',
-                borderColor: 'var(--color-quaternary)'
-              }}>
-                <Sprout className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--color-primary)' }} />
-                <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                  {t('individual.crisis_cultivation')}
-                </h3>
-                <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
-                  {t('individual.crisis_description')}
-                </p>
-                <button
-                  onClick={() => handleSectionChange('cultivation', 'crisis')}
-                  className="px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-md"
-                  style={{ 
-                    backgroundColor: 'var(--color-warning)',
-                    color: 'white'
-                  }}
-                >
-                  Krisodling
-                </button>
-              </div>
-              
-              <div className="text-center p-6 rounded-lg border" style={{ 
-                backgroundColor: 'var(--bg-card)',
-                borderColor: 'var(--color-quaternary)'
-              }}>
-                <Sprout className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--color-primary)' }} />
-                <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                  {t('individual.plant_diagnosis')}
-                </h3>
-                <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
-                  {t('individual.diagnosis_description')}
-                </p>
-                <button
-                  onClick={() => handleSectionChange('cultivation', 'diagnosis')}
-                  className="px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-md"
-                  style={{ 
-                    backgroundColor: 'var(--color-crisis-green)',
-                    color: 'white'
-                  }}
-                >
-                  Diagnostisera växter
-                </button>
-              </div>
-            </div>
-          </div>
-
-        </div>
+        <SimpleCultivationResponsive 
+          userId={user.id}
+          householdSize={profile?.household_size || 2}
+        />
       );
     }
 
@@ -318,15 +182,6 @@ function IndividualPageContent() {
       }
     }
 
-    // Handle subsection navigation for cultivation
-    if (activeSection === 'cultivation' && activeSubsection === 'planner') {
-      return (
-        <SimpleCultivationResponsive 
-          userId={user.id}
-          householdSize={2}
-        />
-      );
-    }
 
     // AI Coach (accessed from main nav button)
     if (activeSection === 'ai-coach') {

@@ -1,3 +1,69 @@
+### 2025-10-06 - REMOVED OLD CULTIVATION FEATURES & SETTINGS FOR SIMPLIFIED SYSTEM ✅
+Completed major cleanup by removing all old cultivation planning features, cultivation profile settings, and consolidating to the new simplified cultivation manager.
+
+#### What Was Removed
+**Old Complex Features (No Longer Needed):**
+- ❌ **Odlingskalender (Cultivation Calendar)** - Old monthly calendar with task tracking from `cultivation_calendar` table
+- ❌ **Påminnelser (Reminders)** - Automated cultivation reminders system from `cultivation_reminders` table
+- ❌ **Krisodling (Crisis Cultivation)** - Fast-growing crops for crisis situations
+- ❌ **Växtdiagnos & hälsa (Plant Diagnosis)** - AI-driven plant health diagnosis with image upload
+
+**Components Deleted:**
+- `cultivation-calendar-v2.tsx` (desktop)
+- `cultivation-calendar-mobile.tsx` (mobile)
+- `cultivation-reminders.tsx` (desktop)
+- `cultivation-reminders-mobile.tsx` (mobile)
+- `crisis-cultivation.tsx` (desktop)
+- `crisis-cultivation-mobile.tsx` (mobile)
+- `plant-diagnosis.tsx` (desktop)
+- `plant-diagnosis-mobile.tsx` (mobile)
+- `responsive-cultivation-tools.tsx` (wrapper component)
+
+**UI Changes:**
+- Removed 4 feature cards from cultivation landing page in `individual/page.tsx`
+- Removed cultivation calendar progress section from `personal-dashboard.tsx`
+- Removed subsection routing for calendar, reminders, crisis, and diagnosis
+- Updated cultivation section to directly show `SimpleCultivationResponsive` component
+
+**Settings Page Cleanup:**
+- Removed "Odlingsprofil" (Cultivation Profile) tab from settings navigation
+- Removed entire cultivation profile form with fields for:
+  - Climate zone (Götaland/Svealand/Norrland)
+  - Experience level (beginner/intermediate/advanced)
+  - Garden size, type, soil type
+  - Sun exposure, water access, time available
+  - Budget and cultivation goals
+- Removed cultivationProfile state and related functions
+- Removed unused imports (Sprout, Home, Thermometer, Droplets icons)
+
+**Localization Cleanup:**
+Removed unused text keys from `sv.json`:
+- Individual page: `calendar_advisor`, `calendar_description`, `reminders`, `reminders_description`, `crisis_cultivation`, `crisis_description`, `plant_diagnosis`, `diagnosis_description`
+- Dashboard: `cultivation_calendar_progress`, `tasks_completed`, `cultivation_progress_excellent`, `cultivation_progress_good`, `cultivation_progress_start`, `show_calendar`
+- Settings: `settings.tabs.cultivation`, entire `settings.cultivation_profile` section with all sub-keys
+
+#### What Remains (New Simplified System)
+**✅ SimpleCultivationManager** - The new, streamlined cultivation planning:
+- Simple plan creation and management
+- Crop selection from predefined library with icons
+- Monthly activities view (sowing/harvesting per month)
+- Nutrition tracking per crop
+- Clean, focused UI without complex workflows
+
+#### Technical Notes
+- Old database tables (`cultivation_calendar`, `cultivation_reminders`) are still in schema but no longer actively used
+- Reminder service types (`reminders-context-service.ts`) kept for AI coach context integration
+- New system uses `cultivation_plans` table with simpler schema
+
+#### Impact
+- ✅ **Dramatically simplified UX** - One clear cultivation planning tool instead of 5 separate features
+- ✅ **Faster user onboarding** - No confusing multiple entry points
+- ✅ **Easier maintenance** - ~3,500 lines of code removed
+- ✅ **Clearer value proposition** - Focus on core cultivation planning
+- ✅ **Better mobile experience** - Simpler navigation structure
+
+---
+
 ### 2025-10-06 - REFINED SUBTLE EMPTY STATE DESIGN ✅
 Refined empty state design across all pages for a calmer, more professional appearance with softer visual hierarchy.
 
