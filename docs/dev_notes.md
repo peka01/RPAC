@@ -1,3 +1,60 @@
+### 2025-10-06 - DEMO USER SYSTEM ✅ **COMPLETE SETUP & RESET**
+Implemented a comprehensive demo user system with automatic login, database setup, and reset functionality.
+
+#### What Was Implemented
+**Demo User Auto-Login:**
+- ✅ "Log in as Demo" button on login page automatically creates demo user
+- ✅ Email: `demo@beready.se`, Password: `demo123`
+- ✅ All pages updated to use correct demo user email
+- ✅ Automatic fallback to demo mode if authentication fails
+
+**Database Scripts:**
+- ✅ `setup-demo-user.sql` - Creates complete demo user with sample data
+  - User profile (Demo Användare from Växjö, Kronoberg)
+  - Demo community (Demo Samhälle) with admin membership
+  - 10 sample resources (food, water, medicine, tools)
+  - Sample cultivation plan with 6 crops
+  - Idempotent (safe to run multiple times)
+
+- ✅ `reset-demo-user.sql` - Reset demo user to clean slate
+  - Soft reset: Keeps user, deletes all data
+  - Hard reset: Deletes everything including user account
+  - Community reset: Deletes demo community
+  - Status verification after reset
+
+**Documentation:**
+- ✅ `DEMO_USER_SETUP.md` - Complete setup guide with troubleshooting
+- ✅ `DEMO_USER_QUICK_REFERENCE.md` - Quick commands and reference
+
+#### Files Changed
+**Frontend (Demo Login):**
+- `rpac-web/src/app/page.tsx` - Updated demo login to use `demo@beready.se`
+- `rpac-web/src/app/dashboard/page.tsx` - Updated fallback demo user email
+- `rpac-web/src/app/local/page.tsx` - Updated demo user references
+
+**Database Scripts:**
+- `rpac-web/database/setup-demo-user.sql` - Complete demo setup script
+- `rpac-web/database/reset-demo-user.sql` - Reset and cleanup script
+- `rpac-web/database/DEMO_USER_SETUP.md` - Full documentation
+- `rpac-web/database/DEMO_USER_QUICK_REFERENCE.md` - Quick reference
+
+#### Usage
+1. Click "Log in as Demo" on login page (auto-creates user)
+2. Run `setup-demo-user.sql` in Supabase SQL Editor to add sample data
+3. Use `reset-demo-user.sql` to reset between tests
+
+#### Demo User Features
+After setup, demo user can:
+- ✅ View and edit profile
+- ✅ See 10 sample resources in Resurser
+- ✅ View cultivation plan with 6 crops
+- ✅ Join and participate in Demo Samhälle community
+- ✅ Share resources with the community
+- ✅ Use KRISter AI with real context
+- ✅ Get personalized tips based on crops and resources
+
+---
+
 ### 2025-10-06 - KRISTER: DRAGGABLE & RESIZABLE FLOATING AI ASSISTANT ✅ **REVOLUTIONARY FEATURE!**
 Replaced the old AI-coach page with KRISter, a genius floating AI assistant that is always available everywhere in the app. KRISter can be moved anywhere on screen and resized to user preference. This is a game-changing UX improvement that provides context-aware help and answers all user questions about the app, preparedness, cultivation, and crisis management.
 

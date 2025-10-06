@@ -91,7 +91,7 @@ export default function LoginPage() {
     try {
       // First try to sign in with demo credentials
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: 'demo@rpac.se',
+        email: 'demo@beready.se',
         password: 'demo123'
       });
       
@@ -99,7 +99,7 @@ export default function LoginPage() {
         // If demo user doesn't exist, try to create it
         console.log('Demo user not found, attempting to create...');
         const { error: signUpError } = await supabase.auth.signUp({
-          email: 'demo@rpac.se',
+          email: 'demo@beready.se',
           password: 'demo123',
           options: {
             data: {
@@ -116,7 +116,7 @@ export default function LoginPage() {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         const { error: retryError } = await supabase.auth.signInWithPassword({
-          email: 'demo@rpac.se',
+          email: 'demo@beready.se',
           password: 'demo123'
         });
         

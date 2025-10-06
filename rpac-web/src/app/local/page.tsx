@@ -25,7 +25,7 @@ export default function LocalPage() {
           // Fallback to demo mode if no authenticated user
           const demoUser = {
             id: 'demo-user',
-            email: 'demo@rpac.se',
+            email: 'demo@beready.se',
             user_metadata: { name: 'Demo Användare' }
           } as unknown as User;
           setUser(demoUser);
@@ -35,7 +35,7 @@ export default function LocalPage() {
         // Use demo mode on error
         const demoUser = {
           id: 'demo-user',
-          email: 'demo@rpac.se',
+          email: 'demo@beready.se',
           user_metadata: { name: 'Demo Användare' }
         } as unknown as User;
         setUser(demoUser);

@@ -173,14 +173,14 @@ export default function DashboardPage() {
         console.log('No user authenticated, trying demo login...');
         try {
           const { error: signInError } = await supabase.auth.signInWithPassword({
-            email: 'demo@rpac.se',
+            email: 'demo@beready.se',
             password: 'demo123'
           });
           
           if (signInError) {
             console.log('Demo user not found, creating...');
             const { error: signUpError } = await supabase.auth.signUp({
-              email: 'demo@rpac.se',
+              email: 'demo@beready.se',
               password: 'demo123',
               options: {
                 data: {
@@ -199,7 +199,7 @@ export default function DashboardPage() {
             await new Promise(resolve => setTimeout(resolve, 1000));
             
             const { error: retryError } = await supabase.auth.signInWithPassword({
-              email: 'demo@rpac.se',
+              email: 'demo@beready.se',
               password: 'demo123'
             });
             
