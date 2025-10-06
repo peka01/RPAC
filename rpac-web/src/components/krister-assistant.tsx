@@ -387,7 +387,7 @@ export function KRISterAssistant({ user, userProfile = {}, currentPage, currentA
             windSpeed: weather.windSpeed,
             precipitation: weather.precipitation,
             warnings: weather.warnings
-          } : null
+          } : undefined
         },
         userQuestion: inputMessage.trim(),
         chatHistory: messages.slice(-5).map(m => ({

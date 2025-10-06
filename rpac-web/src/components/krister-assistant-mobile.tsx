@@ -289,7 +289,7 @@ export function KRISterAssistantMobile({ user, userProfile = {}, currentPage, cu
             windSpeed: weather.windSpeed,
             precipitation: weather.precipitation,
             warnings: weather.warnings
-          } : null
+          } : undefined
         },
         userQuestion: inputMessage.trim(),
         chatHistory: messages.slice(-5).map(m => ({
