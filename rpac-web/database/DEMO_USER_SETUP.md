@@ -101,6 +101,20 @@ After setup, the demo user can:
 
 ## 🐛 Troubleshooting
 
+### "Invalid login credentials" / Password Error
+**Problem**: Demo user exists but has wrong password
+
+**Solution 1 (Recommended)**: Reset password in Supabase Dashboard
+1. Go to: Supabase Dashboard → Authentication → Users
+2. Find: `demo@beready.se`
+3. Click: ... menu → Reset Password
+4. Set new password: `demo123`
+
+**Solution 2**: Delete and recreate
+1. Run `fix-demo-password.sql` in SQL Editor
+2. Click "Log in as Demo" to recreate user with correct password
+3. Run `setup-demo-user.sql` to add sample data
+
 ### "Demo user not found"
 - Run the setup script to create the user profile and data
 - Or click "Log in as Demo" to auto-create the user

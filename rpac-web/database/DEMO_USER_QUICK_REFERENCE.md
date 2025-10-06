@@ -41,7 +41,9 @@ WHERE u.email = 'demo@beready.se';
 
 - `setup-demo-user.sql` - Creates demo user with sample data
 - `reset-demo-user.sql` - Resets demo user to clean slate
+- `fix-demo-password.sql` - Fixes wrong password issue
 - `DEMO_USER_SETUP.md` - Full setup documentation
+- `DEMO_USER_QUICK_REFERENCE.md` - This file
 
 ## 🎯 What Gets Created
 
@@ -69,6 +71,21 @@ WHERE u.email = 'demo@beready.se';
 
 ### "Demo user not found"
 → Click "Log in as Demo" to create it automatically
+
+### "Invalid login credentials" / Wrong password
+→ **Option 1 (Recommended)**: Reset password in Supabase Dashboard
+   - Go to: Authentication → Users
+   - Find: demo@beready.se
+   - Click: ... menu → Reset Password → Set: demo123
+
+→ **Option 2**: Delete and recreate user
+```sql
+\i fix-demo-password.sql
+-- Then click "Log in as Demo" to recreate with correct password
+```
+
+### "User already registered" error
+→ User exists with wrong password, use Option 1 or 2 above
 
 ### "Can't update profile"
 → Check RLS policies: `SELECT * FROM user_profiles WHERE user_id IN (SELECT id FROM auth.users WHERE email = 'demo@beready.se');`

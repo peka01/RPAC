@@ -52,6 +52,7 @@ BEGIN
     postal_code,
     household_size,
     has_children,
+    has_elderly,
     has_pets,
     pet_types
   ) VALUES (
@@ -60,9 +61,10 @@ BEGIN
     'Demo',
     'Användare',
     'Växjö',
-    'Kronoberg',
+    'kronoberg',
     '35230',
     2,
+    false,
     false,
     false,
     null
@@ -77,6 +79,7 @@ BEGIN
     postal_code = EXCLUDED.postal_code,
     household_size = EXCLUDED.household_size,
     has_children = EXCLUDED.has_children,
+    has_elderly = EXCLUDED.has_elderly,
     has_pets = EXCLUDED.has_pets,
     updated_at = NOW();
 

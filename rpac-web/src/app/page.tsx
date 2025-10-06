@@ -96,6 +96,14 @@ export default function LoginPage() {
       });
       
       if (signInError) {
+        // Check if it's an "invalid credentials" error (wrong password)
+        if (signInError.message?.includes('Invalid login credentials')) {
+          console.error('Demo user exists but password is incorrect');
+          setError('Demo-användaren finns men lösenordet är felaktigt. Kontakta administratören för att återställa lösenordet.');
+          setLoading(false);
+          return;
+        }
+        
         // If demo user doesn't exist, try to create it
         console.log('Demo user not found, attempting to create...');
         const { error: signUpError } = await supabase.auth.signUp({
@@ -109,18 +117,32 @@ export default function LoginPage() {
         });
         
         if (signUpError) {
-          throw signUpError;
+          // Check if user already exists (created between our checks)
+          if (signUpError.message?.includes('already registered')) {
+            console.log('User was created between checks, trying to sign in again...');
+            const { error: finalRetryError } = await supabase.auth.signInWithPassword({
+              email: 'demo@beready.se',
+              password: 'demo123'
+            });
+            if (finalRetryError) {
+              setError('Demo-användaren finns men inloggningen misslyckades. Lösenordet kan vara felaktigt.');
+              setLoading(false);
+              return;
+            }
+          } else {
+            throw signUpError;
+          }
+        } else {
+          // Wait a moment for user creation, then try to sign in
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          const { error: retryError } = await supabase.auth.signInWithPassword({
+            email: 'demo@beready.se',
+            password: 'demo123'
+          });
+          
+          if (retryError) throw retryError;
         }
-        
-        // Wait a moment for user creation, then try to sign in
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const { error: retryError } = await supabase.auth.signInWithPassword({
-          email: 'demo@beready.se',
-          password: 'demo123'
-        });
-        
-        if (retryError) throw retryError;
       }
       
       // Get the authenticated user and redirect to dashboard

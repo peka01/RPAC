@@ -63,10 +63,11 @@ BEGIN
     first_name = 'Demo',
     last_name = 'Användare',
     city = 'Växjö',
-    county = 'Kronoberg',
+    county = 'kronoberg',
     postal_code = '35230',
     household_size = 2,
     has_children = false,
+    has_elderly = false,
     has_pets = false,
     pet_types = null,
     updated_at = NOW()

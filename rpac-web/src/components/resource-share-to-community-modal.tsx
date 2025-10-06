@@ -129,19 +129,13 @@ export function ResourceShareToCommunityModal({
       setSubmitting(true);
       setError(null);
 
-      // Share resource directly (without needing resource_id in resources table)
+      // Share resource (resource_sharing table uses resource_id, not embedded data)
       const { supabase } = await import('@/lib/supabase');
       const { error: shareError } = await supabase
         .from('resource_sharing')
         .insert([{
           user_id: userId,
-          community_id: shareForm.communityId,
-          resource_name: resource.name,
-          category: resource.category,
-          resource_category: resource.category,
-          unit: resource.unit,
-          resource_unit: resource.unit,
-          quantity: shareForm.sharedQuantity,
+          resource_id: resource.id,
           shared_quantity: shareForm.sharedQuantity,
           available_until: shareForm.availableUntil || null,
           location: shareForm.location || null,
