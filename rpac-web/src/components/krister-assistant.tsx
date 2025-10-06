@@ -395,9 +395,9 @@ export function KRISterAssistant({ user, userProfile = {}, currentPage, currentA
         })),
         appContext: {
           currentPage,
-          cultivationPlan: cultivationPlan,
-          resources: resources,
-          upcomingTasks: null // Could fetch from cultivation_calendar if implemented
+          cultivationPlan: cultivationPlan || undefined,
+          resources: resources || undefined,
+          upcomingTasks: undefined // Could fetch from cultivation_calendar if implemented
         }
       });
 
