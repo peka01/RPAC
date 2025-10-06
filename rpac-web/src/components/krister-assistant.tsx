@@ -277,7 +277,7 @@ export function KRISterAssistant({ user, userProfile = {}, currentPage, currentA
           temperature: weather.temperature,
           humidity: weather.humidity,
           forecast: weather.forecast
-        } : null,
+        } : undefined,
         reminders: remindersContext
       };
 

@@ -179,7 +179,7 @@ export function KRISterAssistantMobile({ user, userProfile = {}, currentPage, cu
           temperature: weather.temperature,
           humidity: weather.humidity,
           forecast: weather.forecast
-        } : null,
+        } : undefined,
         reminders: remindersContext
       };
 
