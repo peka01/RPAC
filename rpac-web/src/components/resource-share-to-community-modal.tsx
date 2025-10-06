@@ -193,7 +193,7 @@ export function ResourceShareToCommunityModal({
                 {t('resources.sharing.share_with_community')}
               </h2>
               <p className="text-sm text-gray-600 mt-1">
-                Dela "{resource.name}" med dina samhällen
+                Dela "{resource.name}" med andra
               </p>
             </div>
           </div>

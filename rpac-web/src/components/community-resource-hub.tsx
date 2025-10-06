@@ -49,7 +49,7 @@ interface CommunityResourceHubProps {
 }
 
 type ViewTier = 'shared' | 'owned' | 'help';
-type CategoryFilter = 'all' | 'food' | 'water' | 'medicine' | 'energy' | 'tools' | 'other';
+type CategoryFilter = 'all' | 'food' | 'water' | 'medicine' | 'energy' | 'tools' | 'machinery' | 'other';
 
 const categoryConfig = {
   food: { icon: Package, emoji: '🍞', label: 'Mat', color: '#FFC000' },
@@ -57,6 +57,7 @@ const categoryConfig = {
   medicine: { icon: Heart, emoji: '💊', label: 'Medicin', color: '#8B4513' },
   energy: { icon: Zap, emoji: '⚡', label: 'Energi', color: '#B8860B' },
   tools: { icon: Wrench, emoji: '🔧', label: 'Verktyg', color: '#4A5239' },
+  machinery: { icon: Package, emoji: '🚜', label: 'Maskiner', color: '#6B8E23' },
   other: { icon: Package, emoji: '✨', label: 'Övrigt', color: '#707C5F' }
 };
 

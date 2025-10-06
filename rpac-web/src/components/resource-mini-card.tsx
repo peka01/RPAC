@@ -151,7 +151,7 @@ export function ResourceMiniCard({
                   className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                 >
                   <Share2 size={14} />
-                  Dela till gemenskap
+                  Dela lokalt
                 </button>
               )}
               <button
