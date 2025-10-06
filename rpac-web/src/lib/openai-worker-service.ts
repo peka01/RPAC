@@ -9,14 +9,29 @@ const WORKER_API_URL = 'https://api.beready.se';
 
 export interface UserProfile {
   climateZone?: string;
-  experienceLevel?: string;
-  gardenSize?: string;
   householdSize?: number;
+  hasChildren?: boolean;
+  county?: string;
+  city?: string;
   ageGroups?: any;
   specialNeeds?: string[];
   crisisMode?: boolean;
   location?: string;
-  county?: string;
+  weather?: {
+    temperature?: number;
+    humidity?: number;
+    forecast?: string;
+    windSpeed?: number;
+    precipitation?: number;
+    feelsLike?: number;
+    warnings?: Array<{
+      type?: string;
+      description?: string;
+      message?: string;
+      severity?: 'low' | 'moderate' | 'severe' | 'extreme';
+    }>;
+  };
+  reminders?: any;
   [key: string]: any;
 }
 
@@ -273,11 +288,18 @@ Svara med JSON-array med tips:
   static async generatePersonalCoachResponse({
     userProfile,
     userQuestion,
-    chatHistory = []
+    chatHistory = [],
+    appContext
   }: {
     userProfile: UserProfile;
     userQuestion: string;
     chatHistory?: Array<{ sender: string; message: string; timestamp: string }>;
+    appContext?: {
+      cultivationPlan?: any;
+      resources?: any[];
+      upcomingTasks?: any[];
+      currentPage?: string;
+    };
   }): Promise<string> {
     // Get current date and season
     const now = new Date();
@@ -287,24 +309,180 @@ Svara med JSON-array med tips:
                          currentMonth >= 6 && currentMonth <= 8 ? 'sommar' :
                          currentMonth >= 9 && currentMonth <= 11 ? 'höst' : 'vinter';
 
-    const prompt = `Som svensk beredskapsexpert och personlig coach, svara på användarens fråga:
+    // Build context about user's cultivation plan
+    let cultivationContext = '';
+    if (appContext?.cultivationPlan?.crops && appContext.cultivationPlan.crops.length > 0) {
+      const cropList = appContext.cultivationPlan.crops.map((c: any) => 
+        `  • ${c.cropName}${c.estimatedYieldKg ? ` (beräknad skörd: ${c.estimatedYieldKg}kg/år)` : ''}`
+      ).join('\n');
+      const selfSuff = appContext.cultivationPlan.self_sufficiency_percent || 0;
+      cultivationContext = `
+ANVÄNDARENS ODLINGSPLAN:
+- Plan: "${appContext.cultivationPlan.title || 'Primär odling'}"${appContext.cultivationPlan.description ? `\n- Beskrivning: ${appContext.cultivationPlan.description}` : ''}
+- Antal grödor: ${appContext.cultivationPlan.crops.length} st
+- ⚠️ SPECIFIKA GRÖDOR SOM ANVÄNDAREN ODLAR:
+${cropList}${selfSuff > 0 ? `\n- Självförsörjningsgrad: ${selfSuff}%` : ''}
 
-AKTUELL TIDSPUNKT:
+VIKTIGT: Referera till dessa EXAKTA grödor när du ger råd om odling!`;
+    }
+
+    // Build context about resources
+    let resourcesContext = '';
+    if (appContext?.resources && appContext.resources.length > 0) {
+      const byCategory = appContext.resources.reduce((acc: any, r: any) => {
+        acc[r.category] = (acc[r.category] || 0) + (r.acquired ? 1 : 0);
+        return acc;
+      }, {});
+      const total = appContext.resources.length;
+      const acquired = appContext.resources.filter((r: any) => r.acquired).length;
+      resourcesContext = `
+BEREDSKAPSLAGER:
+- Totalt resurser: ${acquired}/${total} insamlade (${Math.round(acquired/total*100)}%)
+- Kategorier: ${Object.entries(byCategory)
+    .map(([cat, count]) => `${cat}: ${count}`)
+    .join(', ')}
+- MSB-rekommendation: Mat och vatten för 3-7 dagar minimum`;
+    }
+
+    // Build cultivation calendar context (if available)
+    let cultivationTasks = '';
+    if (appContext?.upcomingTasks && appContext.upcomingTasks.length > 0) {
+      cultivationTasks = `
+ODLINGSUPPGIFTER (Kommande månad):
+${appContext.upcomingTasks.slice(0, 5).map((task: any) => 
+  `- ${task.activity || 'Uppgift'}: ${task.crop_name} (${task.month || 'Nu'})`
+).join('\n')}`;
+    }
+
+    // Build weather context with warnings
+    let weatherContext = '';
+    if (userProfile.weather) {
+      const w = userProfile.weather;
+      weatherContext = `
+VÄDERLÄGE (${userProfile.city || userProfile.county || 'Din plats'}):
+- Temperatur: ${w.temperature}°C
+- Luftfuktighet: ${w.humidity}%
+- Prognos: ${w.forecast || 'Ingen prognos tillgänglig'}`;
+      
+      // Add weather warnings if present
+      if (w.warnings && w.warnings.length > 0) {
+        weatherContext += `
+- ⚠️ VÄDERVARNINGAR (VIKTIGT!):
+  ${w.warnings.map((warn: any) => 
+    `• ${warn.type || 'Varning'}: ${warn.description || warn.message || 'Se SMHI'}`
+  ).join('\n  ')}`;
+      }
+      
+      // Add wind/precipitation if available
+      if (w.windSpeed) weatherContext += `\n- Vind: ${w.windSpeed} m/s`;
+      if (w.precipitation) weatherContext += `\n- Nederbörd: ${w.precipitation}mm`;
+      if (w.feelsLike) weatherContext += `\n- Känns som: ${w.feelsLike}°C`;
+    }
+
+    const prompt = `Du är KRISter, en svensk AI-assistent för samhällsberedskap och självförsörjning. Du hjälper användare med Beready-appen.
+
+BEREADY-APPENS FUNKTIONER:
+1. MITT HEM (Individuell beredskap):
+   - Hemprofil: Hushållsstorlek, plats, husdjur
+   - Resurslager: Hantera mat, vatten, mediciner, verktyg (MSB-baserat)
+   - Odlingsplanering: Skapa odlingsplaner för självförsörjning
+   - Odlingskalender: Månatliga sådd/skörd-uppgifter per klimatzon
+
+2. LOKALT (Samhällesfunktioner):
+   - Hitta/gå med i lokala samhällen baserat på postnummer
+   - Dela resurser med grannar (mat, verktyg, utrustning)
+   - Chatt med samhällsmedlemmar
+   - Samhällsresurser: Gemensam utrustning (pumpar, generatorer, etc)
+
+3. REGIONALT (Kommande):
+   - Regional beredskapsöversikt
+   - Större samordning vid kriser
+
+4. INSTÄLLNINGAR:
+   - Hemprofil, platsinfo, notifieringar
+
+AKTUELL TIDPUNKT:
 - Datum: ${currentDate}
 - Månad: ${currentMonth}
 - Säsong: ${currentSeason}
+- Klimatzon: ${userProfile.climateZone ? userProfile.climateZone.charAt(0).toUpperCase() + userProfile.climateZone.slice(1) : 'Okänd'}
 
-Användarprofil:
-- Klimatzon: ${userProfile.climateZone || 'svealand'}
-- Erfarenhetsnivå: ${userProfile.experienceLevel || 'beginner'}
-- Trädgårdsstorlek: ${userProfile.gardenSize || 'medium'}
-- Krisläge: ${userProfile.crisisMode ? 'Ja' : 'Nej'}
+HUSHÅLLSPROFIL:
+- Hushållsstorlek: ${userProfile.householdSize || 2} personer
+- Har barn: ${userProfile.hasChildren ? 'Ja' : 'Nej'}
+- Plats: ${userProfile.county || 'Okänd kommun'}, ${userProfile.city || ''}
+${weatherContext}
 
-Användarens fråga: ${userQuestion}
+⚠️ VAR ÄR ANVÄNDAREN JUST NU?
+Aktuell sida: ${appContext?.currentPage || 'Okänd'}
+${appContext?.currentPage === 'resources' ? '→ Användaren tittar på RESURSLAGER - fokusera på beredskapsresurser!' : ''}
+${appContext?.currentPage === 'cultivation' ? '→ Användaren tittar på ODLING - fokusera på odlingsråd!' : ''}
+${appContext?.currentPage === 'individual' ? '→ Användaren är på MITT HEM - ge allmän beredskapsöversikt' : ''}
+${appContext?.currentPage === 'local' ? '→ Användaren tittar på LOKALT - fokusera på samhällen och resursdelning' : ''}
 
-Chatthistorik: ${chatHistory.map(msg => `${msg.sender}: ${msg.message}`).join('\n')}
+ANVÄNDARENS SITUATION:${cultivationContext}${resourcesContext}${cultivationTasks}
 
-Svara på svenska med praktiska råd och tips för beredskap och odling. Tänk på att det är ${currentSeason} (månad ${currentMonth}) när du ger råd.`;
+CHATTHISTORIK:
+${chatHistory.length > 0 ? chatHistory.map(msg => `${msg.sender}: ${msg.message}`).join('\n') : 'Ingen tidigare konversation'}
+
+ANVÄNDARENS FRÅGA:
+${userQuestion}
+
+DITT SVAR:
+Svara på svenska med:
+
+⚠️ LÄSKONTROLL FÖRST:
+1. Vad frågar användaren OM? (odling, resurser, app-hjälp, väder, etc.)
+2. Vilken sida är de på? (${appContext?.currentPage || 'okänd'})
+3. Matcha ditt svar med FRÅGAN och SIDAN!
+
+SVARSREGLER:
+- Om frågan handlar om RESURSER/BEREDSKAP/GREJER → Svara om MSB-resurser, mat, vatten, mediciner
+- Om frågan handlar om ODLING/VÄXTER/GRÖDOR → Svara om odling och användarens specifika grödor
+- Om användaren är på sidan "resources" → Fokusera på beredskapslager
+- Om användaren är på sidan "cultivation" → Fokusera på odling
+- ⚠️ Om det finns VÄDERVARNINGAR: Nämn dessa FÖRST
+- Håll svaret koncist men hjälpsamt (2-4 meningar)
+- Om användaren behöver gå till en annan sida → Hänvisa kort (t.ex. "Du hittar odlingskalendern under Mitt hem")
+
+EXEMPEL:
+Fråga: "Vilka grejer bör jag ha hemma?" på sidan "resources"
+→ Svara om MSB:s beredskapslista: mat för 3-7 dagar, vatten, mediciner, ficklampa, batterier
+→ INTE om odling eller växter!
+
+Fråga: "Vad ska jag göra med mina odlingar?" på sidan "cultivation"  
+→ Svara om användarens specifika grödor och säsongstips
+→ INTE om beredskapslager!
+
+TONLÄGE OCH STIL:
+- Du är en varm, hjälpsam kompis - INTE en "besserwisser"
+- Använd vardagligt svenskt språk
+- Gå DIREKT på svaret - ingen onödig bakgrundsinformation
+- Upprepa INTE fakta som användaren redan vet (t.ex. väderdata, deras egna grödor)
+- Fokusera på HANDLINGAR och KONKRETA TIPS
+- Kort och kärnfullt - inga långa förklaringar
+
+FEL TON (besserwisser):
+❌ "Just nu är det 13°C i Växjö. För dina grödor - potatis, gurka, lök och tomater - är det viktigt att..."
+❌ "Som du säkert vet har du X resurser..."
+
+RÄTT TON (hjälpsam kompis):
+✅ "Tänk på att täcka grödorna om det blir frost inatt!"
+✅ "MSB rekommenderar mat för 3-7 dagar - börja med ris, pasta och konserver."
+✅ "Du behöver 9 liter vatten per person. Markera dem som 'Har' när du lagt till."
+
+FEL: 
+- Säg INTE "i Beready-appen" eller "använd appen" - användaren är redan här!
+- Blanda ALDRIG språk! Endast SVENSKA i hela svaret - INGET engelska!
+- Inga fraser som "Let me know", "I can help", "Feel free" etc.
+
+Om användaren behöver byta sida: 
+- Skriv sidan på svenska: "Mitt hem", "Resurslager", "Odlingskalendern"
+- Format som kan göras klickbar: Sätt sidnamn på ny rad eller med emoji
+  ✅ "📍 Gå till Mitt hem → Resurslager"
+  ✅ "Under Mitt hem hittar du odlingsplanen"
+
+Kom ihåg: HANDLINGAR först, inte fakta-upprepning! Och ALDRIG blandat språk!`;
 
     try {
       return await callWorkerAPI(prompt);

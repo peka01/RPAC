@@ -7,13 +7,12 @@ import { IndividualDashboard } from '@/components/individual-dashboard';
 import { PersonalDashboard } from '@/components/personal-dashboard';
 import { PersonalDashboardResponsive } from '@/components/personal-dashboard-responsive';
 import { SimpleCultivationResponsive } from '@/components/simple-cultivation-responsive';
-import { PersonalAICoach } from '@/components/personal-ai-coach';
 import { IndividualMobileNav } from '@/components/individual-mobile-nav';
 import { useUserProfile } from '@/lib/useUserProfile';
 import { supabase } from '@/lib/supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { t } from '@/lib/locales';
-import { Home, Sprout, BookOpen, Bot, Users } from 'lucide-react';
+import { Home, Sprout, BookOpen, Users } from 'lucide-react';
 
 function IndividualPageContent() {
   const [user, setUser] = useState<SupabaseUser | null>(null);
@@ -177,19 +176,6 @@ function IndividualPageContent() {
       if (activeSubsection === 'inventory') {
         return <ResourceManagementHubResponsive user={{ id: user.id }} />;
       }
-      if (activeSubsection === 'ai-coach') {
-        return <PersonalAICoach user={user} />;
-      }
-    }
-
-
-    // AI Coach (accessed from main nav button)
-    if (activeSection === 'ai-coach') {
-      return (
-        <div className="space-y-6">
-          <PersonalAICoach user={user} userProfile={profile || {}} />
-        </div>
-      );
     }
 
     return null;
@@ -261,17 +247,6 @@ function IndividualPageContent() {
             >
               <BookOpen size={20} />
               {t('individual.resources_development')}
-            </button>
-            <button
-              onClick={() => handleSectionChange('ai-coach')}
-              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
-                activeSection === 'ai-coach'
-                  ? 'bg-white text-[#3D4A2B] shadow-md'
-                  : 'bg-[#5C6B47]/30 text-white hover:bg-[#5C6B47]/50'
-              }`}
-            >
-              <Bot size={20} />
-              AI-coach
             </button>
           </div>
         </div>

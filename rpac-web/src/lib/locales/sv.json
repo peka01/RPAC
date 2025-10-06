@@ -1271,5 +1271,169 @@
       "pet_food_storage": "Lagring av djurmat",
       "pet_food_storage_description": "Ha alltid minst en veckas djurmat hemma, lagrad på ett torrt och svalt ställe"
     }
+  },
+  "krister": {
+    "name": "KRISter",
+    "title": "Din AI-assistent",
+    "subtitle": "Alltid redo att hjälpa dig",
+    "greeting": "Hej! Jag är KRISter, din personliga beredskapsassistent. Hur kan jag hjälpa dig idag?",
+    "button_tooltip": "Öppna KRISter",
+    "minimize": "Minimera",
+    "close": "Stäng",
+    "voice_input": "Röstinmatning",
+    "send_message": "Skicka meddelande",
+    "type_message": "Skriv din fråga här...",
+    "listening": "Lyssnar...",
+    "processing": "Bearbetar...",
+    "thinking": "Tänker...",
+    "context_help": {
+      "dashboard": {
+        "title": "Du är på Översiktssidan",
+        "description": "Här ser du din samlade beredskapsstatus, senaste aktivitet och snabbåtkomst till alla funktioner.",
+        "tips": [
+          "Håll koll på ditt beredskapspoäng för att se hur väl förberedd du är",
+          "Använd snabbknappar för att komma åt vanliga funktioner",
+          "Kontrollera notifieringar för viktiga uppdateringar"
+        ]
+      },
+      "individual": {
+        "title": "Du är på Mitt hem-sidan",
+        "description": "Din personliga sida för att hantera ditt hem, resurser och odling.",
+        "tips": [
+          "Börja med att fylla i din hemprofil i inställningar",
+          "Lägg till resurser för att få en bättre beredskapsöversikt",
+          "Planera din odling för långsiktig självförsörjning"
+        ]
+      },
+      "local": {
+        "title": "Du är på Lokalt-sidan",
+        "description": "Här kan du ansluta till ditt lokala samhälle, dela resurser och kommunicera med grannar.",
+        "tips": [
+          "Gå med i ditt närområdes samhälle för att få tillgång till lokal hjälp",
+          "Dela överflöd av resurser med andra i din närhet",
+          "Använd meddelandefunktionen för att hålla kontakten"
+        ]
+      },
+      "regional": {
+        "title": "Du är på Regional-sidan",
+        "description": "Översikt över regional beredskap och koordinering.",
+        "tips": [
+          "Se hur din region är förberedd för kriser",
+          "Få information om regionala resurser och hjälp",
+          "Delta i regional krisplanering"
+        ]
+      },
+      "settings": {
+        "title": "Du är i Inställningar",
+        "description": "Här kan du anpassa din profil och appen efter dina behov.",
+        "tips": [
+          "Fyll i din hemprofil för mer personlig rådgivning",
+          "Konfigurera notifieringar för att hålla dig uppdaterad",
+          "Anpassa appen efter dina preferenser"
+        ]
+      },
+      "settings_profile": {
+        "title": "Du redigerar din Hemprofil",
+        "description": "Fyll i information om ditt hushåll för personliga beredskapstips.",
+        "tips": [
+          "Antal personer påverkar hur mycket mat och vatten du behöver lagra",
+          "Lägg till information om barn, äldre eller husdjur för specifika råd",
+          "Din plats används för väderprognoser och lokal information"
+        ]
+      },
+      "settings_location": {
+        "title": "Du uppdaterar din Plats",
+        "description": "Ange din plats för att få lokala beredskapstips och hitta närliggande samhällen.",
+        "tips": [
+          "Postnummer används för att hitta samhällen i din närhet",
+          "Län och kommun ger mer exakt väderinformation",
+          "Din plats visas aldrig för andra utan ditt godkännande"
+        ]
+      },
+      "cultivation": {
+        "title": "Du arbetar med Odling",
+        "description": "Planera och hantera din odling för självförsörjning.",
+        "tips": [
+          "Börja med enkla grödor som potatis, morötter och sallad",
+          "Skapa en odlingsplan som visar vad du ska plantera varje månad",
+          "Följ din klimatzon (Götaland, Svealand eller Norrland) för rätt tider"
+        ]
+      },
+      "resources": {
+        "title": "Du arbetar med Resurser",
+        "description": "Hantera ditt hemförråd och beredskapsresurser.",
+        "tips": [
+          "Börja med MSB:s grundlista: mat, vatten, mediciner för 3-7 dagar",
+          "Markera resurser som är fyllda för att se ditt framsteg",
+          "Dela överflöd med ditt lokala samhälle via resursdelning"
+        ]
+      },
+      "community": {
+        "title": "Du utforskar Samhällen",
+        "description": "Hitta och gå med i lokala samhällen för ömsesidig hjälp och resursdelning.",
+        "tips": [
+          "Använd filtret för att hitta samhällen i ditt närområde (0-50 km)",
+          "Gå med i ett samhälle för att få tillgång till delad information och resurser",
+          "Skapa ett nytt samhälle om det inte finns något i din närhet"
+        ]
+      },
+      "messaging": {
+        "title": "Du chattrar med ditt Samhälle",
+        "description": "Kommunicera med medlemmar i ditt lokala samhälle.",
+        "tips": [
+          "Samhällschatten syns för alla medlemmar i samhället",
+          "Använd direktmeddelanden för privata konversationer",
+          "Markera viktiga meddelanden som nödsituationer vid behov"
+        ]
+      },
+      "resource_sharing": {
+        "title": "Du delar Resurser",
+        "description": "Dela och begär resurser inom ditt lokala samhälle.",
+        "tips": [
+          "Dela endast vad du har överflöd av - behåll det du behöver för din familj",
+          "Ange hur länge resursen är tillgänglig",
+          "Svara snabbt på förfrågningar för att hjälpa andra i nöd"
+        ]
+      }
+    },
+    "daily_tips_section": "Dagens tips och insikter",
+    "ask_anything": "Fråga mig om vad som helst",
+    "example_questions": {
+      "title": "Exempel på frågor:",
+      "question_1": "Hur mycket mat bör jag ha hemma?",
+      "question_2": "Vad ska jag odla i min trädgård?",
+      "question_3": "Hur förbereder jag mitt hem för kris?",
+      "question_4": "Vilka resurser rekommenderar MSB?",
+      "question_5": "Hur fungerar resursdelning?"
+    },
+    "voice": {
+      "start": "Tryck för att börja tala",
+      "stop": "Tryck för att sluta",
+      "not_supported": "Röstinmatning stöds inte i din webbläsare",
+      "permission_denied": "Mikrofontillgång nekad. Tillåt mikrofonåtkomst i webbläsarinställningar.",
+      "error": "Fel vid röstinspelning. Försök igen."
+    },
+    "help_topics": {
+      "app_usage": "Hur använder jag appen?",
+      "preparedness": "Beredskapsfrågor",
+      "cultivation": "Odlingsfrågor",
+      "resources": "Resursfrågor",
+      "community": "Samhällsfunktioner",
+      "crisis_info": "Krisinformation"
+    },
+    "empty_state": {
+      "title": "Välkommen!",
+      "description": "Ställ en fråga eller välj ett ämne nedan för att komma igång."
+    },
+    "error": {
+      "general": "Ett fel uppstod. Försök igen.",
+      "network": "Nätverksfel. Kontrollera din anslutning.",
+      "ai_unavailable": "AI-tjänsten är inte tillgänglig just nu. Försök igen senare."
+    },
+    "clear_chat": {
+      "title": "Ny chatt",
+      "confirm": "Vill du starta en ny chatt? Din nuvarande konversation kommer att rensas.",
+      "disabled": "Ingen chatt att rensa"
+    }
   }
 }

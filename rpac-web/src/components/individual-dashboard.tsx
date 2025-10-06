@@ -388,27 +388,6 @@ export function IndividualDashboard({ user, onNavigate }: IndividualDashboardPro
           </div>
         </button>
 
-        <button
-          onClick={() => onNavigate('resources', 'ai-coach')}
-          className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] text-left border-2 border-transparent hover:border-[#3D4A2B]"
-        >
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-14 h-14 bg-[#707C5F]/10 rounded-xl flex items-center justify-center group-hover:bg-[#707C5F] transition-colors">
-              <Activity size={28} className="text-[#707C5F] group-hover:text-white transition-colors" strokeWidth={2.5} />
-            </div>
-            <div>
-              <div className="text-xl font-bold text-gray-900 mb-1">
-                AI-coach
-              </div>
-              <div className="text-sm text-gray-600">
-                Få personliga råd
-              </div>
-            </div>
-          </div>
-          <div className="text-sm text-gray-600">
-            Beredskapscoach med AI
-          </div>
-        </button>
       </div>
     </div>
   );
