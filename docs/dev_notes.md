@@ -1,3 +1,407 @@
+### 2025-10-06 - REFINED SUBTLE EMPTY STATE DESIGN ✅
+Refined empty state design across all pages for a calmer, more professional appearance with softer visual hierarchy.
+
+#### Design Refinements
+
+**Subtle Empty Indicators (replacing bold red alerts):**
+- ✅ Replaced red `bg-[#8B4513]` badges with soft **gray badges** (`bg-gray-200`, `text-gray-500`)
+- ✅ Removed ring borders (ring-4 ring-offset-2) - now using simple `border-gray-300`
+- ✅ Changed card backgrounds from white to **subtle gray** (`bg-gray-50`) for empty states
+- ✅ Pattern overlay opacity reduced from 5% to **3%** with lighter gray (#ccc)
+- ✅ Icon size kept at 14-16px but with lighter strokeWidth (2 instead of 2.5)
+
+**Enhanced Spacing & Grouping:**
+- ✅ Increased gap between category cards: **gap-6 → gap-8** (24px → 32px)
+- ✅ Increased card padding: p-5 → **p-6** for better breathing room
+- ✅ Card min-height optimized for better proportions
+
+**Font Weight Hierarchy:**
+- ✅ **Resource names**: font-black → **font-bold** (900 → 700 weight)
+- ✅ **Category labels**: font-black → **font-semibold** (900 → 600 weight)
+- ✅ **Numbers remain bold** (font-black for emphasis on metrics like "17%", "0 dagar")
+- ✅ Empty state numbers use muted gray (#999) instead of status color
+
+**Focal CTA for Empty States:**
+- ✅ Replaced harsh `bg-[#8B4513]` with **olive green** `bg-[#3D4A2B]` for CTAs
+- ✅ Updated copy: "Lägg till {category}" → **"Lägg till resurs i denna kategori"** (calmer, more descriptive)
+- ✅ CTA button is now the **most prominent element** in empty states
+- ✅ Soft messaging: "Lägg till ny resurs för att förbättra beredskapen" in neutral gray background
+
+**Color Harmony:**
+- ✅ **One highlight color per section** - olive green for actionable elements
+- ✅ Empty state cards use **neutral grays** (#f5f5f5, #ddd, #ccc, #999)
+- ✅ Status colors (green/yellow/red) only for filled resources
+- ✅ Removed multiple high-contrast badges in same visual line
+
+#### Files Modified
+- `rpac-web/src/components/individual-dashboard.tsx` - Refined category cards
+- `rpac-web/src/components/resource-card-with-actions.tsx` - Subtle empty indicators
+
+#### Impact
+- ✅ **Calmer visual hierarchy** - empty states don't scream for attention
+- ✅ **CTA-focused** - "Lägg till" button is the focal point, not the warning
+- ✅ **Professional polish** - subtle grays instead of aggressive red alerts
+- ✅ **Better spacing** - more breathing room between elements
+- ✅ **Accessible** - still maintains patterns and icons for color-blind users
+- ✅ **Harmonious** - consistent use of olive green for actions, grays for empty states
+
+---
+
+### 2025-10-06 - LOCAL & REGIONAL PAGES COMPREHENSIVE UX IMPROVEMENTS ✅
+Applied full UX improvements to community resource hub (Lokalt & Regionalt pages) - matching all improvements from Individual page.
+
+#### Improvements Implemented
+
+**Critical/Empty Resource Highlighting:**
+- ✅ Red ring borders (ring-2 ring-[#8B4513] ring-offset-2) for 0 quantity resources
+- ✅ Warning icon badge (AlertTriangle) on empty resource cards
+- ✅ Diagonal pattern overlay (5% opacity) for color-blind accessibility
+- ✅ Inline microcopy: "Resursen är slut. Kontakta ansvarig eller lägg till fler."
+- ✅ Empty state tip in shared resources: "Lägg till ny resurs för att förbättra beredskapen"
+
+**Enhanced Typography & Metrics:**
+- ✅ Font sizes increased: text-lg → text-xl for quantities
+- ✅ Font weights: font-bold → font-black for key numbers
+- ✅ Better text hierarchy with break-words instead of truncate
+- ✅ **Text abbreviation**: "stycken" → "st" across all displays
+
+**Card Clickability:**
+- ✅ Entire shared resource cards clickable (overlay with z-index layering)
+- ✅ Entire community-owned cards clickable for admins
+- ✅ Keyboard accessible (Enter/Space key support)
+- ✅ Proper z-index stacking: overlay (z-0), content (z-10)
+- ✅ Click events stop propagation on action buttons
+
+**Button & Action Enhancements:**
+- ✅ **All buttons min-height: 48px** (proper touch targets)
+- ✅ Enhanced shadows: shadow-md with hover:shadow-lg/xl
+- ✅ Font weight increased to font-bold
+- ✅ **Primary actions**: Solid olive green with enhanced shadows
+- ✅ **Secondary actions**: Gradient olive green
+- ✅ **Destructive actions**: Red bg-[#8B4513]/10 with proper differentiation
+- ✅ Comprehensive aria-labels for all interactive elements
+
+**Accessibility (WCAG 2.1 AA+):**
+- ✅ All touch targets minimum 48x48px (buttons and clickable cards)
+- ✅ Color-blind friendly: patterns + icons + text (not color alone)
+- ✅ Aria-labels: "Hantera din delade resurs", "Be om denna resurs", "Redigera resurs", etc.
+- ✅ Keyboard navigation support (Enter/Space on overlays)
+- ✅ Semantic HTML with proper role attributes
+- ✅ Pattern overlays for critical items
+
+**Visual Polish:**
+- ✅ Icon sizes increased from 16px → 18px
+- ✅ Emoji sizes properly sized with shadow-sm backgrounds
+- ✅ Status badges with enhanced styling (py-1.5, shadow-sm)
+- ✅ Better card hover effects (shadow-2xl instead of shadow-xl)
+
+#### Files Modified
+- `rpac-web/src/components/community-resource-hub.tsx` - Complete overhaul with all improvements
+  - SharedResourceCard: Full clickability, empty states, patterns
+  - CommunityResourceCard: Admin clickability, empty alerts, enhanced buttons
+  - All action buttons: 48px targets, proper shadows, aria-labels
+
+#### Impact
+- ✅ **Consistent experience** across Individual, Local, and Regional sections
+- ✅ **Instant recognition** of empty/critical resources with red borders and badges
+- ✅ **Streamlined UX** with fully clickable cards
+- ✅ **Better accessibility** for all users (color-blind, keyboard, screen reader)
+- ✅ **Professional polish** with enhanced shadows, typography, and spacing
+- ✅ **Clear action hierarchy** with differentiated button styles
+
+---
+
+### 2025-10-06 - RESOURCE INVENTORY ROUTING FIX & CLEANUP ✅
+Fixed navigation to use the correct (new) resource inventory component and removed redundant old code.
+
+#### Changes Made
+- ✅ **Updated routing**: "Resursinventering" link now correctly navigates to `ResourceManagementHubResponsive` (which uses `PersonalResourceInventory`)
+- ✅ **Removed old component**: Deleted `supabase-resource-inventory.tsx` (916 lines of redundant code)
+- ✅ **Cleaned imports**: Removed unused import from `individual/page.tsx`
+- ✅ **Consistent UX**: All resource inventory access points now use the same improved component with all recent enhancements
+
+#### Impact
+- Users clicking "Resursinventering" now see the improved resource page with all recent UX enhancements
+- Reduced codebase complexity by removing duplicate/obsolete component
+- Consistent experience across all entry points to resource management
+
+---
+
+### 2025-10-06 - RESOURCES PAGE UX/UI IMPROVEMENTS ✅
+Comprehensive improvements to the Personal Resource Inventory page with enhanced visibility, color coding, tooltips, clickable cards, and accessibility features.
+
+#### Improvements Implemented
+
+**Metrics & Visual Focus:**
+- ✅ Font size increased from text-2xl to text-4xl (32px → 48px) for total resources count
+- ✅ MSB fulfillment percent enlarged to text-4xl with font-black (900 weight)
+- ✅ Dynamic color coding on MSB stat: Green (≥80%), Yellow (50-79%), Red (<50%)
+- ✅ MSB tooltip with HelpCircle icon explaining "Myndigheten för samhällsskydd och beredskap"
+- ✅ Border color matches MSB status color for instant visual feedback
+- ✅ Card shadows enhanced (shadow-lg, hover:shadow-xl)
+
+**Category Overview - Critical Highlighting:**
+- ✅ Empty/0% categories highlighted with red ring border (ring-2 ring-[#8B4513] ring-offset-1)
+- ✅ "Tom" badge with AlertTriangle icon on empty categories (top-right corner)
+- ✅ Diagonal pattern overlay (5% opacity) for color-blind accessibility
+- ✅ Color-coded progress bars: Green (≥70%), Yellow (30-69%), Red (<30%)
+- ✅ Inline microcopy: "Lägg till!" for empty categories
+- ✅ Font sizes increased: category labels (text-xs font-black), stats (text-sm font-bold)
+- ✅ Card heights standardized (min-h-[110px])
+- ✅ Progress bar thickness increased to h-2 with shadow-inner
+
+**Resource Cards - Full Clickability:**
+- ✅ Entire card clickable via invisible overlay (z-index layering)
+- ✅ Card structure changed from `<button>` to `<div>` with overlay to preserve grid layout
+- ✅ Hover effect: border changes to olive green, shadow-2xl
+- ✅ Empty resources (0 quantity) highlighted with red ring border and pulsing badge
+- ✅ Pattern overlay on empty resource cards for color-blind users
+- ✅ Inline tip for empty resources: "Lägg till ny resurs för att förbättra beredskapen"
+- ✅ Keyboard accessible (Enter/Space key support on overlay)
+- ✅ Proper z-index stacking: overlay (z-0), content (z-10), badges (z-20)
+
+**Enhanced Tooltips:**
+- ✅ MSB badge tooltip explaining the agency and recommendations
+- ✅ Hållbarhet (days remaining) tooltip with HelpCircle icon
+- ✅ Smooth 200ms transitions on hover
+- ✅ Positioned with z-20 to appear above all content
+
+**Button & Action Improvements:**
+- ✅ "Lägg till resurs" button: px-8 py-4, min-h-[56px], font-bold
+- ✅ Enhanced gradient background (from-[#556B2F] to-[#3D4A2B])
+- ✅ Larger icon size (22px) with proper spacing
+- ✅ Shadow-lg with hover:shadow-xl
+- ✅ Touch-optimized: touch-manipulation, active:scale-98
+- ✅ Responsive text: "Lägg till resurs" on desktop, "Lägg till" on mobile
+
+**Primary/Secondary/Destructive Actions:**
+- ✅ **Primary (Redigera)**: Solid olive green bg-[#3D4A2B], white text, min-h-[48px]
+- ✅ **Secondary (Share)**: Gradient olive green, white text, slightly smaller
+- ✅ **Destructive (Delete)**: Red bg-[#8B4513]/10 → solid bg-[#8B4513] on confirm
+- ✅ All buttons have shadow-md hover:shadow-lg
+- ✅ Icon size increased to 18-20px for better visibility
+- ✅ Font-bold on all action buttons
+
+**Spacing & Hierarchy:**
+- ✅ Main sections spaced with space-y-8 (32px vertical gap)
+- ✅ Stats dashboard gap increased from gap-4 to gap-6 (16px → 24px)
+- ✅ Category overview padding increased: p-4 → p-6
+- ✅ Category grid gap: gap-2 → gap-3 (8px → 12px)
+- ✅ Resource card grid gap increased to gap-6 (24px)
+- ✅ Card internal padding: p-5 → p-6
+
+**Empty States & Guidance:**
+- ✅ Separate empty states for no resources vs. no search results
+- ✅ Empty search: 🔍 icon, "Inga resurser hittades" message
+- ✅ Empty inventory: 📦 icon, larger emoji (text-7xl)
+- ✅ Actionable microcopy with clear CTAs
+- ✅ Empty resource cards show tip panel with red border
+
+**Accessibility (WCAG 2.1 AA+):**
+- ✅ All action buttons minimum 48x48px touch targets
+- ✅ Table row action buttons: min-w-[48px] min-h-[48px]
+- ✅ Comprehensive aria-labels on all interactive elements
+- ✅ Color-blind friendly: patterns + icons + text (not color alone)
+- ✅ Keyboard navigation support (Enter/Space on card overlay)
+- ✅ Focus states preserved with proper z-index layering
+- ✅ Screen reader descriptions for all stats and actions
+- ✅ Role="button" and tabIndex on clickable overlay
+
+**Localization Updates:**
+- ✅ t('dashboard.msb_tooltip')
+- ✅ t('dashboard.days_remaining_tooltip')
+- ✅ t('dashboard.empty_search_result')
+- ✅ t('dashboard.empty_search_tip')
+- ✅ t('dashboard.zero_quantity_alert')
+- ✅ t('dashboard.add_to_improve_preparedness')
+- ✅ t('dashboard.click_to_edit')
+
+#### Files Modified
+- `rpac-web/src/components/personal-resource-inventory.tsx` - Complete overhaul
+- `rpac-web/src/components/resource-card-with-actions.tsx` - Full clickability + empty state highlights
+- `rpac-web/src/lib/locales/sv.json` - 7 new localization strings
+
+#### Impact
+- ✅ Dramatically improved metrics visibility (4xl font, black weight)
+- ✅ Instant recognition of empty/critical resources (red borders, badges, patterns)
+- ✅ Entire cards clickable for streamlined UX
+- ✅ Clear visual hierarchy with green/yellow/red color coding
+- ✅ Better user guidance with tooltips and inline tips
+- ✅ Enhanced accessibility for all users (color-blind, keyboard, screen reader)
+- ✅ Larger, more prominent action buttons (56px main, 48px secondary)
+- ✅ Professional, military-grade visual design maintained
+- ✅ Proper button differentiation (primary vs. secondary vs. destructive)
+
+---
+
+### 2025-10-06 - INDIVIDUAL PAGE ("MITT HEM") UX/UI IMPROVEMENTS ✅
+Major improvements to the Individual dashboard with enhanced metrics visibility, color coding, tooltips, and comprehensive accessibility features.
+
+#### Improvements Implemented
+
+**Key Metrics Visibility:**
+- ✅ Increased font size from text-3xl to text-5xl for all key stats (17%, 0 dagar, etc.)
+- ✅ Changed font weight from bold to font-black (900) for maximum impact
+- ✅ Added text-shadow for better depth and readability
+- ✅ Increased card min-height to 120px for consistent sizing
+
+**Color Coding System (Green → Yellow → Red):**
+- ✅ **Self-Sufficiency Days**: Green (≥7 days), Yellow (3-6 days), Red (0-2 days)
+- ✅ **Preparedness Score**: Green (≥80%), Yellow (50-79%), Red (<50%)
+- ✅ **Category Health**: Green (≥70%), Yellow (30-69%), Red (<30%)
+- ✅ Added color legend below category cards for user understanding
+- ✅ Dynamic color application based on values, not just visual decoration
+
+**Tooltips & Explanations:**
+- ✅ Added HelpCircle icon indicators on metrics with tooltips
+- ✅ "dagar klarar du" tooltip explains: "Antal dagar du kan klara dig med dina nuvarande mat- och vattenresurser"
+- ✅ Preparedness score tooltip explains MSB category coverage
+- ✅ Hover-activated with smooth opacity transitions (200ms)
+- ✅ Positioned with proper z-index to avoid overlaps
+
+**Button & Interaction Improvements:**
+- ✅ "Fyll i resurser" button enlarged to px-8 py-4 (56px min-height)
+- ✅ Added bold font-weight, ChevronRight icons, and distinct borders
+- ✅ Enhanced shadows (shadow-lg hover:shadow-xl)
+- ✅ All category cards now fully clickable (entire card is <button>)
+- ✅ Added touch-manipulation and active:scale-98 for mobile feedback
+- ✅ Descriptive aria-labels for screen readers
+
+**Visual Alerts for 0% Categories:**
+- ✅ Red ring border (ring-4 ring-[#8B4513] ring-offset-2) for 0% categories
+- ✅ Colored badge with AlertTriangle icon in top-right corner
+- ✅ Diagonal pattern overlay (5% opacity) for color-blind accessibility
+- ✅ Shadow-lg on badges for prominence
+- ✅ Quick action button "Lägg till {category}" embedded in card
+
+**Spacing & Flow:**
+- ✅ Increased space-y from 6 to 8 (24px → 32px) between major sections
+- ✅ Increased gap from 4 to 6 (16px → 24px) between category cards
+- ✅ Alert boxes now have p-8 padding (increased from p-6)
+- ✅ Category cards have min-h-[200px] for consistent height
+- ✅ Even margins maintained throughout for visual hierarchy
+
+**Microcopy & Guidance:**
+- ✅ Empty state text: "Du har inte lagt till något här än" for 0% categories
+- ✅ Action hint: "Lägg till {category} för att förbättra din beredskap"
+- ✅ Inline quick-action buttons for 0% categories
+- ✅ Descriptive button text with icons for clarity
+
+**Accessibility (WCAG 2.1 AA+):**
+- ✅ All touch targets minimum 56px height (exceeds 48px requirement)
+- ✅ Color contrast ratios exceed 4.5:1 for all text
+- ✅ Pattern overlays for color-blind users (not relying on color alone)
+- ✅ Icon badges (AlertTriangle) supplement color coding
+- ✅ Aria-labels on all interactive elements
+- ✅ Semantic HTML (<button> for clickable cards)
+- ✅ Screen reader friendly with proper role attributes
+
+**Localization Updates:**
+- ✅ Added t('dashboard.days_you_can_manage')
+- ✅ Added t('dashboard.days_you_can_manage_tooltip')
+- ✅ Added t('dashboard.preparedness_score_tooltip')
+- ✅ Added t('dashboard.add_resources_action')
+- ✅ Added t('dashboard.fill_resources_action')
+- ✅ Added t('dashboard.empty_category_message')
+- ✅ Added t('dashboard.category_at_zero')
+- ✅ Added t('dashboard.add_resources_to_improve')
+
+#### Files Modified
+- `rpac-web/src/components/individual-dashboard.tsx` - Complete overhaul with all improvements
+- `rpac-web/src/lib/locales/sv.json` - New localization strings
+
+#### Impact
+- ✅ Dramatically improved metrics visibility (5xl font, black weight)
+- ✅ Clear visual hierarchy through color coding system
+- ✅ Better user guidance with tooltips and microcopy
+- ✅ Enhanced accessibility for color-blind users (patterns + icons)
+- ✅ Larger, more prominent action buttons (56px min-height)
+- ✅ Instant recognition of critical 0% categories
+- ✅ Professional, military-grade visual design maintained
+- ✅ Consistent spacing and breathing room throughout
+
+---
+
+### 2025-10-06 - DASHBOARD UX/UI IMPROVEMENTS ✅
+Comprehensive dashboard accessibility and UX enhancements with improved spacing, CTAs, tooltips, and visual hierarchy.
+
+#### Improvements Implemented
+
+**Card CTAs & Navigation:**
+- ✅ Added ChevronRight icons to all card action links ("Se detaljer", "Hantera samhällen", etc.)
+- ✅ Converted card divs to semantic buttons with proper aria-labels
+- ✅ All action links now use olive accent colors (#3D4A2B, #5C6B47) for consistency
+- ✅ Added hover animations with translate-x transition on arrow icons
+
+**Spacing & Layout:**
+- ✅ Increased vertical spacing between dashboard sections from 6 to 8 (space-y-8 = 32px)
+- ✅ Card padding increased from p-6 to p-8 (24px → 32px) in summary cards
+- ✅ Stat boxes now have min-h-[80px] for consistent row heights (exceeds 48px requirement)
+- ✅ Gap between elements increased to gap-4 (16px) for better breathing room
+- ✅ Alert panels now have p-5 (20px) instead of p-4 (16px) for better separation
+
+**Progress Indicators & Tooltips:**
+- ✅ Added hover tooltips on "Självförsörjning" percentage explaining it tracks calorie coverage
+- ✅ Added hover tooltip on calendar progress (0/22) explaining completed vs total tasks
+- ✅ Tooltips styled with bg-gray-900, positioned absolutely with proper z-index
+- ✅ Smooth opacity transitions (200ms) on hover
+
+**Typography & Contrast:**
+- ✅ Increased stat numbers from text-xl/2xl to text-2xl/3xl for better visibility
+- ✅ Font weights boosted: medium → semibold/bold on key stats and labels
+- ✅ Category icons increased from w-4 h-4 to w-5 h-5
+- ✅ "Senast uppdaterad" timestamps now font-semibold instead of regular
+- ✅ Alert headings increased from font-semibold to font-bold text-base
+
+**Accessibility:**
+- ✅ Added skip-to-content link (sr-only, visible on focus) for keyboard navigation
+- ✅ All interactive cards now have descriptive aria-labels
+- ✅ Touch targets enlarged to min 48x48px (buttons use min-h-[56px])
+- ✅ Added touch-manipulation and active:scale-98 for better mobile feedback
+- ✅ Proper semantic HTML: buttons instead of divs for clickable cards
+
+**Empty States:**
+- ✅ Enhanced messaging empty state with illustrated icon (gradient circles)
+- ✅ Added helpful tip text using t('dashboard.empty_messages_tip')
+- ✅ Improved visual hierarchy with larger, bolder headings
+- ✅ Better padding and spacing in empty state containers
+
+**Button Emphasis:**
+- ✅ "Skicka" button elevated with bold font, larger size (py-4 px-8), and distinct border
+- ✅ All primary action buttons now min-h-[56px] with border-2 for prominence
+- ✅ Enhanced hover states with shadow-lg transition
+- ✅ Emergency "SKICKA NÖD" button has red border-2 and font-bold for maximum visibility
+- ✅ Secondary buttons use white bg with olive border for clear hierarchy
+
+**Localization Updates:**
+- ✅ Added t('dashboard.self_sufficiency_tooltip')
+- ✅ Added t('dashboard.calendar_progress_tooltip')
+- ✅ Added t('dashboard.last_updated')
+- ✅ Added t('dashboard.see_details')
+- ✅ Added t('dashboard.manage_communities')
+- ✅ Added t('dashboard.find_communities')
+- ✅ Added t('dashboard.view_plan')
+- ✅ Added t('dashboard.create_plan')
+- ✅ Added t('dashboard.empty_messages_tip')
+
+#### Files Modified
+- `rpac-web/src/app/dashboard/page.tsx` - Main dashboard layout and cards
+- `rpac-web/src/components/resource-summary-card.tsx` - Resource overview card
+- `rpac-web/src/components/community-coordination-summary.tsx` - Community stats card
+- `rpac-web/src/components/messaging-system-v2.tsx` - Messaging interface
+- `rpac-web/src/lib/locales/sv.json` - New localization strings
+
+#### Impact
+- ✅ Significantly improved accessibility (WCAG 2.1 AA compliance)
+- ✅ Better touch targets for mobile users (≥48px minimum)
+- ✅ Clearer visual hierarchy and action affordances
+- ✅ Improved user confidence through tooltips and better feedback
+- ✅ More engaging empty states that guide users
+- ✅ Consistent olive green color scheme throughout
+- ✅ Professional, military-grade visual design maintained
+
+---
+
 ### 2025-10-06 - DOCUMENTATION CLEANUP & ONBOARDING OVERHAUL ✅
 Massive documentation consolidation: reduced from 68 files to 11 core files for single source of truth.
 

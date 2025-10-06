@@ -11,7 +11,8 @@ import {
   Zap,
   Wrench,
   Pill,
-  Utensils
+  Utensils,
+  ChevronRight
 } from 'lucide-react';
 import { t } from '@/lib/locales';
 
@@ -76,57 +77,59 @@ export function ResourceSummaryCard({ user }: ResourceSummaryCardProps) {
 
   return (
     <div className="modern-card">
-      <div className="p-6">
+      <div className="p-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-md" style={{ 
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center shadow-md" style={{ 
               background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)' 
             }}>
-              <Package className="w-5 h-5 text-white" />
+              <Package className="w-6 h-6 text-white" />
             </div>
             <div>
               <h3 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
                 {t('dashboard.resource_summary')}
               </h3>
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                 {t('dashboard.resource_summary_description')}
               </p>
             </div>
           </div>
           <button
             onClick={handleViewFullResources}
-            className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 hover:shadow-md"
+            className="hidden md:flex items-center space-x-2 px-5 py-2.5 rounded-lg transition-all duration-200 hover:shadow-md min-h-[44px] touch-manipulation active:scale-98"
             style={{ 
               backgroundColor: 'var(--bg-olive-light)',
-              color: 'var(--text-primary)'
+              color: '#3D4A2B',
+              fontWeight: 600
             }}
+            aria-label="Visa alla dina resurser och förnödenheter"
           >
-            <span className="text-sm font-medium">{t('dashboard.view_full_resources')}</span>
-            <ArrowRight className="w-4 h-4" />
+            <span className="text-sm font-semibold">{t('dashboard.view_full_resources')}</span>
+            <ChevronRight className="w-5 h-5" />
           </button>
         </div>
 
         {/* Critical Alert */}
         {resourceStats.criticalItems > 0 && (
-          <div className="mb-6 p-4 rounded-lg border-l-4" style={{ 
-            backgroundColor: 'rgba(220, 38, 38, 0.05)',
+          <div className="mb-8 p-5 rounded-lg border-l-4" style={{ 
+            backgroundColor: 'rgba(220, 38, 38, 0.08)',
             borderLeftColor: 'var(--color-danger)'
           }}>
-            <div className="flex items-center space-x-2 mb-2">
+            <div className="flex items-center space-x-2 mb-3">
               <AlertTriangle className="w-5 h-5" style={{ color: 'var(--color-danger)' }} />
-              <span className="font-semibold" style={{ color: 'var(--color-danger)' }}>
+              <span className="font-bold text-base" style={{ color: 'var(--color-danger)' }}>
                 {t('dashboard.critical_resources_alert')}
               </span>
             </div>
-            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+            <p className="text-sm leading-relaxed pl-7" style={{ color: 'var(--text-secondary)' }}>
               {t('dashboard.critical_resources_description', { count: resourceStats.criticalItems })}
             </p>
           </div>
         )}
 
         {/* Resource Categories */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           {Object.entries(resourceStats.categories).map(([key, category]) => {
             const icons = {
               food: Utensils,
@@ -145,24 +148,23 @@ export function ResourceSummaryCard({ user }: ResourceSummaryCardProps) {
             };
 
             return (
-              <div key={key} className="text-center p-3 rounded-lg" style={{ 
+              <div key={key} className="text-center p-4 rounded-lg" style={{ 
                 backgroundColor: 'var(--bg-card)',
                 border: '1px solid var(--color-quaternary)'
               }}>
-                <div className="flex justify-center mb-2">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{
+                <div className="flex justify-center mb-3">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{
                     backgroundColor: getStatusColor(category.status) + '20',
                     color: getStatusColor(category.status)
                   }}>
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-5 h-5" />
                   </div>
                 </div>
-                <div className="text-xs font-medium mb-1" style={{ color: 'var(--text-primary)' }}>
+                <div className="text-sm font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
                   {labels[key as keyof typeof labels]}
                 </div>
-                <div className="text-xs" style={{ 
-                  color: getStatusColor(category.status),
-                  fontWeight: '600'
+                <div className="text-xs font-bold" style={{ 
+                  color: getStatusColor(category.status)
                 }}>
                   {getStatusText(category.status)}
                 </div>
@@ -172,28 +174,28 @@ export function ResourceSummaryCard({ user }: ResourceSummaryCardProps) {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
-          <div className="text-center p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-card)' }}>
-            <div className="text-xl sm:text-2xl font-bold mb-1" style={{ color: 'var(--color-danger)' }}>
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="text-center p-4 rounded-lg min-h-[80px] flex flex-col justify-center" style={{ backgroundColor: 'var(--bg-card)' }}>
+            <div className="text-2xl sm:text-3xl font-bold mb-1" style={{ color: 'var(--color-danger)' }}>
               {resourceStats.criticalItems}
             </div>
-            <div className="text-xs leading-tight" style={{ color: 'var(--text-secondary)' }}>
+            <div className="text-sm font-medium leading-tight" style={{ color: 'var(--text-secondary)' }}>
               {t('dashboard.critical_items')}
             </div>
           </div>
-          <div className="text-center p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-card)' }}>
-            <div className="text-xl sm:text-2xl font-bold mb-1" style={{ color: 'var(--color-warning)' }}>
+          <div className="text-center p-4 rounded-lg min-h-[80px] flex flex-col justify-center" style={{ backgroundColor: 'var(--bg-card)' }}>
+            <div className="text-2xl sm:text-3xl font-bold mb-1" style={{ color: 'var(--color-warning)' }}>
               {resourceStats.lowStock}
             </div>
-            <div className="text-xs leading-tight" style={{ color: 'var(--text-secondary)' }}>
+            <div className="text-sm font-medium leading-tight" style={{ color: 'var(--text-secondary)' }}>
               {t('dashboard.low_stock')}
             </div>
           </div>
-          <div className="text-center p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-card)' }}>
-            <div className="text-xl sm:text-2xl font-bold mb-1" style={{ color: 'var(--color-sage)' }}>
+          <div className="text-center p-4 rounded-lg min-h-[80px] flex flex-col justify-center" style={{ backgroundColor: 'var(--bg-card)' }}>
+            <div className="text-2xl sm:text-3xl font-bold mb-1" style={{ color: 'var(--color-sage)' }}>
               {resourceStats.healthyItems}
             </div>
-            <div className="text-xs leading-tight" style={{ color: 'var(--text-secondary)' }}>
+            <div className="text-sm font-medium leading-tight" style={{ color: 'var(--text-secondary)' }}>
               {t('dashboard.healthy_items')}
             </div>
           </div>
@@ -202,15 +204,17 @@ export function ResourceSummaryCard({ user }: ResourceSummaryCardProps) {
         {/* Action Button */}
         <button
           onClick={handleViewFullResources}
-          className="w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-lg font-medium transition-all duration-200 hover:shadow-md"
+          className="w-full flex items-center justify-center space-x-2 py-4 px-6 rounded-lg font-semibold text-base transition-all duration-200 hover:shadow-lg border-2 min-h-[56px] touch-manipulation active:scale-98"
           style={{ 
-            backgroundColor: 'var(--color-primary)',
+            backgroundColor: '#3D4A2B',
+            borderColor: '#3D4A2B',
             color: 'white'
           }}
+          aria-label="Hantera alla dina resurser och förnödenheter"
         >
-          <Package className="w-4 h-4" />
+          <Package className="w-5 h-5" />
           <span>{t('dashboard.manage_resources')}</span>
-          <ArrowRight className="w-4 h-4" />
+          <ChevronRight className="w-5 h-5" />
         </button>
       </div>
     </div>

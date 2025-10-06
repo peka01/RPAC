@@ -477,10 +477,16 @@ export function MessagingSystemV2({ user, communityId, initialTab = 'community' 
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-3 messages-container bg-gray-50">
             {messages.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <MessageCircle size={64} className="mx-auto mb-4 opacity-30" />
-                <p className="text-lg font-medium">Inga meddelanden än</p>
-                <p className="text-sm">Skicka det första meddelandet för att starta konversationen</p>
+              <div className="text-center py-12 px-6 text-gray-500">
+                {/* Illustration */}
+                <div className="relative w-24 h-24 mx-auto mb-6">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#5C6B47]/20 to-[#3D4A2B]/10 rounded-full"></div>
+                  <div className="absolute inset-3 bg-white rounded-full flex items-center justify-center">
+                    <MessageCircle size={40} className="text-[#5C6B47]" strokeWidth={1.5} />
+                  </div>
+                </div>
+                <p className="text-lg font-bold text-gray-900 mb-2">Inga meddelanden än</p>
+                <p className="text-sm text-gray-600 leading-relaxed max-w-md mx-auto">{t('dashboard.empty_messages_tip')}</p>
               </div>
             ) : (
               messages.map((message) => {
@@ -554,18 +560,20 @@ export function MessagingSystemV2({ user, communityId, initialTab = 'community' 
                   <button
                     onClick={sendEmergencyMessage}
                     disabled={!newMessage.trim()}
-                    className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-semibold"
+                    className="px-8 py-4 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all font-bold text-base border-2 border-red-600 hover:border-red-700 shadow-lg hover:shadow-xl min-h-[56px] touch-manipulation active:scale-98"
+                    aria-label="Skicka nödmeddelande till alla i samhället"
                   >
-                    <AlertTriangle className="inline mr-2" size={18} />
+                    <AlertTriangle className="inline mr-2" size={20} />
                     SKICKA NÖD
                   </button>
                 ) : (
                   <button
                     onClick={() => sendMessage()}
                     disabled={!newMessage.trim() || (activeTab === 'direct' && !activeContact)}
-                    className="px-6 py-2 bg-[#3D4A2B] text-white rounded-lg hover:bg-[#2A331E] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                    className="px-8 py-4 bg-[#3D4A2B] text-white rounded-lg hover:bg-[#2A331E] disabled:bg-gray-300 disabled:cursor-not-allowed transition-all font-bold text-base border-2 border-[#3D4A2B] hover:border-[#2A331E] shadow-md hover:shadow-lg min-h-[56px] touch-manipulation active:scale-98"
+                    aria-label="Skicka meddelande"
                   >
-                    <Send className="inline mr-2" size={18} />
+                    <Send className="inline mr-2" size={20} />
                     Skicka
                   </button>
                 )}

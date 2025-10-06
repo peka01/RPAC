@@ -15,7 +15,9 @@ import {
   CheckCircle,
   Smile,
   Wind,
-  Droplets
+  Droplets,
+  ChevronRight,
+  ArrowRight
 } from 'lucide-react';
 import { StatusCard } from '@/components/status-card';
 import { PreparednessOverview } from '@/components/preparedness-overview';
@@ -303,15 +305,24 @@ export default function DashboardPage() {
       
       <div className="max-w-7xl mx-auto px-6 py-6">
 
+        {/* Skip to content link for accessibility */}
+        <a 
+          href="#main-content" 
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#3D4A2B] focus:text-white focus:rounded-lg"
+        >
+          Hoppa till huvudinnehåll
+        </a>
+
         {/* Dashboard Content */}
-        <div className="space-y-6">
+        <div id="main-content" className="space-y-8">
 
           {/* Modern Information Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {/* Mitt hem - Beredskap */}
-            <div 
-              className="group bg-[#5C6B47] rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer"
+            <button 
+              className="group bg-[#5C6B47] rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer text-left w-full min-h-[200px] touch-manipulation active:scale-98"
               onClick={() => router.push('/individual')}
+              aria-label="Gå till Mitt hem - din personliga beredskap och resurser"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center">
@@ -327,17 +338,16 @@ export default function DashboardPage() {
                 Din personliga beredskap och resurser
               </p>
               <div className="flex items-center text-sm text-white font-medium">
-                <span>Se detaljer</span>
-                <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
+                <span>{t('dashboard.see_details')}</span>
+                <ChevronRight className="w-5 h-5 ml-1 group-hover:translate-x-1 transition-transform" />
               </div>
-            </div>
+            </button>
 
             {/* Lokalt samhälle */}
-            <div 
-              className="group bg-[#5C6B47] rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer"
+            <button 
+              className="group bg-[#5C6B47] rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer text-left w-full min-h-[200px] touch-manipulation active:scale-98"
               onClick={() => router.push('/local')}
+              aria-label={joinedCommunities.length > 0 ? `Hantera dina ${joinedCommunities.length} samhällen` : 'Hitta och gå med i lokala samhällen'}
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center">
@@ -379,32 +389,35 @@ export default function DashboardPage() {
               )}
               
               <div className="flex items-center text-sm text-white font-medium">
-                <span>{joinedCommunities.length > 0 ? 'Hantera samhällen' : 'Hitta samhällen'}</span>
-                <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
+                <span>{joinedCommunities.length > 0 ? t('dashboard.manage_communities') : t('dashboard.find_communities')}</span>
+                <ChevronRight className="w-5 h-5 ml-1 group-hover:translate-x-1 transition-transform" />
               </div>
-            </div>
+            </button>
 
             {/* Min odling */}
-            <div 
-              className="group bg-[#5C6B47] rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer"
+            <button 
+              className="group bg-[#5C6B47] rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer text-left w-full min-h-[200px] touch-manipulation active:scale-98 relative"
               onClick={() => {
                 const destination = cultivationProgress.total > 0 
                   ? '/individual?section=cultivation&subsection=calendar'
                   : '/individual?section=cultivation&subsection=ai-planner';
                 router.push(destination);
               }}
+              aria-label={cultivationPlan ? `Visa din odlingsplan: ${cultivationPlan.title || cultivationPlan.name}` : 'Skapa din första odlingsplan med AI'}
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center">
                   <Leaf className="w-6 h-6 text-white" />
                 </div>
-                <div className="text-right">
+                <div className="text-right relative group/tooltip">
                   <div className="text-2xl font-bold text-white">
                     {cultivationPlan?.self_sufficiency_percent || cultivationPlan?.selfSufficiencyPercent || '0'}%
                   </div>
-                  <div className="text-xs text-white/80">Självförsörjning</div>
+                  <div className="text-xs text-white/80">{t('dashboard.self_sufficiency')}</div>
+                  {/* Tooltip */}
+                  <div className="absolute right-0 top-full mt-2 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 z-10">
+                    {t('dashboard.self_sufficiency_tooltip')}
+                  </div>
                 </div>
               </div>
               <h3 className="text-lg font-bold text-white mb-2">
@@ -417,12 +430,12 @@ export default function DashboardPage() {
                   <div className="flex items-center gap-4 text-sm">
                     <div className="flex items-center gap-1.5">
                       <div className="w-2 h-2 rounded-full bg-white"></div>
-                      <span className="text-white">{cultivationPlan.crops?.length || 0} grödor</span>
+                      <span className="text-white font-medium">{cultivationPlan.crops?.length || 0} grödor</span>
                     </div>
                     {cultivationPlan.estimated_cost && (
                       <div className="flex items-center gap-1.5">
                         <div className="w-2 h-2 rounded-full bg-white/80"></div>
-                        <span className="text-white">{Math.round(cultivationPlan.estimated_cost)} kr</span>
+                        <span className="text-white font-medium">{Math.round(cultivationPlan.estimated_cost)} kr</span>
                       </div>
                     )}
                   </div>
@@ -430,20 +443,24 @@ export default function DashboardPage() {
                   {/* Calendar Progress */}
                   {cultivationProgress.total > 0 && (
                     <div className="pt-3 border-t border-white/20">
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center justify-between mb-2 group/progress relative">
                         <span className="text-sm font-medium text-white">Kalender</span>
                         <span className="text-sm font-bold text-white">
                           {cultivationProgress.percentage}%
                         </span>
+                        {/* Tooltip */}
+                        <div className="absolute right-0 top-full mt-2 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-xl opacity-0 invisible group-hover/progress:opacity-100 group-hover/progress:visible transition-all duration-200 z-10">
+                          {t('dashboard.calendar_progress_tooltip')}
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 rounded-full h-2 bg-white/20">
+                        <div className="flex-1 rounded-full h-2.5 bg-white/20">
                           <div 
-                            className="h-2 rounded-full bg-white transition-all duration-500" 
+                            className="h-2.5 rounded-full bg-white transition-all duration-500" 
                             style={{ width: `${cultivationProgress.percentage}%` }}
                           ></div>
                         </div>
-                        <span className="text-xs text-white/80 whitespace-nowrap">
+                        <span className="text-xs text-white/90 whitespace-nowrap font-medium">
                           {cultivationProgress.completed}/{cultivationProgress.total}
                         </span>
                       </div>
@@ -457,36 +474,42 @@ export default function DashboardPage() {
               )}
               
               <div className="flex items-center text-sm text-white font-medium">
-                <span>{cultivationPlan ? 'Se odlingsplan' : 'Skapa plan'}</span>
-                <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
+                <span>{cultivationPlan ? t('dashboard.view_plan') : t('dashboard.create_plan')}</span>
+                <ChevronRight className="w-5 h-5 ml-1 group-hover:translate-x-1 transition-transform" />
               </div>
-            </div>
+            </button>
           </div>
 
           {/* Advanced Communication Hub - Enhanced & Resizable */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             <div className="xl:col-span-1">
               {user && joinedCommunities.length > 0 && (
                 <MessagingSystemV2 user={user} communityId={joinedCommunities[0].id} />
               )}
               {user && joinedCommunities.length === 0 && (
-                <div className="bg-white rounded-xl shadow-lg p-8 text-center border border-gray-100">
-                  <div className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                    <MessageCircle className="text-gray-400" size={32} />
+                <div className="bg-white rounded-xl shadow-lg p-10 text-center border border-gray-100">
+                  {/* Illustration */}
+                  <div className="relative w-24 h-24 mx-auto mb-6">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#5C6B47]/20 to-[#3D4A2B]/10 rounded-full"></div>
+                    <div className="absolute inset-3 bg-white rounded-full flex items-center justify-center">
+                      <MessageCircle className="text-[#5C6B47]" size={40} strokeWidth={1.5} />
+                    </div>
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">
+                  
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">
                     Gå med i ett samhälle för att börja kommunicera
                   </h3>
-                  <p className="text-sm text-gray-600 mb-6">
-                    Hitta och anslut till lokala samhällen via fliken "Samhälle"
+                  <p className="text-sm text-gray-600 mb-6 max-w-md mx-auto leading-relaxed">
+                    {t('dashboard.empty_messages_tip')}. Hitta och anslut till lokala samhällen för att dela meddelanden och resurser.
                   </p>
                   <button
                     onClick={() => router.push('/local')}
-                    className="px-6 py-3 bg-[#5C6B47] text-white rounded-lg hover:bg-[#4A5239] transition-all shadow-md hover:shadow-lg font-medium"
+                    className="inline-flex items-center px-8 py-4 bg-[#3D4A2B] text-white rounded-lg hover:bg-[#2A331E] transition-all shadow-md hover:shadow-lg font-semibold text-base border-2 border-[#3D4A2B] hover:border-[#2A331E] min-h-[48px] touch-manipulation active:scale-98"
+                    aria-label="Hitta och gå med i lokala samhällen"
                   >
-                    Hitta samhällen
+                    <Users className="w-5 h-5 mr-2" />
+                    <span>Hitta samhällen</span>
+                    <ChevronRight className="w-5 h-5 ml-2" />
                   </button>
                 </div>
               )}

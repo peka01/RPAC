@@ -12,7 +12,8 @@ import {
   Radio,
   Wifi,
   Phone,
-  Heart
+  Heart,
+  ChevronRight
 } from 'lucide-react';
 import { t } from '@/lib/locales';
 
@@ -59,68 +60,70 @@ export function CommunityCoordinationSummary() {
 
   return (
     <div className="modern-card">
-      <div className="p-6">
+      <div className="p-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-md" style={{ 
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center shadow-md" style={{ 
               background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)' 
             }}>
-              <Users className="w-5 h-5 text-white" />
+              <Users className="w-6 h-6 text-white" />
             </div>
             <div>
               <h3 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
                 {t('dashboard.community_coordination')}
               </h3>
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                 {t('dashboard.community_coordination_description')}
               </p>
             </div>
           </div>
           <button
             onClick={handleViewFullCoordination}
-            className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 hover:shadow-md"
+            className="hidden md:flex items-center space-x-2 px-5 py-2.5 rounded-lg transition-all duration-200 hover:shadow-md min-h-[44px] touch-manipulation active:scale-98"
             style={{ 
               backgroundColor: 'var(--bg-olive-light)',
-              color: 'var(--text-primary)'
+              color: '#3D4A2B',
+              fontWeight: 600
             }}
+            aria-label="Visa fullständig samhällskoordination och aktivitet"
           >
-            <span className="text-sm font-medium">{t('dashboard.view_full_coordination')}</span>
-            <ArrowRight className="w-4 h-4" />
+            <span className="text-sm font-semibold">{t('dashboard.view_full_coordination')}</span>
+            <ChevronRight className="w-5 h-5" />
           </button>
         </div>
 
         {/* Key Statistics */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-          <div className="text-center p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-card)' }}>
-            <div className="text-xl sm:text-2xl font-bold mb-1" style={{ color: 'var(--color-sage)' }}>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="text-center p-4 rounded-lg min-h-[80px] flex flex-col justify-center" style={{ backgroundColor: 'var(--bg-card)' }}>
+            <div className="text-2xl sm:text-3xl font-bold mb-1" style={{ color: 'var(--color-sage)' }}>
               {coordinationStats.activeCommunities}
             </div>
-            <div className="text-xs leading-tight" style={{ color: 'var(--text-secondary)' }}>
+            <div className="text-sm font-medium leading-tight" style={{ color: 'var(--text-secondary)' }}>
               {t('dashboard.active_communities')}
             </div>
           </div>
-          <div className="text-center p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-card)' }}>
-            <div className="text-xl sm:text-2xl font-bold mb-1" style={{ color: 'var(--color-primary)' }}>
+          <div className="text-center p-4 rounded-lg min-h-[80px] flex flex-col justify-center" style={{ backgroundColor: 'var(--bg-card)' }}>
+            <div className="text-2xl sm:text-3xl font-bold mb-1" style={{ color: 'var(--color-primary)' }}>
               {coordinationStats.activeMembers}
             </div>
-            <div className="text-xs leading-tight" style={{ color: 'var(--text-secondary)' }}>
+            <div className="text-sm font-medium leading-tight" style={{ color: 'var(--text-secondary)' }}>
               {t('dashboard.active_members')}
             </div>
           </div>
-          <div className="text-center p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-card)' }}>
-            <div className="text-xl sm:text-2xl font-bold mb-1" style={{ color: 'var(--color-khaki)' }}>
+          <div className="text-center p-4 rounded-lg min-h-[80px] flex flex-col justify-center" style={{ backgroundColor: 'var(--bg-card)' }}>
+            <div className="text-2xl sm:text-3xl font-bold mb-1" style={{ color: 'var(--color-khaki)' }}>
               {coordinationStats.averagePreparedness}%
             </div>
-            <div className="text-xs leading-tight" style={{ color: 'var(--text-secondary)' }}>
+            <div className="text-sm font-medium leading-tight" style={{ color: 'var(--text-secondary)' }}>
               {t('dashboard.avg_preparedness')}
             </div>
           </div>
-          <div className="text-center p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-card)' }}>
-            <div className="text-xl sm:text-2xl font-bold mb-1" style={{ color: 'var(--color-danger)' }}>
+          <div className="text-center p-4 rounded-lg min-h-[80px] flex flex-col justify-center" style={{ backgroundColor: 'var(--bg-card)' }}>
+            <div className="text-2xl sm:text-3xl font-bold mb-1" style={{ color: 'var(--color-danger)' }}>
               {coordinationStats.helpRequests}
             </div>
-            <div className="text-xs leading-tight" style={{ color: 'var(--text-secondary)' }}>
+            <div className="text-sm font-medium leading-tight" style={{ color: 'var(--text-secondary)' }}>
               {t('dashboard.help_requests')}
             </div>
           </div>
@@ -171,22 +174,22 @@ export function CommunityCoordinationSummary() {
         </div>
 
         {/* Recent Activity */}
-        <div className="mb-6">
-          <h4 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
+        <div className="mb-8">
+          <h4 className="text-base font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
             {t('dashboard.recent_activity')}
           </h4>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {coordinationStats.recentActivity.map((activity, index) => {
               const Icon = getStatusIcon(activity.status);
               return (
-                <div key={index} className="flex items-start space-x-3 p-2 rounded-lg hover:bg-gray-50">
-                  <Icon className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: getStatusColor(activity.status) }} />
+                <div key={index} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Icon className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: getStatusColor(activity.status) }} />
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                    <div className="text-sm font-medium leading-relaxed" style={{ color: 'var(--text-primary)' }}>
                       {activity.message}
                     </div>
-                    <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                      {activity.time}
+                    <div className="text-xs font-semibold mt-1" style={{ color: 'var(--text-secondary)' }}>
+                      {t('dashboard.last_updated')}: {activity.time}
                     </div>
                   </div>
                 </div>
@@ -196,29 +199,34 @@ export function CommunityCoordinationSummary() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col sm:flex-row gap-4">
           <button
             onClick={handleViewFullCoordination}
-            className="flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-lg font-medium transition-all duration-200 hover:shadow-md"
+            className="flex-1 flex items-center justify-center space-x-2 py-4 px-6 rounded-lg font-semibold text-base transition-all duration-200 hover:shadow-lg border-2 min-h-[56px] touch-manipulation active:scale-98"
             style={{ 
-              backgroundColor: 'var(--color-primary)',
+              backgroundColor: '#3D4A2B',
+              borderColor: '#3D4A2B',
               color: 'white'
             }}
+            aria-label="Hantera samhällskoordination och se all aktivitet"
           >
-            <Users className="w-4 h-4" />
+            <Users className="w-5 h-5" />
             <span>{t('dashboard.manage_coordination')}</span>
-            <ArrowRight className="w-4 h-4" />
+            <ChevronRight className="w-5 h-5" />
           </button>
           <button
-            className="flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-lg font-medium transition-all duration-200 hover:shadow-md"
+            onClick={handleViewFullCoordination}
+            className="flex-1 flex items-center justify-center space-x-2 py-4 px-6 rounded-lg font-semibold text-base transition-all duration-200 hover:shadow-lg border-2 min-h-[56px] touch-manipulation active:scale-98"
             style={{ 
-              backgroundColor: 'var(--bg-olive-light)',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--color-quaternary)'
+              backgroundColor: 'white',
+              borderColor: '#3D4A2B',
+              color: '#3D4A2B'
             }}
+            aria-label="Gå med i lokalt samhälle"
           >
-            <MessageCircle className="w-4 h-4" />
+            <MessageCircle className="w-5 h-5" />
             <span>{t('dashboard.join_community')}</span>
+            <ChevronRight className="w-5 h-5" />
           </button>
         </div>
       </div>

@@ -28,7 +28,9 @@ import {
   Check,
   ArrowRight,
   Grid3x3,
-  List
+  List,
+  AlertTriangle,
+  HelpCircle
 } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { resourceSharingService, type SharedResource, type HelpRequest } from '@/lib/resource-sharing-service';
@@ -298,11 +300,11 @@ export function CommunityResourceHub({
             label: 'Antal',
             render: (resource) => (
               <div>
-                <div className="font-semibold text-gray-900">
-                  {resource.quantity} {resource.unit || 'st'}
+                <div className="font-bold text-gray-900">
+                  {resource.quantity} {(resource.unit || 'st').replace(/stycken/gi, 'st').replace(/styck/gi, 'st')}
                 </div>
                 {resource.booking_required && (
-                  <div className="text-xs text-[#556B2F]">Bokning krävs</div>
+                  <div className="text-xs text-[#556B2F] font-semibold">Bokning krävs</div>
                 )}
               </div>
             )
@@ -1050,8 +1052,8 @@ function GroupedSharedResourceCard({ resources, currentUserId, onRequest, onMana
 
       {/* Key Info - Simplified */}
       <div className="mb-4">
-        <div className="text-lg font-bold text-gray-900 mb-1">
-          {totalQuantity} {firstResource.resource_unit || 'st'}
+        <div className="text-xl font-black text-gray-900 mb-1">
+          {totalQuantity} {(firstResource.resource_unit || 'st').replace(/stycken/gi, 'st').replace(/styck/gi, 'st')}
         </div>
         <div className="text-xs text-gray-500 truncate">
           {resources.map(r => r.sharer_name || 'Okänd').join(' • ')}
@@ -1134,33 +1136,76 @@ function SharedResourceCard({ resource, currentUserId, onRequest, onManage }: an
   const category = categoryConfig[resource.resource_category as keyof typeof categoryConfig] || categoryConfig.other;
   const isOwner = resource.user_id === currentUserId;
   const isAvailable = resource.status === 'available';
+  const isEmpty = resource.shared_quantity === 0;
+
+  const handleCardClick = () => {
+    if (isOwner) {
+      onManage();
+    } else if (isAvailable) {
+      onRequest();
+    }
+  };
 
   return (
-    <div className="bg-white rounded-xl p-5 shadow-md hover:shadow-xl transition-all border-2 border-transparent hover:border-[#3D4A2B]">
+    <div 
+      className={`relative bg-white rounded-xl p-6 shadow-md hover:shadow-2xl transition-all border-3 cursor-pointer ${
+        isEmpty 
+          ? 'border-[#8B4513] ring-2 ring-[#8B4513] ring-offset-2' 
+          : 'border-transparent hover:border-[#3D4A2B]'
+      }`}
+    >
+      {/* Clickable overlay */}
+      <div
+        onClick={handleCardClick}
+        className="absolute inset-0 z-0 cursor-pointer rounded-xl"
+        role="button"
+        tabIndex={0}
+        aria-label={`${resource.resource_name}: ${resource.shared_quantity} ${resource.resource_unit || 'st'}. ${isOwner ? 'Hantera' : 'Be om denna'}`}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleCardClick();
+          }
+        }}
+      />
+
+      {/* Empty/Critical Badge */}
+      {isEmpty && (
+        <div className="absolute top-3 right-3 bg-[#8B4513] text-white p-2 rounded-full shadow-lg z-10">
+          <AlertTriangle size={16} strokeWidth={2.5} />
+        </div>
+      )}
+
+      {/* Pattern overlay for color-blind accessibility */}
+      {isEmpty && (
+        <div className="absolute inset-0 opacity-5 pointer-events-none rounded-xl" style={{
+          backgroundImage: 'repeating-linear-gradient(45deg, #8B4513 0, #8B4513 2px, transparent 2px, transparent 10px)'
+        }}></div>
+      )}
       {/* Header - Compact */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-4 relative z-10">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <div 
-            className="w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0"
+            className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm"
             style={{ backgroundColor: `${category.color}20` }}
           >
-            <span className="text-xl">{category.emoji}</span>
+            <span className="text-2xl">{category.emoji}</span>
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="font-bold text-gray-900 truncate">{resource.resource_name}</h3>
-            <p className="text-xs text-gray-500">{category.label}</p>
+            <h3 className="font-black text-lg text-gray-900 break-words">{resource.resource_name}</h3>
+            <p className="text-xs text-gray-600 font-medium">{category.label}</p>
           </div>
         </div>
         {isOwner && (
-          <span className="text-[#556B2F] text-xs font-medium flex-shrink-0 ml-2">Du</span>
+          <span className="text-[#556B2F] text-xs font-bold flex-shrink-0 ml-2 bg-[#556B2F]/10 px-2 py-1 rounded">Du</span>
         )}
       </div>
 
       {/* Key Info - Clean layout */}
-      <div className="mb-4">
-        <div className="flex items-baseline gap-2 mb-2">
-          <span className="text-lg font-bold text-gray-900">
-            {resource.shared_quantity} {resource.resource_unit || 'st'}
+      <div className="mb-4 relative z-10">
+        <div className="flex items-baseline gap-2 mb-2" data-testid="shared-resource-quantity">
+          <span className="text-xl font-black text-gray-900">
+            {resource.shared_quantity} {(resource.resource_unit || 'st').replace(/stycken/gi, 'st').replace(/styck/gi, 'st')}
           </span>
         </div>
         <div className="text-sm font-medium text-gray-700 mb-1">
@@ -1175,26 +1220,39 @@ function SharedResourceCard({ resource, currentUserId, onRequest, onManage }: an
         )}
       </div>
 
-      {/* Action button */}
-      {isOwner ? (
-        <button
-          onClick={onManage}
-          className="w-full py-2.5 bg-[#5C6B47] text-white rounded-lg text-sm font-medium hover:bg-[#4A5239] transition-all"
-        >
-          Hantera
-        </button>
-      ) : isAvailable ? (
-        <button
-          onClick={onRequest}
-          className="w-full py-2.5 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-lg text-sm font-medium hover:shadow-lg transition-all"
-        >
-          Be om denna
-        </button>
-      ) : (
-        <div className="w-full py-2.5 bg-gray-100 text-gray-500 rounded-lg text-xs text-center">
-          Ej tillgänglig
+      {/* Empty State Microcopy */}
+      {isEmpty && (
+        <div className="mb-4 p-3 bg-[#8B4513]/5 border border-[#8B4513]/20 rounded-lg relative z-10">
+          <p className="text-sm text-[#8B4513] font-bold">
+            {t('dashboard.add_to_improve_preparedness')}
+          </p>
         </div>
       )}
+
+      {/* Action button */}
+      <div className="relative z-10">
+        {isOwner ? (
+          <button
+            onClick={(e) => { e.stopPropagation(); onManage(); }}
+            className="w-full py-3 bg-[#5C6B47] text-white rounded-lg text-sm font-bold hover:bg-[#4A5239] transition-all shadow-md hover:shadow-lg min-h-[48px]"
+            aria-label="Hantera din delade resurs"
+          >
+            Hantera
+          </button>
+        ) : isAvailable ? (
+          <button
+            onClick={(e) => { e.stopPropagation(); onRequest(); }}
+            className="w-full py-3 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-lg text-sm font-bold hover:shadow-xl transition-all shadow-md min-h-[48px]"
+            aria-label="Be om denna resurs"
+          >
+            Be om denna
+          </button>
+        ) : (
+          <div className="w-full py-3 bg-gray-100 text-gray-500 rounded-lg text-xs text-center font-semibold min-h-[48px] flex items-center justify-center">
+            Ej tillgänglig
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -1273,6 +1331,7 @@ function CommunityResourceCard({ resource, currentUserId, isAdmin, onEdit, onDel
   const category = categoryConfig[resource.category as keyof typeof categoryConfig] || categoryConfig.other;
   const isAvailable = resource.status === 'available';
   const needsBooking = resource.booking_required;
+  const isEmpty = resource.quantity === 0;
 
   const statusConfig: Record<string, { label: string; color: string; bgColor: string }> = {
     available: { label: 'Tillgänglig', color: 'text-green-700', bgColor: 'bg-green-100' },
@@ -1291,35 +1350,77 @@ function CommunityResourceCard({ resource, currentUserId, isAdmin, onEdit, onDel
   const currentStatus = statusConfig[resource.status] || statusConfig.available;
   const resourceType = typeConfig[resource.resource_type] || typeConfig.equipment;
 
+  const handleCardClick = () => {
+    if (isAdmin) {
+      onEdit(resource);
+    }
+  };
+
   return (
-    <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all border-2 border-transparent hover:border-[#3D4A2B]">
+    <div 
+      className={`relative bg-white rounded-xl p-6 shadow-md hover:shadow-2xl transition-all border-3 ${isAdmin ? 'cursor-pointer' : ''} ${
+        isEmpty 
+          ? 'border-[#8B4513] ring-2 ring-[#8B4513] ring-offset-2' 
+          : 'border-transparent hover:border-[#3D4A2B]'
+      }`}
+    >
+      {/* Clickable overlay for admins */}
+      {isAdmin && (
+        <div
+          onClick={handleCardClick}
+          className="absolute inset-0 z-0 cursor-pointer rounded-xl"
+          role="button"
+          tabIndex={0}
+          aria-label={`${resource.resource_name}: ${resource.quantity} ${resource.unit}. Redigera`}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleCardClick();
+            }
+          }}
+        />
+      )}
+
+      {/* Empty/Critical Badge */}
+      {isEmpty && (
+        <div className="absolute top-3 right-3 bg-[#8B4513] text-white p-2 rounded-full shadow-lg z-10">
+          <AlertTriangle size={16} strokeWidth={2.5} />
+        </div>
+      )}
+
+      {/* Pattern overlay for color-blind accessibility */}
+      {isEmpty && (
+        <div className="absolute inset-0 opacity-5 pointer-events-none rounded-xl" style={{
+          backgroundImage: 'repeating-linear-gradient(45deg, #8B4513 0, #8B4513 2px, transparent 2px, transparent 10px)'
+        }}></div>
+      )}
       {/* Header */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-4 relative z-10">
         <div className="flex items-center gap-3 flex-1">
           <div 
-            className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
+            className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"
             style={{ backgroundColor: `${category.color}20` }}
           >
             <span className="text-3xl">{category.emoji}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-lg text-gray-900 truncate">{resource.resource_name}</h3>
+            <h3 className="font-black text-lg text-gray-900 break-words">{resource.resource_name}</h3>
             <div className="flex items-center gap-2 text-sm">
               <span>{resourceType.emoji}</span>
-              <span className="text-gray-600">{resourceType.label}</span>
+              <span className="text-gray-600 font-medium">{resourceType.label}</span>
             </div>
           </div>
         </div>
-        <span className={`px-3 py-1 rounded-full text-xs font-bold ${currentStatus.bgColor} ${currentStatus.color} whitespace-nowrap`}>
+        <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${currentStatus.bgColor} ${currentStatus.color} whitespace-nowrap shadow-sm`}>
           {currentStatus.label}
         </span>
       </div>
 
       {/* Details */}
-      <div className="space-y-2 mb-4">
+      <div className="space-y-2 mb-4 relative z-10">
         <div className="flex items-center gap-2 text-sm text-gray-700">
           <Package size={16} className="text-gray-400" />
-          <span className="font-semibold">{resource.quantity} {resource.unit}</span>
+          <span className="font-bold">{resource.quantity} {resource.unit.replace(/stycken/gi, 'st').replace(/styck/gi, 'st')}</span>
         </div>
         {resource.location && (
           <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -1352,15 +1453,25 @@ function CommunityResourceCard({ resource, currentUserId, isAdmin, onEdit, onDel
 
       {/* Notes */}
       {resource.notes && (
-        <p className="text-sm text-gray-600 mb-4 italic">"{resource.notes}"</p>
+        <p className="text-sm text-gray-600 mb-4 italic relative z-10">"{resource.notes}"</p>
+      )}
+
+      {/* Empty State Microcopy */}
+      {isEmpty && (
+        <div className="mb-4 p-3 bg-[#8B4513]/5 border border-[#8B4513]/20 rounded-lg relative z-10">
+          <p className="text-sm text-[#8B4513] font-bold">
+            Resursen är slut. Kontakta ansvarig eller lägg till fler.
+          </p>
+        </div>
       )}
 
       {/* Actions */}
-      <div className="space-y-2">
+      <div className="space-y-2 relative z-10">
         {isAvailable && needsBooking && (
           <button
-            onClick={onBook}
-            className="w-full py-3 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-lg font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2"
+            onClick={(e) => { e.stopPropagation(); onBook(); }}
+            className="w-full py-3 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-lg font-bold hover:shadow-xl transition-all shadow-md flex items-center justify-center gap-2 min-h-[48px]"
+            aria-label="Boka resurs"
           >
             <Calendar size={18} />
             <span>Boka resurs</span>
@@ -1370,15 +1481,17 @@ function CommunityResourceCard({ resource, currentUserId, isAdmin, onEdit, onDel
         {isAdmin && (
           <div className="flex gap-2">
             <button
-              onClick={onEdit}
-              className="flex-1 py-3 bg-[#5C6B47] text-white rounded-lg font-bold hover:bg-[#4A5239] transition-all flex items-center justify-center gap-2"
+              onClick={(e) => { e.stopPropagation(); onEdit(); }}
+              className="flex-1 py-3 bg-[#5C6B47] text-white rounded-lg font-bold hover:bg-[#4A5239] transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 min-h-[48px]"
+              aria-label="Redigera resurs"
             >
               <Edit2 size={18} />
               <span>Redigera</span>
             </button>
             <button
-              onClick={onDelete}
-              className="px-4 py-3 bg-red-100 text-red-700 rounded-lg font-bold hover:bg-red-200 transition-all"
+              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              className="px-4 py-3 bg-[#8B4513]/10 text-[#8B4513] rounded-lg font-bold hover:bg-[#8B4513]/20 transition-all shadow-md hover:shadow-lg min-h-[48px] min-w-[48px]"
+              aria-label="Ta bort resurs"
             >
               <Trash2 size={18} />
             </button>

@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, TrendingUp, Package, CheckCircle, AlertTriangle, Clock, Shield, Pencil, Trash, Share2, Users } from 'lucide-react';
+import { Plus, TrendingUp, Package, CheckCircle, AlertTriangle, Clock, Shield, Pencil, Trash, Share2, Users, HelpCircle, ChevronDown, ChevronUp, Search, X } from 'lucide-react';
+import { t } from '@/lib/locales';
 import { resourceService, Resource } from '@/lib/supabase';
 import { ResourceListView, Column, CategoryFilter, useListViewState } from './resource-list-view';
 import { ResourceCardWithActions, ResourceTableRow } from './resource-card-with-actions';
+import { ResourceMiniCard } from './resource-mini-card';
 import { SimpleAddResourceModal, msbRecommendations } from './simple-add-resource-modal';
 import { EditResourceModal } from './edit-resource-modal';
 import { ResourceShareToCommunityModal } from './resource-share-to-community-modal';
@@ -32,10 +34,14 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
   const [showEditModal, setShowEditModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [expandedCategories, setExpandedCategories] = useState<Set<CategoryKey>>(
+    new Set(Object.keys(categoryConfig) as CategoryKey[])
+  );
 
   const {
-    searchQuery,
-    setSearchQuery,
+    searchQuery: _unused1,
+    setSearchQuery: _unused2,
     activeCategory,
     setActiveCategory,
     viewMode,
@@ -80,6 +86,20 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
     
     return { total, filled: withQuantity, empty, expiringSoon, msbCount, msbFulfillmentPercent, sharedCount };
   }, [resources]);
+
+  // Get color for MSB fulfillment
+  const getMsbColor = (percent: number) => {
+    if (percent >= 80) return { bg: '#556B2F', text: '#ffffff' }; // Green
+    if (percent >= 50) return { bg: '#B8860B', text: '#ffffff' }; // Yellow
+    return { bg: '#8B4513', text: '#ffffff' }; // Red
+  };
+
+  // Get color for category health
+  const getCategoryStatusColor = (fillRate: number) => {
+    if (fillRate >= 70) return '#556B2F'; // Green
+    if (fillRate >= 30) return '#B8860B'; // Yellow
+    return '#8B4513'; // Red
+  };
 
   // Category statistics
   const categoryStats = useMemo(() => {
@@ -224,148 +244,210 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
   };
 
   return (
-    <div className="space-y-6">
-      {/* Stats Dashboard */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl p-5 shadow-md border-2 border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-[#3D4A2B]/10 rounded-xl flex items-center justify-center">
-              <Package size={24} className="text-[#3D4A2B]" />
+    <div className="space-y-8">
+      {/* Stats Dashboard with Enhanced Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white rounded-xl p-6 shadow-lg border-2 border-gray-100 hover:shadow-xl transition-all">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 bg-[#3D4A2B]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Package size={28} className="text-[#3D4A2B]" />
             </div>
-            <div>
-              <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-              <div className="text-sm text-gray-600">Totalt resurser</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-5 shadow-md border-2 border-[#556B2F]/20">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-[#556B2F]/10 rounded-xl flex items-center justify-center">
-              <Shield size={24} className="text-[#556B2F]" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-gray-900">{stats.msbFulfillmentPercent}%</div>
-              <div className="text-sm text-gray-600">MSB uppfyllnad</div>
+            <div className="flex-1">
+              <div className="text-4xl font-black text-gray-900 mb-1">{stats.total}</div>
+              <div className="text-sm font-semibold text-gray-700">Totalt resurser</div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-5 shadow-md border-2 border-blue-100">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
-              <Users size={24} className="text-blue-600" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-gray-900">{stats.sharedCount}</div>
-              <div className="text-sm text-gray-600">Delade resurser</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Category Overview Cards */}
-      <div className="bg-white rounded-xl shadow-md border-2 border-gray-100 p-4">
-        <h3 className="text-base font-bold text-gray-900 mb-3">Översikt per kategori</h3>
-        <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
-          {categoryStats.map(cat => (
-            <button
-              key={cat.key}
-              onClick={() => setActiveCategory(cat.key)}
-              className={`p-2 rounded-lg border-2 transition-all hover:shadow-md ${
-                activeCategory === cat.key
-                  ? 'border-[#3D4A2B] bg-[#3D4A2B]/5'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
+        <div 
+          className="bg-white rounded-xl p-6 shadow-lg border-3 hover:shadow-xl transition-all relative group/tooltip"
+          style={{ borderColor: getMsbColor(stats.msbFulfillmentPercent).bg }}
+        >
+          <div className="flex items-center gap-4">
+            <div 
+              className="w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0 relative"
+              style={{ backgroundColor: `${getMsbColor(stats.msbFulfillmentPercent).bg}20` }}
             >
-              <div className="text-2xl mb-1">{cat.config.emoji}</div>
-              <div className="text-xs font-bold text-gray-900 truncate">{cat.config.label}</div>
-              <div className="text-[10px] text-gray-600 mb-1">{cat.total}</div>
-              {cat.total > 0 && (
-                <div className="w-full bg-gray-200 rounded-full h-1.5">
-                  <div 
-                    className="bg-[#3D4A2B] h-1.5 rounded-full transition-all"
-                    style={{ width: `${cat.fillRate}%` }}
-                  />
-                </div>
-              )}
-            </button>
-          ))}
+              <Shield size={28} style={{ color: getMsbColor(stats.msbFulfillmentPercent).bg }} />
+              <HelpCircle 
+                size={16} 
+                className="absolute -top-1 -right-1 text-gray-500"
+              />
+            </div>
+            <div className="flex-1">
+              <div 
+                className="text-4xl font-black mb-1"
+                style={{ 
+                  color: getMsbColor(stats.msbFulfillmentPercent).bg,
+                  textShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                }}
+              >
+                {stats.msbFulfillmentPercent}%
+              </div>
+              <div className="text-sm font-semibold text-gray-700">MSB uppfyllnad</div>
+            </div>
+          </div>
+          {/* Tooltip */}
+          <div className="absolute left-0 bottom-full mb-2 w-80 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 z-10">
+            {t('dashboard.msb_tooltip')}
+          </div>
         </div>
-        {activeCategory !== 'all' && (
-          <button
-            onClick={() => setActiveCategory('all')}
-            className="mt-3 text-xs text-[#3D4A2B] hover:text-[#2A331E] font-medium"
-          >
-            ← Visa alla kategorier
-          </button>
-        )}
+
+        <div className="bg-white rounded-xl p-6 shadow-lg border-2 border-[#3D4A2B]/20 hover:shadow-xl transition-all">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 bg-[#3D4A2B]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Users size={28} className="text-[#3D4A2B]" />
+            </div>
+            <div className="flex-1">
+              <div className="text-4xl font-black text-gray-900 mb-1">{stats.sharedCount}</div>
+              <div className="text-sm font-semibold text-gray-700">Delade resurser</div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Main Inventory List - Without Category Column */}
-      <ResourceListView
-        items={filteredResources}
-        columns={columns}
-        cardRenderer={(resource) => (
-          <ResourceCardWithActions
-            resource={resource}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onShare={handleShare}
+      {/* Search Bar */}
+      <div className="bg-white rounded-xl shadow-lg border-2 border-gray-100 p-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Sök resurser..."
+            className="w-full pl-10 pr-10 py-3 border-2 border-gray-200 rounded-lg focus:border-[#3D4A2B] focus:ring-0 transition-colors"
           />
-        )}
-        mobileListRenderer={(resource) => (
-          <div className="p-4">
-            <ResourceCardWithActions
-              resource={resource}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onShare={handleShare}
-            />
-          </div>
-        )}
-        defaultViewMode="cards"
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
-        showViewToggle={true}
-        searchable={true}
-        searchPlaceholder="Sök resurser..."
-        searchQuery={searchQuery}
-        onSearch={setSearchQuery}
-        filterable={false}
-        loading={loading}
-        loadingMessage="Laddar dina resurser..."
-        emptyState={
-          <div className="bg-white rounded-xl p-12 text-center shadow-md">
-            <div className="text-6xl mb-4">📦</div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
-              Din beredskapslista är tom
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Börja bygga din beredskapslista genom att lägga till resurser
-            </p>
+          {searchQuery && (
             <button
-              onClick={() => setShowAddModal(true)}
-              className="px-6 py-3 bg-gradient-to-r from-[#556B2F] to-[#3D4A2B] text-white font-bold rounded-xl hover:shadow-lg transition-all inline-flex items-center gap-2"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
             >
-              <Plus size={20} />
-              Lägg till första resursen
+              <X size={18} />
             </button>
+          )}
+        </div>
+        <div className="flex items-center justify-between mt-3">
+          <div className="text-sm text-gray-600">
+            {filteredResources.length} {filteredResources.length === 1 ? 'resurs' : 'resurser'}
+            {searchQuery && ` som matchar "${searchQuery}"`}
           </div>
-        }
-        headerActions={
           <button
             onClick={() => setShowAddModal(true)}
-            className="px-6 py-3 bg-gradient-to-r from-[#556B2F] to-[#3D4A2B] text-white font-bold rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#556B2F] to-[#3D4A2B] text-white font-bold text-sm rounded-lg hover:shadow-lg transition-all shadow-md min-h-[40px] touch-manipulation active:scale-98"
+            aria-label="Lägg till ny resurs"
           >
-            <Plus size={20} />
-            <span className="hidden sm:inline">Lägg till resurs</span>
+            <Plus size={18} />
+            <span>Lägg till resurs</span>
           </button>
-        }
-        rowKey={(resource) => resource.id}
-        cardGridClassName="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-        tableClassName="overflow-x-auto"
-      />
+        </div>
+      </div>
+
+      {/* Empty State */}
+      {filteredResources.length === 0 && (
+        <div className="bg-white rounded-xl p-12 text-center shadow-lg border-2 border-gray-200">
+          <div className="text-7xl mb-6">
+            {searchQuery ? '🔍' : '📦'}
+          </div>
+          <h3 className="text-2xl font-black text-gray-900 mb-3">
+            {searchQuery ? t('dashboard.empty_search_result') : 'Din beredskapslista är tom'}
+          </h3>
+          <p className="text-gray-600 font-medium mb-8 max-w-md mx-auto leading-relaxed">
+            {searchQuery ? t('dashboard.empty_search_tip') : 'Börja bygga din beredskapslista genom att lägga till resurser'}
+          </p>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#556B2F] to-[#3D4A2B] text-white font-bold text-base rounded-xl hover:shadow-xl transition-all shadow-lg min-h-[56px] touch-manipulation active:scale-98"
+            aria-label="Lägg till ny resurs"
+          >
+            <Plus size={22} />
+            <span>{searchQuery ? 'Lägg till resurs' : 'Lägg till första resursen'}</span>
+          </button>
+        </div>
+      )}
+
+      {/* Accordion-Style Category Groups */}
+      {filteredResources.length > 0 && (
+        <div className="space-y-3">
+          {categoryStats
+            .filter(cat => {
+              // Only show categories that have resources (after filtering)
+              const categoryResources = filteredResources.filter(r => r.category === cat.key);
+              return categoryResources.length > 0;
+            })
+            .map(cat => {
+              const categoryResources = filteredResources.filter(r => r.category === cat.key);
+              const isEmpty = cat.total === 0 || cat.fillRate === 0;
+              const statusColor = getCategoryStatusColor(cat.fillRate);
+              const isExpanded = expandedCategories.has(cat.key);
+              
+              return (
+                <div 
+                  key={cat.key} 
+                  id={`category-${cat.key}`}
+                  className="bg-white rounded-xl shadow-md border-2 border-gray-100 overflow-hidden scroll-mt-4"
+                >
+                  {/* Sticky Category Header */}
+                  <button
+                    onClick={() => {
+                      setExpandedCategories(prev => {
+                        const next = new Set(prev);
+                        if (next.has(cat.key)) {
+                          next.delete(cat.key);
+                        } else {
+                          next.add(cat.key);
+                        }
+                        return next;
+                      });
+                    }}
+                    className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-white to-gray-50 hover:from-gray-50 hover:to-gray-100 transition-colors sticky top-0 z-10 border-b-2 border-gray-100"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">{cat.config.emoji}</span>
+                      <div className="text-left">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-lg font-black text-gray-900">{cat.config.label}</h3>
+                          <span 
+                            className="text-xs font-bold px-2 py-1 rounded-full"
+                            style={{ 
+                              backgroundColor: isEmpty ? '#f5f5f5' : statusColor + '20',
+                              color: isEmpty ? '#999' : statusColor
+                            }}
+                          >
+                            {categoryResources.length}
+                          </span>
+                        </div>
+                        {isEmpty && (
+                          <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                            <AlertTriangle size={12} />
+                            <span>Lägg till resurser</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                    </div>
+                  </button>
+
+                  {/* Category Resources */}
+                  {isExpanded && (
+                    <div className="p-3">
+                      {categoryResources.map(resource => (
+                        <ResourceMiniCard
+                          key={resource.id}
+                          resource={resource}
+                          onEdit={handleEdit}
+                          onDelete={handleDelete}
+                          onShare={handleShare}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+        </div>
+      )}
 
       {/* Modals */}
       <SimpleAddResourceModal

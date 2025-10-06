@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Pencil, Trash, Share2, Shield, CheckCircle, AlertTriangle, Calendar, Package } from 'lucide-react';
+import { Pencil, Trash, Share2, Shield, CheckCircle, AlertTriangle, Calendar, Package, HelpCircle } from 'lucide-react';
 import { Resource } from '@/lib/supabase';
+import { t } from '@/lib/locales';
 
 const categoryConfig = {
   food: { emoji: '🍞', label: 'Mat' },
@@ -36,8 +37,10 @@ export function ResourceCardWithActions({
   
   const isExpiringSoon = resource.quantity > 0 && resource.days_remaining < 30 && resource.days_remaining < 99999;
   const isExpired = resource.quantity > 0 && resource.days_remaining <= 0;
+  const isEmpty = resource.quantity === 0;
 
-  const handleDeleteClick = () => {
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click
     if (showDeleteConfirm) {
       onDelete(resource);
       setShowDeleteConfirm(false);
@@ -47,50 +50,93 @@ export function ResourceCardWithActions({
     }
   };
 
+  const handleShareClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click
+    if (onShare) onShare(resource);
+  };
+
+  // Make entire card clickable to edit
+  const handleCardClick = () => {
+    onEdit(resource);
+  };
+
   return (
-    <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all border-2 border-gray-100 hover:border-gray-200">
+    <div
+      className={`relative rounded-xl shadow-md hover:shadow-xl transition-all border hover:border-[#3D4A2B] cursor-pointer ${
+        isEmpty 
+          ? 'bg-gray-50 border-gray-300' 
+          : 'bg-white border-gray-200'
+      }`}
+    >
+      {/* Clickable overlay to make entire card clickable */}
+      <div
+        onClick={handleCardClick}
+        className="absolute inset-0 z-0 cursor-pointer"
+        role="button"
+        tabIndex={0}
+        aria-label={`${resource.name}: ${resource.quantity} ${resource.unit}. ${t('dashboard.click_to_edit')}`}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleCardClick();
+          }
+        }}
+      />
+      {/* Subtle Empty Indicator */}
+      {isEmpty && (
+        <div className="absolute top-3 right-3 bg-gray-200 text-gray-500 p-2 rounded-lg z-10">
+          <AlertTriangle size={16} strokeWidth={2} />
+        </div>
+      )}
+
+      {/* Subtle pattern overlay for color-blind accessibility - below all content */}
+      {isEmpty && (
+        <div className="absolute inset-0 opacity-3 pointer-events-none rounded-xl z-0" style={{
+          backgroundImage: 'repeating-linear-gradient(45deg, #ccc 0, #ccc 1px, transparent 1px, transparent 12px)'
+        }}></div>
+      )}
+
       {/* Header */}
-      <div className="p-5 border-b border-gray-100">
+      <div className="p-6 border-b border-gray-100 relative z-20">
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-3 flex-1">
-            <div className="text-3xl flex-shrink-0">
+            <div className="text-4xl flex-shrink-0">
               {config.emoji}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-bold text-gray-900 truncate">
+              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                <h3 className="font-bold text-lg text-gray-900 break-words min-w-0">
                   {resource.name}
                 </h3>
                 {resource.is_msb_recommended && (
-                  <div className="flex-shrink-0 bg-[#556B2F]/10 text-[#556B2F] px-2 py-1 rounded text-xs font-medium flex items-center gap-1">
+                  <div className="flex-shrink-0 bg-[#556B2F]/10 text-[#556B2F] px-2 py-1 rounded text-xs font-bold flex items-center gap-1 relative group/tooltip whitespace-nowrap">
                     <Shield size={12} />
                     MSB
+                    {/* Tooltip */}
+                    <div className="absolute left-0 top-full mt-1 w-64 p-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 z-20 pointer-events-none">
+                      {t('dashboard.msb_tooltip')}
+                    </div>
                   </div>
                 )}
               </div>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm font-medium text-gray-600">
                 {config.label}
               </p>
             </div>
           </div>
 
-          {/* Status Badge */}
-          {resource.quantity > 0 && (
+          {/* Status Badge - Only show warnings */}
+          {resource.quantity > 0 && (isExpired || isExpiringSoon) && (
             <div className="flex-shrink-0 ml-3">
               {isExpired ? (
-                <div className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                <div className="bg-[#8B4513]/10 text-[#8B4513] px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 shadow-sm whitespace-nowrap">
                   <AlertTriangle size={12} />
                   Utgången
                 </div>
-              ) : isExpiringSoon ? (
-                <div className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+              ) : (
+                <div className="bg-[#B8860B]/10 text-[#B8860B] px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 shadow-sm whitespace-nowrap">
                   <AlertTriangle size={12} />
                   Utgår snart
-                </div>
-              ) : (
-                <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                  <CheckCircle size={12} />
-                  Ifylld
                 </div>
               )}
             </div>
@@ -99,62 +145,79 @@ export function ResourceCardWithActions({
       </div>
 
       {/* Details */}
-      <div className="p-5">
+      <div className="p-6 relative z-20">
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div>
-            <div className="text-xs text-gray-500 mb-1 flex items-center gap-1">
-              <Package size={12} />
+            <div className="text-xs text-gray-500 font-semibold mb-1.5 flex items-center gap-1">
+              <Package size={14} />
               Antal
             </div>
-            <div className="text-lg font-bold text-gray-900">
-              {resource.quantity} {resource.unit}
+            <div className="text-xl font-black text-gray-900">
+              {resource.quantity} {resource.unit.replace(/stycken/gi, 'st').replace(/styck/gi, 'st')}
             </div>
           </div>
-          <div>
-            <div className="text-xs text-gray-500 mb-1 flex items-center gap-1">
-              <Calendar size={12} />
+          <div className="relative group/tooltip">
+            <div className="text-xs text-gray-500 font-semibold mb-1.5 flex items-center gap-1">
+              <Calendar size={14} />
               Hållbarhet
+              <HelpCircle size={12} className="text-gray-400" />
             </div>
-            <div className="text-lg font-bold text-gray-900">
+            <div className="text-xl font-black text-gray-900">
               {resource.days_remaining >= 99999 
                 ? 'Obegränsad' 
                 : `${resource.days_remaining} dagar`}
             </div>
+            {/* Tooltip */}
+            <div className="absolute left-0 top-full mt-1 w-64 p-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 z-20">
+              {t('dashboard.days_remaining_tooltip')}
+            </div>
           </div>
         </div>
 
+        {/* Soft Empty State Message */}
+        {isEmpty && (
+          <div className="mb-4 p-3 bg-gray-100 border border-gray-200 rounded-lg">
+            <p className="text-sm text-gray-600 font-medium">
+              {t('dashboard.add_to_improve_preparedness')}
+            </p>
+          </div>
+        )}
+
         {/* Actions */}
         {showActions && (
-          <div className="flex gap-2 pt-4 border-t border-gray-100">
+          <div className="flex gap-2 pt-4 border-t border-gray-100 relative z-20">
             <button
-              onClick={() => onEdit(resource)}
-              className="flex-1 px-4 py-2 bg-[#3D4A2B] text-white rounded-lg font-medium hover:bg-[#2A331E] transition-colors flex items-center justify-center gap-2"
+              onClick={(e) => { e.stopPropagation(); onEdit(resource); }}
+              className="flex-1 px-5 py-3 bg-[#3D4A2B] text-white rounded-lg font-bold hover:bg-[#2A331E] transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg min-h-[48px]"
+              aria-label="Redigera resurs"
             >
-              <Pencil size={16} />
+              <Pencil size={18} />
               Redigera
             </button>
             
             {onShare && (
               <button
-                onClick={() => onShare(resource)}
-                className="px-4 py-2 bg-gradient-to-r from-[#556B2F] to-[#3D4A2B] text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                onClick={handleShareClick}
+                className="px-5 py-3 bg-gradient-to-r from-[#556B2F] to-[#3D4A2B] text-white rounded-lg font-bold hover:shadow-xl transition-all flex items-center justify-center gap-2 shadow-md min-h-[48px]"
                 title="Dela till samhälle"
+                aria-label="Dela resurs till samhälle"
               >
-                <Share2 size={16} />
+                <Share2 size={18} />
               </button>
             )}
             
             <button
               onClick={handleDeleteClick}
-              className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${
+              className={`px-5 py-3 rounded-lg font-bold transition-all flex items-center justify-center gap-2 min-h-[48px] ${
                 showDeleteConfirm
-                  ? 'bg-red-600 text-white'
-                  : 'bg-red-100 text-red-700 hover:bg-red-200'
+                  ? 'bg-[#8B4513] text-white shadow-lg'
+                  : 'bg-[#8B4513]/10 text-[#8B4513] hover:bg-[#8B4513]/20 shadow-md'
               }`}
               title={showDeleteConfirm ? 'Klicka igen för att bekräfta' : 'Ta bort'}
+              aria-label={showDeleteConfirm ? 'Bekräfta borttagning' : 'Ta bort resurs'}
             >
-              <Trash size={16} />
-              {showDeleteConfirm && <span className="text-xs">Bekräfta?</span>}
+              <Trash size={18} />
+              {showDeleteConfirm && <span className="text-xs font-black">Bekräfta?</span>}
             </button>
           </div>
         )}
@@ -213,7 +276,7 @@ export function ResourceTableRow({
       {/* Quantity */}
       <td className="px-4 py-3 text-center">
         <span className="font-semibold text-gray-900">
-          {resource.quantity} {resource.unit}
+          {resource.quantity} {resource.unit.replace(/stycken/gi, 'st').replace(/styck/gi, 'st')}
         </span>
       </td>
 
@@ -224,25 +287,20 @@ export function ResourceTableRow({
         </span>
       </td>
 
-      {/* Status */}
+      {/* Status - Only show warnings */}
       <td className="px-4 py-3">
-        {resource.is_filled && (
+        {resource.quantity > 0 && (
           isExpired ? (
-            <div className="inline-flex items-center gap-1 bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-medium">
+            <div className="inline-flex items-center gap-1 bg-[#8B4513]/10 text-[#8B4513] px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">
               <AlertTriangle size={12} />
               Utgången
             </div>
           ) : isExpiringSoon ? (
-            <div className="inline-flex items-center gap-1 bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-medium">
+            <div className="inline-flex items-center gap-1 bg-[#B8860B]/10 text-[#B8860B] px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">
               <AlertTriangle size={12} />
               Utgår snart
             </div>
-          ) : (
-            <div className="inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium">
-              <CheckCircle size={12} />
-              Ifylld
-            </div>
-          )
+          ) : null
         )}
       </td>
 
@@ -252,32 +310,35 @@ export function ResourceTableRow({
           <div className="flex gap-2 justify-end">
             <button
               onClick={() => onEdit(resource)}
-              className="p-2 text-[#3D4A2B] hover:bg-[#3D4A2B]/10 rounded-lg transition-colors"
+              className="p-3 text-[#3D4A2B] hover:bg-[#3D4A2B]/10 rounded-lg transition-all shadow-sm hover:shadow-md min-w-[48px] min-h-[48px] flex items-center justify-center"
               title="Redigera"
+              aria-label="Redigera resurs"
             >
-              <Pencil size={18} />
+              <Pencil size={20} />
             </button>
             
             {onShare && (
               <button
                 onClick={() => onShare(resource)}
-                className="p-2 text-[#556B2F] hover:bg-[#556B2F]/10 rounded-lg transition-colors"
+                className="p-3 text-[#556B2F] hover:bg-[#556B2F]/10 rounded-lg transition-all shadow-sm hover:shadow-md min-w-[48px] min-h-[48px] flex items-center justify-center"
                 title="Dela till samhälle"
+                aria-label="Dela resurs till samhälle"
               >
-                <Share2 size={18} />
+                <Share2 size={20} />
               </button>
             )}
             
             <button
               onClick={handleDeleteClick}
-              className={`p-2 rounded-lg transition-colors ${
+              className={`p-3 rounded-lg transition-all min-w-[48px] min-h-[48px] flex items-center justify-center ${
                 showDeleteConfirm
-                  ? 'bg-red-600 text-white'
-                  : 'text-red-600 hover:bg-red-100'
+                  ? 'bg-[#8B4513] text-white shadow-lg'
+                  : 'text-[#8B4513] hover:bg-[#8B4513]/10 shadow-sm hover:shadow-md'
               }`}
               title={showDeleteConfirm ? 'Klicka igen för att bekräfta' : 'Ta bort'}
+              aria-label={showDeleteConfirm ? 'Bekräfta borttagning' : 'Ta bort resurs'}
             >
-              <Trash size={18} />
+              <Trash size={20} />
             </button>
           </div>
         </td>

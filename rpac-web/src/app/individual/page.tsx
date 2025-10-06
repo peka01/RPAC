@@ -2,7 +2,6 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { SupabaseResourceInventory } from '@/components/supabase-resource-inventory';
 import { ResourceManagementHubResponsive } from '@/components/resource-management-hub-responsive';
 import { IndividualDashboard } from '@/components/individual-dashboard';
 import { PlantDiagnosis } from '@/components/plant-diagnosis';
@@ -345,7 +344,7 @@ function IndividualPageContent() {
     // Handle subsection navigation for resources
     if (activeSection === 'resources' && activeSubsection) {
       if (activeSubsection === 'inventory') {
-        return <SupabaseResourceInventory user={user} />;
+        return <ResourceManagementHubResponsive user={{ id: user.id }} />;
       }
       if (activeSubsection === 'ai-coach') {
         return <PersonalAICoach user={user} />;
