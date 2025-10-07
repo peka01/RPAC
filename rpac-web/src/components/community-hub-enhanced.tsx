@@ -77,6 +77,8 @@ export function CommunityHubEnhanced({ user, initialCommunityId, initialTab }: C
     }
     if (initialTab === 'resources' || initialTab === 'shared') {
       setActiveView('resources');
+    } else if (initialTab === 'messages') {
+      setActiveView('messaging');
     }
   }, [initialCommunityId, initialTab]);
 
@@ -119,94 +121,69 @@ export function CommunityHubEnhanced({ user, initialCommunityId, initialTab }: C
       {/* HEADER */}
       <div className="bg-gradient-to-r from-[#3D4A2B] to-[#2A331E] text-white shadow-lg">
         <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold mb-2">{t('local_community.navigation_title')}</h1>
-              <p className="text-[#C8D5B9]">{t('local_community.navigation_description')}</p>
+              <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
+                {activeView === 'home' ? 'Översikt' :
+                 activeView === 'discovery' ? 'Hitta fler' :
+                 activeView === 'resources' ? (
+                   <>
+                     <Building2 size={32} />
+                     {userCommunities.find(c => c.id === activeCommunityId)?.community_name || 'Samhälle'}
+                   </>
+                 ) :
+                 activeView === 'messaging' ? 'Meddelanden' :
+                 t('local_community.navigation_title')}
+              </h1>
+              <p className="text-[#C8D5B9]">
+                {activeView === 'home' ? 'Din lokala samhällsöversikt' :
+                 activeView === 'discovery' ? 'Upptäck nya samhällen i ditt område' :
+                 activeView === 'resources' ? 'Hantera gemensamma resurser' :
+                 activeView === 'messaging' ? 'Kommunikation med ditt samhälle' :
+                 t('local_community.navigation_description')}
+              </p>
             </div>
-            {userPostalCode && (
-              <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <MapPin size={16} />
-                  <span>{t('profile.postal_code')}: {userPostalCode.slice(0, 3)} {userPostalCode.slice(3)}</span>
+            <div className="flex items-center gap-4">
+              {userPostalCode && (
+                <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin size={16} />
+                    <span>{t('profile.postal_code')}: {userPostalCode.slice(0, 3)} {userPostalCode.slice(3)}</span>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+              
+              {/* Community Selector */}
+              {userCommunities.length > 1 && (
+                <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Users size={16} />
+                      <span className="font-medium">Aktivt samhälle:</span>
+                    </div>
+                    <select
+                      value={activeCommunityId}
+                      onChange={(e) => setActiveCommunityId(e.target.value)}
+                      className="px-3 py-1 bg-white border-2 border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-white text-gray-900 font-bold text-sm cursor-pointer hover:border-[#5C6B47] transition-colors"
+                    >
+                      {userCommunities.map((community) => (
+                        <option key={community.id} value={community.id} className="font-semibold">
+                          {community.community_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* NAVIGATION TABS */}
-          <div className="flex gap-2 flex-wrap">
-            {userCommunities.length > 0 && (
-              <button
-                onClick={() => setActiveView('home')}
-                className={activeView === 'home'
-                  ? "flex items-center gap-2 px-6 py-3 rounded-lg font-medium bg-white text-[#3D4A2B] shadow-md"
-                  : "flex items-center gap-2 px-6 py-3 rounded-lg font-medium bg-[#5C6B47]/30 text-white hover:bg-[#5C6B47]/50"}
-              >
-                <Shield size={20} /> Översikt
-              </button>
-            )}
-            <button
-              onClick={() => setActiveView('discovery')}
-              className={activeView === 'discovery'
-                ? "flex items-center gap-2 px-6 py-3 rounded-lg font-medium bg-white text-[#3D4A2B] shadow-md"
-                : "flex items-center gap-2 px-6 py-3 rounded-lg font-medium bg-[#5C6B47]/30 text-white hover:bg-[#5C6B47]/50"}
-            >
-              <Search size={20} />
-              {userCommunities.length > 0 ? 'Hitta fler' : t('local_community.find_communities')}
-            </button>
-            {userCommunities.length > 0 && (
-              <>
-                <button
-                  onClick={() => setActiveView('resources')}
-                  className={activeView === 'resources'
-                    ? "flex items-center gap-2 px-6 py-3 rounded-lg font-medium bg-white text-[#3D4A2B] shadow-md"
-                    : "flex items-center gap-2 px-6 py-3 rounded-lg font-medium bg-[#5C6B47]/30 text-white hover:bg-[#5C6B47]/50"}
-                >
-                  <Package size={20} /> Resurser
-                </button>
-                <button
-                  onClick={() => setActiveView('messaging')}
-                  className={activeView === 'messaging'
-                    ? "flex items-center gap-2 px-6 py-3 rounded-lg font-medium bg-white text-[#3D4A2B] shadow-md"
-                    : "flex items-center gap-2 px-6 py-3 rounded-lg font-medium bg-[#5C6B47]/30 text-white hover:bg-[#5C6B47]/50"}
-                >
-                  <MessageCircle size={20} /> {t('local_community.messages')}
-                </button>
-              </>
-            )}
-          </div>
         </div>
       </div>
 
       {/* MAIN CONTENT */}
       <div className="max-w-7xl mx-auto px-6 py-8">
         
-        {/** COMMUNITY SWITCHER */}
-        {userCommunities.length > 1 && activeView !== 'discovery' && (
-          <div className="mb-6 bg-gradient-to-r from-[#3D4A2B] to-[#2A331E] rounded-xl p-4 shadow-lg">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-white">
-                <Users size={20} />
-                <span className="font-medium text-sm">Aktivt samhälle:</span>
-              </div>
-              <select
-                value={activeCommunityId}
-                onChange={(e) => setActiveCommunityId(e.target.value)}
-                className="flex-1 max-w-md px-4 py-3 bg-white border-2 border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-white text-gray-900 font-bold text-lg cursor-pointer hover:border-[#5C6B47] transition-colors"
-              >
-                {userCommunities.map((community) => (
-                  <option key={community.id} value={community.id} className="font-semibold">
-                    {community.community_name} ({community.member_count} medlemmar)
-                  </option>
-                ))}
-              </select>
-              <div className="text-white/80 text-sm">
-                {userCommunities.length} samhällen
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Location Prompt */}
         {!userPostalCode && (
@@ -256,28 +233,6 @@ export function CommunityHubEnhanced({ user, initialCommunityId, initialTab }: C
             <div>
               {activeCommunityId ? (
                 <>
-                  {/* Community Selector */}
-                  {userCommunities.length > 1 && (
-                    <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Building2 size={20} className="text-[#3D4A2B]" />
-                          <span className="font-medium text-gray-700">Välj samhälle:</span>
-                        </div>
-                        <select
-                          value={activeCommunityId}
-                          onChange={(e) => setActiveCommunityId(e.target.value)}
-                          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B] focus:border-transparent bg-white"
-                        >
-                          {userCommunities.map((community) => (
-                            <option key={community.id} value={community.id}>
-                              {community.community_name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  )}
                   
                   <CommunityResourceHub
                     user={user}

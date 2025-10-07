@@ -19,6 +19,16 @@
       "regional": "REGIONALT"
     }
   },
+  "dashboard": {
+    "good_morning": "God morgon",
+    "good_afternoon": "God eftermiddag", 
+    "good_night": "God kväll",
+    "online": "Online",
+    "offline": "Offline",
+    "crisis_mode": "Krisläge",
+    "user": "Användare",
+    "login": "Logga in"
+  },
   "notifications": {
     "title": "Notifieringar",
     "no_notifications": "Inga notifieringar",

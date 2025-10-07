@@ -10,9 +10,11 @@ import type { Notification } from './notification-center';
 interface NotificationCenterResponsiveProps {
   user: User;
   onNotificationClick?: (notification: Notification) => void;
+  onClose?: () => void;
+  isOpen?: boolean;
 }
 
-export function NotificationCenterResponsive({ user, onNotificationClick }: NotificationCenterResponsiveProps) {
+export function NotificationCenterResponsive({ user, onNotificationClick, onClose, isOpen }: NotificationCenterResponsiveProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [showMobileCenter, setShowMobileCenter] = useState(false);
 
@@ -62,6 +64,8 @@ export function NotificationCenterResponsive({ user, onNotificationClick }: Noti
     <NotificationCenter
       user={user}
       onNotificationClick={handleNotificationClick}
+      onClose={onClose}
+      isOpen={isOpen}
     />
   );
 }

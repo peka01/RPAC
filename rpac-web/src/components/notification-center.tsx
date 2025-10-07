@@ -31,11 +31,14 @@ export interface Notification {
 interface NotificationCenterProps {
   user: User;
   onNotificationClick?: (notification: Notification) => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export function NotificationCenter({ user, onNotificationClick }: NotificationCenterProps) {
+export function NotificationCenter({ user, onNotificationClick, isOpen: externalIsOpen, onClose }: NotificationCenterProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -51,7 +54,11 @@ export function NotificationCenter({ user, onNotificationClick }: NotificationCe
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+        if (externalIsOpen !== undefined && onClose) {
+          onClose();
+        } else {
+          setInternalIsOpen(false);
+        }
       }
     };
 
@@ -181,7 +188,11 @@ export function NotificationCenter({ user, onNotificationClick }: NotificationCe
       onNotificationClick(notification);
     }
     
-    setIsOpen(false);
+    if (externalIsOpen !== undefined && onClose) {
+      onClose();
+    } else {
+      setInternalIsOpen(false);
+    }
   };
 
   const getNotificationIcon = (type: Notification['type']) => {
@@ -326,7 +337,13 @@ export function NotificationCenter({ user, onNotificationClick }: NotificationCe
     <div className="relative" ref={panelRef}>
       {/* Notification Bell */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          if (externalIsOpen !== undefined && onClose) {
+            onClose();
+          } else {
+            setInternalIsOpen(!isOpen);
+          }
+        }}
         className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors touch-manipulation"
         aria-label={`Notifieringar${unreadCount > 0 ? ` (${unreadCount} nya)` : ''}`}
       >
@@ -356,7 +373,13 @@ export function NotificationCenter({ user, onNotificationClick }: NotificationCe
                 </button>
               )}
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  if (externalIsOpen !== undefined && onClose) {
+                    onClose();
+                  } else {
+                    setInternalIsOpen(false);
+                  }
+                }}
                 className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 <X className="w-4 h-4 text-gray-500" />

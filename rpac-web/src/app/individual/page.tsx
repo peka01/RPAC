@@ -190,14 +190,20 @@ function IndividualPageContent() {
         />
       </div>
 
-      {/* Header with Navigation */}
+      {/* Simple Header */}
       <div className="bg-gradient-to-r from-[#3D4A2B] to-[#2A331E] text-white shadow-lg">
         <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold mb-2">{t('individual.title')}</h1>
+              <h1 className="text-3xl font-bold mb-2">
+                {activeSection === 'cultivation' ? 'Min odling' : 
+                 activeSection === 'resources' ? 'Resurser' : 
+                 t('individual.title')}
+              </h1>
               <p className="text-[#C8D5B9]">
-                {t('individual.subtitle')}
+                {activeSection === 'cultivation' ? 'Din personliga odlingscentral' :
+                 activeSection === 'resources' ? 'Hantera dina resurser och verktyg' :
+                 t('individual.subtitle')}
               </p>
             </div>
             {profile?.household_size && profile.household_size > 1 && (
@@ -208,43 +214,6 @@ function IndividualPageContent() {
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Navigation Tabs */}
-          <div className="flex gap-2 flex-wrap">
-            <button
-              onClick={() => handleSectionChange('home')}
-              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
-                activeSection === 'home'
-                  ? 'bg-white text-[#3D4A2B] shadow-md'
-                  : 'bg-[#5C6B47]/30 text-white hover:bg-[#5C6B47]/50'
-              }`}
-            >
-              <Home size={20} />
-              {t('individual.home_status')}
-            </button>
-            <button
-              onClick={() => handleSectionChange('cultivation')}
-              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
-                activeSection === 'cultivation'
-                  ? 'bg-white text-[#3D4A2B] shadow-md'
-                  : 'bg-[#5C6B47]/30 text-white hover:bg-[#5C6B47]/50'
-              }`}
-            >
-              <Sprout size={20} />
-              {t('individual.cultivation_planning')}
-            </button>
-            <button
-              onClick={() => handleSectionChange('resources')}
-              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
-                activeSection === 'resources'
-                  ? 'bg-white text-[#3D4A2B] shadow-md'
-                  : 'bg-[#5C6B47]/30 text-white hover:bg-[#5C6B47]/50'
-              }`}
-            >
-              <BookOpen size={20} />
-              {t('individual.resources_development')}
-            </button>
           </div>
         </div>
       </div>

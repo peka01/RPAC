@@ -580,53 +580,6 @@ export function CommunityResourceHub({
           </div>
         </div>
 
-        {/* Enhanced Resource Status Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-5 border border-white/30">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                <Share2 size={20} className="text-white" />
-              </div>
-              <div>
-                <div className="text-white/80 text-sm font-medium">Delade från medlemmar</div>
-                <div className="text-2xl font-bold">{stats.totalShared}</div>
-              </div>
-            </div>
-            <div className="text-white/70 text-xs">
-              {stats.availableShared} tillgängliga • {stats.totalShared - stats.availableShared} begärda
-            </div>
-          </div>
-
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-5 border border-white/30">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                <Building2 size={20} className="text-white" />
-              </div>
-              <div>
-                <div className="text-white/80 text-sm font-medium">Samhällets resurser</div>
-                <div className="text-2xl font-bold">{stats.totalOwned}</div>
-              </div>
-            </div>
-            <div className="text-white/70 text-xs">
-              Gemensamma tillgångar och utrustning
-            </div>
-          </div>
-
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-5 border border-white/30">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                <AlertCircle size={20} className="text-white" />
-              </div>
-              <div>
-                <div className="text-white/80 text-sm font-medium">Aktiva önskemål</div>
-                <div className="text-2xl font-bold">{stats.activeHelp}</div>
-              </div>
-            </div>
-            <div className="text-white/70 text-xs">
-              {stats.resolvedHelp} lösta • {stats.activeHelp} öppna
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Three-Tier Navigation */}

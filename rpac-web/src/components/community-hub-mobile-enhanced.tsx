@@ -54,6 +54,8 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
     }
     if (initialTab === 'resources' || initialTab === 'shared') {
       setActiveView('resources');
+    } else if (initialTab === 'messages') {
+      setActiveView('messaging');
     }
   }, [initialCommunityId, initialTab]);
 
@@ -356,12 +358,12 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
             </div>
           </div>
 
-          {/* Community Switcher - Only show if user has multiple communities */}
+          {/* Community Selector - Only show if user has multiple communities */}
           {userCommunities.length > 1 && (
-            <div className="mt-4 bg-white/10 backdrop-blur-sm rounded-xl p-4">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
               <div className="flex items-center gap-3 mb-2">
                 <Users size={18} />
-                <span className="text-sm font-medium">{t('community.active_community')}</span>
+                <span className="text-sm font-medium">Aktivt samhälle:</span>
               </div>
               <select
                 value={activeCommunityId}
@@ -370,15 +372,16 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
               >
                 {userCommunities.map((community) => (
                   <option key={community.id} value={community.id} className="font-semibold">
-                    {community.community_name} ({community.member_count || 0} {t('community.members_count')})
+                    {community.community_name} ({community.member_count || 0} medlemmar)
                   </option>
                 ))}
               </select>
               <div className="text-white/80 text-sm mt-2 text-center">
-                {userCommunities.length} {t('community.communities_count')}
+                {userCommunities.length} samhällen
               </div>
             </div>
           )}
+
 
           {/* Stats */}
           <div className="grid grid-cols-2 gap-3">
@@ -494,66 +497,44 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
           </div>
         )}
 
-          {activeView === 'resources' && (
-            <div className="pb-24">
-              {activeCommunityId ? (
-                <>
-                  {/* Community Selector */}
-                  {userCommunities.length > 1 && (
-                    <div className="mb-4 bg-white rounded-lg shadow-sm border border-gray-200 p-4 mx-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Package size={20} className="text-[#3D4A2B]" />
-                          <span className="font-medium text-gray-700">Välj samhälle:</span>
-                        </div>
-                        <select
-                          value={activeCommunityId}
-                          onChange={(e) => setActiveCommunityId(e.target.value)}
-                          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B] focus:border-transparent bg-white text-sm"
-                        >
-                          {userCommunities.map((community) => (
-                            <option key={community.id} value={community.id}>
-                              {community.community_name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  )}
-                  
-                  <CommunityResourceHubMobile
-                    user={user}
-                    communityId={activeCommunityId}
-                    communityName={userCommunities.find(c => c.id === activeCommunityId)?.community_name || 'Samhälle'}
-                    isAdmin={isAdmin}
-                    initialTab={initialTab}
-                  />
-                </>
-              ) : loadingCommunities ? (
-              <div className="flex items-center justify-center min-h-screen px-4">
-                <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar samhälle" />
-              </div>
-            ) : (
-              <div className="flex items-center justify-center min-h-screen px-4">
-                <div className="text-center">
-                  <div className="bg-[#5C6B47]/10 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
-                    <Package className="text-[#5C6B47]" size={48} />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">Inget samhälle valt</h3>
-                  <p className="text-gray-600 mb-8">
-                    Gå med i ett samhälle för att se och dela resurser
-                  </p>
-                  <button
-                    onClick={() => setActiveView('discovery')}
-                    className="px-8 py-4 bg-[#3D4A2B] text-white font-bold rounded-xl hover:bg-[#2A331E] transition-all touch-manipulation active:scale-95"
-                  >
-                    Hitta samhällen
-                  </button>
+        {activeView === 'resources' && (
+          <div className="pb-24">
+            {activeCommunityId ? (
+              <>
+                
+                <CommunityResourceHubMobile
+                  user={user}
+                  communityId={activeCommunityId}
+                  communityName={userCommunities.find(c => c.id === activeCommunityId)?.community_name || 'Samhälle'}
+                  isAdmin={isAdmin}
+                  initialTab={initialTab}
+                />
+              </>
+            ) : loadingCommunities ? (
+            <div className="flex items-center justify-center min-h-screen px-4">
+              <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar samhälle" />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center min-h-screen px-4">
+              <div className="text-center">
+                <div className="bg-[#5C6B47]/10 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+                  <Package className="text-[#5C6B47]" size={48} />
                 </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">Inget samhälle valt</h3>
+                <p className="text-gray-600 mb-8">
+                  Gå med i ett samhälle för att se och dela resurser
+                </p>
+                <button
+                  onClick={() => setActiveView('discovery')}
+                  className="px-8 py-4 bg-[#3D4A2B] text-white font-bold rounded-xl hover:bg-[#2A331E] transition-all touch-manipulation active:scale-95"
+                >
+                  Hitta samhällen
+                </button>
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
+      )}
 
         {activeView === 'messaging' && (
           <div className="pb-24">
