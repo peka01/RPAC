@@ -10,15 +10,104 @@ import {
   Settings,
   Menu,
   X,
-  LogOut
+  LogOut,
+  Bell
 } from 'lucide-react';
 import { t } from '@/lib/locales';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { NotificationCenterMobile } from './notification-center-mobile';
+import { supabase } from '@/lib/supabase';
 
 export function MobileNavigation() {
   const pathname = usePathname();
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser(session.user);
+        loadUnreadCount(session.user.id);
+      }
+    };
+
+    loadUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+        loadUnreadCount(session.user.id);
+      } else {
+        setUser(null);
+        setUnreadCount(0);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // Hide FAB when notification modal is open
+  useEffect(() => {
+    if (showNotifications) {
+      document.body.classList.add('notification-modal-open');
+    } else {
+      document.body.classList.remove('notification-modal-open');
+    }
+    
+    return () => {
+      document.body.classList.remove('notification-modal-open');
+    };
+  }, [showNotifications]);
+
+  // Subscribe to notification changes for real-time updates
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('notifications')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`
+        }, 
+        () => {
+          // Reload unread count when notifications change
+          loadUnreadCount(user.id);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  const loadUnreadCount = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('is_read', false);
+
+      if (error) {
+        console.error('Error loading unread count:', error);
+        return;
+      }
+
+      setUnreadCount(data?.length || 0);
+    } catch (err) {
+      console.error('Error loading unread count:', err);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -91,11 +180,19 @@ export function MobileNavigation() {
             );
           })}
           
+          
           <button
             onClick={() => setShowMenu(true)}
-            className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-gray-600 active:scale-95 transition-all touch-manipulation"
+            className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-gray-600 active:scale-95 transition-all touch-manipulation relative"
           >
-            <Menu size={22} strokeWidth={2} />
+            <div className="relative">
+              <Menu size={22} strokeWidth={2} />
+              {user && unreadCount > 0 && (
+                <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center animate-pulse">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </div>
+              )}
+            </div>
             <span className="text-[10px] font-medium">Meny</span>
           </button>
         </div>
@@ -113,12 +210,33 @@ export function MobileNavigation() {
           >
             <div className="flex items-center justify-between p-6 border-b-2 border-[#5C6B47]/20">
               <h2 className="text-2xl font-bold text-[#3D4A2B]">Meny</h2>
-              <button
-                onClick={() => setShowMenu(false)}
-                className="p-2 hover:bg-gray-100 rounded-full touch-manipulation"
-              >
-                <X size={24} />
-              </button>
+              <div className="flex items-center gap-4">
+                {/* Mobile Notification Bell */}
+                {user && (
+                  <div className="relative">
+                    <button
+                      onClick={() => {
+                        setShowNotifications(true);
+                        setShowMenu(false);
+                      }}
+                      className="relative p-2 hover:bg-gray-100 rounded-full touch-manipulation"
+                    >
+                      <Bell size={24} className="text-gray-700" />
+                      {unreadCount > 0 && (
+                        <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+                          {unreadCount > 9 ? '9+' : unreadCount}
+                        </div>
+                      )}
+                    </button>
+                  </div>
+                )}
+                <button
+                  onClick={() => setShowMenu(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full touch-manipulation"
+                >
+                  <X size={24} />
+                </button>
+              </div>
             </div>
 
             <div className="p-4 space-y-2">
@@ -185,6 +303,58 @@ export function MobileNavigation() {
                   </div>
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Notification Center Modal */}
+      {showNotifications && user && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black/50 z-50 animate-fade-in"
+          onClick={() => setShowNotifications(false)}
+        >
+          <div 
+            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl w-[95vw] max-w-sm h-[85vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-[#3D4A2B]">Notifieringar</h2>
+              <button
+                onClick={() => setShowNotifications(false)}
+                className="p-2 hover:bg-gray-100 rounded-full touch-manipulation"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-hidden">
+              <NotificationCenterMobile
+                user={user}
+                router={router}
+                onNotificationClick={(notification) => {
+                  setShowNotifications(false);
+                  // Handle notification click - navigate to relevant page
+                  if (notification.action_url) {
+                    router.push(notification.action_url);
+                  } else {
+                    // Default navigation based on notification type
+                    switch (notification.type) {
+                      case 'message':
+                      case 'emergency':
+                        router.push('/local?tab=messaging');
+                        break;
+                      case 'resource_request':
+                        router.push('/local?tab=resources');
+                        break;
+                      case 'system':
+                        router.push('/dashboard');
+                        break;
+                    }
+                  }
+                }}
+                onClose={() => setShowNotifications(false)}
+              />
             </div>
           </div>
         </div>

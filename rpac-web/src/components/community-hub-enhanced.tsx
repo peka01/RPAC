@@ -7,7 +7,8 @@ import {
   Search,
   MapPin,
   Package,
-  Shield
+  Shield,
+  Building2
 } from 'lucide-react';
 import { CommunityDiscovery } from './community-discovery';
 import { MessagingSystemV2 } from './messaging-system-v2';
@@ -254,13 +255,38 @@ export function CommunityHubEnhanced({ user, initialCommunityId, initialTab }: C
           {activeView === 'resources' && (
             <div>
               {activeCommunityId ? (
-                <CommunityResourceHub
-                  user={user}
-                  communityId={activeCommunityId}
-                  communityName={userCommunities.find(c => c.id === activeCommunityId)?.community_name || 'Laddar samhälle...'}
-                  isAdmin={isAdmin}
-                  initialTab={initialTab}
-                />
+                <>
+                  {/* Community Selector */}
+                  {userCommunities.length > 1 && (
+                    <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Building2 size={20} className="text-[#3D4A2B]" />
+                          <span className="font-medium text-gray-700">Välj samhälle:</span>
+                        </div>
+                        <select
+                          value={activeCommunityId}
+                          onChange={(e) => setActiveCommunityId(e.target.value)}
+                          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B] focus:border-transparent bg-white"
+                        >
+                          {userCommunities.map((community) => (
+                            <option key={community.id} value={community.id}>
+                              {community.community_name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <CommunityResourceHub
+                    user={user}
+                    communityId={activeCommunityId}
+                    communityName={userCommunities.find(c => c.id === activeCommunityId)?.community_name || 'Laddar samhälle...'}
+                    isAdmin={isAdmin}
+                    initialTab={initialTab}
+                  />
+                </>
               ) : loadingCommunities ? (
                 <div className="flex items-center justify-center py-12">
                   <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar samhälle" />

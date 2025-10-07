@@ -103,6 +103,17 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
     }
   };
 
+  const handleCancelRequest = async (requestId: string) => {
+    if (!confirm('Är du säker på att du vill avbryta denna begäran?')) return;
+    
+    try {
+      await resourceSharingService.denyResourceRequest(requestId, 'Begäran avbruten av användaren');
+      await loadResources(); // Reload to get updated data
+    } catch (error) {
+      console.error('Error canceling request:', error);
+    }
+  };
+
   // Calculate statistics
   const stats = useMemo(() => {
     const total = resources.length;
@@ -570,6 +581,15 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
                         >
                           <Check size={14} />
                           Markera som slutförd
+                        </button>
+                      )}
+                      {request.status === 'pending' && (
+                        <button
+                          onClick={() => handleCancelRequest(request.id)}
+                          className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-medium hover:shadow-md transition-all flex items-center gap-1.5"
+                        >
+                          <XCircle size={14} />
+                          Avbryt begäran
                         </button>
                       )}
                     </div>

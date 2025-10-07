@@ -33,6 +33,7 @@ import { resourceSharingService, type SharedResource, type HelpRequest } from '@
 import { communityResourceService, type CommunityResource } from '@/lib/community-resource-service';
 import { supabase } from '@/lib/supabase';
 import { CommunityResourceModal } from './community-resource-modal';
+import { SharedResourceActionsModal } from './shared-resource-actions-modal';
 import type { User } from '@supabase/supabase-js';
 
 interface CommunityResourceHubMobileProps {
@@ -93,6 +94,7 @@ export function CommunityResourceHubMobile({
   const [showAddCommunityResource, setShowAddCommunityResource] = useState(false);
   const [showAddHelpRequest, setShowAddHelpRequest] = useState(false);
   const [editingCommunityResource, setEditingCommunityResource] = useState<CommunityResource | null>(null);
+  const [managingResource, setManagingResource] = useState<SharedResource | null>(null);
 
   useEffect(() => {
     console.log('CommunityResourceHubMobile useEffect triggered with communityId:', communityId);
@@ -102,6 +104,57 @@ export function CommunityResourceHubMobile({
       loadCommunityName();
     }
   }, [communityId]);
+
+  // Listen for openResourceManagement events from notifications
+  useEffect(() => {
+    const handleOpenResourceManagement = (event: CustomEvent) => {
+      const { resourceId } = event.detail;
+      console.log('Mobile component received openResourceManagement event with resourceId:', resourceId);
+      console.log('Available sharedResources:', sharedResources.map(r => ({ id: r.id, title: r.title })));
+      
+      // If sharedResources is empty, wait a bit and try again
+      if (sharedResources.length === 0) {
+        console.log('SharedResources is empty, waiting for data to load...');
+        
+        // Try multiple times with increasing delays
+        const retryWithDelay = (attempt: number) => {
+          setTimeout(() => {
+            console.log(`Retry attempt ${attempt} - sharedResources now:`, sharedResources.map(r => ({ id: r.id, title: r.title })));
+            const resource = sharedResources.find(r => r.id === resourceId);
+            if (resource) {
+              console.log('Found resource for management (retry):', resource);
+              setManagingResource(resource);
+            } else if (attempt < 5) {
+              console.log(`Resource still not found, retrying in ${attempt * 1000}ms...`);
+              retryWithDelay(attempt + 1);
+            } else {
+              console.error('Resource not found after 5 retry attempts for ID:', resourceId);
+            }
+          }, attempt * 1000); // Increasing delay: 1s, 2s, 3s, 4s, 5s
+        };
+        
+        retryWithDelay(1);
+        return;
+      }
+      
+      // Find the resource in sharedResources
+      const resource = sharedResources.find(r => r.id === resourceId);
+      if (resource) {
+        console.log('Found resource for management:', resource);
+        console.log('Setting managingResource state...');
+        setManagingResource(resource);
+        console.log('managingResource state should now be set');
+      } else {
+        console.error('Resource not found in sharedResources for ID:', resourceId);
+      }
+    };
+
+    window.addEventListener('openResourceManagement', handleOpenResourceManagement as EventListener);
+    
+    return () => {
+      window.removeEventListener('openResourceManagement', handleOpenResourceManagement as EventListener);
+    };
+  }, [sharedResources]);
 
   const loadCommunityName = async () => {
     try {
@@ -150,6 +203,7 @@ export function CommunityResourceHubMobile({
       ]);
 
       setSharedResources(shared);
+      console.log('Loaded shared resources:', shared.map(r => ({ id: r.id, title: r.title })));
       setCommunityResources(owned);
       setHelpRequests(help);
     } catch (err) {
@@ -164,6 +218,7 @@ export function CommunityResourceHubMobile({
   const handleRequestResource = async (resource: SharedResource) => {
     try {
       console.log('Requesting resource:', resource.id, 'for user:', user.id);
+      
       // Create a request with default quantity
       await resourceSharingService.requestSharedResource({
         sharedResourceId: resource.id,
@@ -171,9 +226,18 @@ export function CommunityResourceHubMobile({
         requestedQuantity: resource.shared_quantity,
         message: 'Jag skulle vilja begära denna resurs'
       });
-      console.log('Request created, reloading data...');
-      await loadAllData();
-      console.log('Data reloaded');
+      console.log('Request created, updating UI locally...');
+      
+      // Update the shared resources state locally to reflect the change
+      setSharedResources(prevResources => 
+        prevResources.map(r => 
+          r.id === resource.id 
+            ? { ...r, has_user_requested: true, status: 'requested' }
+            : r
+        )
+      );
+      
+      console.log('UI updated locally, no reload needed');
       // Close the modal after successful request
       setShowResourceDetail(null);
     } catch (err) {
@@ -186,11 +250,21 @@ export function CommunityResourceHubMobile({
   const handleCancelRequest = async (resource: SharedResource) => {
     try {
       console.log('Canceling request for resource:', resource.id, 'for user:', user.id);
+      
       // Cancel the request
       await resourceSharingService.cancelResourceRequest(resource.id, user.id);
-      console.log('Request canceled, reloading data...');
-      await loadAllData();
-      console.log('Data reloaded');
+      console.log('Request canceled, updating UI locally...');
+      
+      // Update the shared resources state locally to reflect the change
+      setSharedResources(prevResources => 
+        prevResources.map(r => 
+          r.id === resource.id 
+            ? { ...r, has_user_requested: false, status: 'available' }
+            : r
+        )
+      );
+      
+      console.log('UI updated locally, no reload needed');
       // Close the modal after successful cancellation
       setShowResourceDetail(null);
     } catch (err) {
@@ -340,6 +414,9 @@ export function CommunityResourceHubMobile({
     resolvedHelp: helpRequests.filter(r => r.status === 'resolved').length,
     contributors: new Set(sharedResources.map(r => r.user_id)).size
   };
+
+  // Debug managingResource state
+  console.log('CommunityResourceHubMobile render - managingResource:', managingResource);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#5C6B47]/10 via-white to-[#707C5F]/10 pb-6">
@@ -535,6 +612,37 @@ export function CommunityResourceHubMobile({
           resource={editingCommunityResource || undefined}
           mode={editingCommunityResource ? 'edit' : 'add'}
         />
+      )}
+
+      {/* Shared Resource Actions Modal */}
+      {managingResource && (
+        <>
+          {console.log('Rendering SharedResourceActionsModal with resource:', managingResource)}
+          <SharedResourceActionsModal
+            isOpen={!!managingResource}
+            resource={managingResource}
+            onClose={() => {
+              console.log('Closing SharedResourceActionsModal');
+              setManagingResource(null);
+            }}
+            onUpdate={async (updates) => {
+              console.log('Resource updated in modal:', updates);
+              // Update the resource in the list
+              setSharedResources(prev => 
+                prev.map(r => r.id === managingResource.id ? { ...r, ...updates } : r)
+              );
+              setManagingResource(null);
+            }}
+            onDelete={async () => {
+              console.log('Resource deleted in modal');
+              // Remove the resource from the list
+              setSharedResources(prev => 
+                prev.filter(r => r.id !== managingResource.id)
+              );
+              setManagingResource(null);
+            }}
+          />
+        </>
       )}
 
       {/* Help Request Bottom Sheet */}

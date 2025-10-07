@@ -22,6 +22,7 @@ import { t } from '@/lib/locales';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { NotificationCenterResponsive } from './notification-center-responsive';
 
 export function Navigation() {
   const pathname = usePathname();
@@ -238,6 +239,33 @@ export function Navigation() {
                   <AlertTriangle className="w-4 h-4" />
                   <span className="hidden sm:inline">Krisläge</span>
                 </div>
+              )}
+
+              {/* Notification Center */}
+              {user && (
+                <NotificationCenterResponsive
+                  user={user}
+                  onNotificationClick={(notification) => {
+                    // Handle notification click - navigate to relevant page
+                    if (notification.action_url) {
+                      router.push(notification.action_url);
+                    } else {
+                      // Default navigation based on notification type
+                      switch (notification.type) {
+                        case 'message':
+                        case 'emergency':
+                          router.push('/local?tab=messaging');
+                          break;
+                        case 'resource_request':
+                          router.push('/local?tab=resources');
+                          break;
+                        case 'system':
+                          router.push('/dashboard');
+                          break;
+                      }
+                    }
+                  }}
+                />
               )}
 
               {/* User Menu */}

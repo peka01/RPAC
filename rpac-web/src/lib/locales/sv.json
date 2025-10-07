@@ -19,6 +19,28 @@
       "regional": "REGIONALT"
     }
   },
+  "notifications": {
+    "title": "Notifieringar",
+    "no_notifications": "Inga notifieringar",
+    "no_notifications_description": "Du har inga nya notifieringar just nu.",
+    "mark_all_read": "Markera alla som lästa",
+    "mark_as_read": "Markera som läst",
+    "loading": "Laddar notifieringar...",
+    "reply": "Svara",
+    "view": "Visa",
+    "approve": "Godkänn",
+    "deny": "Neka",
+    "read": "Läst",
+    "now": "Nu",
+    "minutes_ago": "min sedan",
+    "hours_ago": "tim sedan",
+    "days_ago": "dagar sedan",
+    "emergency_from": "Nödsituation från",
+    "message_from": "Nytt meddelande från",
+    "resource_request_from": "Resursförfrågan från",
+    "wants_to_borrow": "vill låna din",
+    "system_alert": "Systemvarning"
+  },
   "individual": {
     "title": "Mitt hem och mina resurser",
     "subtitle": "Din personliga odlings- och beredskapscentral",
@@ -166,7 +188,10 @@
     "demo_login_failed": "Demo-inloggning misslyckades",
     "minimum_characters": "Minst 6 tecken",
     "choose_secure_password": "Välj ett säkert lösenord",
-    "your_password": "Ditt lösenord"
+    "your_password": "Ditt lösenord",
+    "login_required": "Logga in krävs",
+    "login_required_description": "För att använda samhällsfunktioner behöver du vara inloggad.",
+    "go_to_login": "Gå till inloggning"
   },
   "loading": {
     "loading": "Laddar...",
@@ -499,7 +524,11 @@
     "loading": "Laddar",
     "km": "km",
     "members": "medlemmar",
-    "member": "medlem"
+    "member": "medlem",
+    "active_community": "Aktivt samhälle",
+    "switch_community": "Växla samhälle",
+    "communities_count": "samhällen",
+    "members_count": "medlemmar"
   },
   "resources": {
     "storage_title": "Dina resurser",
@@ -815,7 +844,7 @@
     "family_size": "Familjestorlek",
     "pets": "Husdjur",
     "growing_preferences": "Odlingsintressen",
-    "notifications": "Notifikationer",
+    "notifications": "Notifieringar",
     "location_settings": "Platsinställningar",
     "auto_detect_location": "Hitta min plats automatiskt",
     "manual_location": "Ange plats manuellt",

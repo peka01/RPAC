@@ -807,3 +807,8 @@ nav svg,
 [class*="nav-item-active"] * {
   color: white !important;
 }
+
+/* Hide FAB when notification modal is open */
+body.notification-modal-open .fixed.bottom-24.right-6 {
+  display: none !important;
+}

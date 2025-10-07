@@ -68,18 +68,18 @@ export default function LocalPage() {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="text-center">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-md">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Logga in krävs</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('auth.login_required')}</h2>
             <p className="text-gray-600 mb-6">
-              För att använda samhällsfunktioner behöver du vara inloggad.
+              {t('auth.login_required_description')}
             </p>
             <a
               href="/dashboard"
-              className="inline-block px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              className="inline-block px-6 py-3 bg-[#3D4A2B] text-white font-medium rounded-lg hover:bg-[#2A331E] transition-colors"
             >
-              Gå till inloggning
+              {t('auth.go_to_login')}
             </a>
           </div>
         </div>

@@ -4,6 +4,7 @@
  */
 
 import { supabase } from './supabase';
+import { notificationService } from './notification-service';
 
 export interface SharedResource {
   id: string;
@@ -546,6 +547,45 @@ export const resourceSharingService = {
 
     if (error) throw error;
 
+    // Create notification for resource owner
+    try {
+      // Get the shared resource details to find the owner
+      const { data: sharedResource, error: resourceError } = await supabase
+        .from('resource_sharing')
+        .select(`
+          user_id,
+          community_id,
+          resources!inner(name)
+        `)
+        .eq('id', params.sharedResourceId)
+        .single();
+
+      if (resourceError) {
+        console.error('Error getting shared resource details:', resourceError);
+      } else if (sharedResource) {
+        // Get requester name
+        const { data: requesterProfile } = await supabase
+          .from('user_profiles')
+          .select('display_name')
+          .eq('user_id', params.requesterId)
+          .single();
+
+        const requesterName = requesterProfile?.display_name || 'En användare';
+        const resourceName = sharedResource.resources?.name || 'resurs';
+
+        await notificationService.createResourceRequestNotification({
+          recipientId: sharedResource.user_id,
+          requesterName: requesterName,
+          resourceName: resourceName,
+          resourceId: params.sharedResourceId,
+          communityId: sharedResource.community_id
+        });
+      }
+    } catch (notificationError) {
+      console.error('Error creating resource request notification:', notificationError);
+      // Don't fail the request if notification creation fails
+    }
+
     // Don't update the shared resource status immediately
     // The resource should remain 'available' until the owner approves the request
     // The request status will be tracked separately in the resource_requests table
@@ -756,6 +796,43 @@ export const resourceSharingService = {
       .eq('id', requestData.shared_resource_id);
 
     if (resourceError) throw resourceError;
+
+    // Create notification for requester
+    try {
+      const { data: requestDetails } = await supabase
+        .from('resource_requests')
+        .select(`
+          requester_id,
+          resource_sharing!inner(
+            user_id,
+            resources!inner(name)
+          )
+        `)
+        .eq('id', requestId)
+        .single();
+
+      if (requestDetails) {
+        // Get resource owner name
+        const { data: ownerProfile } = await supabase
+          .from('user_profiles')
+          .select('display_name')
+          .eq('user_id', requestDetails.resource_sharing.user_id)
+          .single();
+
+        const ownerName = ownerProfile?.display_name || 'Resursägaren';
+        const resourceName = requestDetails.resource_sharing.resources?.name || 'resurs';
+
+        await notificationService.createSystemNotification({
+          userId: requestDetails.requester_id,
+          title: `📦 Resursförfrågan godkänd`,
+          content: `${ownerName} har godkänt din förfrågan om ${resourceName}`,
+          actionUrl: `/local?tab=resources`
+        });
+      }
+    } catch (notificationError) {
+      console.error('Error creating approval notification:', notificationError);
+      // Don't fail the approval if notification creation fails
+    }
   },
 
   /**
@@ -794,6 +871,43 @@ export const resourceSharingService = {
       .eq('id', requestData.shared_resource_id);
 
     if (resourceError) throw resourceError;
+
+    // Create notification for requester
+    try {
+      const { data: requestDetails } = await supabase
+        .from('resource_requests')
+        .select(`
+          requester_id,
+          resource_sharing!inner(
+            user_id,
+            resources!inner(name)
+          )
+        `)
+        .eq('id', requestId)
+        .single();
+
+      if (requestDetails) {
+        // Get resource owner name
+        const { data: ownerProfile } = await supabase
+          .from('user_profiles')
+          .select('display_name')
+          .eq('user_id', requestDetails.resource_sharing.user_id)
+          .single();
+
+        const ownerName = ownerProfile?.display_name || 'Resursägaren';
+        const resourceName = requestDetails.resource_sharing.resources?.name || 'resurs';
+
+        await notificationService.createSystemNotification({
+          userId: requestDetails.requester_id,
+          title: `📦 Resursförfrågan nekad`,
+          content: `${ownerName} har nekat din förfrågan om ${resourceName}`,
+          actionUrl: `/local?tab=resources`
+        });
+      }
+    } catch (notificationError) {
+      console.error('Error creating denial notification:', notificationError);
+      // Don't fail the denial if notification creation fails
+    }
   },
 
   /**

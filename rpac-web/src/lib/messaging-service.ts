@@ -5,6 +5,7 @@
 
 import { supabase } from './supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import { notificationService } from './notification-service';
 
 export interface Message {
   id: string;
@@ -164,6 +165,41 @@ export const messagingService = {
         has_community_id: !!data.community_id,
         type: data.receiver_id ? 'DIRECT' : 'COMMUNITY'
       });
+
+      // Create notification for recipient
+      try {
+        if (recipientId) {
+          // Direct message notification
+          await notificationService.createMessageNotification({
+            recipientId,
+            senderName: senderName,
+            messageContent: content,
+            isEmergency: isEmergency
+          });
+        } else if (communityId) {
+          // Community message - get all community members and create notifications
+          const { data: members } = await supabase
+            .from('community_memberships')
+            .select('user_id')
+            .eq('community_id', communityId)
+            .neq('user_id', senderId); // Don't notify sender
+
+          if (members) {
+            for (const member of members) {
+              await notificationService.createMessageNotification({
+                recipientId: member.user_id,
+                senderName: senderName,
+                messageContent: content,
+                isEmergency: isEmergency,
+                communityId: communityId
+              });
+            }
+          }
+        }
+      } catch (notificationError) {
+        console.error('Error creating notification:', notificationError);
+        // Don't fail the message send if notification creation fails
+      }
     }
     
     if (error) throw error;

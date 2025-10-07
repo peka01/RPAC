@@ -15,6 +15,10 @@ export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetMessage, setResetMessage] = useState('');
   const router = useRouter();
 
   // Check if user is already logged in
@@ -83,6 +87,29 @@ export default function LoginPage() {
       setError(_message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetLoading(true);
+    setResetMessage('');
+    setError('');
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`
+      });
+
+      if (error) throw error;
+
+      setResetMessage('Ett e-postmeddelande med instruktioner för att återställa ditt lösenord har skickats till ' + resetEmail);
+      setResetEmail('');
+    } catch (err: unknown) {
+      const _message = err instanceof Error ? err.message : t('errors.generic_error');
+      setError(_message);
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -295,6 +322,18 @@ export default function LoginPage() {
                 {t('auth.minimum_characters')}
               </p>
             )}
+            {!isSignUp && (
+              <div className="text-right mt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(true)}
+                  className="text-sm underline transition-colors hover:opacity-80"
+                  style={{ color: 'var(--color-primary)' }}
+                >
+                  Glömt lösenord?
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Submit Button */}
@@ -374,6 +413,121 @@ export default function LoginPage() {
           </button>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotPassword && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="crisis-card max-w-md w-full relative">
+            {/* Close button */}
+            <button
+              onClick={() => {
+                setShowForgotPassword(false);
+                setResetEmail('');
+                setResetMessage('');
+                setError('');
+              }}
+              className="absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <X className="w-5 h-5" style={{ color: 'var(--text-secondary)' }} />
+            </button>
+
+            {/* Header */}
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" 
+                   style={{ backgroundColor: 'var(--color-primary)' }}>
+                <Shield className="w-8 h-8 text-white" strokeWidth={2.5} />
+              </div>
+              <h3 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                Återställ lösenord
+              </h3>
+              <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)' }}>
+                Ange din e-postadress så skickar vi instruktioner för att återställa ditt lösenord
+              </p>
+            </div>
+
+            {/* Success Message */}
+            {resetMessage && (
+              <div className="mb-4 p-3 rounded-lg flex items-center space-x-2"
+                   style={{ backgroundColor: 'var(--color-success)20', border: '1px solid var(--color-success)40' }}>
+                <Shield className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
+                <p className="text-sm" style={{ color: 'var(--color-success)' }}>
+                  {resetMessage}
+                </p>
+              </div>
+            )}
+
+            {/* Error Messages */}
+            {error && (
+              <div className="mb-4 p-3 rounded-lg flex items-center space-x-2"
+                   style={{ backgroundColor: 'var(--color-danger)20', border: '1px solid var(--color-danger)40' }}>
+                <AlertTriangle className="w-5 h-5" style={{ color: 'var(--color-danger)' }} />
+                <p className="text-sm" style={{ color: 'var(--color-danger)' }}>
+                  {error}
+                </p>
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                  E-postadress
+                </label>
+                <input
+                  type="email"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  className="w-full p-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
+                  style={{ 
+                    borderColor: 'var(--color-secondary)',
+                    backgroundColor: 'var(--bg-card)',
+                    color: 'var(--text-primary)',
+                    '--tw-ring-color': 'var(--color-primary)'
+                  } as React.CSSProperties}
+                  placeholder="Ange din e-postadress"
+                  required
+                />
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={resetLoading}
+                className="w-full modern-button flex items-center justify-center space-x-2 px-4 py-3 text-white disabled:opacity-50"
+                style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)' }}
+              >
+                {resetLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Skickar...</span>
+                  </>
+                ) : (
+                  <>
+                    <Shield className="w-4 h-4" />
+                    <span>Skicka återställningslänk</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Back to Login */}
+            <div className="mt-6 text-center">
+              <button
+                onClick={() => {
+                  setShowForgotPassword(false);
+                  setResetEmail('');
+                  setResetMessage('');
+                  setError('');
+                }}
+                className="text-sm font-semibold underline transition-colors hover:opacity-80"
+                style={{ color: 'var(--color-primary)' }}
+              >
+                Tillbaka till inloggning
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

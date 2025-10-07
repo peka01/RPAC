@@ -23,15 +23,9 @@ export const ShieldProgressSpinner: React.FC<ShieldProgressSpinnerProps> = ({
   className = ''
 }) => {
   const [currentProgress, setCurrentProgress] = useState(0);
-  const [animationIntensity, setAnimationIntensity] = useState('gentle');
+  const [animationIntensity, setAnimationIntensity] = useState('full'); // Start with full animation immediately
 
-  // Progressive animation: start gentle, escalate to full after 2 seconds
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setAnimationIntensity('full');
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, []);
+  // Removed progressive animation delay - show full animation immediately
 
   useEffect(() => {
     if (showProgress && progress > 0) {

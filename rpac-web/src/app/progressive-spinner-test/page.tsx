@@ -10,21 +10,21 @@ export default function ProgressiveSpinnerTestPage() {
     setShowSpinner(true);
     setTimeout(() => {
       setShowSpinner(false);
-    }, 1500); // Less than 2 seconds - should stay gentle
+    }, 1500); // Short duration - full animation immediately
   };
 
   const testMediumDuration = () => {
     setShowSpinner(true);
     setTimeout(() => {
       setShowSpinner(false);
-    }, 3000); // More than 2 seconds - should escalate to full
+    }, 3000); // Medium duration - full animation immediately
   };
 
   const testLongDuration = () => {
     setShowSpinner(true);
     setTimeout(() => {
       setShowSpinner(false);
-    }, 5000); // Long duration - should show full animation
+    }, 5000); // Long duration - full animation immediately
   };
 
   return (
@@ -32,10 +32,10 @@ export default function ProgressiveSpinnerTestPage() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4" style={{ color: '#3D4A2B' }}>
-            🛡️ Progressive Animation Test
+            🛡️ Shield Spinner Test
           </h1>
           <p className="text-lg text-gray-600 mb-8">
-            Test the progressive animation: gentle start → full animation after 2 seconds
+            Test the shield spinner with full animation displayed immediately
           </p>
         </div>
 
@@ -46,7 +46,7 @@ export default function ProgressiveSpinnerTestPage() {
               Short Duration (1.5s)
             </h3>
             <p className="text-gray-600 mb-4">
-              Should show gentle pulse animation only - no bounce, no falling dots
+              Shows full bounce animation with falling dots immediately
             </p>
             <button
               onClick={testShortDuration}
@@ -62,7 +62,7 @@ export default function ProgressiveSpinnerTestPage() {
               Medium Duration (3s)
             </h3>
             <p className="text-gray-600 mb-4">
-              Should start gentle, then escalate to full bounce with falling dots
+              Shows full bounce animation with falling dots immediately
             </p>
             <button
               onClick={testMediumDuration}
@@ -78,7 +78,7 @@ export default function ProgressiveSpinnerTestPage() {
               Long Duration (5s)
             </h3>
             <p className="text-gray-600 mb-4">
-              Should show full progression: gentle → full bounce with falling dots
+              Shows full bounce animation with falling dots immediately
             </p>
             <button
               onClick={testLongDuration}

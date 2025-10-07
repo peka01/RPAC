@@ -100,6 +100,26 @@ export function CommunityResourceHub({
     }
   }, [communityId]);
 
+  // Listen for custom event to open resource management modal
+  useEffect(() => {
+    const handleOpenResourceManagement = (event: CustomEvent) => {
+      const { resourceId } = event.detail;
+      if (resourceId) {
+        // Find the resource in sharedResources and open the modal
+        const resource = sharedResources.find(r => r.id === resourceId);
+        if (resource) {
+          setManagingResource(resource);
+        }
+      }
+    };
+
+    window.addEventListener('openResourceManagement', handleOpenResourceManagement as EventListener);
+    
+    return () => {
+      window.removeEventListener('openResourceManagement', handleOpenResourceManagement as EventListener);
+    };
+  }, [sharedResources]);
+
   const loadCommunityName = async () => {
     try {
       const { data: community, error } = await supabase
@@ -293,6 +313,7 @@ export function CommunityResourceHub({
   const handleRequestResource = async (resource: SharedResource) => {
     try {
       console.log('Requesting resource:', resource.id, 'for user:', user.id);
+      
       // Create a request with default quantity
       await resourceSharingService.requestSharedResource({
         sharedResourceId: resource.id,
@@ -300,9 +321,18 @@ export function CommunityResourceHub({
         requestedQuantity: resource.shared_quantity,
         message: 'Jag skulle vilja begära denna resurs'
       });
-      console.log('Request created, reloading data...');
-      await loadAllData();
-      console.log('Data reloaded');
+      console.log('Request created, updating UI locally...');
+      
+      // Update the shared resources state locally to reflect the change
+      setSharedResources(prevResources => 
+        prevResources.map(r => 
+          r.id === resource.id 
+            ? { ...r, has_user_requested: true, status: 'requested' }
+            : r
+        )
+      );
+      
+      console.log('UI updated locally, no reload needed');
     } catch (err) {
       console.error('Error requesting resource:', err);
       setError('Kunde inte begära resurs');
@@ -312,11 +342,21 @@ export function CommunityResourceHub({
   const handleCancelRequest = async (resource: SharedResource) => {
     try {
       console.log('Canceling request for resource:', resource.id, 'for user:', user.id);
+      
       // Cancel the request
       await resourceSharingService.cancelResourceRequest(resource.id, user.id);
-      console.log('Request canceled, reloading data...');
-      await loadAllData();
-      console.log('Data reloaded');
+      console.log('Request canceled, updating UI locally...');
+      
+      // Update the shared resources state locally to reflect the change
+      setSharedResources(prevResources => 
+        prevResources.map(r => 
+          r.id === resource.id 
+            ? { ...r, has_user_requested: false, status: 'available' }
+            : r
+        )
+      );
+      
+      console.log('UI updated locally, no reload needed');
     } catch (err) {
       console.error('Error canceling resource request:', err);
       setError('Kunde inte avbryta begäran');

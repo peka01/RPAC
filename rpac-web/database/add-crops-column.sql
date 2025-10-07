@@ -23,3 +23,4 @@ WHERE crops IS NULL;
 COMMENT ON COLUMN cultivation_plans.crops IS 'JSONB array containing crop data with nutrition information';
 
 
+
