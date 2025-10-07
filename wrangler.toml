@@ -1,4 +1,5 @@
 # Cloudflare Pages configuration
+name = "rpac-web"
 pages_build_output_dir = "rpac-web/out"
 
 # Environment variables and secrets
