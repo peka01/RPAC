@@ -3,10 +3,10 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   images: { unoptimized: true },
-  // Development configuration - comment out for production
-  // output: 'export',
-  // trailingSlash: true,
-  // distDir: 'out',
+  // Production configuration for Cloudflare Pages
+  output: 'export',
+  trailingSlash: true,
+  distDir: 'out',
   experimental: {
     missingSuspenseWithCSRBailout: false,
   }

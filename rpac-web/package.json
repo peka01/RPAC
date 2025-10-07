@@ -5,35 +5,26 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:static": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "export": "next build && next export"
+    "lint": "next lint",
+    "export": "next build && next export",
+    "build:static": "next build && next export"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
-    "@supabase/supabase-js": "2.57.4",
-    "crypto-js": "^4.2.0",
-    "dotenv": "^17.2.2",
-    "lucide-react": "0.544.0",
-    "next": "^14.2.33",
-    "next-themes": "0.4.6",
-    "openai": "^5.23.1",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "zod": "^3.25.76"
+    "@supabase/auth-helpers-nextjs": "^0.10.0",
+    "@supabase/supabase-js": "^2.45.4",
+    "lucide-react": "^0.460.0",
+    "next": "14.2.33",
+    "react": "^18",
+    "react-dom": "^18",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^2.1.4",
-    "@types/crypto-js": "^4.2.2",
-    "@types/node": "20.14.12",
-    "@types/react": "18.2.74",
-    "@types/react-dom": "18.2.24",
-    "autoprefixer": "^10.4.19",
-    "eslint": "8.57.0",
-    "eslint-config-next": "14.2.14",
-    "postcss": "^8.4.39",
-    "tailwindcss": "^3.4.4",
-    "typescript": "5.5.4"
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.33",
+    "typescript": "^5"
   }
 }
