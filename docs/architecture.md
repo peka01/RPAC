@@ -40,6 +40,9 @@ RPAC (Resilience & Preparedness AI Companion) har omorienterats till en **web-f�
 - **Tailwind CSS**: Responsiv, krisanpassad design
 - **Local Authentication**: SSR-safe authentication med localStorage fallback
 - **Internationalization**: Svenska språkstöd med t() funktion
+- **Navigation System**: Hierarchical side menu (desktop) + bottom navigation (mobile)
+- **Responsive Design**: Mobile-first approach with 44px touch targets
+- **URL Parameter Routing**: Sub-navigation via query parameters
 
 ### ⚡ **Backend (Next.js API Routes + Supabase) ✅ IMPLEMENTED**
 - **Real-time Database**: Live-uppdateringar av krisstatus och användardata
@@ -203,6 +206,52 @@ RPAC:s nya web-först arkitektur kombinerar **moderna webbteknologier**, **globa
 - **Phase 2 (Local Community)**: 🔄 **IN PROGRESS** - Community hub structure exists, needs full integration
 - **Phase 3 (Regional Coordination)**: 📋 **PLANNED** - Basic structure exists, awaiting Phase 2 completion
 - **Phase 4 (Advanced Features)**: 📋 **FUTURE** - IoT, AR/VR, advanced AI features planned
+
+## 🗺️ **Navigation Architecture**
+
+### **Hierarchical Navigation System**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    NAVIGATION ARCHITECTURE                      │
+│                                                                 │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐            │
+│  │   DESKTOP   │  │   MOBILE    │  │   ROUTING   │            │
+│  │             │  │             │  │             │            │
+│  │ • Side Menu │◄─┤ • Bottom    │◄─┤ • URL Params│            │
+│  │ • Top Menu  │  │   Navigation│  │ • Sub-routes│            │
+│  │ • Collapsible│  │ • Touch     │  │ • Deep Links│            │
+│  │ • Hierarchical│ │   Optimized │  │ • State Mgmt│            │
+│  └─────────────┘  └─────────────┘  └─────────────┘            │
+│         │                 │                 │                 │
+│         ▼                 ▼                 ▼                 │
+│  ┌─────────────────────────────────────────────────────────────┤
+│  │                RESPONSIVE LAYOUT SYSTEM                   │
+│  │                                                             │
+│  │ • ResponsiveLayoutWrapper  • SideMenuResponsive            │
+│  │ • Breakpoint Detection     • Mobile/Desktop Switching     │
+│  │ • Touch Optimization       • Accessibility Support        │
+│  └─────────────────────────────────────────────────────────────┤
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### **Navigation Components**
+- **`SideMenu`**: Desktop hierarchical navigation with expandable sections
+- **`TopMenu`**: Desktop header with user menu and notifications
+- **`MobileNavigation`**: Mobile bottom navigation with touch optimization
+- **`SideMenuResponsive`**: Responsive wrapper component
+- **`ResponsiveLayoutWrapper`**: Main layout orchestrator
+
+### **Routing Strategy**
+- **Direct Routes**: `/individual`, `/local`, `/regional`, `/settings`
+- **URL Parameters**: Sub-navigation via query parameters
+- **State Management**: URL-driven active states
+- **Deep Linking**: Direct access to specific sections
+
+### **Design System Integration**
+- **Color Palette**: Olive green theme with glass morphism
+- **Typography**: `text-base` for readability, localized via `t()` function
+- **Responsive**: Mobile-first with 44px touch targets
+- **Accessibility**: WCAG AA compliance with keyboard navigation
 
 ## 🔒 **Security Architecture**
 

@@ -48,6 +48,15 @@ We design for humans in crisis with clarity and reliability. Visual design uses 
 - **Cross-Platform Mission Continuity** - Seamless operation across all devices during crisis
 - **Offline-First Professional Experience** - Full capability without network dependency
 
+### Navigation System Conventions
+- **Hierarchical Structure** - Clear parent-child relationships in navigation
+- **URL Parameter Routing** - Sub-navigation via query parameters for deep linking
+- **Responsive Navigation** - Side menu (desktop) + bottom navigation (mobile)
+- **Touch Optimization** - 44px minimum touch targets for mobile
+- **Accessibility First** - Full keyboard navigation and screen reader support
+- **State Persistence** - Navigation state maintained across page refreshes
+- **Localization Integration** - All navigation text via `t()` function
+
 ### Crisis Psychology Foundations
 - **Cognitive Load Optimization** - Information hierarchy that preserves mental capacity for decision-making
 - **Stress-Validated Design** - Patterns tested under actual emergency conditions
