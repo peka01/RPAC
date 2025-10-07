@@ -60,7 +60,7 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
         if (planData) {
           // Extract crops from the JSONB crops column
           const crops = planData.crops || [];
-          const cropNames = crops.map((crop: any) => crop.cropName || crop.name || crop).filter(Boolean);
+          const cropNames = crops.map((crop: { cropName?: string; name?: string; [key: string]: unknown }) => crop.cropName || crop.name || crop).filter(Boolean);
           
           // Use the exact same calculation as the cultivation plan service
           const householdSize = 2; // Default household size
@@ -483,9 +483,9 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
             {cultivationPlan.crops && cultivationPlan.crops.length > 0 && (
               <div className="mb-4 relative z-10">
                 <div className="flex flex-wrap gap-1.5">
-                  {cultivationPlan.crops.slice(0, 3).map((crop: any, index: number) => (
+                  {cultivationPlan.crops.slice(0, 3).map((crop: { name?: string; [key: string]: unknown }, index: number) => (
                     <span key={index} className="px-2 py-1 bg-[#707C5F]/10 text-[#707C5F] text-xs rounded-md">
-                      {crop.name || crop}
+                      {typeof crop === 'string' ? crop : crop.name || 'Okänd gröda'}
                     </span>
                   ))}
                   {cultivationPlan.crops.length > 3 && (

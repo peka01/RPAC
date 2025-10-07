@@ -7,32 +7,48 @@ import type { RemindersContext } from './reminders-context-service';
 
 const WORKER_API_URL = 'https://api.beready.se';
 
+interface AgeGroup {
+  age: number;
+  count: number;
+}
+
+interface WeatherWarning {
+  type?: string;
+  description?: string;
+  message?: string;
+  severity?: 'low' | 'moderate' | 'severe' | 'extreme';
+}
+
+interface Weather {
+  temperature?: number;
+  humidity?: number;
+  forecast?: string;
+  windSpeed?: number;
+  precipitation?: number;
+  feelsLike?: number;
+  warnings?: WeatherWarning[];
+}
+
+interface Reminder {
+  id: string;
+  message: string;
+  reminder_date: string;
+  is_completed?: boolean;
+}
+
 export interface UserProfile {
   climateZone?: string;
   householdSize?: number;
   hasChildren?: boolean;
   county?: string;
   city?: string;
-  ageGroups?: any;
+  ageGroups?: AgeGroup[];
   specialNeeds?: string[];
   crisisMode?: boolean;
   location?: string;
-  weather?: {
-    temperature?: number;
-    humidity?: number;
-    forecast?: string;
-    windSpeed?: number;
-    precipitation?: number;
-    feelsLike?: number;
-    warnings?: Array<{
-      type?: string;
-      description?: string;
-      message?: string;
-      severity?: 'low' | 'moderate' | 'severe' | 'extreme';
-    }>;
-  };
-  reminders?: any;
-  [key: string]: any;
+  weather?: Weather;
+  reminders?: Reminder[];
+  [key: string]: unknown;
 }
 
 export interface CultivationAdvice {
@@ -86,15 +102,49 @@ async function callWorkerAPI(prompt: string): Promise<string> {
 /**
  * Unified OpenAI Service using Cloudflare Worker
  */
+interface NutritionNeeds {
+  dailyCalories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  [key: string]: number;
+}
+
+interface SelectedCrop {
+  cropType?: string;
+  name: string;
+  [key: string]: unknown;
+}
+
+interface CultivationPlanResponse {
+  title: string;
+  description: string;
+  timeline: string;
+  priority: string;
+  nutritionContribution: NutritionNeeds;
+  gapAnalysis: {
+    nutritionalGaps: Array<{ nutrient: string; gap: number }>;
+    groceryNeeds: Array<{ item: string; estimatedCost: number; quantity: number; unit: string }>;
+    totalEstimatedCost: number;
+  };
+  nextSteps: string[];
+  recommendations: string[];
+  selfSufficiencyPercent: number;
+  estimatedCost: number;
+}
+
+/**
+ * Unified OpenAI Service using Cloudflare Worker
+ */
 export class OpenAIService {
   /**
    * Generate comprehensive cultivation plan using AI
    */
   static async generateCultivationPlan(
     userProfile: UserProfile, 
-    nutritionNeeds: any, 
-    selectedCrops: any[]
-  ): Promise<any> {
+    nutritionNeeds: NutritionNeeds, 
+    selectedCrops: SelectedCrop[]
+  ): Promise<CultivationPlanResponse> {
     const prompt = `Som svensk beredskapsexpert och odlingsexpert, skapa en personlig odlingsplan baserad på följande information:
 
 Användarprofil:
@@ -295,9 +345,14 @@ Svara med JSON-array med tips:
     userQuestion: string;
     chatHistory?: Array<{ sender: string; message: string; timestamp: string }>;
     appContext?: {
-      cultivationPlan?: any;
-      resources?: any[];
-      upcomingTasks?: any[];
+      cultivationPlan?: {
+        crops?: Array<{ cropName: string; estimatedYieldKg?: number }>;
+        self_sufficiency_percent?: number;
+        title?: string;
+        description?: string;
+      };
+      resources?: Array<{ category: string; acquired: boolean }>;
+      upcomingTasks?: Array<{ activity: string; crop_name: string; month: string }>;
       currentPage?: string;
     };
   }): Promise<string> {
@@ -312,7 +367,7 @@ Svara med JSON-array med tips:
     // Build context about user's cultivation plan
     let cultivationContext = '';
     if (appContext?.cultivationPlan?.crops && appContext.cultivationPlan.crops.length > 0) {
-      const cropList = appContext.cultivationPlan.crops.map((c: any) => 
+      const cropList = appContext.cultivationPlan.crops.map((c) => 
         `  • ${c.cropName}${c.estimatedYieldKg ? ` (beräknad skörd: ${c.estimatedYieldKg}kg/år)` : ''}`
       ).join('\n');
       const selfSuff = appContext.cultivationPlan.self_sufficiency_percent || 0;
@@ -329,12 +384,12 @@ VIKTIGT: Referera till dessa EXAKTA grödor när du ger råd om odling!`;
     // Build context about resources
     let resourcesContext = '';
     if (appContext?.resources && appContext.resources.length > 0) {
-      const byCategory = appContext.resources.reduce((acc: any, r: any) => {
+      const byCategory = appContext.resources.reduce((acc: Record<string, number>, r) => {
         acc[r.category] = (acc[r.category] || 0) + (r.acquired ? 1 : 0);
         return acc;
       }, {});
       const total = appContext.resources.length;
-      const acquired = appContext.resources.filter((r: any) => r.acquired).length;
+      const acquired = appContext.resources.filter((r) => r.acquired).length;
       resourcesContext = `
 BEREDSKAPSLAGER:
 - Totalt resurser: ${acquired}/${total} insamlade (${Math.round(acquired/total*100)}%)
@@ -349,7 +404,7 @@ BEREDSKAPSLAGER:
     if (appContext?.upcomingTasks && appContext.upcomingTasks.length > 0) {
       cultivationTasks = `
 ODLINGSUPPGIFTER (Kommande månad):
-${appContext.upcomingTasks.slice(0, 5).map((task: any) => 
+${appContext.upcomingTasks.slice(0, 5).map((task) => 
   `- ${task.activity || 'Uppgift'}: ${task.crop_name} (${task.month || 'Nu'})`
 ).join('\n')}`;
     }
@@ -368,7 +423,7 @@ VÄDERLÄGE (${userProfile.city || userProfile.county || 'Din plats'}):
       if (w.warnings && w.warnings.length > 0) {
         weatherContext += `
 - ⚠️ VÄDERVARNINGAR (VIKTIGT!):
-  ${w.warnings.map((warn: any) => 
+  ${w.warnings.map((warn) => 
     `• ${warn.type || 'Varning'}: ${warn.description || warn.message || 'Se SMHI'}`
   ).join('\n  ')}`;
       }

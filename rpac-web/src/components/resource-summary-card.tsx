@@ -17,7 +17,7 @@ import {
 import { t } from '@/lib/locales';
 
 interface ResourceSummaryCardProps {
-  user: any;
+  user: { id: string };
 }
 
 export function ResourceSummaryCard({ user }: ResourceSummaryCardProps) {

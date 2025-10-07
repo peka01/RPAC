@@ -71,17 +71,21 @@ export const resourceSharingService = {
 
     // Get user profiles for the sharers
     const userIds = [...new Set((data || []).map(item => item.user_id))];
-    let profiles: any[] = [];
+    let profiles: Array<{ id: string; display_name?: string; avatar_url?: string }> = [];
     if (userIds.length > 0) {
       const { data: profileData } = await supabase
         .from('user_profiles')
         .select('user_id, display_name')
         .in('user_id', userIds);
-      profiles = profileData || [];
+      profiles = (profileData || []).map(profile => ({
+        id: profile.user_id,
+        display_name: profile.display_name,
+        avatar_url: undefined
+      }));
     }
 
     return (data || []).map(item => {
-      const profile = profiles.find(p => p.user_id === item.user_id);
+      const profile = profiles.find(p => p.id === item.user_id);
       return {
         id: item.id,
         user_id: item.user_id,
@@ -256,17 +260,21 @@ export const resourceSharingService = {
 
     // Get user profiles for the requesters
     const userIds = [...new Set((data || []).map(item => item.user_id))];
-    let profiles: any[] = [];
+    let profiles: Array<{ id: string; display_name?: string; avatar_url?: string }> = [];
     if (userIds.length > 0) {
       const { data: profileData } = await supabase
         .from('user_profiles')
         .select('user_id, display_name')
         .in('user_id', userIds);
-      profiles = profileData || [];
+      profiles = (profileData || []).map(profile => ({
+        id: profile.user_id,
+        display_name: profile.display_name,
+        avatar_url: undefined
+      }));
     }
 
     return (data || []).map(item => {
-      const profile = profiles.find(p => p.user_id === item.user_id);
+      const profile = profiles.find(p => p.id === item.user_id);
       return {
         ...item,
         requester_name: profile?.display_name || 'Medlem',

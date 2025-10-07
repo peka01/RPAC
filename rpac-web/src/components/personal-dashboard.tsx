@@ -43,7 +43,7 @@ interface PreparednessScore {
 
 interface ResourceCategory {
   name: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   score: number;
   daysRemaining: number;
   status: 'excellent' | 'good' | 'fair' | 'poor' | 'critical';
@@ -53,7 +53,7 @@ interface ResourceCategory {
 interface QuickAction {
   title: string;
   description: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   color: string;
   urgent: boolean;
 }
@@ -336,7 +336,7 @@ export function PersonalDashboard({ user }: PersonalDashboardProps = {}) {
                        backgroundColor: getStatusColor(category.status) + '15',
                        border: `2px solid ${getStatusColor(category.status)}30`
                      }}>
-                  <Icon className="w-7 h-7" style={{ color: getStatusColor(category.status) }} />
+                  <Icon className="w-7 h-7" />
                   {category.needsAttention && (
                     <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
                       <div className="w-2 h-2 bg-white rounded-full"></div>
@@ -377,7 +377,7 @@ export function PersonalDashboard({ user }: PersonalDashboardProps = {}) {
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 rounded-lg flex items-center justify-center"
                          style={{ backgroundColor: action.color + '20' }}>
-                      <Icon className="w-5 h-5" style={{ color: action.color }} />
+                      <Icon className="w-5 h-5" />
                     </div>
                     <div>
                       <div className="font-medium" style={{ color: 'var(--text-primary)' }}>

@@ -157,12 +157,13 @@ export function ResourceShareToCommunityModal({
         onSuccess();
         onClose();
       }, 1500);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error sharing resource:', err);
-      console.error('Error message:', err?.message);
-      console.error('Error details:', err?.details);
-      console.error('Error hint:', err?.hint);
-      setError(err?.message || 'Kunde inte dela resurs. Försök igen.');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      console.error('Error message:', errorMessage);
+      console.error('Error details:', (err as any)?.details);
+      console.error('Error hint:', (err as any)?.hint);
+      setError((err as any)?.message || 'Kunde inte dela resurs. Försök igen.');
     } finally {
       setSubmitting(false);
     }

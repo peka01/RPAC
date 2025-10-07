@@ -1,5 +1,22 @@
 import { PieChart, Apple, Leaf, DollarSign, ShoppingCart, MapPin } from 'lucide-react';
 
+interface Crop {
+  name: string;
+  cropName?: string;
+  estimatedYieldKg?: number;
+  spaceRequired?: number;
+  plantingDate?: string;
+  harvestDate?: string;
+}
+
+interface MonthlyTask {
+  month: string;
+  activity: string;
+  crop_name?: string;
+  description?: string;
+  priority?: 'high' | 'medium' | 'low';
+}
+
 interface GardenPlan {
   selfSufficiencyPercent: number;
   caloriesFromGarden: number;
@@ -7,8 +24,8 @@ interface GardenPlan {
   annualCalorieNeed: number;
   gardenProduction: number;
   grocerySuggestions: string[];
-  crops: any[];
-  monthlyTasks: any[];
+  crops: Crop[];
+  monthlyTasks: MonthlyTask[];
   totalSpace: number;
   estimatedCost: number;
 }

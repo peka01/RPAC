@@ -5,6 +5,32 @@ import { supabase } from '@/lib/supabase';
 import { Calendar, MapPin, Target, TrendingUp, Edit, Trash2, Eye, Star } from 'lucide-react';
 import { t } from '@/lib/locales';
 
+interface Crop {
+  name: string;
+  cropName?: string;
+  estimatedYieldKg?: number;
+  spaceRequired?: number;
+  plantingDate?: string;
+  harvestDate?: string;
+}
+
+interface PlanData {
+  name?: string;
+  gardenPlan?: {
+    crops?: Crop[];
+    selfSufficiencyPercent?: number;
+    gardenProduction?: number;
+  };
+  realTimeStats?: {
+    selfSufficiencyPercent?: number;
+    gardenProduction?: number;
+  };
+  profile?: {
+    household_size?: number;
+  };
+  [key: string]: unknown;
+}
+
 interface CultivationPlan {
   id: string;
   plan_id: string;
@@ -12,20 +38,25 @@ interface CultivationPlan {
   name?: string;
   description?: string;
   timeline?: string;
-  crops?: any[];
+  crops?: Crop[];
   self_sufficiency_percent?: number;
   estimated_cost?: number;
   is_primary?: boolean;
-  plan_data?: {
-    name?: string;
-    [key: string]: any;
-  };
+  plan_data?: PlanData;
   created_at: string;
   updated_at: string;
 }
 
+interface User {
+  id: string;
+  email?: string;
+  user_metadata?: {
+    name?: string;
+  };
+}
+
 interface ExistingCultivationPlansProps {
-  user: any;
+  user: User;
   onViewPlan?: (plan: CultivationPlan) => void;
   onEditPlan?: (plan: CultivationPlan) => void;
 }

@@ -4,9 +4,44 @@ import { useState, useEffect } from 'react';
 import { KRISterAssistant } from './krister-assistant';
 import { KRISterAssistantMobile } from './krister-assistant-mobile';
 
+interface User {
+  id: string;
+  email?: string;
+  user_metadata?: {
+    name?: string;
+  };
+}
+
+interface UserProfile {
+  climateZone?: string;
+  householdSize?: number;
+  hasChildren?: boolean;
+  county?: string;
+  city?: string;
+  experienceLevel?: string;
+  gardenSize?: string;
+  crisisMode?: boolean;
+  location?: string;
+  weather?: {
+    temperature?: number;
+    humidity?: number;
+    forecast?: string;
+    windSpeed?: number;
+    precipitation?: number;
+    feelsLike?: number;
+    warnings?: Array<{
+      type?: string;
+      description?: string;
+      message?: string;
+      severity?: 'low' | 'moderate' | 'severe' | 'extreme';
+    }>;
+  };
+  [key: string]: unknown;
+}
+
 interface KRISterAssistantResponsiveProps {
-  user?: any;
-  userProfile?: any;
+  user?: User;
+  userProfile?: UserProfile;
   currentPage: 'dashboard' | 'individual' | 'local' | 'regional' | 'settings' | 'cultivation' | 'resources';
   currentAction?: string;
 }

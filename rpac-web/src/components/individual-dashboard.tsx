@@ -137,7 +137,7 @@ export function IndividualDashboard({ user, onNavigate }: IndividualDashboardPro
 
       if (planData) {
         const crops = planData.crops || [];
-        const cropNames = crops.map((crop: any) => crop.cropName || crop.name || crop).filter(Boolean);
+        const cropNames = crops.map((crop: { cropName?: string; name?: string; [key: string]: unknown }) => crop.cropName || crop.name || crop).filter(Boolean);
 
         const householdSize = profile?.household_size || 2;
         const targetDays = 30;

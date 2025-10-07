@@ -4,14 +4,43 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Star, Calendar, MapPin, Target, TrendingUp, Eye, Edit } from 'lucide-react';
 
+interface PlanData {
+  realTimeStats?: {
+    selfSufficiencyPercent?: number;
+    gardenProduction?: number;
+  };
+  gardenPlan?: {
+    selfSufficiencyPercent?: number;
+    gardenProduction?: number;
+    crops?: Array<{ name: string; [key: string]: unknown }>;
+  };
+  profile?: {
+    household_size?: number;
+  };
+  [key: string]: unknown;
+}
+
+interface CultivationPlan {
+  id: string;
+  title?: string;
+  description?: string;
+  crops?: Array<{ name: string; [key: string]: unknown }>;
+  self_sufficiency_percent?: number;
+  estimated_cost?: number;
+  timeline?: string;
+  created_at: string;
+  plan_data?: PlanData;
+  [key: string]: unknown;
+}
+
 interface PrimaryCultivationPlanProps {
-  user: any;
-  onViewPlan?: (plan: any) => void;
-  onEditPlan?: (plan: any) => void;
+  user: { id: string };
+  onViewPlan?: (plan: CultivationPlan) => void;
+  onEditPlan?: (plan: CultivationPlan) => void;
 }
 
 export function PrimaryCultivationPlan({ user, onViewPlan, onEditPlan }: PrimaryCultivationPlanProps) {
-  const [primaryPlan, setPrimaryPlan] = useState<any>(null);
+  const [primaryPlan, setPrimaryPlan] = useState<CultivationPlan | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -152,7 +181,7 @@ export function PrimaryCultivationPlan({ user, onViewPlan, onEditPlan }: Primary
             </div>
           )}
 
-          {primaryPlan.estimated_cost > 0 && (
+          {primaryPlan.estimated_cost && primaryPlan.estimated_cost > 0 && (
             <div className="flex items-center p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-secondary)' }}>
               <span className="w-5 h-5 mr-3 text-orange-600">💰</span>
               <div>

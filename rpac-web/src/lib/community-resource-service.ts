@@ -63,18 +63,22 @@ export const communityResourceService = {
       )
     ];
 
-    let profiles: any[] = [];
+    let profiles: Array<{ id: string; display_name?: string; avatar_url?: string }> = [];
     if (userIds.length > 0) {
       const { data: profileData } = await supabase
         .from('user_profiles')
         .select('user_id, display_name')
         .in('user_id', userIds);
-      profiles = profileData || [];
+      profiles = (profileData || []).map(profile => ({
+        id: profile.user_id,
+        display_name: profile.display_name,
+        avatar_url: undefined
+      }));
     }
 
     return (data || []).map(item => {
-      const responsibleProfile = profiles.find(p => p.user_id === item.responsible_user_id);
-      const creatorProfile = profiles.find(p => p.user_id === item.created_by);
+      const responsibleProfile = profiles.find(p => p.id === item.responsible_user_id);
+      const creatorProfile = profiles.find(p => p.id === item.created_by);
       return {
         ...item,
         responsible_user_name: responsibleProfile?.display_name || undefined,
@@ -169,17 +173,21 @@ export const communityResourceService = {
 
     // Get user profiles
     const userIds = [...new Set((data || []).map(item => item.user_id))];
-    let profiles: any[] = [];
+    let profiles: Array<{ id: string; display_name?: string; avatar_url?: string }> = [];
     if (userIds.length > 0) {
       const { data: profileData } = await supabase
         .from('user_profiles')
         .select('user_id, display_name')
         .in('user_id', userIds);
-      profiles = profileData || [];
+      profiles = (profileData || []).map(profile => ({
+        id: profile.user_id,
+        display_name: profile.display_name,
+        avatar_url: undefined
+      }));
     }
 
     return (data || []).map(item => {
-      const profile = profiles.find(p => p.user_id === item.user_id);
+      const profile = profiles.find(p => p.id === item.user_id);
       return {
         ...item,
         user_name: profile?.display_name || 'Medlem'

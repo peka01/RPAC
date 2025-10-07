@@ -26,9 +26,44 @@ import { RemindersContextService } from '@/lib/reminders-context-service-enhance
 import { TipHistoryService } from '@/lib/tip-history-service';
 import { supabase } from '@/lib/supabase';
 
+interface User {
+  id: string;
+  email?: string;
+  user_metadata?: {
+    name?: string;
+  };
+}
+
+interface UserProfile {
+  climateZone?: string;
+  householdSize?: number;
+  hasChildren?: boolean;
+  county?: string;
+  city?: string;
+  experienceLevel?: string;
+  gardenSize?: string;
+  crisisMode?: boolean;
+  location?: string;
+  weather?: {
+    temperature?: number;
+    humidity?: number;
+    forecast?: string;
+    windSpeed?: number;
+    precipitation?: number;
+    feelsLike?: number;
+    warnings?: Array<{
+      type?: string;
+      description?: string;
+      message?: string;
+      severity?: 'low' | 'moderate' | 'severe' | 'extreme';
+    }>;
+  };
+  [key: string]: unknown;
+}
+
 interface KRISterAssistantMobileProps {
-  user?: any;
-  userProfile?: any;
+  user?: User;
+  userProfile?: UserProfile;
   currentPage: 'dashboard' | 'individual' | 'local' | 'regional' | 'settings' | 'cultivation' | 'resources';
   currentAction?: string;
   currentSection?: string;
@@ -167,23 +202,28 @@ export function KRISterAssistantMobile({ user, userProfile = {}, currentPage, cu
       });
 
       // Load reminders context
-      const remindersContext = await RemindersContextService.getUserRemindersContext(user.id);
+      const remindersContext = user ? await RemindersContextService.getUserRemindersContext(user.id) : null;
 
       // Get AI tips
       const profile = {
         climateZone: userProfile?.county ? getClimateZone(userProfile.county) : 'svealand',
-        householdSize: userProfile?.household_size || 2,
-        hasChildren: userProfile?.has_children || false,
+        householdSize: typeof userProfile?.household_size === 'number' ? userProfile.household_size : 2,
+        hasChildren: typeof userProfile?.has_children === 'boolean' ? userProfile.has_children : false,
         county: userProfile?.county || 'stockholm',
         weather: weather ? {
           temperature: weather.temperature,
           humidity: weather.humidity,
           forecast: weather.forecast
         } : undefined,
-        reminders: remindersContext
+        reminders: remindersContext ? [
+          ...remindersContext.pendingReminders,
+          ...remindersContext.overdueReminders,
+          ...remindersContext.completedToday,
+          ...remindersContext.upcomingReminders
+        ] : undefined
       };
 
-      const tips = await SecureOpenAIService.generateDailyPreparednessTips(profile, remindersContext);
+      const tips = await SecureOpenAIService.generateDailyPreparednessTips(profile, remindersContext || undefined);
       
       // Filter out tips that have been shown recently
       const recentTipTitles = TipHistoryService.getRecentlyShownTips(7);
@@ -278,8 +318,8 @@ export function KRISterAssistantMobile({ user, userProfile = {}, currentPage, cu
       const response = await SecureOpenAIService.generatePersonalCoachResponse({
         userProfile: {
           climateZone: userProfile?.county ? getClimateZone(userProfile.county) : 'Götaland',
-          householdSize: userProfile?.household_size || 2,
-          hasChildren: userProfile?.has_children || false,
+          householdSize: typeof userProfile?.household_size === 'number' ? userProfile.household_size : 2,
+          hasChildren: typeof userProfile?.has_children === 'boolean' ? userProfile.has_children : false,
           county: userProfile?.county || 'Okänd',
           city: userProfile?.city || '',
           weather: weather ? {

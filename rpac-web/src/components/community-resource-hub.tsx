@@ -116,17 +116,52 @@ export function CommunityResourceHub({
     }
   };
 
-  // Filter resources based on category and search
-  const filterResources = (resources: any[]) => {
+  // Filter shared resources
+  const filterSharedResources = (resources: SharedResource[]) => {
     let filtered = resources;
     
     if (categoryFilter !== 'all') {
-      filtered = filtered.filter(r => r.category === categoryFilter || r.resource_category === categoryFilter);
+      filtered = filtered.filter(r => r.resource_category === categoryFilter);
     }
     
     if (searchQuery) {
       filtered = filtered.filter(r => 
         r.resource_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        r.notes?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    return filtered;
+  };
+
+  // Filter community resources
+  const filterCommunityResources = (resources: CommunityResource[]) => {
+    let filtered = resources;
+    
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter(r => r.category === categoryFilter);
+    }
+    
+    if (searchQuery) {
+      filtered = filtered.filter(r => 
+        r.resource_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        r.notes?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    return filtered;
+  };
+
+  // Filter help requests
+  const filterHelpRequests = (resources: HelpRequest[]) => {
+    let filtered = resources;
+    
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter(r => r.category === categoryFilter);
+    }
+    
+    if (searchQuery) {
+      filtered = filtered.filter(r => 
         r.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         r.description?.toLowerCase().includes(searchQuery.toLowerCase())
       );
@@ -151,10 +186,10 @@ export function CommunityResourceHub({
   };
 
   // Apply filters
-  const filteredShared = filterResources(sharedResources);
+  const filteredShared = filterSharedResources(sharedResources);
   const groupedSharedResources = groupSharedResources(filteredShared);
-  const filteredOwned = filterResources(communityResources);
-  const filteredHelp = filterResources(helpRequests);
+  const filteredOwned = filterCommunityResources(communityResources);
+  const filteredHelp = filterHelpRequests(helpRequests);
 
   // Calculate statistics
   const stats = {
@@ -326,11 +361,14 @@ export function CommunityResourceHub({
               <span className={`px-2 py-1 rounded text-xs font-semibold ${
                 resource.status === 'available' ? 'bg-green-100 text-green-800' :
                 resource.status === 'maintenance' ? 'bg-yellow-100 text-yellow-800' :
+                resource.status === 'in_use' ? 'bg-blue-100 text-blue-800' :
+                resource.status === 'broken' ? 'bg-red-100 text-red-800' :
                 'bg-gray-100 text-gray-800'
               }`}>
                 {resource.status === 'available' ? 'Tillgänglig' :
                  resource.status === 'maintenance' ? 'Underhåll' :
-                 resource.status === 'unavailable' ? 'Ej tillgänglig' : 'Okänd'}
+                 resource.status === 'in_use' ? 'I användning' :
+                 resource.status === 'broken' ? 'Trasig' : 'Okänd'}
               </span>
             )
           },
@@ -1133,7 +1171,14 @@ function GroupedSharedResourceCard({ resources, currentUserId, onRequest, onMana
 }
 
 // Single Shared Resource Card Component
-function SharedResourceCard({ resource, currentUserId, onRequest, onManage }: any) {
+interface SharedResourceCardProps {
+  resource: SharedResource;
+  currentUserId: string;
+  onRequest: (resourceId: string) => void;
+  onManage: (resourceId: string) => void;
+}
+
+function SharedResourceCard({ resource, currentUserId, onRequest, onManage }: SharedResourceCardProps) {
   const category = categoryConfig[resource.resource_category as keyof typeof categoryConfig] || categoryConfig.other;
   const isOwner = resource.user_id === currentUserId;
   const isAvailable = resource.status === 'available';
@@ -1141,9 +1186,9 @@ function SharedResourceCard({ resource, currentUserId, onRequest, onManage }: an
 
   const handleCardClick = () => {
     if (isOwner) {
-      onManage();
+      onManage(resource.id);
     } else if (isAvailable) {
-      onRequest();
+      onRequest(resource.id);
     }
   };
 
@@ -1234,7 +1279,7 @@ function SharedResourceCard({ resource, currentUserId, onRequest, onManage }: an
       <div className="relative z-10">
         {isOwner ? (
           <button
-            onClick={(e) => { e.stopPropagation(); onManage(); }}
+            onClick={(e) => { e.stopPropagation(); onManage(resource.id); }}
             className="w-full py-3 bg-[#5C6B47] text-white rounded-lg text-sm font-bold hover:bg-[#4A5239] transition-all shadow-md hover:shadow-lg min-h-[48px]"
             aria-label="Hantera din delade resurs"
           >
@@ -1242,7 +1287,7 @@ function SharedResourceCard({ resource, currentUserId, onRequest, onManage }: an
           </button>
         ) : isAvailable ? (
           <button
-            onClick={(e) => { e.stopPropagation(); onRequest(); }}
+            onClick={(e) => { e.stopPropagation(); onRequest(resource.id); }}
             className="w-full py-3 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-lg text-sm font-bold hover:shadow-xl transition-all shadow-md min-h-[48px]"
             aria-label="Be om denna resurs"
           >
@@ -1259,7 +1304,13 @@ function SharedResourceCard({ resource, currentUserId, onRequest, onManage }: an
 }
 
 // Help Request Card Component
-function HelpRequestCard({ request, currentUserId, onRespond }: any) {
+interface HelpRequestCardProps {
+  request: HelpRequest;
+  currentUserId: string;
+  onRespond: (requestId: string) => void;
+}
+
+function HelpRequestCard({ request, currentUserId, onRespond }: HelpRequestCardProps) {
   const isOwner = request.user_id === currentUserId;
   const urgencyColors: Record<string, string> = {
     low: 'bg-green-100 text-green-700',
@@ -1316,7 +1367,7 @@ function HelpRequestCard({ request, currentUserId, onRespond }: any) {
 
       {!isOwner && (request.status === 'open' || request.status === 'in_progress') && (
         <button
-          onClick={onRespond}
+          onClick={() => onRespond(request.id)}
           className="w-full py-3 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-lg font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2"
         >
           <Heart size={18} />
@@ -1328,7 +1379,16 @@ function HelpRequestCard({ request, currentUserId, onRespond }: any) {
 }
 
 // Community Resource Card Component
-function CommunityResourceCard({ resource, currentUserId, isAdmin, onEdit, onDelete, onBook }: any) {
+interface CommunityResourceCardProps {
+  resource: CommunityResource;
+  currentUserId: string;
+  isAdmin: boolean;
+  onEdit: (resourceId: string) => void;
+  onDelete: (resourceId: string) => void;
+  onBook: (resourceId: string) => void;
+}
+
+function CommunityResourceCard({ resource, currentUserId, isAdmin, onEdit, onDelete, onBook }: CommunityResourceCardProps) {
   const category = categoryConfig[resource.category as keyof typeof categoryConfig] || categoryConfig.other;
   const isAvailable = resource.status === 'available';
   const needsBooking = resource.booking_required;
@@ -1353,7 +1413,7 @@ function CommunityResourceCard({ resource, currentUserId, isAdmin, onEdit, onDel
 
   const handleCardClick = () => {
     if (isAdmin) {
-      onEdit(resource);
+      onEdit(resource.id);
     }
   };
 
@@ -1421,7 +1481,7 @@ function CommunityResourceCard({ resource, currentUserId, isAdmin, onEdit, onDel
       <div className="space-y-2 mb-4 relative z-10">
         <div className="flex items-center gap-2 text-sm text-gray-700">
           <Package size={16} className="text-gray-400" />
-          <span className="font-bold">{resource.quantity} {resource.unit.replace(/stycken/gi, 'st').replace(/styck/gi, 'st')}</span>
+          <span className="font-bold">{resource.quantity} {resource.unit?.replace(/stycken/gi, 'st').replace(/styck/gi, 'st') || ''}</span>
         </div>
         {resource.location && (
           <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -1470,7 +1530,7 @@ function CommunityResourceCard({ resource, currentUserId, isAdmin, onEdit, onDel
       <div className="space-y-2 relative z-10">
         {isAvailable && needsBooking && (
           <button
-            onClick={(e) => { e.stopPropagation(); onBook(); }}
+            onClick={(e) => { e.stopPropagation(); onBook(resource.id); }}
             className="w-full py-3 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-lg font-bold hover:shadow-xl transition-all shadow-md flex items-center justify-center gap-2 min-h-[48px]"
             aria-label="Boka resurs"
           >
@@ -1482,7 +1542,7 @@ function CommunityResourceCard({ resource, currentUserId, isAdmin, onEdit, onDel
         {isAdmin && (
           <div className="flex gap-2">
             <button
-              onClick={(e) => { e.stopPropagation(); onEdit(); }}
+              onClick={(e) => { e.stopPropagation(); onEdit(resource.id); }}
               className="flex-1 py-3 bg-[#5C6B47] text-white rounded-lg font-bold hover:bg-[#4A5239] transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 min-h-[48px]"
               aria-label="Redigera resurs"
             >
@@ -1490,7 +1550,7 @@ function CommunityResourceCard({ resource, currentUserId, isAdmin, onEdit, onDel
               <span>Redigera</span>
             </button>
             <button
-              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              onClick={(e) => { e.stopPropagation(); onDelete(resource.id); }}
               className="px-4 py-3 bg-[#8B4513]/10 text-[#8B4513] rounded-lg font-bold hover:bg-[#8B4513]/20 transition-all shadow-md hover:shadow-lg min-h-[48px] min-w-[48px]"
               aria-label="Ta bort resurs"
             >

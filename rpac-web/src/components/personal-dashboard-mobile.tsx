@@ -37,7 +37,7 @@ interface PreparednessScore {
 
 interface ResourceCategory {
   name: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   score: number;
   daysRemaining: number;
   status: 'excellent' | 'good' | 'fair' | 'poor' | 'critical';
@@ -47,7 +47,7 @@ interface ResourceCategory {
 interface QuickAction {
   title: string;
   description: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   color: string;
   urgent: boolean;
 }
@@ -102,18 +102,18 @@ export function PersonalDashboardMobile({ user }: PersonalDashboardMobileProps =
 
         const newCategories: ResourceCategory[] = [];
         let totalScore = 0;
-        const categoryScores: any = {};
+        const categoryScores: Record<string, number> = {};
 
         categoryConfig.forEach(({ key, name, icon, threshold }) => {
-          const categoryResources = resources.filter((r: any) => r.category === key);
+          const categoryResources = resources.filter((r: { category: string }) => r.category === key);
           
           let totalDays = 0;
           let hasResources = false;
 
-          categoryResources.forEach((resource: any) => {
+          categoryResources.forEach((resource: { quantity: number; days_remaining: number }) => {
             hasResources = true;
             const quantity = resource.quantity || 0;
-            const dailyUsage = resource.daily_usage || 1;
+            const dailyUsage = (resource as any).daily_usage || 1;
             const days = dailyUsage > 0 ? Math.floor(quantity / dailyUsage) : 0;
             totalDays += days;
           });
@@ -181,7 +181,12 @@ export function PersonalDashboardMobile({ user }: PersonalDashboardMobileProps =
 
         setScore({
           overall: overallScore,
-          ...categoryScores
+          food: categoryScores.food || 0,
+          water: categoryScores.water || 0,
+          medicine: categoryScores.medicine || 0,
+          energy: categoryScores.energy || 0,
+          tools: categoryScores.tools || 0,
+          pet_supplies: categoryScores.pet_supplies || 0
         });
 
         setResourceCategories(newCategories);
@@ -195,7 +200,7 @@ export function PersonalDashboardMobile({ user }: PersonalDashboardMobileProps =
           .eq('user_id', user.id);
 
         if (calendarData && calendarData.length > 0) {
-          const completed = calendarData.filter((item: any) => item.is_completed).length;
+          const completed = calendarData.filter((item: { is_completed: boolean }) => item.is_completed).length;
           const total = calendarData.length;
           const percentage = Math.round((completed / total) * 100);
 
@@ -362,7 +367,7 @@ export function PersonalDashboardMobile({ user }: PersonalDashboardMobileProps =
                   className="w-14 h-14 rounded-xl flex items-center justify-center mb-3"
                   style={{ backgroundColor: `${statusColor}20` }}
                 >
-                  <Icon size={28} style={{ color: statusColor }} strokeWidth={2} />
+                  <Icon className="w-7 h-7" />
                 </div>
                 
                 <h4 className="font-bold text-gray-900 mb-1">{category.name}</h4>
@@ -469,7 +474,7 @@ export function PersonalDashboardMobile({ user }: PersonalDashboardMobileProps =
                       className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
                       style={{ backgroundColor: `${action.color}20` }}
                     >
-                      <Icon size={24} style={{ color: action.color }} strokeWidth={2} />
+                      <Icon className="w-6 h-6" />
                     </div>
                     
                     <div className="flex-1 min-w-0">

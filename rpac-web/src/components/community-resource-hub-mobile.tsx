@@ -117,17 +117,52 @@ export function CommunityResourceHubMobile({
     }
   };
 
-  // Filter resources
-  const filterResources = (resources: any[]) => {
+  // Filter shared resources
+  const filterSharedResources = (resources: SharedResource[]) => {
     let filtered = resources;
 
     if (categoryFilter !== 'all') {
-      filtered = filtered.filter(r => r.category === categoryFilter || r.resource_category === categoryFilter);
+      filtered = filtered.filter(r => r.resource_category === categoryFilter);
     }
 
     if (searchQuery) {
       filtered = filtered.filter(r =>
         r.resource_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        r.notes?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    return filtered;
+  };
+
+  // Filter community resources
+  const filterCommunityResources = (resources: CommunityResource[]) => {
+    let filtered = resources;
+
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter(r => r.category === categoryFilter);
+    }
+
+    if (searchQuery) {
+      filtered = filtered.filter(r =>
+        r.resource_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        r.notes?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    return filtered;
+  };
+
+  // Filter help requests
+  const filterHelpRequests = (resources: HelpRequest[]) => {
+    let filtered = resources;
+
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter(r => r.category === categoryFilter);
+    }
+
+    if (searchQuery) {
+      filtered = filtered.filter(r =>
         r.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         r.description?.toLowerCase().includes(searchQuery.toLowerCase())
       );
@@ -151,10 +186,10 @@ export function CommunityResourceHubMobile({
     return Array.from(grouped.values());
   };
 
-  const filteredShared = filterResources(sharedResources);
+  const filteredShared = filterSharedResources(sharedResources);
   const groupedSharedResources = groupSharedResources(filteredShared);
-  const filteredOwned = filterResources(communityResources);
-  const filteredHelp = filterResources(helpRequests);
+  const filteredOwned = filterCommunityResources(communityResources);
+  const filteredHelp = filterHelpRequests(helpRequests);
 
   // Handler for adding community resource
   const handleAddCommunityResource = async (resource: Partial<CommunityResource>) => {
