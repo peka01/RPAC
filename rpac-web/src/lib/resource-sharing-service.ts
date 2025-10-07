@@ -816,11 +816,11 @@ export const resourceSharingService = {
         const { data: ownerProfile } = await supabase
           .from('user_profiles')
           .select('display_name')
-          .eq('user_id', requestDetails.resource_sharing.user_id)
+          .eq('user_id', requestDetails.resource_sharing[0]?.user_id)
           .single();
 
         const ownerName = ownerProfile?.display_name || 'Resursägaren';
-        const resourceName = requestDetails.resource_sharing.resources?.name || 'resurs';
+        const resourceName = requestDetails.resource_sharing[0]?.resources?.[0]?.name || 'resurs';
 
         await notificationService.createSystemNotification({
           userId: requestDetails.requester_id,
@@ -891,11 +891,11 @@ export const resourceSharingService = {
         const { data: ownerProfile } = await supabase
           .from('user_profiles')
           .select('display_name')
-          .eq('user_id', requestDetails.resource_sharing.user_id)
+          .eq('user_id', requestDetails.resource_sharing[0]?.user_id)
           .single();
 
         const ownerName = ownerProfile?.display_name || 'Resursägaren';
-        const resourceName = requestDetails.resource_sharing.resources?.name || 'resurs';
+        const resourceName = requestDetails.resource_sharing[0]?.resources?.[0]?.name || 'resurs';
 
         await notificationService.createSystemNotification({
           userId: requestDetails.requester_id,
