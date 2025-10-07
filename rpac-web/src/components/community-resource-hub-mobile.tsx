@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { resourceSharingService, type SharedResource, type HelpRequest } from '@/lib/resource-sharing-service';
 import { communityResourceService, type CommunityResource } from '@/lib/community-resource-service';
+import { supabase } from '@/lib/supabase';
 import { CommunityResourceModal } from './community-resource-modal';
 import type { User } from '@supabase/supabase-js';
 
@@ -40,6 +41,7 @@ interface CommunityResourceHubMobileProps {
   communityName: string;
   isAdmin?: boolean;
   onSendMessage?: (content: string) => void;
+  initialTab?: string | null;
 }
 
 type ViewTier = 'shared' | 'owned' | 'help';
@@ -69,8 +71,10 @@ export function CommunityResourceHubMobile({
   communityId,
   communityName,
   isAdmin = false,
-  onSendMessage
+  onSendMessage,
+  initialTab
 }: CommunityResourceHubMobileProps) {
+  console.log('CommunityResourceHubMobile component mounted with:', { communityId, communityName, initialTab });
   const [activeTab, setActiveTab] = useState<ViewTier>('shared');
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -82,6 +86,7 @@ export function CommunityResourceHubMobile({
   const [helpRequests, setHelpRequests] = useState<HelpRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [actualCommunityName, setActualCommunityName] = useState<string>(communityName);
 
   // Modal states
   const [showResourceDetail, setShowResourceDetail] = useState<SharedResource | CommunityResource | HelpRequest | null>(null);
@@ -90,10 +95,48 @@ export function CommunityResourceHubMobile({
   const [editingCommunityResource, setEditingCommunityResource] = useState<CommunityResource | null>(null);
 
   useEffect(() => {
+    console.log('CommunityResourceHubMobile useEffect triggered with communityId:', communityId);
     if (communityId) {
+      console.log('Loading data for community:', communityId);
       loadAllData();
+      loadCommunityName();
     }
   }, [communityId]);
+
+  const loadCommunityName = async () => {
+    try {
+      console.log('Loading community name for ID:', communityId);
+      const { data: community, error } = await supabase
+        .from('local_communities')
+        .select('community_name')
+        .eq('id', communityId)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching community:', error);
+        return;
+      }
+      
+      console.log('Fetched community:', community);
+      if (community) {
+        setActualCommunityName(community.community_name);
+        console.log('Set community name to:', community.community_name);
+      }
+    } catch (error) {
+      console.error('Error loading community name:', error);
+    }
+  };
+
+  // Handle initial tab from URL parameters
+  useEffect(() => {
+    if (initialTab === 'shared' || initialTab === 'delade') {
+      setActiveTab('shared');
+    } else if (initialTab === 'owned' || initialTab === 'gemensamma') {
+      setActiveTab('owned');
+    } else if (initialTab === 'help' || initialTab === 'hjalp') {
+      setActiveTab('help');
+    }
+  }, [initialTab]);
 
   const loadAllData = async () => {
     setLoading(true);
@@ -101,7 +144,7 @@ export function CommunityResourceHubMobile({
 
     try {
       const [shared, owned, help] = await Promise.all([
-        resourceSharingService.getCommunityResources(communityId),
+        resourceSharingService.getCommunityResources(communityId, user.id),
         communityResourceService.getCommunityResources(communityId),
         resourceSharingService.getCommunityHelpRequests(communityId)
       ]);
@@ -114,6 +157,45 @@ export function CommunityResourceHubMobile({
       setError('Kunde inte ladda samhällets resurser');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handler for requesting shared resources
+  const handleRequestResource = async (resource: SharedResource) => {
+    try {
+      console.log('Requesting resource:', resource.id, 'for user:', user.id);
+      // Create a request with default quantity
+      await resourceSharingService.requestSharedResource({
+        sharedResourceId: resource.id,
+        requesterId: user.id,
+        requestedQuantity: resource.shared_quantity,
+        message: 'Jag skulle vilja begära denna resurs'
+      });
+      console.log('Request created, reloading data...');
+      await loadAllData();
+      console.log('Data reloaded');
+      // Close the modal after successful request
+      setShowResourceDetail(null);
+    } catch (err) {
+      console.error('Error requesting resource:', err);
+      setError('Kunde inte begära resurs');
+    }
+  };
+
+  // Handler for canceling shared resource requests
+  const handleCancelRequest = async (resource: SharedResource) => {
+    try {
+      console.log('Canceling request for resource:', resource.id, 'for user:', user.id);
+      // Cancel the request
+      await resourceSharingService.cancelResourceRequest(resource.id, user.id);
+      console.log('Request canceled, reloading data...');
+      await loadAllData();
+      console.log('Data reloaded');
+      // Close the modal after successful cancellation
+      setShowResourceDetail(null);
+    } catch (err) {
+      console.error('Error canceling resource request:', err);
+      setError('Kunde inte avbryta begäran');
     }
   };
 
@@ -267,23 +349,35 @@ export function CommunityResourceHubMobile({
           <h1 className="text-2xl font-bold mb-1">Samhällsresurser</h1>
           <p className="text-[#C8D5B9] text-sm flex items-center gap-1">
             <Building2 size={14} />
-            {communityName}
+            {actualCommunityName}
           </p>
         </div>
 
-        {/* Stats Grid */}
+        {/* Enhanced Stats Grid */}
         <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3">
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/30">
+            <div className="flex items-center gap-2 mb-2">
+              <Share2 size={16} className="text-white/80" />
+              <span className="text-xs text-white/80 font-medium">Delade</span>
+            </div>
             <div className="text-2xl font-bold">{stats.availableShared}</div>
-            <div className="text-xs text-[#C8D5B9] mt-1">Delade resurser</div>
+            <div className="text-xs text-white/70 mt-1">tillgängliga</div>
           </div>
-          <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3">
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/30">
+            <div className="flex items-center gap-2 mb-2">
+              <Building2 size={16} className="text-white/80" />
+              <span className="text-xs text-white/80 font-medium">Samhället</span>
+            </div>
             <div className="text-2xl font-bold">{stats.totalOwned}</div>
-            <div className="text-xs text-[#C8D5B9] mt-1">Samhällets</div>
+            <div className="text-xs text-white/70 mt-1">resurser</div>
           </div>
-          <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3">
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/30">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle size={16} className="text-white/80" />
+              <span className="text-xs text-white/80 font-medium">Önskemål</span>
+            </div>
             <div className="text-2xl font-bold">{stats.activeHelp}</div>
-            <div className="text-xs text-[#C8D5B9] mt-1">Aktiva önskemål</div>
+            <div className="text-xs text-white/70 mt-1">aktiva</div>
           </div>
         </div>
 
@@ -377,6 +471,7 @@ export function CommunityResourceHubMobile({
               <SharedResourcesView
                 groupedResources={groupedSharedResources}
                 onResourceClick={setShowResourceDetail}
+                userId={user.id}
               />
             )}
             {activeTab === 'owned' && (
@@ -422,6 +517,8 @@ export function CommunityResourceHubMobile({
             setShowAddCommunityResource(true);
             setShowResourceDetail(null);
           }}
+          onRequest={handleRequestResource}
+          onCancelRequest={handleCancelRequest}
           userId={user.id}
         />
       )}
@@ -468,65 +565,97 @@ export function CommunityResourceHubMobile({
   );
 }
 
-// Shared Resources View Component
+// Enhanced Shared Resources View Component
 function SharedResourcesView({
   groupedResources,
-  onResourceClick
+  onResourceClick,
+  userId
 }: {
   groupedResources: SharedResource[][];
   onResourceClick: (resource: SharedResource) => void;
+  userId: string;
 }) {
   if (groupedResources.length === 0) {
     return (
       <div className="text-center py-16">
-        <div className="bg-[#5C6B47]/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-          <Share2 className="text-[#5C6B47]" size={40} />
+        <div className="bg-gradient-to-br from-[#5C6B47]/10 to-[#707C5F]/10 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6 shadow-lg">
+          <Share2 className="text-[#5C6B47]" size={48} />
         </div>
-        <h3 className="text-lg font-bold text-gray-900 mb-2">Inga delade resurser</h3>
-        <p className="text-gray-600 text-sm max-w-sm mx-auto">
-          Bli den första att dela en resurs med samhället!
+        <h3 className="text-xl font-bold text-gray-900 mb-3">Inga delade resurser</h3>
+        <p className="text-gray-600 text-sm max-w-sm mx-auto mb-6">
+          Bli den första att dela en resurs med samhället och hjälp andra medlemmar!
         </p>
+        <div className="bg-[#5C6B47]/5 border border-[#5C6B47]/20 rounded-xl p-4 max-w-sm mx-auto">
+          <div className="text-sm text-[#5C6B47] font-semibold mb-1">💡 Tips</div>
+          <div className="text-sm text-gray-600">
+            Gå till din resursinventering för att dela dina resurser
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      {/* Resource Summary */}
+      <div className="bg-gradient-to-r from-[#5C6B47]/10 to-[#707C5F]/10 rounded-xl p-4 border border-[#5C6B47]/20">
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-semibold text-[#3D4A2B]">
+            {groupedResources.length} olika resurstyper
+          </div>
+          <div className="text-sm text-gray-600">
+            Totalt {groupedResources.reduce((sum, group) => sum + group.reduce((s, r) => s + r.shared_quantity, 0), 0)} enheter
+          </div>
+        </div>
+      </div>
+
       {groupedResources.map((group, idx) => {
         const firstResource = group[0];
         const totalQuantity = group.reduce((sum, r) => sum + r.shared_quantity, 0);
         const category = categoryConfig[firstResource.resource_category as keyof typeof categoryConfig] || categoryConfig.other;
-        const contributors = new Set(group.map(r => r.sharer_name || 'Okänd')).size;
+        const contributors = new Set(group.map(r => r.user_id === userId ? 'Min resurs' : (r.sharer_name || 'Okänd'))).size;
+        const availableCount = group.filter(r => r.status === 'available').length;
+        const requestedCount = group.filter(r => r.has_user_requested).length;
 
         return (
           <button
             key={idx}
             onClick={() => onResourceClick(firstResource)}
-            className="w-full bg-white rounded-2xl p-4 shadow-md border border-[#5C6B47]/20 hover:shadow-lg transition-all touch-manipulation active:scale-98"
+            className="w-full bg-white rounded-2xl p-5 shadow-lg border border-gray-100 hover:shadow-xl transition-all touch-manipulation active:scale-98 group"
           >
-            <div className="flex items-start gap-3">
-              <div className="text-3xl flex-shrink-0">{category.emoji}</div>
+            <div className="flex items-start gap-4">
+              <div 
+                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"
+                style={{ backgroundColor: `${category.color}15` }}
+              >
+                <span className="text-2xl">{category.emoji}</span>
+              </div>
               <div className="flex-1 text-left">
-                <h3 className="font-bold text-gray-900 mb-1">{firstResource.resource_name}</h3>
-                <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                <h3 className="font-bold text-lg text-gray-900 mb-2">{firstResource.resource_name}</h3>
+                <div className="flex items-center gap-3 text-sm text-gray-600 mb-3">
                   <span className="font-semibold text-[#3D4A2B]">
                     {totalQuantity} {firstResource.resource_unit || 'st'}
                   </span>
                   <span>•</span>
                   <span>{contributors} delande</span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="px-2 py-1 bg-[#556B2F]/10 text-[#556B2F] rounded-lg text-xs font-semibold">
                     {category.label}
                   </span>
-                  {firstResource.status === 'available' && (
+                  {availableCount > 0 && (
                     <span className="px-2 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-semibold">
-                      Tillgänglig
+                      {availableCount} tillgängliga
+                    </span>
+                  )}
+                  {requestedCount > 0 && (
+                    <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-lg text-xs font-semibold">
+                      {requestedCount} begärda
                     </span>
                   )}
                 </div>
               </div>
-              <ChevronDown className="text-gray-400 transform -rotate-90" size={20} />
+              <ChevronDown className="text-gray-400 transform -rotate-90 group-hover:text-[#5C6B47] transition-colors" size={20} />
             </div>
           </button>
         );
@@ -785,6 +914,8 @@ function ResourceDetailBottomSheet({
   onClose,
   onUpdate,
   onEdit,
+  onRequest,
+  onCancelRequest,
   userId
 }: {
   resource: SharedResource | CommunityResource | HelpRequest;
@@ -792,6 +923,8 @@ function ResourceDetailBottomSheet({
   onClose: () => void;
   onUpdate: () => void;
   onEdit?: (resource: CommunityResource) => void;
+  onRequest?: (resource: SharedResource) => void;
+  onCancelRequest?: (resource: SharedResource) => void;
   userId: string;
 }) {
   // Determine resource type
@@ -807,7 +940,7 @@ function ResourceDetailBottomSheet({
           <div className="text-5xl">{category.emoji}</div>
           <div className="flex-1">
             <h2 className="text-2xl font-bold text-gray-900">{res.resource_name}</h2>
-            <p className="text-gray-500">Delad av {res.sharer_name || 'Okänd'}</p>
+            <p className="text-gray-500">Delad av {res.user_id === userId ? 'Min resurs' : (res.sharer_name || 'Okänd')}</p>
           </div>
         </div>
 
@@ -821,9 +954,9 @@ function ResourceDetailBottomSheet({
           <div className="bg-[#5C6B47]/10 rounded-xl p-4">
             <div className="text-sm text-gray-600 mb-1">Status</div>
             <div className="text-lg font-semibold text-[#556B2F]">
-              {res.status === 'available' ? 'Tillgänglig' :
-                res.status === 'requested' ? 'Begärd' :
-                  res.status === 'reserved' ? 'Reserverad' : 'Hämtad'}
+              {res.status === 'taken' ? 'Hämtad' :
+                res.status === 'available' ? (res.has_user_requested ? 'Begärd' : 'Tillgänglig') :
+                res.status === 'reserved' ? 'Reserverad' : 'Hämtad'}
             </div>
           </div>
         </div>
@@ -963,7 +1096,7 @@ function ResourceDetailBottomSheet({
       onClick={onClose}
     >
       <div
-        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto animate-slide-up"
+        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl max-h-[85vh] flex flex-col animate-slide-up mb-20"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
@@ -977,19 +1110,47 @@ function ResourceDetailBottomSheet({
           <div className="w-10"></div>
         </div>
 
-        <div className="p-6">
+        <div className="flex-1 overflow-y-auto p-4">
           {isShared && renderSharedDetails(resource as SharedResource)}
           {isOwned && renderOwnedDetails(resource as CommunityResource)}
           {isHelp && renderHelpDetails(resource as HelpRequest)}
+        </div>
 
-          <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200">
+        <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 pb-12 shadow-lg">
+          <div className="flex gap-3">
             <button
               onClick={onClose}
               className="flex-1 py-3 px-4 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-all touch-manipulation active:scale-95"
             >
               Stäng
             </button>
-            {isAdmin && isOwned && onEdit && (
+            {isShared && (resource as SharedResource).user_id === userId ? (
+              <button
+                onClick={() => onUpdate()}
+                className="flex-1 py-3 px-4 bg-[#5C6B47] text-white rounded-xl font-semibold hover:bg-[#4A5239] transition-all touch-manipulation active:scale-95 relative"
+              >
+                Hantera
+                {isShared && resource && (resource as SharedResource).pending_requests_count && (resource as SharedResource).pending_requests_count! > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                    {(resource as SharedResource).pending_requests_count}
+                  </span>
+                )}
+              </button>
+            ) : isShared && (resource as SharedResource).has_user_requested && (resource as SharedResource).status !== 'taken' ? (
+              <button
+                onClick={() => onCancelRequest?.(resource as SharedResource)}
+                className="flex-1 py-3 px-4 bg-yellow-100 text-yellow-700 rounded-xl font-semibold hover:bg-yellow-200 transition-all touch-manipulation active:scale-95"
+              >
+                Avbryt begäran
+              </button>
+            ) : isShared && (resource as SharedResource).status === 'available' && onRequest ? (
+              <button
+                onClick={() => onRequest(resource as SharedResource)}
+                className="flex-1 py-3 px-4 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-xl font-semibold hover:shadow-xl transition-all touch-manipulation active:scale-95"
+              >
+                Be om denna
+              </button>
+            ) : isAdmin && isOwned && onEdit ? (
               <button
                 onClick={() => onEdit(resource as CommunityResource)}
                 className="flex-1 py-3 px-4 bg-[#3D4A2B] text-white rounded-xl font-semibold hover:bg-[#2A331E] transition-all touch-manipulation active:scale-95"
@@ -997,6 +1158,10 @@ function ResourceDetailBottomSheet({
                 <Edit2 size={18} className="inline mr-2" />
                 Redigera
               </button>
+            ) : (
+              <div className="flex-1 py-3 px-4 bg-gray-100 text-gray-500 rounded-xl font-semibold text-center">
+                Ej tillgänglig
+              </div>
             )}
           </div>
         </div>

@@ -37,10 +37,23 @@ export function CommunityDashboard({ user, community, onNavigate }: CommunityDas
   });
 
   useEffect(() => {
-    loadCommunityStats();
-  }, [community.id]);
+    if (community?.id) {
+      loadCommunityStats();
+    }
+  }, [community?.id]);
+
+  // Don't render if community is not loaded yet
+  if (!community) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar samhälle" />
+      </div>
+    );
+  }
 
   const loadCommunityStats = async () => {
+    if (!community?.id) return;
+    
     try {
       setLoading(true);
 

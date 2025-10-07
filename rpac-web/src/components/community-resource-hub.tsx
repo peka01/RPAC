@@ -36,6 +36,7 @@ import { t } from '@/lib/locales';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { resourceSharingService, type SharedResource, type HelpRequest } from '@/lib/resource-sharing-service';
 import { communityResourceService, type CommunityResource } from '@/lib/community-resource-service';
+import { supabase } from '@/lib/supabase';
 import { SharedResourceActionsModal } from './shared-resource-actions-modal';
 import { CommunityResourceModal } from './community-resource-modal';
 import { ResourceListView } from './resource-list-view';
@@ -47,6 +48,7 @@ interface CommunityResourceHubProps {
   communityName: string;
   isAdmin?: boolean;
   onSendMessage?: (content: string) => void;
+  initialTab?: string | null;
 }
 
 type ViewTier = 'shared' | 'owned' | 'help';
@@ -67,7 +69,8 @@ export function CommunityResourceHub({
   communityId, 
   communityName,
   isAdmin = false,
-  onSendMessage 
+  onSendMessage,
+  initialTab
 }: CommunityResourceHubProps) {
   const [activeTab, setActiveTab] = useState<ViewTier>('shared');
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
@@ -81,6 +84,7 @@ export function CommunityResourceHub({
   const [helpRequests, setHelpRequests] = useState<HelpRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [actualCommunityName, setActualCommunityName] = useState<string>(communityName);
   
   // Modal states
   const [showAddCommunityResource, setShowAddCommunityResource] = useState(false);
@@ -92,8 +96,41 @@ export function CommunityResourceHub({
   useEffect(() => {
     if (communityId) {
       loadAllData();
+      loadCommunityName();
     }
   }, [communityId]);
+
+  const loadCommunityName = async () => {
+    try {
+      const { data: community, error } = await supabase
+        .from('local_communities')
+        .select('community_name')
+        .eq('id', communityId)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching community:', error);
+        return;
+      }
+      
+      if (community) {
+        setActualCommunityName(community.community_name);
+      }
+    } catch (error) {
+      console.error('Error loading community name:', error);
+    }
+  };
+
+  // Handle initial tab from URL parameters
+  useEffect(() => {
+    if (initialTab === 'shared' || initialTab === 'delade') {
+      setActiveTab('shared');
+    } else if (initialTab === 'owned' || initialTab === 'gemensamma') {
+      setActiveTab('owned');
+    } else if (initialTab === 'help' || initialTab === 'hjalp') {
+      setActiveTab('help');
+    }
+  }, [initialTab]);
 
   const loadAllData = async () => {
     setLoading(true);
@@ -101,11 +138,12 @@ export function CommunityResourceHub({
     
     try {
       const [shared, owned, help] = await Promise.all([
-        resourceSharingService.getCommunityResources(communityId),
+        resourceSharingService.getCommunityResources(communityId, user.id),
         communityResourceService.getCommunityResources(communityId),
         resourceSharingService.getCommunityHelpRequests(communityId)
       ]);
       
+      console.log('Loaded shared resources:', shared.map(r => ({ id: r.id, name: r.resource_name, has_user_requested: r.has_user_requested })));
       setSharedResources(shared);
       setCommunityResources(owned);
       setHelpRequests(help);
@@ -202,14 +240,6 @@ export function CommunityResourceHub({
     contributors: new Set(sharedResources.map(r => r.user_id)).size
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar" />
-      </div>
-    );
-  }
-
   // Community Resource Handlers
   const handleAddCommunityResource = async (resource: Partial<CommunityResource>) => {
     try {
@@ -260,15 +290,38 @@ export function CommunityResourceHub({
     }
   };
 
-  async function handleRequestResource(resource: SharedResource) {
+  const handleRequestResource = async (resource: SharedResource) => {
     try {
-      await resourceSharingService.requestResource(resource.id, user.id);
+      console.log('Requesting resource:', resource.id, 'for user:', user.id);
+      // Create a request with default quantity
+      await resourceSharingService.requestSharedResource({
+        sharedResourceId: resource.id,
+        requesterId: user.id,
+        requestedQuantity: resource.shared_quantity,
+        message: 'Jag skulle vilja begära denna resurs'
+      });
+      console.log('Request created, reloading data...');
       await loadAllData();
+      console.log('Data reloaded');
     } catch (err) {
       console.error('Error requesting resource:', err);
       setError('Kunde inte begära resurs');
     }
-  }
+  };
+
+  const handleCancelRequest = async (resource: SharedResource) => {
+    try {
+      console.log('Canceling request for resource:', resource.id, 'for user:', user.id);
+      // Cancel the request
+      await resourceSharingService.cancelResourceRequest(resource.id, user.id);
+      console.log('Request canceled, reloading data...');
+      await loadAllData();
+      console.log('Data reloaded');
+    } catch (err) {
+      console.error('Error canceling resource request:', err);
+      setError('Kunde inte avbryta begäran');
+    }
+  };
 
   function handleRespondToHelp(request: HelpRequest) {
     if (onSendMessage) {
@@ -294,6 +347,14 @@ export function CommunityResourceHub({
       console.error('Error deleting resource:', err);
       throw err;
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar" />
+      </div>
+    );
   }
 
   // Resource type configuration for display
@@ -460,55 +521,70 @@ export function CommunityResourceHub({
 
   return (
     <div className="space-y-6">
-      {/* Hero Section with Stats */}
+      {/* Enhanced Hero Section with Better Resource Overview */}
       <div className="bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-2xl p-8 shadow-2xl">
         <div className="flex items-start justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold mb-2">📦 Resurser</h1>
-            <p className="text-white/80 text-lg">{communityName}</p>
-          </div>
-          <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
-            <Users size={20} />
-            <span className="font-bold">{stats.contributors} bidragare</span>
+            <p className="text-white/80 text-lg">{actualCommunityName}</p>
+            <div className="flex items-center gap-4 mt-3">
+              <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1.5">
+                <Users size={16} />
+                <span className="text-sm font-semibold">{stats.contributors} bidragare</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1.5">
+                <CheckCircle size={16} />
+                <span className="text-sm font-semibold">{stats.availableShared} tillgängliga</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Share2 size={18} className="text-white/80" />
-              <span className="text-white/80 text-sm">Delade resurser</span>
+        {/* Enhanced Resource Status Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                <Share2 size={20} className="text-white" />
+              </div>
+              <div>
+                <div className="text-white/80 text-sm font-medium">Delade från medlemmar</div>
+                <div className="text-2xl font-bold">{stats.totalShared}</div>
+              </div>
             </div>
-            <div className="text-3xl font-bold">{stats.totalShared}</div>
-            <div className="text-white/80 text-xs mt-1">{stats.availableShared} tillgängliga</div>
+            <div className="text-white/70 text-xs">
+              {stats.availableShared} tillgängliga • {stats.totalShared - stats.availableShared} begärda
+            </div>
           </div>
 
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Building2 size={18} className="text-white/80" />
-              <span className="text-white/80 text-sm">Gemensamma resurser</span>
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                <Building2 size={20} className="text-white" />
+              </div>
+              <div>
+                <div className="text-white/80 text-sm font-medium">Samhällets resurser</div>
+                <div className="text-2xl font-bold">{stats.totalOwned}</div>
+              </div>
             </div>
-            <div className="text-3xl font-bold">{stats.totalOwned}</div>
-            <div className="text-white/80 text-xs mt-1">Gemensamma tillgångar</div>
+            <div className="text-white/70 text-xs">
+              Gemensamma tillgångar och utrustning
+            </div>
           </div>
 
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertCircle size={18} className="text-white/80" />
-              <span className="text-white/80 text-sm">Hjälpförfrågningar</span>
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                <AlertCircle size={20} className="text-white" />
+              </div>
+              <div>
+                <div className="text-white/80 text-sm font-medium">Aktiva önskemål</div>
+                <div className="text-2xl font-bold">{stats.activeHelp}</div>
+              </div>
             </div>
-            <div className="text-3xl font-bold">{stats.activeHelp}</div>
-            <div className="text-white/80 text-xs mt-1">{stats.resolvedHelp} lösta</div>
-          </div>
-
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <CheckCircle size={18} className="text-white/80" />
-              <span className="text-white/80 text-sm">Samarbete</span>
+            <div className="text-white/70 text-xs">
+              {stats.resolvedHelp} lösta • {stats.activeHelp} öppna
             </div>
-            <div className="text-3xl font-bold">{stats.contributors}</div>
-            <div className="text-white/80 text-xs mt-1">Aktiva medlemmar</div>
           </div>
         </div>
       </div>
@@ -677,28 +753,60 @@ export function CommunityResourceHub({
 
       {/* Content Area */}
       <div className="min-h-[400px]">
-        {/* Tier 1: Shared from Members */}
+        {/* Tier 1: Shared from Members - Enhanced Display */}
         {activeTab === 'shared' && (
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Resource Summary Bar */}
+            {filteredShared.length > 0 && (
+              <div className="bg-gradient-to-r from-[#5C6B47]/10 to-[#707C5F]/10 rounded-xl p-4 border border-[#5C6B47]/20">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="text-sm font-semibold text-[#3D4A2B]">
+                      {groupedSharedResources.length} olika resurstyper
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Totalt {filteredShared.reduce((sum, r) => sum + r.shared_quantity, 0)} enheter
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-gray-600">{stats.availableShared} tillgängliga</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                      <span className="text-gray-600">{stats.totalShared - stats.availableShared} begärda</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {filteredShared.length === 0 ? (
-              <div className="bg-white rounded-xl p-12 text-center shadow-md">
-                <Share2 size={48} className="mx-auto mb-4 text-gray-300" />
+              <div className="bg-white rounded-xl p-12 text-center shadow-md border border-gray-100">
+                <div className="w-20 h-20 bg-[#5C6B47]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Share2 size={40} className="text-[#5C6B47]" />
+                </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Inga delade resurser än</h3>
-                <p className="text-gray-600 mb-6">
-                  Medlemmar kan dela överskottsresurser från sina personliga förråd
+                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                  Medlemmar kan dela överskottsresurser från sina personliga förråd. Bli den första att bidra!
                 </p>
-                <div className="text-sm text-gray-500">
-                  💡 Gå till din resursinventering för att dela dina resurser
+                <div className="bg-[#5C6B47]/5 border border-[#5C6B47]/20 rounded-lg p-4 max-w-sm mx-auto">
+                  <div className="text-sm text-[#5C6B47] font-semibold mb-1">💡 Tips</div>
+                  <div className="text-sm text-gray-600">
+                    Gå till din resursinventering för att dela dina resurser med samhället
+                  </div>
                 </div>
               </div>
             ) : viewMode === 'cards' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {groupedSharedResources.map((resourceGroup, idx) => (
-                  <GroupedSharedResourceCard
+                  <EnhancedGroupedSharedResourceCard
                     key={resourceGroup[0].id}
                     resources={resourceGroup}
                     currentUserId={user.id}
                     onRequest={(resource) => handleRequestResource(resource)}
+                    onCancelRequest={(resource) => handleCancelRequest(resource)}
                     onManage={(resource) => setManagingResource(resource)}
                   />
                 ))}
@@ -708,6 +816,7 @@ export function CommunityResourceHub({
                 groupedResources={groupedSharedResources}
                 currentUserId={user.id}
                 onRequest={(resource) => handleRequestResource(resource)}
+                onCancelRequest={(resource) => handleCancelRequest(resource)}
                 onManage={(resource) => setManagingResource(resource)}
               />
             )}
@@ -793,10 +902,11 @@ export function CommunityResourceHub({
 }
 
 // Shared Resources Table View Component
-function SharedResourcesTableView({ groupedResources, currentUserId, onRequest, onManage }: { 
+function SharedResourcesTableView({ groupedResources, currentUserId, onRequest, onCancelRequest, onManage }: { 
   groupedResources: SharedResource[][], 
   currentUserId: string, 
   onRequest: (resource: SharedResource) => void, 
+  onCancelRequest: (resource: SharedResource) => void, 
   onManage: (resource: SharedResource) => void 
 }) {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -877,9 +987,14 @@ function SharedResourcesTableView({ groupedResources, currentUserId, onRequest, 
                         resourceGroup[0].user_id === currentUserId ? (
                           <button
                             onClick={() => onManage(resourceGroup[0])}
-                            className="px-3 py-1.5 bg-[#5C6B47] text-white rounded text-sm font-medium hover:bg-[#4A5239] transition-all"
+                            className="px-3 py-1.5 bg-[#5C6B47] text-white rounded text-sm font-medium hover:bg-[#4A5239] transition-all relative"
                           >
                             Hantera
+                            {resourceGroup[0].pending_requests_count && resourceGroup[0].pending_requests_count > 0 && (
+                              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                                {resourceGroup[0].pending_requests_count}
+                              </span>
+                            )}
                           </button>
                         ) : resourceGroup[0].status === 'available' ? (
                           <button
@@ -888,6 +1003,10 @@ function SharedResourcesTableView({ groupedResources, currentUserId, onRequest, 
                           >
                             Be om
                           </button>
+                        ) : resourceGroup[0].status === 'taken' ? (
+                          <span className="text-xs text-gray-500">Hämtad</span>
+                        ) : resourceGroup[0].has_user_requested ? (
+                          <span className="text-xs text-yellow-600 font-medium">Begärd</span>
                         ) : (
                           <span className="text-xs text-gray-500">Ej tillgänglig</span>
                         )
@@ -928,9 +1047,21 @@ function SharedResourcesTableView({ groupedResources, currentUserId, onRequest, 
                           {isOwner ? (
                             <button
                               onClick={() => onManage(resource)}
-                              className="px-3 py-1 bg-[#5C6B47] text-white rounded text-xs font-medium hover:bg-[#4A5239] transition-all"
+                              className="px-3 py-1 bg-[#5C6B47] text-white rounded text-xs font-medium hover:bg-[#4A5239] transition-all relative"
                             >
                               Hantera
+                              {resource.pending_requests_count && resource.pending_requests_count > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-bold">
+                                  {resource.pending_requests_count}
+                                </span>
+                              )}
+                            </button>
+                          ) : resource.has_user_requested ? (
+                            <button
+                              onClick={() => onCancelRequest(resource)}
+                              className="text-xs text-yellow-600 font-medium hover:text-yellow-700 transition-colors"
+                            >
+                              Avbryt
                             </button>
                           ) : isAvailable ? (
                             <button
@@ -1031,6 +1162,13 @@ function SharedResourcesTableView({ groupedResources, currentUserId, onRequest, 
                     >
                       Hantera
                     </button>
+                  ) : resource.has_user_requested && resource.status !== 'taken' ? (
+                    <button
+                      onClick={() => onCancelRequest(resource)}
+                      className="w-full py-1.5 bg-yellow-100 text-yellow-700 rounded text-xs font-medium mt-2 hover:bg-yellow-200 transition-colors"
+                    >
+                      Avbryt begäran
+                    </button>
                   ) : resource.status === 'available' ? (
                     <button
                       onClick={() => onRequest(resource)}
@@ -1038,6 +1176,8 @@ function SharedResourcesTableView({ groupedResources, currentUserId, onRequest, 
                     >
                       Be om
                     </button>
+                  ) : resource.status === 'taken' ? (
+                    <div className="text-center text-xs text-gray-500 py-1.5 mt-2">Hämtad</div>
                   ) : (
                     <div className="text-center text-xs text-gray-500 py-1.5 mt-2">Ej tillgänglig</div>
                   )}
@@ -1051,114 +1191,161 @@ function SharedResourcesTableView({ groupedResources, currentUserId, onRequest, 
   );
 }
 
-// Grouped Shared Resource Card Component (for resources shared by multiple people)
-function GroupedSharedResourceCard({ resources, currentUserId, onRequest, onManage }: { resources: SharedResource[], currentUserId: string, onRequest: (resource: SharedResource) => void, onManage: (resource: SharedResource) => void }) {
+// Enhanced Grouped Shared Resource Card Component with Better Visual Hierarchy
+function EnhancedGroupedSharedResourceCard({ resources, currentUserId, onRequest, onCancelRequest, onManage }: { resources: SharedResource[], currentUserId: string, onRequest: (resource: SharedResource) => void, onCancelRequest: (resource: SharedResource) => void, onManage: (resource: SharedResource) => void }) {
   const [expanded, setExpanded] = useState(false);
   const firstResource = resources[0];
   const category = categoryConfig[firstResource.resource_category as keyof typeof categoryConfig] || categoryConfig.other;
   const totalQuantity = resources.reduce((sum, r) => sum + r.shared_quantity, 0);
   const hasMyResource = resources.some(r => r.user_id === currentUserId);
+  const availableCount = resources.filter(r => r.status === 'available').length;
+  const requestedCount = resources.filter(r => r.status === 'requested').length;
 
   // If only one resource, show single card
   if (resources.length === 1) {
-    return <SharedResourceCard resource={firstResource} currentUserId={currentUserId} onRequest={() => onRequest(firstResource)} onManage={() => onManage(firstResource)} />;
+    return <SharedResourceCard resource={firstResource} currentUserId={currentUserId} onRequest={() => onRequest(firstResource)} onCancelRequest={onCancelRequest} onManage={() => onManage(firstResource)} />;
   }
 
   return (
-    <div className="bg-white rounded-xl p-5 shadow-md hover:shadow-xl transition-all border-2 border-transparent hover:border-[#3D4A2B]">
-      {/* Header - Compact */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3 flex-1 min-w-0">
+    <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all border border-gray-100 hover:border-[#5C6B47]/30 group">
+      {/* Enhanced Header */}
+      <div className="flex items-start justify-between mb-5">
+        <div className="flex items-center gap-4 flex-1 min-w-0">
           <div 
-            className="w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: `${category.color}20` }}
+            className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"
+            style={{ backgroundColor: `${category.color}15` }}
           >
-            <span className="text-xl">{category.emoji}</span>
+            <span className="text-2xl">{category.emoji}</span>
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="font-bold text-gray-900 truncate">{firstResource.resource_name}</h3>
-            <p className="text-xs text-gray-500">{category.label}</p>
+            <h3 className="font-bold text-lg text-gray-900 truncate mb-1">{firstResource.resource_name}</h3>
+            <div className="flex items-center gap-2 text-sm">
+              <span className="px-2 py-1 bg-[#5C6B47]/10 text-[#5C6B47] rounded-lg text-xs font-semibold">
+                {category.label}
+              </span>
+              <span className="text-gray-500">•</span>
+              <span className="text-gray-600">{resources.length} delande</span>
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+        <div className="flex items-center gap-2 flex-shrink-0 ml-3">
           {hasMyResource && (
-            <span className="text-[#556B2F] text-xs font-medium">Du</span>
+            <span className="bg-[#556B2F]/10 text-[#556B2F] px-2 py-1 rounded-lg text-xs font-semibold">
+              Du bidrar
+            </span>
           )}
-          <span className="bg-[#556B2F]/10 text-[#556B2F] px-2 py-1 rounded text-xs font-bold whitespace-nowrap">
-            {resources.length} pers
+        </div>
+      </div>
+
+      {/* Enhanced Key Info */}
+      <div className="mb-5">
+        <div className="flex items-baseline gap-3 mb-2">
+          <span className="text-2xl font-bold text-gray-900">
+            {totalQuantity} {(firstResource.resource_unit || 'st').replace(/stycken/gi, 'st').replace(/styck/gi, 'st')}
           </span>
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span className="text-sm text-gray-600">{availableCount} tillgängliga</span>
+          </div>
+        </div>
+        <div className="text-sm text-gray-600 truncate">
+          Delat av: {resources.map(r => r.user_id === currentUserId ? 'Min resurs' : (r.sharer_name || 'Okänd')).join(', ')}
         </div>
       </div>
 
-      {/* Key Info - Simplified */}
-      <div className="mb-4">
-        <div className="text-xl font-black text-gray-900 mb-1">
-          {totalQuantity} {(firstResource.resource_unit || 'st').replace(/stycken/gi, 'st').replace(/styck/gi, 'st')}
-        </div>
-        <div className="text-xs text-gray-500 truncate">
-          {resources.map(r => r.sharer_name || 'Okänd').join(' • ')}
-        </div>
+      {/* Status Indicators */}
+      <div className="flex items-center gap-2 mb-4">
+        {availableCount > 0 && (
+          <span className="px-2 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-semibold">
+            {availableCount} tillgängliga
+          </span>
+        )}
+        {requestedCount > 0 && (
+          <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-lg text-xs font-semibold">
+            {requestedCount} begärda
+          </span>
+        )}
       </div>
 
-      {/* Expandable List */}
+      {/* Enhanced Expandable List */}
       {!expanded ? (
         <button
           onClick={() => setExpanded(true)}
-          className="w-full py-2.5 bg-gray-50 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-100 transition-all"
+          className="w-full py-3 bg-gradient-to-r from-[#5C6B47]/5 to-[#707C5F]/5 text-[#3D4A2B] rounded-xl text-sm font-semibold hover:from-[#5C6B47]/10 hover:to-[#707C5F]/10 transition-all border border-[#5C6B47]/20"
         >
-          Visa detaljer →
+          Visa alla bidrag →
         </button>
       ) : (
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           <button
             onClick={() => setExpanded(false)}
-            className="w-full py-1.5 text-xs text-gray-500 hover:text-gray-700 transition-all"
+            className="w-full py-2 text-sm text-gray-500 hover:text-gray-700 transition-all"
           >
-            ▲ Dölj
+            ▲ Dölj detaljer
           </button>
           
           {resources.map((resource) => {
             const isOwner = resource.user_id === currentUserId;
             const isAvailable = resource.status === 'available';
+            const statusColor = isAvailable ? 'green' : resource.has_user_requested ? 'yellow' : 'gray';
             
             return (
-              <div key={resource.id} className="border-t pt-2.5">
-                {/* Contributor info - minimal */}
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-semibold text-gray-900">
-                    {resource.sharer_name || 'Okänd'}
-                    {isOwner && <span className="text-xs text-[#556B2F] font-normal ml-1">(du)</span>}
-                  </span>
-                  <span className="text-sm font-medium text-gray-700">
-                    {resource.shared_quantity} {resource.resource_unit || 'st'}
-                  </span>
+              <div key={resource.id} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                {/* Contributor info */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-gray-900">
+                      {resource.sharer_name || 'Okänd'}
+                    </span>
+                    {isOwner && (
+                      <span className="text-xs text-[#556B2F] font-medium bg-[#556B2F]/10 px-2 py-1 rounded">
+                        du
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-700">
+                      {resource.shared_quantity} {resource.resource_unit || 'st'}
+                    </span>
+                    <div className={`w-2 h-2 rounded-full ${
+                      statusColor === 'green' ? 'bg-green-500' : 
+                      statusColor === 'yellow' ? 'bg-yellow-500' : 'bg-gray-400'
+                    }`}></div>
+                  </div>
                 </div>
                 
-                {/* Optional details - only if present */}
+                {/* Optional details */}
                 {(resource.location || resource.notes) && (
-                  <div className="text-xs text-gray-600 mb-2 space-y-0.5">
-                    {resource.location && <div>📍 {resource.location}</div>}
-                    {resource.notes && <div className="italic">"{resource.notes}"</div>}
+                  <div className="text-xs text-gray-600 mb-3 space-y-1">
+                    {resource.location && (
+                      <div className="flex items-center gap-1">
+                        <MapPin size={12} />
+                        {resource.location}
+                      </div>
+                    )}
+                    {resource.notes && (
+                      <div className="italic">"{resource.notes}"</div>
+                    )}
                   </div>
                 )}
 
-                {/* Action button - compact */}
+                {/* Action button */}
                 {isOwner ? (
                   <button
                     onClick={() => onManage(resource)}
-                    className="w-full py-2 bg-[#5C6B47] text-white rounded-lg text-sm font-medium hover:bg-[#4A5239] transition-all"
+                    className="w-full py-2.5 bg-[#5C6B47] text-white rounded-lg text-sm font-semibold hover:bg-[#4A5239] transition-all shadow-sm"
                   >
-                    Hantera
+                    Hantera ditt bidrag
                   </button>
                 ) : isAvailable ? (
                   <button
                     onClick={() => onRequest(resource)}
-                    className="w-full py-2 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-lg text-sm font-medium hover:shadow-lg transition-all"
+                    className="w-full py-2.5 bg-gradient-to-r from-[#556B2F] to-[#3D4A2B] text-white rounded-lg text-sm font-semibold hover:shadow-md transition-all"
                   >
-                    Be om denna
+                    Be om från {resource.sharer_name}
                   </button>
                 ) : (
-                  <div className="w-full py-2 bg-gray-100 text-gray-500 rounded-lg text-xs text-center">
+                  <div className="w-full py-2.5 bg-gray-100 text-gray-500 rounded-lg text-sm text-center font-medium">
                     Ej tillgänglig
                   </div>
                 )}
@@ -1176,10 +1363,11 @@ interface SharedResourceCardProps {
   resource: SharedResource;
   currentUserId: string;
   onRequest: (resourceId: string) => void;
+  onCancelRequest: (resource: SharedResource) => void;
   onManage: (resourceId: string) => void;
 }
 
-function SharedResourceCard({ resource, currentUserId, onRequest, onManage }: SharedResourceCardProps) {
+function SharedResourceCard({ resource, currentUserId, onRequest, onCancelRequest, onManage }: SharedResourceCardProps) {
   const category = categoryConfig[resource.resource_category as keyof typeof categoryConfig] || categoryConfig.other;
   const isOwner = resource.user_id === currentUserId;
   const isAvailable = resource.status === 'available';
@@ -1256,7 +1444,7 @@ function SharedResourceCard({ resource, currentUserId, onRequest, onManage }: Sh
           </span>
         </div>
         <div className="text-sm font-medium text-gray-700 mb-1">
-          {resource.sharer_name || 'Okänd'}
+          {resource.user_id === currentUserId ? 'Min resurs' : (resource.sharer_name || 'Okänd')}
         </div>
         {/* Optional details - only if present */}
         {(resource.location || resource.notes) && (
@@ -1281,10 +1469,22 @@ function SharedResourceCard({ resource, currentUserId, onRequest, onManage }: Sh
         {isOwner ? (
           <button
             onClick={(e) => { e.stopPropagation(); onManage(resource.id); }}
-            className="w-full py-3 bg-[#5C6B47] text-white rounded-lg text-sm font-bold hover:bg-[#4A5239] transition-all shadow-md hover:shadow-lg min-h-[48px]"
+            className="w-full py-3 bg-[#5C6B47] text-white rounded-lg text-sm font-bold hover:bg-[#4A5239] transition-all shadow-md hover:shadow-lg min-h-[48px] relative"
             aria-label="Hantera din delade resurs"
           >
             Hantera
+            {resource.pending_requests_count && resource.pending_requests_count > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                {resource.pending_requests_count}
+              </span>
+            )}
+          </button>
+        ) : resource.has_user_requested && resource.status !== 'taken' ? (
+          <button
+            onClick={(e) => { e.stopPropagation(); onCancelRequest(resource); }}
+            className="w-full py-3 bg-yellow-100 text-yellow-700 rounded-lg text-sm font-bold hover:bg-yellow-200 transition-all min-h-[48px] flex items-center justify-center"
+          >
+            Avbryt begäran
           </button>
         ) : isAvailable ? (
           <button

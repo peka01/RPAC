@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { X, Edit2, Trash2, ToggleLeft, ToggleRight, AlertCircle, Check } from 'lucide-react';
-import type { SharedResource } from '@/lib/resource-sharing-service';
+import { useState, useEffect } from 'react';
+import { X, Edit2, Trash2, ToggleLeft, ToggleRight, AlertCircle, Check, Users, Clock, CheckCircle, MessageSquare, User, Mail, Calendar } from 'lucide-react';
+import type { SharedResource, ResourceRequest } from '@/lib/resource-sharing-service';
+import { resourceSharingService } from '@/lib/resource-sharing-service';
 
 interface SharedResourceActionsModalProps {
   isOpen: boolean;
@@ -19,10 +20,13 @@ export function SharedResourceActionsModal({
   onUpdate,
   onDelete
 }: SharedResourceActionsModalProps) {
-  const [mode, setMode] = useState<'menu' | 'edit' | 'delete' | 'toggle'>('menu');
+  const [mode, setMode] = useState<'menu' | 'edit' | 'delete' | 'toggle' | 'requests'>('menu');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [requests, setRequests] = useState<ResourceRequest[]>([]);
+  const [selectedRequest, setSelectedRequest] = useState<ResourceRequest | null>(null);
+  const [responseMessage, setResponseMessage] = useState('');
 
   // Edit form state
   const [editForm, setEditForm] = useState({
@@ -31,6 +35,89 @@ export function SharedResourceActionsModal({
     location: resource?.location || '',
     notes: resource?.notes || ''
   });
+
+  // Load requests when modal opens
+  useEffect(() => {
+    if (isOpen && resource) {
+      loadRequests();
+    }
+  }, [isOpen, resource]);
+
+  const loadRequests = async () => {
+    if (!resource) return;
+    
+    try {
+      const data = await resourceSharingService.getSharedResourceRequests(resource.id);
+      setRequests(data);
+    } catch (err) {
+      console.error('Error loading requests:', err);
+      // If the table doesn't exist yet, just set empty array
+      setRequests([]);
+    }
+  };
+
+  const handleApproveRequest = async (requestId: string) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await resourceSharingService.approveResourceRequest(requestId, responseMessage || undefined);
+      setSuccess(true);
+      await loadRequests();
+      // Notify parent component to reload data
+      await onUpdate({});
+      setTimeout(() => {
+        onClose();
+      }, 1500);
+    } catch (err) {
+      console.error('Error approving request:', err);
+      setError('Kunde inte godkänna förfrågan');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDenyRequest = async (requestId: string) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await resourceSharingService.denyResourceRequest(requestId, responseMessage || undefined);
+      setSuccess(true);
+      await loadRequests();
+      // Notify parent component to reload data
+      await onUpdate({});
+      setTimeout(() => {
+        onClose();
+      }, 1500);
+    } catch (err) {
+      console.error('Error denying request:', err);
+      setError('Kunde inte neka förfrågan');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCompleteRequest = async (requestId: string) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await resourceSharingService.completeResourceRequest(requestId);
+      setSuccess(true);
+      await loadRequests();
+      // Notify parent component to reload data
+      await onUpdate({});
+      setTimeout(() => {
+        onClose();
+      }, 1500);
+    } catch (err) {
+      console.error('Error completing request:', err);
+      setError('Kunde inte markera som slutförd');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!isOpen || !resource) return null;
 
@@ -63,7 +150,8 @@ export function SharedResourceActionsModal({
     setError(null);
 
     try {
-      const newStatus = resource.status === 'available' ? 'reserved' : 'available';
+      // Toggle between 'available' and 'taken' instead of 'reserved'
+      const newStatus = resource.status === 'available' ? 'taken' : 'available';
       await onUpdate({ status: newStatus });
       setSuccess(true);
       setTimeout(() => {
@@ -107,6 +195,7 @@ export function SharedResourceActionsModal({
                 {mode === 'edit' && 'Redigera resurs'}
                 {mode === 'delete' && 'Ta bort resurs'}
                 {mode === 'toggle' && 'Ändra tillgänglighet'}
+                {mode === 'requests' && 'Hantera förfrågningar'}
               </h2>
               <p className="text-white/80">{resource.resource_name}</p>
             </div>
@@ -175,6 +264,24 @@ export function SharedResourceActionsModal({
                   </div>
                 </div>
               </button>
+
+              {/* Request Management Button */}
+              {requests.length > 0 && (
+                <button
+                  onClick={() => setMode('requests')}
+                  className="w-full flex items-center gap-4 p-4 bg-[#5C6B47]/10 hover:bg-[#5C6B47]/20 rounded-xl transition-all text-left group"
+                >
+                  <div className="w-12 h-12 bg-[#5C6B47]/20 rounded-lg flex items-center justify-center group-hover:bg-[#5C6B47]/30 transition-colors">
+                    <Users size={24} className="text-[#5C6B47]" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-gray-900">Hantera förfrågningar</div>
+                    <div className="text-sm text-gray-600">
+                      {requests.filter(r => r.status === 'pending').length} väntande • {requests.filter(r => r.status === 'approved').length} godkända
+                    </div>
+                  </div>
+                </button>
+              )}
 
               <button
                 onClick={() => setMode('delete')}
@@ -331,6 +438,126 @@ export function SharedResourceActionsModal({
                   {loading ? 'Tar bort...' : 'Ta bort'}
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* Requests Management Mode */}
+          {mode === 'requests' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-gray-900">Förfrågningar för {resource.resource_name}</h3>
+                <button
+                  onClick={() => setMode('menu')}
+                  className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  Tillbaka
+                </button>
+              </div>
+
+              {requests.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Users size={48} className="mx-auto mb-4 text-gray-300" />
+                  <p>Inga förfrågningar än</p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {requests.map((request) => (
+                    <div key={request.id} className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-[#5C6B47]/20 rounded-lg flex items-center justify-center">
+                            <User size={20} className="text-[#5C6B47]" />
+                          </div>
+                          <div>
+                            <div className="font-semibold text-gray-900">
+                              {request.requester_name || 'Okänd användare'}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {request.requested_quantity} {resource.resource_unit || 'st'} • {new Date(request.requested_at).toLocaleDateString('sv-SE')}
+                            </div>
+                          </div>
+                        </div>
+                        <div className={`px-2 py-1 rounded-lg text-xs font-semibold ${
+                          request.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                          request.status === 'approved' ? 'bg-green-100 text-green-700' :
+                          request.status === 'denied' ? 'bg-red-100 text-red-700' :
+                          request.status === 'completed' ? 'bg-blue-100 text-blue-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {request.status === 'pending' ? 'Väntande' :
+                           request.status === 'approved' ? 'Godkänd' :
+                           request.status === 'denied' ? 'Nekad' :
+                           request.status === 'completed' ? 'Slutförd' :
+                           'Avbruten'}
+                        </div>
+                      </div>
+
+                      {request.message && (
+                        <div className="mb-3 p-3 bg-white rounded-lg border border-gray-200">
+                          <div className="flex items-start gap-2">
+                            <MessageSquare size={16} className="text-gray-400 mt-0.5" />
+                            <p className="text-sm text-gray-700">{request.message}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {request.response_message && (
+                        <div className="mb-3 p-3 bg-[#5C6B47]/5 rounded-lg border border-[#5C6B47]/20">
+                          <div className="flex items-start gap-2">
+                            <CheckCircle size={16} className="text-[#5C6B47] mt-0.5" />
+                            <p className="text-sm text-gray-700">{request.response_message}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Action Buttons */}
+                      {request.status === 'pending' && (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleApproveRequest(request.id)}
+                            disabled={loading}
+                            className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition-all disabled:opacity-50"
+                          >
+                            Godkänn
+                          </button>
+                          <button
+                            onClick={() => handleDenyRequest(request.id)}
+                            disabled={loading}
+                            className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition-all disabled:opacity-50"
+                          >
+                            Neka
+                          </button>
+                        </div>
+                      )}
+
+                      {request.status === 'approved' && (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleCompleteRequest(request.id)}
+                            disabled={loading}
+                            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-all disabled:opacity-50"
+                          >
+                            Markera som slutförd
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Response Message Input */}
+                      {(request.status === 'pending' || request.status === 'approved') && (
+                        <div className="mt-3">
+                          <textarea
+                            value={responseMessage}
+                            onChange={(e) => setResponseMessage(e.target.value)}
+                            placeholder="Lägg till meddelande (valfritt)..."
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5C6B47] focus:border-transparent resize-none"
+                            rows={2}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

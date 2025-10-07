@@ -22,6 +22,34 @@ export interface SharedResource {
   resource_category?: string;
   resource_unit?: string;
   sharer_name?: string;
+  community_name?: string;
+  // Request status for current user
+  has_user_requested?: boolean;
+  // Request counts for resource owner
+  pending_requests_count?: number;
+}
+
+export interface ResourceRequest {
+  id: string;
+  shared_resource_id: string;
+  requester_id: string;
+  requested_quantity: number;
+  status: 'pending' | 'approved' | 'denied' | 'completed' | 'cancelled';
+  message?: string;
+  response_message?: string;
+  requested_at: string;
+  responded_at?: string;
+  completed_at?: string;
+  created_at: string;
+  updated_at: string;
+  // Joined data
+  requester_name?: string;
+  requester_email?: string;
+  resource_name?: string;
+  resource_category?: string;
+  resource_unit?: string;
+  sharer_name?: string;
+  sharer_email?: string;
 }
 
 export interface HelpRequest {
@@ -57,7 +85,7 @@ export const resourceSharingService = {
   /**
    * Get available shared resources in a community
    */
-  async getCommunityResources(communityId: string): Promise<SharedResource[]> {
+  async getCommunityResources(communityId: string, currentUserId?: string): Promise<SharedResource[]> {
     // Fetch resource_sharing with denormalized fields (no join needed)
     // Show all resources except 'taken' ones
     const { data, error } = await supabase
@@ -84,6 +112,50 @@ export const resourceSharingService = {
       }));
     }
 
+    // Get user's requests for these resources if currentUserId is provided
+    let userRequests: string[] = [];
+    if (currentUserId && data && data.length > 0) {
+      const resourceIds = data.map(item => item.id);
+      console.log('Checking requests for user:', currentUserId, 'resources:', resourceIds);
+      const { data: requestData, error: requestError } = await supabase
+        .from('resource_requests')
+        .select('shared_resource_id')
+        .eq('requester_id', currentUserId)
+        .in('shared_resource_id', resourceIds)
+        .in('status', ['pending', 'approved']);
+      
+      if (requestError) {
+        console.error('Error fetching user requests:', requestError);
+      } else {
+        console.log('Found user requests:', requestData);
+      }
+      
+      userRequests = (requestData || []).map(req => req.shared_resource_id);
+    }
+
+    // Get pending requests count for each resource (for resource owners)
+    let pendingRequestsCount: Record<string, number> = {};
+    if (data && data.length > 0) {
+      const resourceIds = data.map(item => item.id);
+      try {
+        const { data: pendingData } = await supabase
+          .from('resource_requests')
+          .select('shared_resource_id')
+          .in('shared_resource_id', resourceIds)
+          .eq('status', 'pending');
+        
+        if (pendingData) {
+          pendingRequestsCount = pendingData.reduce((acc, req) => {
+            acc[req.shared_resource_id] = (acc[req.shared_resource_id] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>);
+          console.log('Pending requests count:', pendingRequestsCount);
+        }
+      } catch (error) {
+        console.warn('Could not fetch pending requests count:', error);
+      }
+    }
+
     return (data || []).map(item => {
       const profile = profiles.find(p => p.id === item.user_id);
       return {
@@ -102,8 +174,15 @@ export const resourceSharingService = {
         resource_name: item.resource_name,
         resource_category: item.resource_category || item.category,
         resource_unit: item.resource_unit || item.unit,
-        sharer_name: profile?.display_name || 'Medlem'
+        sharer_name: profile?.display_name || 'Medlem',
+        // Check if current user has requested this resource
+        has_user_requested: userRequests.includes(item.id),
+        // Pending requests count for resource owners
+        pending_requests_count: pendingRequestsCount[item.id] || 0
       };
+    }).map(item => {
+      console.log(`Resource ${item.id} (${item.resource_name}): has_user_requested = ${item.has_user_requested}, pending_requests_count = ${item.pending_requests_count}`);
+      return item;
     });
   },
 
@@ -367,6 +446,50 @@ export const resourceSharingService = {
 
     if (error) throw error;
 
+    // Get community names separately if community_id exists
+    const communityIds = [...new Set((data || []).map(item => item.community_id).filter(Boolean))];
+    let communityNames: Record<string, string> = {};
+    
+    if (communityIds.length > 0) {
+      try {
+        const { data: communityData } = await supabase
+          .from('local_communities')
+          .select('id, community_name')
+          .in('id', communityIds);
+        
+        if (communityData) {
+          communityNames = communityData.reduce((acc, community) => {
+            acc[community.id] = community.community_name;
+            return acc;
+          }, {} as Record<string, string>);
+        }
+      } catch (communityError) {
+        console.warn('Could not fetch community names:', communityError);
+      }
+    }
+
+    // Get pending requests count for each resource
+    let pendingRequestsCount: Record<string, number> = {};
+    if (data && data.length > 0) {
+      const resourceIds = data.map(item => item.id);
+      try {
+        const { data: pendingData } = await supabase
+          .from('resource_requests')
+          .select('shared_resource_id')
+          .in('shared_resource_id', resourceIds)
+          .eq('status', 'pending');
+        
+        if (pendingData) {
+          pendingRequestsCount = pendingData.reduce((acc, req) => {
+            acc[req.shared_resource_id] = (acc[req.shared_resource_id] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>);
+        }
+      } catch (error) {
+        console.warn('Could not fetch pending requests count for user resources:', error);
+      }
+    }
+
     return (data || []).map(item => ({
       id: item.id,
       user_id: item.user_id,
@@ -381,7 +504,9 @@ export const resourceSharingService = {
       updated_at: item.updated_at,
       resource_name: item.resources?.name,
       resource_category: item.resources?.category,
-      resource_unit: item.resources?.unit
+      resource_unit: item.resources?.unit,
+      community_name: item.community_id ? communityNames[item.community_id] : undefined,
+      pending_requests_count: pendingRequestsCount[item.id] || 0
     }));
   },
 
@@ -397,6 +522,300 @@ export const resourceSharingService = {
 
     if (error) throw error;
     return (data || []) as HelpRequest[];
+  },
+
+  /**
+   * Request a shared resource
+   */
+  async requestSharedResource(params: {
+    sharedResourceId: string;
+    requesterId: string;
+    requestedQuantity: number;
+    message?: string;
+  }): Promise<ResourceRequest> {
+    const { data, error } = await supabase
+      .from('resource_requests')
+      .insert({
+        shared_resource_id: params.sharedResourceId,
+        requester_id: params.requesterId,
+        requested_quantity: params.requestedQuantity,
+        message: params.message
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Don't update the shared resource status immediately
+    // The resource should remain 'available' until the owner approves the request
+    // The request status will be tracked separately in the resource_requests table
+
+    return data;
+  },
+
+  /**
+   * Get requests for a shared resource
+   */
+  async getSharedResourceRequests(sharedResourceId: string): Promise<ResourceRequest[]> {
+    try {
+      // First, get the requests without joins
+      const { data: requests, error: requestsError } = await supabase
+        .from('resource_requests')
+        .select('*')
+        .eq('shared_resource_id', sharedResourceId)
+        .order('created_at', { ascending: false });
+
+      if (requestsError) {
+        // If table doesn't exist, return empty array instead of throwing
+        if (requestsError.code === 'PGRST116' || requestsError.message?.includes('relation "resource_requests" does not exist')) {
+          console.log('Resource requests table not found, returning empty array');
+          return [];
+        }
+        throw requestsError;
+      }
+
+      if (!requests || requests.length === 0) {
+        return [];
+      }
+
+      // Get user profiles for the requesters
+      const requesterIds = [...new Set(requests.map(r => r.requester_id))];
+      const { data: profiles, error: profilesError } = await supabase
+        .from('user_profiles')
+        .select('user_id, display_name, email')
+        .in('user_id', requesterIds);
+
+      if (profilesError) {
+        console.log('Error fetching user profiles:', profilesError);
+        // Return requests without profile data
+        return requests.map(req => ({
+          ...req,
+          requester_name: 'Okänd',
+          requester_email: ''
+        }));
+      }
+
+      // Combine the data
+      const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+      return requests.map(req => ({
+        ...req,
+        requester_name: profileMap.get(req.requester_id)?.display_name || 'Okänd',
+        requester_email: profileMap.get(req.requester_id)?.email || ''
+      }));
+    } catch (err) {
+      console.log('Error fetching resource requests:', err);
+      return [];
+    }
+  },
+
+  /**
+   * Get user's resource requests
+   */
+  async getUserResourceRequests(userId: string): Promise<ResourceRequest[]> {
+    try {
+      const { data, error } = await supabase
+        .from('resource_requests')
+        .select('*')
+        .eq('requester_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.log('Error fetching user resource requests:', err);
+      return [];
+    }
+  },
+
+  /**
+   * Get requests for user's shared resources
+   */
+  async getRequestsForUserResources(userId: string): Promise<ResourceRequest[]> {
+    try {
+      // First get the shared resources for this user
+      const { data: sharedResources, error: sharedError } = await supabase
+        .from('resource_sharing')
+        .select('id')
+        .eq('user_id', userId);
+
+      if (sharedError) throw sharedError;
+      if (!sharedResources || sharedResources.length === 0) return [];
+
+      const sharedResourceIds = sharedResources.map(r => r.id);
+      
+      // Then get requests for those resources
+      const { data, error } = await supabase
+        .from('resource_requests')
+        .select('*')
+        .in('shared_resource_id', sharedResourceIds)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.log('Error fetching requests for user resources:', err);
+      return [];
+    }
+  },
+
+  /**
+   * Approve a resource request
+   */
+  async approveResourceRequest(requestId: string, responseMessage?: string): Promise<void> {
+    // Update the request status
+    const { error: requestError } = await supabase
+      .from('resource_requests')
+      .update({
+        status: 'approved',
+        response_message: responseMessage,
+        responded_at: new Date().toISOString()
+      })
+      .eq('id', requestId);
+
+    if (requestError) throw requestError;
+
+    // Get the shared resource ID to update its status
+    const { data: requestData, error: fetchError } = await supabase
+      .from('resource_requests')
+      .select('shared_resource_id')
+      .eq('id', requestId)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    // Update the shared resource status to 'taken' when approved
+    const { error: resourceError } = await supabase
+      .from('resource_sharing')
+      .update({
+        status: 'taken',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', requestData.shared_resource_id);
+
+    if (resourceError) throw resourceError;
+  },
+
+  /**
+   * Deny a resource request
+   */
+  async denyResourceRequest(requestId: string, responseMessage?: string): Promise<void> {
+    // Update the request status
+    const { error: requestError } = await supabase
+      .from('resource_requests')
+      .update({
+        status: 'denied',
+        response_message: responseMessage,
+        responded_at: new Date().toISOString()
+      })
+      .eq('id', requestId);
+
+    if (requestError) throw requestError;
+
+    // Get the shared resource ID to reset its status
+    const { data: requestData, error: fetchError } = await supabase
+      .from('resource_requests')
+      .select('shared_resource_id')
+      .eq('id', requestId)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    // Reset the shared resource status to 'available' when denying
+    // This allows others to request it again
+    const { error: resourceError } = await supabase
+      .from('resource_sharing')
+      .update({
+        status: 'available',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', requestData.shared_resource_id);
+
+    if (resourceError) throw resourceError;
+  },
+
+  /**
+   * Mark a resource request as completed
+   */
+  async completeResourceRequest(requestId: string): Promise<void> {
+    // First, get the shared resource ID to update its status
+    const { data: requestData, error: fetchError } = await supabase
+      .from('resource_requests')
+      .select('shared_resource_id')
+      .eq('id', requestId)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    // Update the request status to completed
+    const { error: requestError } = await supabase
+      .from('resource_requests')
+      .update({
+        status: 'completed',
+        completed_at: new Date().toISOString()
+      })
+      .eq('id', requestId);
+
+    if (requestError) throw requestError;
+
+    // Set the shared resource status back to 'available' so it can be borrowed again
+    const { error: resourceError } = await supabase
+      .from('resource_sharing')
+      .update({
+        status: 'available',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', requestData.shared_resource_id);
+
+    if (resourceError) throw resourceError;
+  },
+
+  /**
+   * Cancel a resource request
+   */
+  async cancelResourceRequest(sharedResourceId: string, userId: string): Promise<void> {
+    // First find the request ID for this user and resource
+    const { data: request, error: findError } = await supabase
+      .from('resource_requests')
+      .select('id')
+      .eq('shared_resource_id', sharedResourceId)
+      .eq('requester_id', userId)
+      .in('status', ['pending', 'approved'])
+      .single();
+
+    if (findError) {
+      console.error('Error finding request to cancel:', findError);
+      throw findError;
+    }
+
+    if (!request) {
+      throw new Error('No active request found to cancel');
+    }
+
+    // Cancel the request
+    const { error } = await supabase
+      .from('resource_requests')
+      .update({ 
+        status: 'cancelled',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', request.id);
+
+    if (error) throw error;
+  },
+
+  /**
+   * Update shared resource status
+   */
+  async updateSharedResourceStatus(sharedResourceId: string, status: string): Promise<void> {
+    const { error } = await supabase
+      .from('resource_sharing')
+      .update({ 
+        status,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', sharedResourceId);
+
+    if (error) throw error;
   }
 };
 

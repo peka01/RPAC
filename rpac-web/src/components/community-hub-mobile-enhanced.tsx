@@ -26,9 +26,11 @@ import type { User } from '@supabase/supabase-js';
 
 interface CommunityHubMobileEnhancedProps {
   user: User;
+  initialCommunityId?: string | null;
+  initialTab?: string | null;
 }
 
-export function CommunityHubMobileEnhanced({ user }: CommunityHubMobileEnhancedProps) {
+export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTab }: CommunityHubMobileEnhancedProps) {
   const [activeView, setActiveView] = useState<'home' | 'discovery' | 'messaging' | 'resources' | 'community-detail'>('home');
   const [activeCommunityId, setActiveCommunityId] = useState<string | undefined>();
   const [userCommunities, setUserCommunities] = useState<LocalCommunity[]>([]);
@@ -44,6 +46,16 @@ export function CommunityHubMobileEnhanced({ user }: CommunityHubMobileEnhancedP
       loadUserCommunities();
     }
   }, [user]);
+
+  // Handle initial URL parameters
+  useEffect(() => {
+    if (initialCommunityId) {
+      setActiveCommunityId(initialCommunityId);
+    }
+    if (initialTab === 'resources' || initialTab === 'shared') {
+      setActiveView('resources');
+    }
+  }, [initialCommunityId, initialTab]);
 
   // Check admin status when active community changes
   useEffect(() => {
@@ -74,7 +86,7 @@ export function CommunityHubMobileEnhanced({ user }: CommunityHubMobileEnhancedP
         const validCommunities = communities.filter(c => c !== null) as LocalCommunity[];
         setUserCommunities(validCommunities);
         
-        if (!activeCommunityId && validCommunities.length > 0) {
+        if (!activeCommunityId && !initialCommunityId && validCommunities.length > 0) {
           setActiveCommunityId(validCommunities[0].id);
         }
       }
@@ -458,15 +470,20 @@ export function CommunityHubMobileEnhanced({ user }: CommunityHubMobileEnhancedP
           </div>
         )}
 
-        {activeView === 'resources' && (
-          <div className="pb-24">
-            {userCommunities.length > 0 && activeCommunityId ? (
-              <CommunityResourceHubMobile
-                user={user}
-                communityId={activeCommunityId}
-                communityName={userCommunities.find(c => c.id === activeCommunityId)?.community_name || 'Samhälle'}
-                isAdmin={isAdmin}
-              />
+          {activeView === 'resources' && (
+            <div className="pb-24">
+              {activeCommunityId ? (
+                <CommunityResourceHubMobile
+                  user={user}
+                  communityId={activeCommunityId}
+                  communityName={userCommunities.find(c => c.id === activeCommunityId)?.community_name || 'Samhälle'}
+                  isAdmin={isAdmin}
+                  initialTab={initialTab}
+                />
+              ) : loadingCommunities ? (
+              <div className="flex items-center justify-center min-h-screen px-4">
+                <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar samhälle" />
+              </div>
             ) : (
               <div className="flex items-center justify-center min-h-screen px-4">
                 <div className="text-center">

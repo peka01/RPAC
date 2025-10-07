@@ -7,9 +7,11 @@ import type { User } from '@supabase/supabase-js';
 
 interface CommunityHubResponsiveProps {
   user: User;
+  initialCommunityId?: string | null;
+  initialTab?: string | null;
 }
 
-export function CommunityHubResponsive({ user }: CommunityHubResponsiveProps) {
+export function CommunityHubResponsive({ user, initialCommunityId, initialTab }: CommunityHubResponsiveProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -38,9 +40,9 @@ export function CommunityHubResponsive({ user }: CommunityHubResponsiveProps) {
   }
 
   return isMobile ? (
-    <CommunityHubMobileEnhanced user={user} />
+    <CommunityHubMobileEnhanced user={user} initialCommunityId={initialCommunityId} initialTab={initialTab} />
   ) : (
-    <CommunityHubEnhanced user={user} />
+    <CommunityHubEnhanced user={user} initialCommunityId={initialCommunityId} initialTab={initialTab} />
   );
 }
 

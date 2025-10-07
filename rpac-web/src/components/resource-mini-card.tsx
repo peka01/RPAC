@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Pencil, Trash, Share2, MoreVertical, AlertTriangle } from 'lucide-react';
+import { Pencil, Trash, Share2, MoreVertical, AlertTriangle, Users, CheckCircle, Clock } from 'lucide-react';
 import { Resource } from '@/lib/supabase';
+import { SharedResource } from '@/lib/resource-sharing-service';
 import { t } from '@/lib/locales';
 
 const categoryConfig = {
@@ -22,13 +23,15 @@ interface ResourceMiniCardProps {
   onEdit: (resource: Resource) => void;
   onDelete: (resource: Resource) => void;
   onShare?: (resource: Resource) => void;
+  sharedResource?: SharedResource;
 }
 
 export function ResourceMiniCard({
   resource,
   onEdit,
   onDelete,
-  onShare
+  onShare,
+  sharedResource
 }: ResourceMiniCardProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -105,6 +108,25 @@ export function ResourceMiniCard({
       {resource.is_msb_recommended && (
         <div className="flex-shrink-0 text-xs font-medium px-1.5 py-0.5 rounded bg-[#3D4A2B]/10 text-[#3D4A2B]">
           MSB
+        </div>
+      )}
+
+      {/* Sharing Status Badge */}
+      {sharedResource && (
+        <div className={`flex-shrink-0 text-xs font-medium px-2 py-1 rounded flex items-center gap-1 ${
+          sharedResource.status === 'available' 
+            ? 'bg-green-100 text-green-700' 
+            : sharedResource.status === 'requested'
+            ? 'bg-yellow-100 text-yellow-700'
+            : 'bg-blue-100 text-blue-700'
+        }`}>
+          {sharedResource.status === 'available' && <Users size={12} />}
+          {sharedResource.status === 'requested' && <Clock size={12} />}
+          {sharedResource.status === 'taken' && <CheckCircle size={12} />}
+          <span>
+            {sharedResource.status === 'available' ? 'Delad' :
+             sharedResource.status === 'requested' ? 'Begärd' : 'Hämtad'}
+          </span>
         </div>
       )}
 

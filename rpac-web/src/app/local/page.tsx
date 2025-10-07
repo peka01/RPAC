@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { CommunityHubResponsive } from '@/components/community-hub-responsive';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { supabase } from '@/lib/supabase';
@@ -10,6 +11,7 @@ import type { User } from '@supabase/supabase-js';
 export default function LocalPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     // Check for authenticated user
@@ -85,5 +87,10 @@ export default function LocalPage() {
     );
   }
 
-  return <CommunityHubResponsive user={user} />;
+  // Extract URL parameters
+  const communityId = searchParams.get('community');
+  const tab = searchParams.get('tab');
+  
+
+  return <CommunityHubResponsive user={user} initialCommunityId={communityId} initialTab={tab} />;
 }

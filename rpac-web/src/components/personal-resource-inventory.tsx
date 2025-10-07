@@ -1,15 +1,18 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, TrendingUp, Package, CheckCircle, AlertTriangle, Clock, Shield, Pencil, Trash, Share2, Users, HelpCircle, ChevronDown, ChevronUp, Search, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Plus, TrendingUp, Package, CheckCircle, AlertTriangle, Clock, Shield, Pencil, Trash, Share2, Users, HelpCircle, ChevronDown, ChevronUp, Search, X, Eye, EyeOff, Heart } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { resourceService, Resource } from '@/lib/supabase';
+import { resourceSharingService, SharedResource } from '@/lib/resource-sharing-service';
 import { ResourceListView, Column, CategoryFilter, useListViewState } from './resource-list-view';
 import { ResourceCardWithActions, ResourceTableRow } from './resource-card-with-actions';
 import { ResourceMiniCard } from './resource-mini-card';
 import { SimpleAddResourceModal, msbRecommendations } from './simple-add-resource-modal';
 import { EditResourceModal } from './edit-resource-modal';
 import { ResourceShareToCommunityModal } from './resource-share-to-community-modal';
+import { SharedResourceActionsModal } from './shared-resource-actions-modal';
 
 const categoryConfig = {
   food: { emoji: '🍞', label: 'Mat' },
@@ -28,16 +31,22 @@ interface PersonalResourceInventoryProps {
 }
 
 export function PersonalResourceInventory({ userId }: PersonalResourceInventoryProps) {
+  const router = useRouter();
   const [resources, setResources] = useState<Resource[]>([]);
+  const [sharedResources, setSharedResources] = useState<SharedResource[]>([]);
+  const [myRequests, setMyRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showSharedResourceModal, setShowSharedResourceModal] = useState(false);
   const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
+  const [selectedSharedResource, setSelectedSharedResource] = useState<SharedResource | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedCategories, setExpandedCategories] = useState<Set<CategoryKey>>(
     new Set(Object.keys(categoryConfig) as CategoryKey[])
   );
+  const [showSharedResources, setShowSharedResources] = useState(true);
 
   const {
     searchQuery: _unused1,
@@ -55,12 +64,42 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
   const loadResources = async () => {
     try {
       setLoading(true);
-      const data = await resourceService.getResources(userId);
-      setResources(data);
+      const [resourcesData, sharedData, requestsData] = await Promise.all([
+        resourceService.getResources(userId),
+        resourceSharingService.getUserSharedResources(userId),
+        resourceSharingService.getUserResourceRequests(userId)
+      ]);
+      setResources(resourcesData);
+      setSharedResources(sharedData);
+      setMyRequests(requestsData);
     } catch (error) {
       console.error('Error loading resources:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdateSharedResource = async (updates: Partial<SharedResource>) => {
+    if (!selectedSharedResource) return;
+    
+    try {
+      await resourceSharingService.updateSharedResourceSimple(selectedSharedResource.id, updates);
+      await loadResources(); // Reload to get updated data
+      setShowSharedResourceModal(false);
+    } catch (error) {
+      console.error('Error updating shared resource:', error);
+    }
+  };
+
+  const handleDeleteSharedResource = async () => {
+    if (!selectedSharedResource) return;
+    
+    try {
+      await resourceSharingService.deleteSharedResource(selectedSharedResource.id);
+      await loadResources(); // Reload to get updated data
+      setShowSharedResourceModal(false);
+    } catch (error) {
+      console.error('Error deleting shared resource:', error);
     }
   };
 
@@ -80,12 +119,25 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
     const msbCategoriesWithResources = new Set(msbResourcesAdded.map(r => r.category));
     const msbFulfillmentPercent = Math.round((msbCategoriesWithResources.size / msbCategories.length) * 100);
     
-    // Note: Shared resources count would require querying shared_resources table
-    // For now, we'll set it to 0 or could be calculated separately
-    const sharedCount = 0;
+    // Calculate shared resources statistics
+    const sharedCount = sharedResources.length;
+    const availableShared = sharedResources.filter(r => r.status === 'available').length;
+    const requestedShared = sharedResources.filter(r => r.status === 'requested').length;
+    const takenShared = sharedResources.filter(r => r.status === 'taken').length;
     
-    return { total, filled: withQuantity, empty, expiringSoon, msbCount, msbFulfillmentPercent, sharedCount };
-  }, [resources]);
+    return { 
+      total, 
+      filled: withQuantity, 
+      empty, 
+      expiringSoon, 
+      msbCount, 
+      msbFulfillmentPercent, 
+      sharedCount,
+      availableShared,
+      requestedShared,
+      takenShared
+    };
+  }, [resources, sharedResources]);
 
   // Get color for MSB fulfillment
   const getMsbColor = (percent: number) => {
@@ -128,6 +180,15 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
       return matchesSearch && matchesCategory;
     });
   }, [resources, searchQuery, activeCategory]);
+
+  // Create a map of shared resources for quick lookup
+  const sharedResourcesMap = useMemo(() => {
+    const map = new Map();
+    sharedResources.forEach(shared => {
+      map.set(shared.resource_id, shared);
+    });
+    return map;
+  }, [sharedResources]);
 
   // Category filters for ResourceListView
   const categories: CategoryFilter[] = (Object.keys(categoryConfig) as CategoryKey[]).map(key => ({
@@ -296,15 +357,233 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
         <div className="bg-white rounded-xl p-6 shadow-lg border-2 border-[#3D4A2B]/20 hover:shadow-xl transition-all">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 bg-[#3D4A2B]/10 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Users size={28} className="text-[#3D4A2B]" />
+              <Share2 size={28} className="text-[#3D4A2B]" />
             </div>
             <div className="flex-1">
               <div className="text-4xl font-black text-gray-900 mb-1">{stats.sharedCount}</div>
               <div className="text-sm font-semibold text-gray-700">Delade resurser</div>
+              {stats.sharedCount > 0 && (
+                <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span>{stats.availableShared} tillgängliga</span>
+                  </div>
+                  {stats.requestedShared > 0 && (
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                      <span>{stats.requestedShared} begärda</span>
+                    </div>
+                  )}
+                  {stats.takenShared > 0 && (
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <span>{stats.takenShared} hämtade</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Shared Resources Section */}
+      {stats.sharedCount > 0 && (
+        <div className="bg-gradient-to-r from-[#5C6B47]/10 to-[#707C5F]/10 rounded-xl p-6 border border-[#5C6B47]/20">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[#5C6B47]/20 rounded-lg flex items-center justify-center">
+                <Share2 size={20} className="text-[#5C6B47]" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Dina delade resurser</h3>
+                <p className="text-sm text-gray-600">Resurser du delar med andra</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowSharedResources(!showSharedResources)}
+              className="flex items-center gap-2 px-3 py-2 bg-white/50 hover:bg-white/70 rounded-lg transition-all"
+            >
+              {showSharedResources ? <EyeOff size={16} /> : <Eye size={16} />}
+              <span className="text-sm font-medium">
+                {showSharedResources ? 'Dölj' : 'Visa'}
+              </span>
+            </button>
+          </div>
+
+          {showSharedResources && (
+            <div className="space-y-3">
+              {sharedResources.map((sharedResource) => {
+                const statusColor = sharedResource.status === 'available' ? 'green' : 
+                                  sharedResource.status === 'requested' ? 'yellow' : 'blue';
+                const statusLabel = sharedResource.status === 'available' ? 'Tillgänglig' :
+                                  sharedResource.status === 'requested' ? 'Begärd' : 'Hämtad';
+                
+                return (
+                  <div key={sharedResource.id} className="bg-white rounded-lg p-4 border border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">
+                          {categoryConfig[sharedResource.resource_category as keyof typeof categoryConfig]?.emoji || '📦'}
+                        </span>
+                        <div>
+                          <h4 className="font-semibold text-gray-900">{sharedResource.resource_name}</h4>
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <span>{sharedResource.shared_quantity} {sharedResource.resource_unit || 'st'}</span>
+                            {sharedResource.location && (
+                              <>
+                                <span>•</span>
+                                <span>{sharedResource.location}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${
+                          statusColor === 'green' ? 'bg-green-100 text-green-700' :
+                          statusColor === 'yellow' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-blue-100 text-blue-700'
+                        }`}>
+                          {statusLabel}
+                        </span>
+                        <button
+                          onClick={() => {
+                            setSelectedSharedResource(sharedResource);
+                            setShowSharedResourceModal(true);
+                          }}
+                          className="px-3 py-1.5 bg-[#5C6B47] text-white rounded-lg text-xs font-medium hover:bg-[#4A5239] transition-all relative"
+                        >
+                          Hantera
+                          {sharedResource.pending_requests_count && sharedResource.pending_requests_count > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-bold">
+                              {sharedResource.pending_requests_count}
+                            </span>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                    {sharedResource.notes && (
+                      <div className="mt-2 text-sm text-gray-600 italic">
+                        "{sharedResource.notes}"
+                      </div>
+                    )}
+                    
+                    {/* Community Link */}
+                    {sharedResource.community_id && (
+                      <div className="mt-3 pt-3 border-t border-gray-100">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Users size={14} />
+                            <span>Delad i {sharedResource.community_name || 'samhälle'}</span>
+                          </div>
+                          <button
+                            onClick={() => {
+                              // Navigate to community resource hub with shared tab
+                              router.push(`/local?community=${sharedResource.community_id}&tab=shared`);
+                            }}
+                            className="flex items-center gap-1 text-xs text-[#5C6B47] hover:text-[#4A5239] font-medium underline transition-colors hover:bg-[#5C6B47]/5 px-2 py-1 rounded"
+                            title="Gå till samhällets resursvy för att se hur denna resurs visas för andra"
+                          >
+                            <span>Visa i samhälle</span>
+                            <span>→</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* My Requests Section */}
+      {myRequests.length > 0 && (
+        <div className="bg-white rounded-xl shadow-lg border-2 border-gray-100 p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Clock size={20} className="text-blue-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Mina begäran</h3>
+                <p className="text-sm text-gray-600">Resurser du har begärt från andra</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {myRequests.map((request) => {
+              const statusColor = request.status === 'pending' ? 'yellow' : 
+                                request.status === 'approved' ? 'green' : 
+                                request.status === 'denied' ? 'red' : 
+                                request.status === 'completed' ? 'blue' : 'gray';
+              const statusLabel = request.status === 'pending' ? 'Väntande' :
+                                request.status === 'approved' ? 'Godkänd' :
+                                request.status === 'denied' ? 'Nekad' :
+                                request.status === 'completed' ? 'Slutförd' : 'Avbruten';
+              
+              return (
+                <div key={request.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">
+                        {categoryConfig[request.resource_category as keyof typeof categoryConfig]?.emoji || '📦'}
+                      </span>
+                      <div>
+                        <h4 className="font-semibold text-gray-900">{request.resource_name}</h4>
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <span>{request.requested_quantity} {request.resource_unit || 'st'}</span>
+                          <span>•</span>
+                          <span>Från {request.sharer_name || 'Okänd'}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${
+                        statusColor === 'yellow' ? 'bg-yellow-100 text-yellow-700' :
+                        statusColor === 'green' ? 'bg-green-100 text-green-700' :
+                        statusColor === 'red' ? 'bg-red-100 text-red-700' :
+                        statusColor === 'blue' ? 'bg-blue-100 text-blue-700' :
+                        'bg-gray-100 text-gray-700'
+                      }`}>
+                        {statusLabel}
+                      </span>
+                      {request.status === 'approved' && (
+                        <button
+                          onClick={async () => {
+                            try {
+                              await resourceSharingService.completeResourceRequest(request.id);
+                              await loadResources(); // Reload to update the list
+                            } catch (error) {
+                              console.error('Error completing request:', error);
+                            }
+                          }}
+                          className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-all"
+                        >
+                          Markera som slutförd
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {request.message && (
+                    <div className="mt-2 text-sm text-gray-600 italic">
+                      "{request.message}"
+                    </div>
+                  )}
+                  {request.response_message && (
+                    <div className="mt-2 text-sm text-gray-600 bg-gray-100 p-2 rounded">
+                      <strong>Svar från ägare:</strong> {request.response_message}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Search Bar */}
       <div className="bg-white rounded-xl shadow-lg border-2 border-gray-100 p-4">
@@ -380,6 +659,9 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
               const statusColor = getCategoryStatusColor(cat.fillRate);
               const isExpanded = expandedCategories.has(cat.key);
               
+              // Count shared resources in this category
+              const sharedInCategory = categoryResources.filter(r => sharedResourcesMap.has(r.id)).length;
+              
               return (
                 <div 
                   key={cat.key} 
@@ -415,6 +697,12 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
                           >
                             {categoryResources.length}
                           </span>
+                          {sharedInCategory > 0 && (
+                            <span className="text-xs font-bold px-2 py-1 rounded-full bg-[#5C6B47]/20 text-[#5C6B47] flex items-center gap-1">
+                              <Share2 size={10} />
+                              {sharedInCategory}
+                            </span>
+                          )}
                         </div>
                         {isEmpty && (
                           <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
@@ -439,6 +727,7 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
                           onEdit={handleEdit}
                           onDelete={handleDelete}
                           onShare={handleShare}
+                          sharedResource={sharedResourcesMap.get(resource.id)}
                         />
                       ))}
                     </div>
@@ -480,6 +769,19 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
             onSuccess={loadResources}
           />
         </>
+      )}
+
+      {selectedSharedResource && (
+        <SharedResourceActionsModal
+          isOpen={showSharedResourceModal}
+          onClose={() => {
+            setShowSharedResourceModal(false);
+            setSelectedSharedResource(null);
+          }}
+          resource={selectedSharedResource}
+          onUpdate={handleUpdateSharedResource}
+          onDelete={handleDeleteSharedResource}
+        />
       )}
     </div>
   );
