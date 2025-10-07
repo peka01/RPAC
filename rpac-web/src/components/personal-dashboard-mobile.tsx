@@ -275,72 +275,6 @@ export function PersonalDashboardMobile({ user }: PersonalDashboardMobileProps =
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/50 to-purple-50/50 pb-32">
-      {/* Hero Header with Score */}
-      <div className={`bg-gradient-to-br ${scoreGradient} text-white px-6 py-8 rounded-b-3xl shadow-2xl mb-6`}>
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-            <Home size={32} className="text-white" strokeWidth={2} />
-          </div>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold mb-1">Hemstatus</h1>
-            <p className="text-white/80 text-sm">{scoreLabel}</p>
-          </div>
-        </div>
-
-        {/* Big Score Display */}
-        <div className="text-center mb-6">
-          <div className="relative inline-block">
-            <div className="w-32 h-32 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center mb-3">
-              <div className="text-5xl font-bold">{score.overall}%</div>
-            </div>
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-4 py-1 bg-white/30 backdrop-blur-sm rounded-full">
-              <span className="text-sm font-bold">Beredskap</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
-            <div className="text-2xl font-bold mb-1">{resourceCategories.filter(c => c.status === 'excellent' || c.status === 'good').length}</div>
-            <div className="text-white/80 text-xs">Bra områden</div>
-          </div>
-          <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
-            <div className="text-2xl font-bold mb-1">{criticalAlerts.length}</div>
-            <div className="text-white/80 text-xs">Varningar</div>
-          </div>
-          <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
-            <div className="text-2xl font-bold mb-1">{quickActions.length}</div>
-            <div className="text-white/80 text-xs">Åtgärder</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Critical Alerts */}
-      {criticalAlerts.length > 0 && (
-        <div className="px-6 mb-6">
-          <div className="bg-red-50 rounded-2xl p-5 border-2 border-red-200">
-            <div className="flex items-center gap-3 mb-3">
-              <AlertTriangle size={24} className="text-red-600 flex-shrink-0" strokeWidth={2.5} />
-              <h3 className="font-bold text-lg text-red-900">Kritiska varningar</h3>
-            </div>
-            <div className="space-y-2">
-              {criticalAlerts.slice(0, 3).map((alert, index) => (
-                <div key={index} className="flex items-start gap-2 text-sm text-red-800">
-                  <div className="w-1.5 h-1.5 rounded-full bg-red-600 mt-1.5 flex-shrink-0" />
-                  <span>{alert}</span>
-                </div>
-              ))}
-              {criticalAlerts.length > 3 && (
-                <p className="text-sm font-bold text-red-700 mt-2">
-                  +{criticalAlerts.length - 3} fler varningar
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Resource Categories */}
       <div className="px-6 mb-6">
         <h3 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
@@ -400,52 +334,6 @@ export function PersonalDashboardMobile({ user }: PersonalDashboardMobileProps =
         </div>
       </div>
 
-      {/* Cultivation Progress */}
-      {cultivationProgress.total > 0 && (
-        <div className="px-6 mb-6">
-          <div className="bg-white rounded-2xl p-6 shadow-lg">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Sprout size={20} className="text-green-600" strokeWidth={2.5} />
-                <h3 className="font-bold text-lg text-gray-900">Odling</h3>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-green-600">{cultivationProgress.percentage}%</div>
-                <div className="text-xs text-gray-600">
-                  {cultivationProgress.completed}/{cultivationProgress.total}
-                </div>
-              </div>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
-              <div
-                className="h-3 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 transition-all duration-500"
-                style={{ width: `${cultivationProgress.percentage}%` }}
-              />
-            </div>
-
-            {/* Status Message */}
-            <div className="flex items-center gap-3 p-3 bg-green-50 rounded-xl">
-              {cultivationProgress.percentage >= 80 ? (
-                <CheckCircle size={20} className="text-green-600" strokeWidth={2.5} />
-              ) : cultivationProgress.percentage >= 50 ? (
-                <TrendingUp size={20} className="text-blue-600" strokeWidth={2.5} />
-              ) : (
-                <Calendar size={20} className="text-amber-600" strokeWidth={2.5} />
-              )}
-              <span className="text-sm text-gray-700 flex-1">
-                {cultivationProgress.percentage >= 80 
-                  ? 'Fantastiskt! Du ligger i fas med din odling.'
-                  : cultivationProgress.percentage >= 50 
-                  ? 'Bra jobbat! Du gör framsteg.'
-                  : 'Kom igång med dina odlingsuppgifter.'}
-              </span>
-              <ChevronRight size={16} className="text-gray-400" />
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Quick Actions */}
       {quickActions.length > 0 && (

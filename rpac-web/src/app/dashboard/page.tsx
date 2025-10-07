@@ -31,6 +31,7 @@ import { WeatherRibbon } from '@/components/weather-ribbon';
 import { DashboardResponsive } from '@/components/dashboard-responsive';
 import { supabase, communityService, type LocalCommunity } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
+import { calculatePlanNutrition } from '@/lib/cultivation-plan-service';
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -121,18 +122,48 @@ export default function DashboardPage() {
           const realTimeStats = planData.realTimeStats || {};
           const gardenPlan = planData.gardenPlan || {};
           
-          setCultivationPlan({
-            id: latestPlan.id,
-            title: latestPlan.title || planData.name,
-            name: planData.name,
-            description: latestPlan.description,
-            self_sufficiency_percent: realTimeStats.selfSufficiencyPercent || gardenPlan.selfSufficiencyPercent || 0,
-            selfSufficiencyPercent: realTimeStats.selfSufficiencyPercent || gardenPlan.selfSufficiencyPercent || 0,
-            crops: gardenPlan.crops || [],
-            estimated_cost: realTimeStats.totalCost || gardenPlan.estimatedCost || 0,
-            created_at: latestPlan.created_at,
-            is_primary: latestPlan.is_primary
+          // Get crops from either the top-level crops field or from gardenPlan.crops
+          const crops = latestPlan.crops || gardenPlan.crops || [];
+          
+          // Debug logging
+          console.log('Cultivation plan data:', {
+            latestPlan,
+            planData,
+            realTimeStats,
+            gardenPlan,
+            crops
           });
+          
+               // Calculate percentage of household needs if not available in database
+               let calculatedPercent = latestPlan.self_sufficiency_percent || realTimeStats.selfSufficiencyPercent || gardenPlan.selfSufficiencyPercent || 0;
+               
+               if (calculatedPercent === 0 && crops && crops.length > 0) {
+                 try {
+                 const nutrition = calculatePlanNutrition({
+                   crops: crops,
+                   plan_name: latestPlan.title || planData.name,
+                   description: latestPlan.description
+                 }, 2, 30); // Default household size of 2, 30 days
+                   calculatedPercent = nutrition.percentOfTarget;
+                 } catch (error) {
+                   console.error('Error calculating household needs percentage:', error);
+                 }
+               }
+               
+               const finalPlan = {
+                 id: latestPlan.id,
+                 title: latestPlan.title || planData.name,
+                 name: planData.name,
+                 description: latestPlan.description,
+                 self_sufficiency_percent: calculatedPercent,
+                 selfSufficiencyPercent: calculatedPercent,
+                 crops: crops,
+                 estimated_cost: latestPlan.estimated_cost || realTimeStats.totalCost || gardenPlan.estimatedCost || 0,
+                 created_at: latestPlan.created_at,
+                 is_primary: latestPlan.is_primary
+               };
+               
+               setCultivationPlan(finalPlan);
         }
       } else if (data && !error) {
         // Extract relevant data from plan_data for display
@@ -140,18 +171,48 @@ export default function DashboardPage() {
         const realTimeStats = planData.realTimeStats || {};
         const gardenPlan = planData.gardenPlan || {};
         
-        setCultivationPlan({
-          id: data.id,
-          title: data.title || planData.name,
-          name: planData.name,
-          description: data.description,
-          self_sufficiency_percent: realTimeStats.selfSufficiencyPercent || gardenPlan.selfSufficiencyPercent || 0,
-          selfSufficiencyPercent: realTimeStats.selfSufficiencyPercent || gardenPlan.selfSufficiencyPercent || 0,
-          crops: gardenPlan.crops || [],
-          estimated_cost: realTimeStats.totalCost || gardenPlan.estimatedCost || 0,
-          created_at: data.created_at,
-          is_primary: data.is_primary
+        // Get crops from either the top-level crops field or from gardenPlan.crops
+        const crops = data.crops || gardenPlan.crops || [];
+        
+        // Debug logging
+        console.log('Primary cultivation plan data:', {
+          data,
+          planData,
+          realTimeStats,
+          gardenPlan,
+          crops
         });
+        
+             // Calculate percentage of household needs if not available in database
+             let calculatedPercent = data.self_sufficiency_percent || realTimeStats.selfSufficiencyPercent || gardenPlan.selfSufficiencyPercent || 0;
+             
+             if (calculatedPercent === 0 && crops && crops.length > 0) {
+               try {
+                 const nutrition = calculatePlanNutrition({
+                   crops: crops,
+                   plan_name: data.title || planData.name,
+                   description: data.description
+                 }, 2, 30); // Default household size of 2, 30 days
+                 calculatedPercent = nutrition.percentOfTarget;
+               } catch (error) {
+                 console.error('Error calculating household needs percentage:', error);
+               }
+             }
+             
+             const finalPlan = {
+               id: data.id,
+               title: data.title || planData.name,
+               name: planData.name,
+               description: data.description,
+               self_sufficiency_percent: calculatedPercent,
+               selfSufficiencyPercent: calculatedPercent,
+               crops: crops,
+               estimated_cost: data.estimated_cost || realTimeStats.totalCost || gardenPlan.estimatedCost || 0,
+               created_at: data.created_at,
+               is_primary: data.is_primary
+             };
+             
+             setCultivationPlan(finalPlan);
       }
     } catch (error) {
       console.error('Error loading cultivation plan:', error);
@@ -371,10 +432,10 @@ export default function DashboardPage() {
                   <Leaf className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-right relative group/tooltip">
-                  <div className="text-2xl font-bold text-white">
-                    {cultivationPlan?.self_sufficiency_percent || cultivationPlan?.selfSufficiencyPercent || '0'}%
+                  <div className="text-2xl font-bold text-white" key={`percentage-${cultivationPlan?.id}`}>
+                    {cultivationPlan?.self_sufficiency_percent || cultivationPlan?.selfSufficiencyPercent || 0}%
                   </div>
-                  <div className="text-xs text-white/80">{t('dashboard.self_sufficiency')}</div>
+                  <div className="text-xs text-white/80">Av hushållets behov</div>
                   {/* Tooltip */}
                   <div className="absolute right-0 top-full mt-2 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 z-10">
                     {t('dashboard.self_sufficiency_tooltip')}
@@ -391,9 +452,11 @@ export default function DashboardPage() {
                   <div className="flex items-center gap-4 text-sm">
                     <div className="flex items-center gap-1.5">
                       <div className="w-2 h-2 rounded-full bg-white"></div>
-                      <span className="text-white font-medium">{cultivationPlan.crops?.length || 0} grödor</span>
+                      <span className="text-white font-medium" key={`crops-${cultivationPlan?.id}`}>
+                        {cultivationPlan.crops?.length || 0} grödor
+                      </span>
                     </div>
-                    {cultivationPlan.estimated_cost && (
+                    {cultivationPlan.estimated_cost > 0 && (
                       <div className="flex items-center gap-1.5">
                         <div className="w-2 h-2 rounded-full bg-white/80"></div>
                         <span className="text-white font-medium">{Math.round(cultivationPlan.estimated_cost)} kr</span>
@@ -401,32 +464,6 @@ export default function DashboardPage() {
                     )}
                   </div>
 
-                  {/* Calendar Progress */}
-                  {cultivationProgress.total > 0 && (
-                    <div className="pt-3 border-t border-white/20">
-                      <div className="flex items-center justify-between mb-2 group/progress relative">
-                        <span className="text-sm font-medium text-white">Kalender</span>
-                        <span className="text-sm font-bold text-white">
-                          {cultivationProgress.percentage}%
-                        </span>
-                        {/* Tooltip */}
-                        <div className="absolute right-0 top-full mt-2 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-xl opacity-0 invisible group-hover/progress:opacity-100 group-hover/progress:visible transition-all duration-200 z-10">
-                          {t('dashboard.calendar_progress_tooltip')}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 rounded-full h-2.5 bg-white/20">
-                          <div 
-                            className="h-2.5 rounded-full bg-white transition-all duration-500" 
-                            style={{ width: `${cultivationProgress.percentage}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-xs text-white/90 whitespace-nowrap font-medium">
-                          {cultivationProgress.completed}/{cultivationProgress.total}
-                        </span>
-                      </div>
-                    </div>
-                  )}
                 </div>
               ) : (
                 <p className="text-sm text-white/90 mb-4">
