@@ -571,7 +571,7 @@ export const resourceSharingService = {
           .single();
 
         const requesterName = requesterProfile?.display_name || 'En användare';
-        const resourceName = sharedResource.resources?.name || 'resurs';
+        const resourceName = sharedResource.resources?.[0]?.name || 'resurs';
 
         await notificationService.createResourceRequestNotification({
           recipientId: sharedResource.user_id,
