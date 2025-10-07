@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, TrendingUp, Package, CheckCircle, AlertTriangle, Clock, Shield, Pencil, Trash, Share2, Users, HelpCircle, ChevronDown, ChevronUp, Search, X, Eye, EyeOff, Heart } from 'lucide-react';
+import { Plus, TrendingUp, Package, CheckCircle, AlertTriangle, Clock, Shield, Pencil, Trash, Share2, Users, HelpCircle, ChevronDown, ChevronUp, Search, X, Eye, EyeOff, Heart, CheckCircle2, XCircle, Timer, Check } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { resourceService, Resource } from '@/lib/supabase';
 import { resourceSharingService, SharedResource } from '@/lib/resource-sharing-service';
@@ -504,8 +504,8 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
         <div className="bg-white rounded-xl shadow-lg border-2 border-gray-100 p-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Clock size={20} className="text-blue-600" />
+              <div className="w-10 h-10 bg-[#5C6B47]/10 rounded-lg flex items-center justify-center">
+                <Users size={20} className="text-[#3D4A2B]" />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-gray-900">Mina begäran</h3>
@@ -519,11 +519,15 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
               const statusColor = request.status === 'pending' ? 'yellow' : 
                                 request.status === 'approved' ? 'green' : 
                                 request.status === 'denied' ? 'red' : 
-                                request.status === 'completed' ? 'blue' : 'gray';
+                                request.status === 'completed' ? 'olive' : 'gray';
               const statusLabel = request.status === 'pending' ? 'Väntande' :
                                 request.status === 'approved' ? 'Godkänd' :
                                 request.status === 'denied' ? 'Nekad' :
                                 request.status === 'completed' ? 'Slutförd' : 'Avbruten';
+              const statusIcon = request.status === 'pending' ? <Timer size={14} /> :
+                                request.status === 'approved' ? <CheckCircle2 size={14} /> :
+                                request.status === 'denied' ? <XCircle size={14} /> :
+                                request.status === 'completed' ? <Check size={14} /> : <Clock size={14} />;
               
               return (
                 <div key={request.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
@@ -542,13 +546,14 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${
+                      <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 ${
                         statusColor === 'yellow' ? 'bg-yellow-100 text-yellow-700' :
                         statusColor === 'green' ? 'bg-green-100 text-green-700' :
                         statusColor === 'red' ? 'bg-red-100 text-red-700' :
-                        statusColor === 'blue' ? 'bg-blue-100 text-blue-700' :
+                        statusColor === 'olive' ? 'bg-[#5C6B47]/10 text-[#3D4A2B]' :
                         'bg-gray-100 text-gray-700'
                       }`}>
+                        {statusIcon}
                         {statusLabel}
                       </span>
                       {request.status === 'approved' && (
@@ -561,8 +566,9 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
                               console.error('Error completing request:', error);
                             }
                           }}
-                          className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-all"
+                          className="px-3 py-1.5 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-lg text-xs font-medium hover:shadow-md transition-all flex items-center gap-1.5"
                         >
+                          <Check size={14} />
                           Markera som slutförd
                         </button>
                       )}

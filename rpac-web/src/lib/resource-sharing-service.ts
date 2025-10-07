@@ -613,14 +613,77 @@ export const resourceSharingService = {
    */
   async getUserResourceRequests(userId: string): Promise<ResourceRequest[]> {
     try {
-      const { data, error } = await supabase
+      // First, get the requests
+      const { data: requests, error: requestsError } = await supabase
         .from('resource_requests')
         .select('*')
         .eq('requester_id', userId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+      if (requestsError) throw requestsError;
+      
+      if (!requests || requests.length === 0) {
+        return [];
+      }
+
+      // Get the shared resource IDs
+      const sharedResourceIds = requests.map(req => req.shared_resource_id);
+      
+      // Get the shared resources with their details
+      const { data: sharedResources, error: sharedError } = await supabase
+        .from('resource_sharing')
+        .select(`
+          id,
+          resources!inner(name, category, unit),
+          user_id
+        `)
+        .in('id', sharedResourceIds);
+
+      if (sharedError) throw sharedError;
+
+      // Get user profiles for the sharers
+      const sharerIds = [...new Set(sharedResources?.map(sr => sr.user_id) || [])];
+      let userProfiles: any[] = [];
+      
+      if (sharerIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('user_profiles')
+          .select('user_id, display_name')
+          .in('user_id', sharerIds);
+        
+        if (profilesError) {
+          console.warn('Could not fetch user profiles:', profilesError);
+        } else {
+          userProfiles = profiles || [];
+        }
+      }
+
+      // Create a map for quick lookup
+      const sharedResourceMap = new Map();
+      sharedResources?.forEach(sr => {
+        sharedResourceMap.set(sr.id, sr);
+      });
+
+      const userProfileMap = new Map();
+      userProfiles.forEach(profile => {
+        userProfileMap.set(profile.user_id, profile);
+      });
+
+      // Transform the data to include resource details and sharer name
+      const transformedData = requests.map(request => {
+        const sharedResource = sharedResourceMap.get(request.shared_resource_id);
+        const sharerProfile = sharedResource ? userProfileMap.get(sharedResource.user_id) : null;
+        
+        return {
+          ...request,
+          resource_name: sharedResource?.resources?.name,
+          resource_category: sharedResource?.resources?.category,
+          resource_unit: sharedResource?.resources?.unit,
+          sharer_name: sharerProfile?.display_name || 'Okänd'
+        };
+      });
+      
+      return transformedData;
     } catch (err) {
       console.log('Error fetching user resource requests:', err);
       return [];
