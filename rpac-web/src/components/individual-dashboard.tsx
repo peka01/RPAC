@@ -21,9 +21,10 @@ import {
   ChevronRight,
   HelpCircle
 } from 'lucide-react';
-import { resourceService, type Resource } from '@/lib/supabase';
+import { resourceService, type Resource, supabase } from '@/lib/supabase';
 import { useUserProfile } from '@/lib/useUserProfile';
 import { t } from '@/lib/locales';
+import { calculatePlanNutrition } from '@/lib/cultivation-plan-service';
 import type { User } from '@supabase/supabase-js';
 
 interface IndividualDashboardProps {
@@ -45,6 +46,7 @@ type CategoryKey = keyof typeof categoryConfig;
 export function IndividualDashboard({ user, onNavigate }: IndividualDashboardProps) {
   const [loading, setLoading] = useState(true);
   const [resources, setResources] = useState<Resource[]>([]);
+  const [cultivationPlan, setCultivationPlan] = useState<any>(null);
   const { profile } = useUserProfile(user as any);
   
   const [stats, setStats] = useState({
@@ -122,6 +124,51 @@ export function IndividualDashboard({ user, onNavigate }: IndividualDashboardPro
         criticalItems: msbCategories.length - msbCategoriesCompleted, // Categories not yet covered
         expiringSoon: expiring.length
       });
+
+      // Load cultivation plan
+      const { data: planData } = await supabase
+        .from('cultivation_plans')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_primary', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (planData) {
+        const crops = planData.crops || [];
+        const cropNames = crops.map((crop: any) => crop.cropName || crop.name || crop).filter(Boolean);
+
+        const householdSize = profile?.household_size || 2;
+        const targetDays = 30;
+
+        const cultivationPlanForCalc = {
+          id: planData.id,
+          user_id: planData.user_id,
+          plan_name: planData.title,
+          description: planData.description,
+          crops: crops,
+          is_primary: planData.is_primary,
+          created_at: planData.created_at,
+          updated_at: planData.updated_at
+        };
+
+        const nutrition = calculatePlanNutrition(cultivationPlanForCalc, householdSize, targetDays);
+
+        setCultivationPlan({
+          id: planData.id,
+          title: planData.title,
+          name: planData.title,
+          description: planData.description || 'Din odlingsplan',
+          self_sufficiency_percent: nutrition.percentOfTarget,
+          selfSufficiencyPercent: nutrition.percentOfTarget,
+          crops: cropNames,
+          estimated_cost: 0,
+          created_at: planData.created_at,
+          is_primary: planData.is_primary,
+          plan_id: planData.plan_id
+        });
+      }
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {
@@ -169,116 +216,105 @@ export function IndividualDashboard({ user, onNavigate }: IndividualDashboardPro
       {/* Hero Section */}
       <div className="bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-2xl p-8 shadow-2xl" role="region" aria-label="Hemöversikt">
         <div className="flex items-start justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-              <Home size={40} className="text-white" strokeWidth={2} />
+          <div className="flex items-center gap-3">
+            <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+              <Home size={32} className="text-white" strokeWidth={2} />
             </div>
-            <div>
-              <h1 className="text-4xl font-bold mb-2">Mitt hem</h1>
-              <p className="text-white/80 text-lg">
-                {profile?.display_name ? `${profile.display_name}s` : 'Din'} personliga beredskap
+            <div className="flex-1 min-w-0">
+              <h1 className="text-3xl font-bold mb-2">Mitt hem</h1>
+              <p className="text-white/80 text-sm">
+                {profile?.display_name ? `${profile.display_name}s` : 'Din'} beredskap
               </p>
             </div>
           </div>
           {profile?.household_size && profile.household_size > 1 && (
-            <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2">
-              <div className="flex items-center gap-2">
-                <Users size={16} />
-                <span className="text-sm font-medium">
-                  {profile.household_size} personer
+            <div className="bg-white/20 backdrop-blur-sm rounded-lg px-2 py-1 ml-2">
+              <div className="flex items-center gap-1">
+                <Users size={12} />
+                <span className="text-xs font-medium">
+                  {profile.household_size} pers
                 </span>
               </div>
             </div>
           )}
         </div>
 
-        {/* Quick Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {/* Preparedness Score with Tooltip */}
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-5 relative group/tooltip min-h-[120px] flex flex-col justify-between">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-white/90 text-sm font-medium">Beredskapspoäng</span>
-              <div className="relative">
-                <Shield size={22} className="text-white/80" />
-                <HelpCircle size={14} className="text-white/60 absolute -top-1 -right-1" />
+        {/* Enhanced Quick Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Combined Resources Card */}
+          <div className="bg-white/25 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/30 transition-all duration-300">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                  <Package size={20} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold text-sm">Resurser</h3>
+                  <p className="text-white/70 text-xs">Totalt registrerade</p>
+                </div>
               </div>
             </div>
-            <div>
-              <div 
-                className="text-5xl font-black mb-2"
-                style={{ 
-                  color: getScoreColor(stats.preparednessScore).text,
-                  textShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                }}
-              >
-                {stats.preparednessScore}%
+            <div className="space-y-4">
+              {/* Total Resources */}
+              <div className="flex items-end justify-between">
+                <div>
+                  <div className="text-4xl font-bold text-white mb-1" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+                    {stats.totalResources}
+                  </div>
+                  <div className="text-white/70 text-xs">Tillagda resurser</div>
+                </div>
               </div>
-              <div className="text-white/90 text-sm font-semibold">
-                {stats.preparednessScore >= 80 ? 'Utmärkt!' : 
-                 stats.preparednessScore >= 60 ? 'Bra framsteg' : 
-                 stats.preparednessScore >= 40 ? 'På rätt väg' : 'Behöver uppmärksamhet'}
+              
+              {/* MSB Progress */}
+              <div className="bg-white/10 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle size={16} className="text-white/80" />
+                    <span className="text-white/90 text-sm font-medium">MSB-rekommenderade</span>
+                  </div>
+                  <span className="text-white font-semibold text-sm">
+                    {stats.msbCompleted}/{stats.msbTotal}
+                  </span>
+                </div>
+                <div className="w-full bg-white/20 rounded-full h-2">
+                  <div 
+                    className="bg-white rounded-full h-2 transition-all duration-500" 
+                    style={{ width: `${(stats.msbCompleted / stats.msbTotal) * 100}%` }}
+                  ></div>
+                </div>
               </div>
-            </div>
-            {/* Tooltip */}
-            <div className="absolute left-0 bottom-full mb-2 w-72 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 z-10">
-              {t('dashboard.preparedness_score_tooltip')}
             </div>
           </div>
 
-          {/* Self-Sufficiency Days with Tooltip and Color Coding */}
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-5 relative group/tooltip min-h-[120px] flex flex-col justify-between">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-white/90 text-sm font-medium">Självförsörjning</span>
-              <div className="relative">
-                <Calendar size={22} className="text-white/80" />
-                <HelpCircle size={14} className="text-white/60 absolute -top-1 -right-1" />
+          {/* Cultivation Card */}
+          {cultivationPlan && (
+            <div className="bg-white/25 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/30 transition-all duration-300">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                    <Sprout size={20} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-semibold text-sm">Odling</h3>
+                    <p className="text-white/70 text-xs">Hushållsbehov</p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-end justify-between">
+                <div>
+                  <div className="text-4xl font-bold text-white mb-1" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+                    {cultivationPlan.selfSufficiencyPercent || 0}%
+                  </div>
+                  <div className="w-full bg-white/20 rounded-full h-2">
+                    <div 
+                      className="bg-white rounded-full h-2 transition-all duration-500" 
+                      style={{ width: `${Math.min(cultivationPlan.selfSufficiencyPercent || 0, 100)}%` }}
+                    ></div>
+                  </div>
+                </div>
               </div>
             </div>
-            <div>
-              <div 
-                className="text-5xl font-black mb-2"
-                style={{ 
-                  color: getSelfSufficiencyColor(stats.selfSufficiencyDays).text,
-                  textShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                }}
-              >
-                {stats.selfSufficiencyDays}
-              </div>
-              <div className="text-white/90 text-sm font-semibold">
-                {t('dashboard.days_you_can_manage')}
-              </div>
-            </div>
-            {/* Tooltip */}
-            <div className="absolute left-0 bottom-full mb-2 w-72 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 z-10">
-              {t('dashboard.days_you_can_manage_tooltip')}
-            </div>
-          </div>
-
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-5 min-h-[120px] flex flex-col justify-between">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-white/90 text-sm font-medium">MSB-resurser</span>
-              <CheckCircle size={22} className="text-white/80" />
-            </div>
-            <div>
-              <div className="text-5xl font-black mb-2" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
-                {stats.msbCompleted}/{stats.msbTotal}
-              </div>
-              <div className="text-white/90 text-sm font-semibold">Rekommendationer</div>
-            </div>
-          </div>
-
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-5 min-h-[120px] flex flex-col justify-between">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-white/90 text-sm font-medium">Resurser</span>
-              <Package size={22} className="text-white/80" />
-            </div>
-            <div>
-              <div className="text-5xl font-black mb-2" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
-                {stats.totalResources}
-              </div>
-              <div className="text-white/90 text-sm font-semibold">Tillagda resurser</div>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 

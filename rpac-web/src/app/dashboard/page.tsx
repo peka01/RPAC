@@ -300,7 +300,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="text-right">
                   <div className="text-2xl font-bold text-white">-</div>
-                  <div className="text-xs text-white/80">Beredskapspoäng</div>
+                  <div className="text-xs text-white/80">MSB-resurser</div>
                 </div>
               </div>
               <h3 className="text-lg font-bold text-white mb-2">Mitt hem</h3>

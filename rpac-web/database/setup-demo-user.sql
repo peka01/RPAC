@@ -182,8 +182,32 @@ BEGIN
     RETURN;
   END IF;
 
-  -- Delete old demo resources to start fresh
+  -- Delete old demo data to start fresh
+  DELETE FROM cultivation_plans WHERE user_id = demo_user_id;
   DELETE FROM resources WHERE user_id = demo_user_id;
+
+  -- Create sample cultivation plan
+  INSERT INTO cultivation_plans (
+    user_id,
+    plan_id,
+    title,
+    description,
+    crops,
+    is_primary
+  ) VALUES (
+    demo_user_id,
+    'höst-2024',
+    'Höstodling 2024',
+    'En komplett höstodlingsplan med grödor som passar för höstskörd',
+    '[
+      {"cropName": "Potatis", "estimatedYieldKg": 5},
+      {"cropName": "Morötter", "estimatedYieldKg": 3},
+      {"cropName": "Kål", "estimatedYieldKg": 2},
+      {"cropName": "Lök", "estimatedYieldKg": 1},
+      {"cropName": "Spenat", "estimatedYieldKg": 1}
+    ]'::jsonb,
+    true
+  );
 
   -- Create sample resources
   INSERT INTO resources (user_id, name, category, quantity, unit, days_remaining, is_filled, is_msb_recommended, msb_priority) VALUES

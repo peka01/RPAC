@@ -18,6 +18,7 @@ import {
   Heart,
   ChevronRight,
   Cloud,
+  Package,
   Sun,
   CloudRain,
   Thermometer,
@@ -26,6 +27,7 @@ import {
 import { supabase, communityService, type LocalCommunity } from '@/lib/supabase';
 import { useWeather } from '@/contexts/WeatherContext';
 import type { User } from '@supabase/supabase-js';
+import { calculatePlanNutrition } from '@/lib/cultivation-plan-service';
 
 interface DashboardMobileProps {
   user: User | null;
@@ -35,11 +37,8 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
   const router = useRouter();
   const { weather, loading: weatherLoading } = useWeather();
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [cultivationProgress, setCultivationProgress] = useState<{completed: number; total: number; percentage: number}>({
-    completed: 0,
-    total: 0,
-    percentage: 0
-  });
+  const [cultivationPlan, setCultivationPlan] = useState<any>(null);
+  const [resources, setResources] = useState<any[]>([]);
   const [joinedCommunities, setJoinedCommunities] = useState<LocalCommunity[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -48,17 +47,63 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
       if (!user?.id) return;
 
       try {
-        // Load cultivation progress
-        const { data: calendarData } = await supabase
-          .from('cultivation_calendar')
-          .select('is_completed')
+        // Load cultivation plan
+        const { data: planData } = await supabase
+          .from('cultivation_plans')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('is_primary', true)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (planData) {
+          // Extract crops from the JSONB crops column
+          const crops = planData.crops || [];
+          const cropNames = crops.map((crop: any) => crop.cropName || crop.name || crop).filter(Boolean);
+          
+          // Use the exact same calculation as the cultivation plan service
+          const householdSize = 2; // Default household size
+          const targetDays = 30; // Default target days
+          
+          // Create a proper CultivationPlan object for calculatePlanNutrition
+          const cultivationPlan = {
+            id: planData.id,
+            user_id: planData.user_id,
+            plan_name: planData.title,
+            description: planData.description,
+            crops: crops,
+            is_primary: planData.is_primary,
+            created_at: planData.created_at,
+            updated_at: planData.updated_at
+          };
+          
+          // Use the exact same function as the cultivation plan service
+          const nutrition = calculatePlanNutrition(cultivationPlan, householdSize, targetDays);
+          
+          setCultivationPlan({
+            id: planData.id,
+            title: planData.title,
+            name: planData.title,
+            description: planData.description || 'Din odlingsplan',
+            self_sufficiency_percent: nutrition.percentOfTarget,
+            selfSufficiencyPercent: nutrition.percentOfTarget,
+            crops: cropNames,
+            estimated_cost: 0, // Not available in this table
+            created_at: planData.created_at,
+            is_primary: planData.is_primary,
+            plan_id: planData.plan_id
+          });
+        }
+
+        // Load resources
+        const { data: resourcesData } = await supabase
+          .from('resources')
+          .select('*')
           .eq('user_id', user.id);
 
-        if (calendarData) {
-          const total = calendarData.length;
-          const completed = calendarData.filter(item => item.is_completed).length;
-          const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-          setCultivationProgress({ completed, total, percentage });
+        if (resourcesData) {
+          setResources(resourcesData);
         }
 
         // Load joined communities
@@ -103,7 +148,6 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
 
   const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Användare';
 
-  const preparednesScore = 92; // Mock score - replace with actual data
 
   const getWeatherIcon = () => {
     if (!weather) return Cloud;
@@ -171,7 +215,7 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
         {/* Greeting */}
         <div className="text-center mb-6">
           <div className="text-4xl mb-2">{getTimeEmoji()}</div>
-          <h2 className="text-xl font-bold mb-1 text-gray-900">{getTimeOfDayGreeting()}, {userName}</h2>
+          <h2 className="text-base font-bold mb-1 text-gray-900 truncate px-2">{getTimeOfDayGreeting()}, {userName}</h2>
           <p className="text-gray-600 text-sm">
             {currentTime.toLocaleDateString('sv-SE', { 
               weekday: 'long', 
@@ -181,20 +225,74 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
           </p>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-green-50 border border-green-200 rounded-2xl p-4 text-center">
-            <div className="text-2xl font-bold mb-1 text-green-700">{preparednesScore}%</div>
-            <div className="text-green-600 text-xs font-medium">Beredskap</div>
+        {/* Enhanced Quick Stats Grid */}
+        <div className="grid grid-cols-1 gap-4">
+          {/* Combined Resources Card */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-5 border border-[#707C5F]/20 shadow-lg">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-[#707C5F]/10 rounded-xl flex items-center justify-center">
+                  <Package size={20} className="text-[#707C5F]" />
+                </div>
+                <div>
+                  <h3 className="text-gray-900 font-semibold text-sm">Resurser</h3>
+                  <p className="text-gray-600 text-xs">Totalt registrerade</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-[#707C5F]">
+                  {resources.length}
+                </div>
+              </div>
+            </div>
+            
+            {/* MSB Progress Section */}
+            <div className="bg-[#5C6B47]/10 rounded-xl p-4 mt-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <CheckCircle size={16} className="text-[#5C6B47]" />
+                  <span className="text-gray-900 text-sm font-medium">MSB-rekommenderade</span>
+                </div>
+                <span className="text-[#5C6B47] font-semibold text-sm">
+                  {resources.filter(r => r.is_msb_recommended && r.quantity > 0).length}/{resources.filter(r => r.is_msb_recommended).length}
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-[#5C6B47] rounded-full h-2 transition-all duration-500" 
+                  style={{ width: `${(resources.filter(r => r.is_msb_recommended && r.quantity > 0).length / resources.filter(r => r.is_msb_recommended).length) * 100}%` }}
+                ></div>
+              </div>
+            </div>
           </div>
-          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-center">
-            <div className="text-2xl font-bold mb-1 text-blue-700">{joinedCommunities.length}</div>
-            <div className="text-blue-600 text-xs font-medium">Samhällen</div>
-          </div>
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-center">
-            <div className="text-2xl font-bold mb-1 text-amber-700">{cultivationProgress.percentage}%</div>
-            <div className="text-amber-600 text-xs font-medium">Odling</div>
-          </div>
+
+          {/* Cultivation Card */}
+          {cultivationPlan && (
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-5 border border-[#3D4A2B]/20 shadow-lg">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#3D4A2B]/10 rounded-xl flex items-center justify-center">
+                    <Sprout size={20} className="text-[#3D4A2B]" />
+                  </div>
+                  <div>
+                    <h3 className="text-gray-900 font-semibold text-sm">Odling</h3>
+                    <p className="text-gray-600 text-xs">Hushållsbehov</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-[#3D4A2B]">
+                    {cultivationPlan.selfSufficiencyPercent || 0}%
+                  </div>
+                </div>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-[#3D4A2B] rounded-full h-2 transition-all duration-500" 
+                  style={{ width: `${Math.min(cultivationPlan.selfSufficiencyPercent || 0, 100)}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -211,8 +309,8 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
           >
             {/* Subtle warm olive gradient for cultivation */}
             <div className="absolute inset-0 opacity-50 pointer-events-none" style={{ background: 'var(--gradient-olive-warm)' }}></div>
-            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-3 relative z-10">
-              <Home size={24} className="text-green-600" strokeWidth={2} />
+            <div className="w-12 h-12 bg-[#3D4A2B]/10 rounded-xl flex items-center justify-center mb-3 relative z-10">
+              <Home size={24} className="text-[#3D4A2B]" strokeWidth={2} />
             </div>
             <h4 className="font-bold text-gray-900 mb-1 relative z-10">Min Odling</h4>
             <p className="text-xs text-gray-600 relative z-10">Planera & följ upp</p>
@@ -224,8 +322,8 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
           >
             {/* Subtle olive gradient for community */}
             <div className="absolute inset-0 opacity-50 pointer-events-none" style={{ background: 'var(--gradient-olive-card)' }}></div>
-            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-3 relative z-10">
-              <Users size={24} className="text-blue-600" strokeWidth={2} />
+            <div className="w-12 h-12 bg-[#5C6B47]/10 rounded-xl flex items-center justify-center mb-3 relative z-10">
+              <Users size={24} className="text-[#5C6B47]" strokeWidth={2} />
             </div>
             <h4 className="font-bold text-gray-900 mb-1 relative z-10">Samhälle</h4>
             <p className="text-xs text-gray-600 relative z-10">Samarbeta lokalt</p>
@@ -237,8 +335,8 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
           >
             {/* Subtle warm gradient for cultivation */}
             <div className="absolute inset-0 opacity-50 pointer-events-none" style={{ background: 'var(--gradient-olive-warm)' }}></div>
-            <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-3 relative z-10">
-              <Calendar size={24} className="text-amber-600" strokeWidth={2} />
+            <div className="w-12 h-12 bg-[#707C5F]/10 rounded-xl flex items-center justify-center mb-3 relative z-10">
+              <Calendar size={24} className="text-[#707C5F]" strokeWidth={2} />
             </div>
             <h4 className="font-bold text-gray-900 mb-1 relative z-10">Kalender</h4>
             <p className="text-xs text-gray-600 relative z-10">Odlingsuppgifter</p>
@@ -250,8 +348,8 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
           >
             {/* Subtle standard gradient */}
             <div className="absolute inset-0 opacity-50 pointer-events-none" style={{ background: 'var(--gradient-olive-subtle)' }}></div>
-            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-3 relative z-10">
-              <CheckCircle size={24} className="text-purple-600" strokeWidth={2} />
+            <div className="w-12 h-12 bg-[#4A5239]/10 rounded-xl flex items-center justify-center mb-3 relative z-10">
+              <CheckCircle size={24} className="text-[#4A5239]" strokeWidth={2} />
             </div>
             <h4 className="font-bold text-gray-900 mb-1 relative z-10">Påminnelser</h4>
             <p className="text-xs text-gray-600 relative z-10">Kommande uppgifter</p>
@@ -260,83 +358,46 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
       </div>
 
       {/* Preparedness Overview */}
-      <div className="px-6 mb-6">
-        <div className="bg-white rounded-2xl p-6 shadow-lg relative overflow-hidden">
-          {/* Subtle gradient depth */}
-          <div className="absolute inset-0 opacity-40 pointer-events-none" style={{ background: 'var(--gradient-olive-subtle)' }}></div>
-          <div className="flex items-center justify-between mb-4 relative z-10">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                <Shield size={24} className="text-white" strokeWidth={2} />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg text-gray-900">Beredskap</h3>
-                <p className="text-sm text-gray-600">Operativ status</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-3xl font-bold text-green-600">{preparednesScore}%</div>
-              <div className="text-xs text-gray-600">Optimal</div>
-            </div>
-          </div>
 
-          <div className="w-full bg-gray-200 rounded-full h-3 mb-4 relative z-10">
-            <div
-              className="h-3 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 transition-all duration-500"
-              style={{ width: `${preparednesScore}%` }}
-            />
-          </div>
-
-          <div className="flex items-center justify-between p-3 bg-green-50 rounded-xl relative z-10">
-            <div className="flex items-center gap-2">
-              <CheckCircle size={16} className="text-green-600" strokeWidth={2.5} />
-              <span className="text-sm text-gray-700">Alla system operativa</span>
-            </div>
-            <button 
-              onClick={() => router.push('/individual')}
-              className="text-sm font-bold text-green-600 flex items-center gap-1"
-            >
-              Detaljer
-              <ChevronRight size={14} strokeWidth={2.5} />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Cultivation Progress */}
-      {cultivationProgress.total > 0 && (
+      {/* Resources Summary */}
+      {resources.length > 0 && (
         <div className="px-6 mb-6">
           <div className="bg-white rounded-2xl p-6 shadow-lg relative overflow-hidden">
-            {/* Subtle warm gradient for cultivation theme */}
+            {/* Subtle warm gradient for resources theme */}
             <div className="absolute inset-0 opacity-40 pointer-events-none" style={{ background: 'var(--gradient-olive-warm)' }}></div>
             <div className="flex items-center justify-between mb-4 relative z-10">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center">
-                  <Sprout size={24} className="text-white" strokeWidth={2} />
+                <div className="w-10 h-10 bg-gradient-to-br from-[#5C6B47] to-[#707C5F] rounded-xl flex items-center justify-center">
+                  <Heart size={20} className="text-white" strokeWidth={2} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg text-gray-900">Odlingsframsteg</h3>
-                  <p className="text-sm text-gray-600">{cultivationProgress.completed}/{cultivationProgress.total} uppgifter</p>
+                  <h3 className="font-bold text-base text-gray-900">Resurser</h3>
+                  <p className="text-xs text-gray-600">{resources.length} registrerade</p>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-3xl font-bold text-green-600">{cultivationProgress.percentage}%</div>
+                <div className="text-2xl font-bold text-[#5C6B47]">{resources.filter(r => r.quantity > 0).length}</div>
+                <div className="text-xs text-gray-600">Tillgängliga</div>
               </div>
             </div>
 
-            <div className="w-full bg-gray-200 rounded-full h-3 mb-4 relative z-10">
-              <div
-                className="h-3 rounded-full bg-gradient-to-r from-green-400 to-green-600 transition-all duration-500"
-                style={{ width: `${cultivationProgress.percentage}%` }}
-              />
+            <div className="grid grid-cols-2 gap-2 mb-4 relative z-10">
+              <div className="bg-[#5C6B47]/10 rounded-lg p-2 text-center">
+                <div className="text-sm font-bold text-[#5C6B47]">{resources.filter(r => r.is_msb_recommended).length}</div>
+                <div className="text-xs text-gray-600">MSB</div>
+              </div>
+              <div className="bg-[#707C5F]/10 rounded-lg p-2 text-center">
+                <div className="text-sm font-bold text-[#707C5F]">{resources.filter(r => r.msb_priority === 'high').length}</div>
+                <div className="text-xs text-gray-600">Hög prioritet</div>
+              </div>
             </div>
 
             <button 
-              onClick={() => router.push('/individual?section=cultivation&subsection=calendar')}
-              className="w-full py-3 px-4 bg-green-50 text-green-700 font-bold rounded-xl hover:bg-green-100 transition-all touch-manipulation active:scale-98 flex items-center justify-center gap-2 relative z-10"
+              onClick={() => router.push('/individual?section=resources')}
+              className="w-full py-3 px-4 bg-[#5C6B47]/10 text-[#5C6B47] font-bold rounded-xl hover:bg-[#5C6B47]/20 transition-all touch-manipulation active:scale-98 flex items-center justify-center gap-2 relative z-10"
             >
-              <Calendar size={18} strokeWidth={2.5} />
-              Visa kalender
+              <Heart size={18} strokeWidth={2.5} />
+              Hantera resurser
             </button>
           </div>
         </div>
@@ -349,7 +410,7 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
           <div className="absolute inset-0 opacity-40 pointer-events-none" style={{ background: 'var(--gradient-olive-card)' }}></div>
           <div className="flex items-center justify-between mb-4 relative z-10">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-[#707C5F] to-[#4A5239] rounded-xl flex items-center justify-center">
                 <Users size={24} className="text-white" strokeWidth={2} />
               </div>
               <div>
@@ -358,17 +419,17 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
               </div>
             </div>
             <div className="text-right">
-              <div className="text-3xl font-bold text-blue-600">{joinedCommunities.length}</div>
+              <div className="text-3xl font-bold text-[#707C5F]">{joinedCommunities.length}</div>
             </div>
           </div>
 
           {joinedCommunities.length > 0 ? (
             <div className="space-y-2 mb-4 relative z-10">
               {joinedCommunities.slice(0, 3).map((community) => (
-                <div key={community.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
+                <div key={community.id} className="flex items-center justify-between p-3 bg-[#707C5F]/10 rounded-xl">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <Users size={16} className="text-blue-600" strokeWidth={2} />
+                    <div className="w-8 h-8 bg-[#707C5F]/10 rounded-lg flex items-center justify-center">
+                      <Users size={16} className="text-[#707C5F]" strokeWidth={2} />
                     </div>
                     <div>
                       <h4 className="font-bold text-sm text-gray-900">{community.community_name}</h4>
@@ -387,7 +448,7 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
 
           <button 
             onClick={() => router.push('/local')}
-            className="w-full py-3 px-4 bg-blue-50 text-blue-700 font-bold rounded-xl hover:bg-blue-100 transition-all touch-manipulation active:scale-98 flex items-center justify-center gap-2 relative z-10"
+            className="w-full py-3 px-4 bg-[#707C5F]/10 text-[#707C5F] font-bold rounded-xl hover:bg-[#707C5F]/20 transition-all touch-manipulation active:scale-98 flex items-center justify-center gap-2 relative z-10"
           >
             <Users size={18} strokeWidth={2.5} />
             {joinedCommunities.length > 0 ? 'Hantera samhällen' : 'Hitta samhällen'}
@@ -395,43 +456,57 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
         </div>
       </div>
 
-      {/* Quick Links */}
-      <div className="px-6">
-        <h3 className="font-bold text-lg text-gray-900 mb-4">Fler funktioner</h3>
-        <div className="space-y-3">
-          <button
-            onClick={() => router.push('/individual?section=resources')}
-            className="w-full bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98 text-left flex items-center justify-between"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                <Heart size={24} className="text-purple-600" strokeWidth={2} />
+      {/* Cultivation Plan */}
+      {cultivationPlan && (
+        <div className="px-6 mb-6">
+          <div className="bg-white rounded-2xl p-6 shadow-lg relative overflow-hidden">
+            {/* Subtle gradient for cultivation theme */}
+            <div className="absolute inset-0 opacity-40 pointer-events-none" style={{ background: 'var(--gradient-olive-warm)' }}></div>
+            <div className="flex items-center justify-between mb-4 relative z-10">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-[#707C5F] to-[#4A5239] rounded-lg flex items-center justify-center">
+                  <Sprout size={20} className="text-white" strokeWidth={2} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-gray-900">Odlingsplan</h3>
+                  <p className="text-sm text-gray-600">{cultivationPlan.title || 'Din aktiva plan'}</p>
+                </div>
               </div>
-              <div>
-                <h4 className="font-bold text-gray-900">Resursinventering</h4>
-                <p className="text-sm text-gray-600">Hantera dina resurser</p>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-[#707C5F]">
+                  {cultivationPlan.selfSufficiencyPercent || 0}%
+                </div>
+                <div className="text-xs text-gray-600">Hushållsbehov</div>
               </div>
             </div>
-            <ArrowRight size={20} className="text-gray-400" strokeWidth={2} />
-          </button>
 
-          <button
-            onClick={() => router.push('/regional')}
-            className="w-full bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98 text-left flex items-center justify-between"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                <Radio size={24} className="text-orange-600" strokeWidth={2} />
+            {cultivationPlan.crops && cultivationPlan.crops.length > 0 && (
+              <div className="mb-4 relative z-10">
+                <div className="flex flex-wrap gap-1.5">
+                  {cultivationPlan.crops.slice(0, 3).map((crop: any, index: number) => (
+                    <span key={index} className="px-2 py-1 bg-[#707C5F]/10 text-[#707C5F] text-xs rounded-md">
+                      {crop.name || crop}
+                    </span>
+                  ))}
+                  {cultivationPlan.crops.length > 3 && (
+                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md">
+                      +{cultivationPlan.crops.length - 3}
+                    </span>
+                  )}
+                </div>
               </div>
-              <div>
-                <h4 className="font-bold text-gray-900">Regional samordning</h4>
-                <p className="text-sm text-gray-600">Större perspektiv</p>
-              </div>
-            </div>
-            <ArrowRight size={20} className="text-gray-400" strokeWidth={2} />
-          </button>
+            )}
+
+            <button 
+              onClick={() => router.push('/individual?section=cultivation')}
+              className="w-full py-3 px-4 bg-[#707C5F]/10 text-[#707C5F] font-bold rounded-xl hover:bg-[#707C5F]/20 transition-all touch-manipulation active:scale-98 flex items-center justify-center gap-2 relative z-10"
+            >
+              <Sprout size={18} strokeWidth={2.5} />
+              Visa odlingsplan
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

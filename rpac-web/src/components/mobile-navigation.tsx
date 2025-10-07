@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { 
   Home, 
   User, 
@@ -9,14 +9,26 @@ import {
   Globe,
   Settings,
   Menu,
-  X
+  X,
+  LogOut
 } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { useState } from 'react';
 
 export function MobileNavigation() {
   const pathname = usePathname();
+  const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      const { supabase } = await import('@/lib/supabase');
+      await supabase.auth.signOut();
+      router.push('/');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
 
   const navItems = [
     {
@@ -142,7 +154,7 @@ export function MobileNavigation() {
                 );
               })}
 
-              <div className="pt-4 mt-4 border-t border-gray-200">
+              <div className="pt-4 mt-4 border-t border-gray-200 space-y-2">
                 <Link
                   href="/settings"
                   onClick={() => setShowMenu(false)}
@@ -156,6 +168,22 @@ export function MobileNavigation() {
                     <p className="text-sm text-gray-600">Dina inställningar</p>
                   </div>
                 </Link>
+                
+                <button
+                  onClick={() => {
+                    setShowMenu(false);
+                    handleLogout();
+                  }}
+                  className="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-all touch-manipulation"
+                >
+                  <div className="p-2 rounded-lg bg-[#3D4A2B]/10">
+                    <LogOut size={24} strokeWidth={2} className="text-[#3D4A2B]" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <h3 className="font-bold text-gray-900">Logga ut</h3>
+                    <p className="text-sm text-gray-600">Avsluta din session</p>
+                  </div>
+                </button>
               </div>
             </div>
           </div>

@@ -423,7 +423,7 @@ export function KRISterAssistantMobile({ user, userProfile = {}, currentPage, cu
 
   // Full screen mobile chat
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-gradient-to-br from-[#5C6B47]/5 to-white animate-slide-in-bottom">
+    <div className="fixed inset-0 z-50 flex flex-col bg-gradient-to-br from-[#5C6B47]/10 to-white/95 backdrop-blur-sm animate-slide-in-bottom">
       {/* Header */}
       <div className="bg-gradient-to-r from-[#3D4A2B] to-[#2A331E] text-white px-4 py-4 shadow-lg">
         <div className="flex items-center justify-between">
@@ -449,7 +449,7 @@ export function KRISterAssistantMobile({ user, userProfile = {}, currentPage, cu
               className="p-3 hover:bg-white/10 rounded-xl transition-colors touch-manipulation active:scale-95"
               title={t('krister.close')}
             >
-              <ChevronDown size={24} strokeWidth={2.5} />
+              <X size={24} strokeWidth={2.5} />
             </button>
           </div>
 

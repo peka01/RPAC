@@ -575,7 +575,7 @@ export function KRISterAssistant({ user, userProfile = {}, currentPage, currentA
   return (
     <div 
       ref={containerRef}
-      className="fixed z-50 bg-white rounded-2xl shadow-2xl border-2 border-[#3D4A2B] flex flex-col"
+      className="fixed z-50 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-[#3D4A2B]/30 flex flex-col"
       style={{ 
         left: `${position.x}px`, 
         top: `${position.y}px`,
