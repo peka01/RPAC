@@ -16,6 +16,7 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { resourceSharingService } from '@/lib/resource-sharing-service';
+import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import type { User } from '@supabase/supabase-js';
 import type { LocalCommunity } from '@/lib/supabase';
 
@@ -67,7 +68,7 @@ export function CommunityDashboard({ user, community, onNavigate }: CommunityDas
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3D4A2B]"></div>
+        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar" />
       </div>
     );
   }

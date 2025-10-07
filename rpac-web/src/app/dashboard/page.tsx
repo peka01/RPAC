@@ -19,7 +19,7 @@ import {
   ChevronRight,
   ArrowRight
 } from 'lucide-react';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { StatusCard } from '@/components/status-card';
 import { PreparednessOverview } from '@/components/preparedness-overview';
 import { ResourceSummaryCard } from '@/components/resource-summary-card';
@@ -243,17 +243,8 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-        {/* Beready Logo */}
-        <div className="mb-12">
-          <img
-            src="/beready-logo2.png"
-            alt="BE READY"
-            className="h-20 w-auto"
-          />
-        </div>
-
-        {/* 3D Orbital Loading Spinner */}
-        <LoadingSpinner size="lg" text="Laddar" />
+        {/* Shield Loading Spinner Only */}
+        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar" />
       </div>
     );
   }

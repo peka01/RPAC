@@ -9,6 +9,7 @@ import { PersonalDashboardResponsive } from '@/components/personal-dashboard-res
 import { SimpleCultivationResponsive } from '@/components/simple-cultivation-responsive';
 import { IndividualMobileNav } from '@/components/individual-mobile-nav';
 import { useUserProfile } from '@/lib/useUserProfile';
+import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { supabase } from '@/lib/supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { t } from '@/lib/locales';
@@ -76,11 +77,7 @@ function IndividualPageContent() {
   if (loading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto mb-4" 
-               style={{ borderColor: 'var(--color-sage)' }}></div>
-          <p style={{ color: 'var(--text-secondary)' }}>{t('individual.loading_profile')}</p>
-        </div>
+        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message={t('individual.loading_profile')} />
       </div>
     );
   }

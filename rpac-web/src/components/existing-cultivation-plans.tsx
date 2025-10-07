@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { supabase } from '@/lib/supabase';
 import { Calendar, MapPin, Target, TrendingUp, Edit, Trash2, Eye, Star } from 'lucide-react';
 import { t } from '@/lib/locales';
@@ -219,8 +220,7 @@ export function ExistingCultivationPlans({ user, onViewPlan, onEditPlan }: Exist
     return (
       <div className="modern-card p-6">
         <div className="flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <span className="ml-2" style={{ color: 'var(--text-secondary)' }}>Laddar odlingsplaner...</span>
+          <ShieldProgressSpinner variant="bounce" size="md" color="olive" message="Laddar odlingsplaner..." />
         </div>
       </div>
     );

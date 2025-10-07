@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { MapPin, Users, TrendingUp, AlertTriangle } from 'lucide-react';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { t } from '@/lib/locales';
 import type { User } from '@supabase/supabase-js';
 
@@ -29,7 +29,7 @@ export default function RegionalPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <LoadingSpinner size="xl" text="Laddar" />
+        <ShieldProgressSpinner variant="bounce" size="xl" color="olive" message="Laddar" />
       </div>
     );
   }
@@ -37,7 +37,7 @@ export default function RegionalPage() {
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <LoadingSpinner size="xl" text="Startar" />
+        <ShieldProgressSpinner variant="bounce" size="xl" color="olive" message="Startar" />
       </div>
     );
   }

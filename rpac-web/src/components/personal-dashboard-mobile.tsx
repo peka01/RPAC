@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { useUserProfile } from '@/lib/useUserProfile';
+import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { resourceService, supabase } from '@/lib/supabase';
 
 interface PreparednessScore {
@@ -263,10 +264,7 @@ export function PersonalDashboardMobile({ user }: PersonalDashboardMobileProps =
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50/50 to-purple-50/50 flex items-center justify-center">
-        <div className="text-center">
-          <Shield className="w-16 h-16 mx-auto mb-4 text-[#3D4A2B] animate-pulse" />
-          <p className="text-gray-600 font-medium">Laddar din hemstatus...</p>
-        </div>
+        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar" />
       </div>
     );
   }

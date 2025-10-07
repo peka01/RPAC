@@ -1,6 +1,6 @@
 'use client';
 
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { t } from '@/lib/locales';
 
 export default function LoadingPreviewPage() {
@@ -27,19 +27,19 @@ export default function LoadingPreviewPage() {
             </h2>
             <div className="space-y-8">
               <div className="flex items-center gap-4">
-                <LoadingSpinner size="sm" />
+                <ShieldProgressSpinner variant="bounce" size="sm" color="olive" />
                 <span style={{ color: 'var(--text-secondary)' }}>Liten (sm)</span>
               </div>
               <div className="flex items-center gap-4">
-                <LoadingSpinner size="md" />
+                <ShieldProgressSpinner variant="bounce" size="md" color="olive" />
                 <span style={{ color: 'var(--text-secondary)' }}>Medium (md)</span>
               </div>
               <div className="flex items-center gap-4">
-                <LoadingSpinner size="lg" />
+                <ShieldProgressSpinner variant="bounce" size="lg" color="olive" />
                 <span style={{ color: 'var(--text-secondary)' }}>Stor (lg)</span>
               </div>
               <div className="flex items-center gap-4">
-                <LoadingSpinner size="xl" />
+                <ShieldProgressSpinner variant="bounce" size="xl" color="olive" />
                 <span style={{ color: 'var(--text-secondary)' }}>Extra stor (xl)</span>
               </div>
             </div>
@@ -54,17 +54,17 @@ export default function LoadingPreviewPage() {
               
               {/* Loading example 1 */}
               <div className="text-center py-8 border-2 border-dashed rounded-lg" style={{ borderColor: 'var(--color-muted)' }}>
-                <LoadingSpinner size="md" text="Laddar ditt hem..." />
+                <ShieldProgressSpinner variant="bounce" size="md" color="olive" message="Laddar ditt hem..." />
               </div>
 
               {/* Loading example 2 */}
               <div className="text-center py-8 border-2 border-dashed rounded-lg" style={{ borderColor: 'var(--color-muted)' }}>
-                <LoadingSpinner size="lg" text="Hämtar information" />
+                <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Hämtar information" />
               </div>
               
               {/* Loading example 3 - without text */}
               <div className="text-center py-8 border-2 border-dashed rounded-lg" style={{ borderColor: 'var(--color-muted)' }}>
-                <LoadingSpinner size="md" showText={false} />
+                <ShieldProgressSpinner variant="bounce" size="md" color="olive" />
               </div>
             </div>
           </div>
@@ -78,7 +78,7 @@ export default function LoadingPreviewPage() {
               På mörk bakgrund
             </h2>
             <div className="flex justify-center py-8">
-              <LoadingSpinner size="lg" />
+              <ShieldProgressSpinner variant="bounce" size="lg" color="olive" />
             </div>
           </div>
 
@@ -88,7 +88,7 @@ export default function LoadingPreviewPage() {
               Helskärmsläge
             </h2>
             <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: 'rgba(255, 255, 255, 0.95)' }}>
-              <LoadingSpinner size="xl" text="Laddar RPAC" />
+              <ShieldProgressSpinner variant="bounce" size="xl" color="olive" message="Laddar RPAC" />
             </div>
           </div>
 
@@ -102,14 +102,14 @@ export default function LoadingPreviewPage() {
           <div className="space-y-4" style={{ color: 'var(--text-secondary)' }}>
             <p>Importera komponenten:</p>
             <pre className="p-4 rounded bg-gray-100 overflow-x-auto">
-              <code>{`import { LoadingSpinner } from '@/components/LoadingSpinner';`}</code>
+              <code>{`import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';`}</code>
             </pre>
             
             <p className="mt-4">Använd i din komponent:</p>
             <pre className="p-4 rounded bg-gray-100 overflow-x-auto">
-              <code>{`<LoadingSpinner size="md" text="Laddar..." />
-<LoadingSpinner size="lg" showText={false} />
-<LoadingSpinner size="xl" text="Hämtar data" />`}</code>
+              <code>{`<ShieldProgressSpinner variant="bounce" size="md" color="olive" message="Laddar..." />
+<ShieldProgressSpinner variant="bounce" size="lg" color="olive" />
+<ShieldProgressSpinner variant="bounce" size="xl" color="olive" message="Hämtar data" />`}</code>
             </pre>
 
             <div className="mt-4">

@@ -33,6 +33,7 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { t } from '@/lib/locales';
+import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { resourceSharingService, type SharedResource, type HelpRequest } from '@/lib/resource-sharing-service';
 import { communityResourceService, type CommunityResource } from '@/lib/community-resource-service';
 import { SharedResourceActionsModal } from './shared-resource-actions-modal';
@@ -204,7 +205,7 @@ export function CommunityResourceHub({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3D4A2B]"></div>
+        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar" />
       </div>
     );
   }

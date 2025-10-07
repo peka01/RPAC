@@ -21,6 +21,7 @@ import {
   Edit3
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { validateUserProfile, sanitizeHtml } from '@/lib/validation';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -391,7 +392,7 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3D4A2B]"></div>
+        <ShieldProgressSpinner variant="bounce" size="md" color="olive" message="Laddar" />
       </div>
     );
   }

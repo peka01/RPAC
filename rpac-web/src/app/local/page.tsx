@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { CommunityHubResponsive } from '@/components/community-hub-responsive';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { supabase } from '@/lib/supabase';
 import { t } from '@/lib/locales';
 import type { User } from '@supabase/supabase-js';
@@ -59,7 +59,7 @@ export default function LocalPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <LoadingSpinner size="xl" text="Laddar" />
+        <ShieldProgressSpinner variant="bounce" size="xl" color="olive" message="Laddar" />
       </div>
     );
   }

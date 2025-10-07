@@ -21,7 +21,7 @@ import {
   Monitor
 } from 'lucide-react';
 import { UnifiedProfileSettings } from '@/components/unified-profile-settings';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { useUserProfile } from '@/lib/useUserProfile';
 import { supabase } from '@/lib/supabase';
 import { t } from '@/lib/locales';
@@ -119,7 +119,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-        <LoadingSpinner size="xl" text="Laddar" />
+        <ShieldProgressSpinner variant="bounce" size="xl" color="olive" message="Laddar" />
       </div>
     );
   }

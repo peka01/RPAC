@@ -25,6 +25,7 @@ import {
   Droplets
 } from 'lucide-react';
 import { supabase, communityService, type LocalCommunity } from '@/lib/supabase';
+import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { useWeather } from '@/contexts/WeatherContext';
 import type { User } from '@supabase/supabase-js';
 import { calculatePlanNutrition } from '@/lib/cultivation-plan-service';
@@ -162,10 +163,7 @@ export function DashboardMobile({ user }: DashboardMobileProps) {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#5C6B47]/10 to-[#707C5F]/10 flex items-center justify-center">
-        <div className="text-center">
-          <Shield className="w-16 h-16 mx-auto mb-4 text-[#3D4A2B] animate-pulse" />
-          <p className="text-gray-600 font-medium">Laddar din kontrollpanel...</p>
-        </div>
+        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar" />
       </div>
     );
   }

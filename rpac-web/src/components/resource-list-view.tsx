@@ -2,6 +2,7 @@
 
 import React, { useState, ReactNode } from 'react';
 import { Grid3x3, List, Search, Filter, ChevronDown, ChevronUp } from 'lucide-react';
+import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 
 // Generic types for the component
 export interface Column<T> {
@@ -134,8 +135,7 @@ export function ResourceListView<T>({
   if (loading) {
     return (
       <div className={`text-center py-12 ${className}`}>
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3D4A2B] mx-auto mb-4"></div>
-        <p className="text-gray-600">{loadingMessage}</p>
+        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message={loadingMessage} />
       </div>
     );
   }

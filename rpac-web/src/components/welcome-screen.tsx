@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { supabase } from '@/lib/supabase';
 import { 
   User, 
@@ -66,10 +67,7 @@ export function WelcomeScreen() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p className="text-lg" style={{ color: 'var(--text-primary)' }}>{t('loading.loading')}</p>
-        </div>
+        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message={t('loading.loading')} />
       </div>
     );
   }

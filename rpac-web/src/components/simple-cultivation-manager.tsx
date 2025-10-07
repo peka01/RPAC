@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Sprout, TrendingUp, Calendar, Edit, Trash, Star, ChevronRight, X, Check, AlertCircle, HelpCircle } from 'lucide-react';
+import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { 
   cultivationPlanService, 
   CultivationPlan, 
@@ -136,10 +137,7 @@ export function SimpleCultivationManager({ userId, householdSize = 2 }: SimpleCu
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3D4A2B] mx-auto mb-4"></div>
-          <p className="text-gray-600">Laddar odlingsplaner...</p>
-        </div>
+        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar odlingsplaner..." />
       </div>
     );
   }

@@ -19,6 +19,7 @@ import { CommunityDiscoveryMobile } from './community-discovery-mobile';
 import { MessagingSystemMobile } from './messaging-system-mobile';
 import { CommunityResourceHubMobile } from './community-resource-hub-mobile';
 import { useUserProfile } from '@/lib/useUserProfile';
+import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { communityService, type LocalCommunity } from '@/lib/supabase';
 import { t } from '@/lib/locales';
 import type { User } from '@supabase/supabase-js';
@@ -93,7 +94,7 @@ export function CommunityHubMobileEnhanced({ user }: CommunityHubMobileEnhancedP
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-[#5C6B47]/10 to-[#707C5F]/10">
-        <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#3D4A2B] border-t-transparent"></div>
+        <ShieldProgressSpinner variant="bounce" size="xl" color="olive" message="Laddar" />
       </div>
     );
   }

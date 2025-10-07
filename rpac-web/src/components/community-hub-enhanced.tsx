@@ -18,6 +18,7 @@ import { ResourceSharingPanel } from './resource-sharing-panel';
 import { CommunityDashboard } from './community-dashboard';
 import { CommunityResourceHub } from './community-resource-hub';
 import { useUserProfile } from '@/lib/useUserProfile';
+import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { communityService, type LocalCommunity } from '@/lib/supabase';
 import { t } from '@/lib/locales';
 import type { User } from '@supabase/supabase-js';
@@ -94,7 +95,7 @@ export function CommunityHubEnhanced({ user }: CommunityHubEnhancedProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3D4A2B]"></div>
+        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar" />
       </div>
     );
   }

@@ -19,6 +19,7 @@ import {
   Package
 } from 'lucide-react';
 import { t } from '@/lib/locales';
+import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { messagingService, type Message, type Contact } from '@/lib/messaging-service';
 import { ResourceSharingPanel } from './resource-sharing-panel';
 import type { User } from '@supabase/supabase-js';
@@ -255,7 +256,7 @@ export function MessagingSystemV2({ user, communityId, initialTab = 'community' 
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3D4A2B]"></div>
+        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar" />
       </div>
     );
   }

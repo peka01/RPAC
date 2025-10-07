@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { supabase } from '@/lib/supabase';
 import { Star, Calendar, MapPin, Target, TrendingUp, Eye, Edit } from 'lucide-react';
 
@@ -75,8 +76,7 @@ export function PrimaryCultivationPlan({ user, onViewPlan, onEditPlan }: Primary
     return (
       <div className="modern-card p-6">
         <div className="flex items-center justify-center">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-          <span className="ml-2 text-sm" style={{ color: 'var(--text-secondary)' }}>Laddar primär plan...</span>
+          <ShieldProgressSpinner variant="bounce" size="sm" color="olive" message="Laddar primär plan..." />
         </div>
       </div>
     );

@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { resourceService, type Resource, supabase } from '@/lib/supabase';
 import { useUserProfile } from '@/lib/useUserProfile';
+import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { t } from '@/lib/locales';
 import { calculatePlanNutrition } from '@/lib/cultivation-plan-service';
 import type { User } from '@supabase/supabase-js';
@@ -206,7 +207,7 @@ export function IndividualDashboard({ user, onNavigate }: IndividualDashboardPro
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3D4A2B]"></div>
+        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar" />
       </div>
     );
   }
