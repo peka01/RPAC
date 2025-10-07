@@ -110,7 +110,7 @@ export function CommunityResourceHubMobile({
     const handleOpenResourceManagement = (event: CustomEvent) => {
       const { resourceId } = event.detail;
       console.log('Mobile component received openResourceManagement event with resourceId:', resourceId);
-      console.log('Available sharedResources:', sharedResources.map(r => ({ id: r.id, title: r.title })));
+      console.log('Available sharedResources:', sharedResources.map(r => ({ id: r.id, resource_id: r.resource_id, status: r.status })));
       
       // If sharedResources is empty, wait a bit and try again
       if (sharedResources.length === 0) {
@@ -119,7 +119,7 @@ export function CommunityResourceHubMobile({
         // Try multiple times with increasing delays
         const retryWithDelay = (attempt: number) => {
           setTimeout(() => {
-            console.log(`Retry attempt ${attempt} - sharedResources now:`, sharedResources.map(r => ({ id: r.id, title: r.title })));
+            console.log(`Retry attempt ${attempt} - sharedResources now:`, sharedResources.map(r => ({ id: r.id, resource_id: r.resource_id, status: r.status })));
             const resource = sharedResources.find(r => r.id === resourceId);
             if (resource) {
               console.log('Found resource for management (retry):', resource);
@@ -203,7 +203,7 @@ export function CommunityResourceHubMobile({
       ]);
 
       setSharedResources(shared);
-      console.log('Loaded shared resources:', shared.map(r => ({ id: r.id, title: r.title })));
+      console.log('Loaded shared resources:', shared.map(r => ({ id: r.id, resource_id: r.resource_id, status: r.status })));
       setCommunityResources(owned);
       setHelpRequests(help);
     } catch (err) {
