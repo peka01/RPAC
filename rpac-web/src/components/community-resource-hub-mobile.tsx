@@ -1130,7 +1130,7 @@ function ResourceDetailBottomSheet({
                 className="flex-1 py-3 px-4 bg-[#5C6B47] text-white rounded-xl font-semibold hover:bg-[#4A5239] transition-all touch-manipulation active:scale-95 relative"
               >
                 Hantera
-                {isShared && resource && (resource as SharedResource).pending_requests_count && (resource as SharedResource).pending_requests_count! > 0 && (
+                {isShared && resource && ((resource as SharedResource).pending_requests_count ?? 0) > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
                     {(resource as SharedResource).pending_requests_count}
                   </span>

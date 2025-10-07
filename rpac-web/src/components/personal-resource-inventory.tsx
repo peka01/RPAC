@@ -455,7 +455,7 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
                           className="px-3 py-1.5 bg-[#5C6B47] text-white rounded-lg text-xs font-medium hover:bg-[#4A5239] transition-all relative"
                         >
                           Hantera
-                          {sharedResource.pending_requests_count && sharedResource.pending_requests_count > 0 && (
+                          {(sharedResource.pending_requests_count ?? 0) > 0 && (
                             <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-bold">
                               {sharedResource.pending_requests_count}
                             </span>

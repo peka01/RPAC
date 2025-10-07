@@ -990,7 +990,7 @@ function SharedResourcesTableView({ groupedResources, currentUserId, onRequest, 
                             className="px-3 py-1.5 bg-[#5C6B47] text-white rounded text-sm font-medium hover:bg-[#4A5239] transition-all relative"
                           >
                             Hantera
-                            {resourceGroup[0].pending_requests_count && resourceGroup[0].pending_requests_count > 0 && (
+                            {(resourceGroup[0].pending_requests_count ?? 0) > 0 && (
                               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
                                 {resourceGroup[0].pending_requests_count}
                               </span>
@@ -1050,7 +1050,7 @@ function SharedResourcesTableView({ groupedResources, currentUserId, onRequest, 
                               className="px-3 py-1 bg-[#5C6B47] text-white rounded text-xs font-medium hover:bg-[#4A5239] transition-all relative"
                             >
                               Hantera
-                              {resource.pending_requests_count && resource.pending_requests_count > 0 && (
+                              {(resource.pending_requests_count ?? 0) > 0 && (
                                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-bold">
                                   {resource.pending_requests_count}
                                 </span>
@@ -1473,7 +1473,7 @@ function SharedResourceCard({ resource, currentUserId, onRequest, onCancelReques
             aria-label="Hantera din delade resurs"
           >
             Hantera
-            {resource.pending_requests_count && resource.pending_requests_count > 0 && (
+            {(resource.pending_requests_count ?? 0) > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
                 {resource.pending_requests_count}
               </span>
