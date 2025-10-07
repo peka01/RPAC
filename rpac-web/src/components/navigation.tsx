@@ -23,7 +23,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { NotificationCenterResponsive } from './notification-center-responsive';
-import type { User } from '@supabase/supabase-js';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 export function Navigation() {
   const pathname = usePathname();
@@ -32,7 +32,7 @@ export function Navigation() {
   const [isCrisisMode] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [communityPulse, setCommunityPulse] = useState(true);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
