@@ -82,7 +82,36 @@ export function StunningDashboardMobile({ user }: { user: User | null }) {
   });
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [userProfile, setUserProfile] = useState<any>(null);
   const router = useRouter();
+
+  // Get user display name based on profile preference
+  const getUserDisplayName = () => {
+    if (!user) return t('dashboard.default_user');
+    if (!userProfile) return user.email?.split('@')[0] || t('dashboard.default_user');
+    
+    const preference = userProfile.name_display_preference || 'display_name';
+    
+    switch (preference) {
+      case 'display_name':
+        return userProfile.display_name || user.email?.split('@')[0] || t('dashboard.default_user');
+      case 'first_last':
+        if (userProfile.first_name && userProfile.last_name) {
+          return `${userProfile.first_name} ${userProfile.last_name}`;
+        }
+        return userProfile.display_name || user.email?.split('@')[0] || t('dashboard.default_user');
+      case 'initials':
+        if (userProfile.first_name && userProfile.last_name) {
+          return `${userProfile.first_name[0]}${userProfile.last_name[0]}`.toUpperCase();
+        }
+        if (userProfile.display_name) {
+          return userProfile.display_name.substring(0, 2).toUpperCase();
+        }
+        return user.email?.split('@')[0] || t('dashboard.default_user');
+      default:
+        return userProfile.display_name || user.email?.split('@')[0] || t('dashboard.default_user');
+    }
+  };
 
   // Load dashboard data
   useEffect(() => {
@@ -90,6 +119,16 @@ export function StunningDashboardMobile({ user }: { user: User | null }) {
       if (!user) return;
       
       try {
+        // Load user profile data
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('display_name, first_name, last_name, name_display_preference')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (profile) {
+          setUserProfile(profile);
+        }
         // Load user resources
         const { data: resources } = await supabase
           .from('resources')
@@ -191,7 +230,7 @@ export function StunningDashboardMobile({ user }: { user: User | null }) {
     return t('dashboard.good_evening');
   };
 
-  const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || t('dashboard.default_user');
+  const userName = getUserDisplayName();
 
   if (loading) {
     return (

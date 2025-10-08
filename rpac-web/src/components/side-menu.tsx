@@ -65,10 +65,7 @@ export function SideMenu({ user, isOnline, isCrisisMode, communityPulse }: SideM
       href: '/dashboard', 
       icon: Home,
       description: t('navigation.descriptions.operational_status'),
-      category: t('navigation.categories.command'),
-      children: [
-        { name: 'Hemöversikt', href: '/dashboard', icon: Home }
-      ]
+      category: t('navigation.categories.command')
     },
     { 
       name: t('navigation.individual'), 
@@ -111,10 +108,7 @@ export function SideMenu({ user, isOnline, isCrisisMode, communityPulse }: SideM
       href: '/regional', 
       icon: Globe,
       description: t('navigation.descriptions.regional_coordination'),
-      category: t('navigation.categories.regional'),
-      children: [
-        { name: 'Regional översikt', href: '/regional', icon: Globe }
-      ]
+      category: t('navigation.categories.regional')
     },
     { 
       name: 'Meddelanden', 
@@ -216,6 +210,11 @@ export function SideMenu({ user, isOnline, isCrisisMode, communityPulse }: SideM
                   <div className="flex items-center">
                     <Link
                       href={section.href}
+                      onClick={() => {
+                        if (section.children && section.children.length > 0) {
+                          toggleSection(section.name);
+                        }
+                      }}
                       className={`
                         group flex items-center gap-4 px-5 py-5 rounded-xl transition-all duration-200 touch-manipulation flex-1
                         ${isSectionActive
@@ -254,7 +253,7 @@ export function SideMenu({ user, isOnline, isCrisisMode, communityPulse }: SideM
                           }
                         `}
                       >
-                        <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} strokeWidth={2} />
+                        <ChevronRight className={`w-5 h-5 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} strokeWidth={3} />
                       </button>
                     )}
                   </div>
@@ -273,6 +272,11 @@ export function SideMenu({ user, isOnline, isCrisisMode, communityPulse }: SideM
                             <div className="flex items-center">
                               <Link
                                 href={child.href}
+                                onClick={() => {
+                                  if (hasChildChildren) {
+                                    toggleSection(child.name);
+                                  }
+                                }}
                                 className={`
                                   group flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 touch-manipulation flex-1
                                   ${isChildActive 
@@ -314,7 +318,7 @@ export function SideMenu({ user, isOnline, isCrisisMode, communityPulse }: SideM
                                     }
                                   `}
                                 >
-                                  <ChevronRight className={`w-3 h-3 transition-transform duration-200 ${isChildExpanded ? 'rotate-90' : ''}`} strokeWidth={2} />
+                                  <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${isChildExpanded ? 'rotate-90' : ''}`} strokeWidth={3} />
                                 </button>
                               )}
                             </div>

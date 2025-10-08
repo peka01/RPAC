@@ -21,6 +21,58 @@ export function TopMenu({ user }: TopMenuProps) {
   const router = useRouter();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+
+  // Get user display name based on profile preference
+  const getUserDisplayName = () => {
+    if (!user) return t('dashboard.default_user');
+    if (!userProfile) return user.email?.split('@')[0] || t('dashboard.default_user');
+    
+    const preference = userProfile.name_display_preference || 'display_name';
+    
+    switch (preference) {
+      case 'display_name':
+        return userProfile.display_name || user.email?.split('@')[0] || t('dashboard.default_user');
+      case 'first_last':
+        if (userProfile.first_name && userProfile.last_name) {
+          return `${userProfile.first_name} ${userProfile.last_name}`;
+        }
+        return userProfile.display_name || user.email?.split('@')[0] || t('dashboard.default_user');
+      case 'initials':
+        if (userProfile.first_name && userProfile.last_name) {
+          return `${userProfile.first_name[0]}${userProfile.last_name[0]}`.toUpperCase();
+        }
+        if (userProfile.display_name) {
+          return userProfile.display_name.substring(0, 2).toUpperCase();
+        }
+        return user.email?.split('@')[0] || t('dashboard.default_user');
+      default:
+        return userProfile.display_name || user.email?.split('@')[0] || t('dashboard.default_user');
+    }
+  };
+
+  // Load user profile data
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      if (!user) return;
+      
+      try {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('display_name, first_name, last_name, name_display_preference')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (profile) {
+          setUserProfile(profile);
+        }
+      } catch (error) {
+        console.error('Error loading user profile:', error);
+      }
+    };
+
+    loadUserProfile();
+  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -97,7 +149,7 @@ export function TopMenu({ user }: TopMenuProps) {
                   </div>
                   <div className="text-left">
                     <div className="text-gray-900 text-base font-medium">
-                      {user.email?.split('@')[0] || t('dashboard.user')}
+                      {getUserDisplayName()}
                     </div>
                   </div>
                   <ChevronDown className="w-5 h-5 text-gray-500" />
