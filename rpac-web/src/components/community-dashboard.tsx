@@ -112,42 +112,62 @@ export function CommunityDashboard({ user, community, onNavigate }: CommunityDas
           </div>
         </div>
 
-        {/* Quick Stats Grid */}
+        {/* Quick Stats Grid - Enhanced with Context */}
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
+            <Activity className="w-5 h-5" />
+            Samhällsstatus
+          </h3>
+          <p className="text-white/80 text-sm">Översikt över ditt lokala samhälles aktivitet</p>
+        </div>
+        
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-white/80 text-sm">Medlemmar</span>
-              <Users size={20} className="text-white/80" />
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/25 transition-all">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Users size={18} className="text-white/90" />
+                <span className="text-white/90 text-sm font-medium">Medlemmar</span>
+              </div>
+              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
             </div>
-            <div className="text-3xl font-bold">{stats.activeMembers}</div>
-            <div className="text-white/80 text-xs mt-1">Aktiva</div>
+            <div className="text-3xl font-bold text-white mb-1">{stats.activeMembers}</div>
+            <div className="text-white/80 text-xs">Aktiva medlemmar</div>
           </div>
 
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-white/80 text-sm">Resurser</span>
-              <Package size={20} className="text-white/80" />
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/25 transition-all">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Package size={18} className="text-white/90" />
+                <span className="text-white/90 text-sm font-medium">Resurser</span>
+              </div>
+              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
             </div>
-            <div className="text-3xl font-bold">{stats.availableResources}</div>
-            <div className="text-white/80 text-xs mt-1">Tillgängliga</div>
+            <div className="text-3xl font-bold text-white mb-1">{stats.availableResources}</div>
+            <div className="text-white/80 text-xs">Tillgängliga resurser</div>
           </div>
 
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-white/80 text-sm">Förfrågningar</span>
-              <Heart size={20} className="text-white/80" />
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/25 transition-all">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Heart size={18} className="text-white/90" />
+                <span className="text-white/90 text-sm font-medium">Förfrågningar</span>
+              </div>
+              <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
             </div>
-            <div className="text-3xl font-bold">{stats.helpRequests}</div>
-            <div className="text-white/80 text-xs mt-1">Aktiva</div>
+            <div className="text-3xl font-bold text-white mb-1">{stats.helpRequests}</div>
+            <div className="text-white/80 text-xs">Aktiva förfrågningar</div>
           </div>
 
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-white/80 text-sm">Aktivitet</span>
-              <Activity size={20} className="text-white/80" />
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/25 transition-all">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Activity size={18} className="text-white/90" />
+                <span className="text-white/90 text-sm font-medium">Aktivitet</span>
+              </div>
+              <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
             </div>
-            <div className="text-3xl font-bold">{stats.recentActivity}</div>
-            <div className="text-white/80 text-xs mt-1">Senaste veckan</div>
+            <div className="text-3xl font-bold text-white mb-1">{stats.recentActivity}</div>
+            <div className="text-white/80 text-xs">Senaste veckan</div>
           </div>
         </div>
       </div>

@@ -171,14 +171,35 @@ export class WeatherService {
               return param ? param.values[0] : null;
             };
 
+            // Get real weather data from SMHI
+            const temperature = getParameter('t');
+            const humidity = getParameter('r');
+            const windSpeed = getParameter('ws');
+            const pressure = getParameter('msl');
+            const rainfall = getParameter('pmean');
+            
+            // Get weather condition from SMHI (parameter 'Wsymb2' for weather symbol)
+            const weatherSymbol = getParameter('Wsymb2');
+            const forecast = this.getWeatherDescriptionFromSymbol(weatherSymbol);
+            
+            console.log('🌤️ SMHI Weather Data:', {
+              temperature,
+              humidity,
+              windSpeed,
+              pressure,
+              rainfall,
+              weatherSymbol,
+              forecast
+            });
+
             const realWeather: WeatherData = {
-              temperature: getParameter('t') || this.getRandomTemperature(),
-              humidity: getParameter('r') || this.getRandomHumidity(),
-              rainfall: getParameter('pmean') || this.getRandomRainfall(),
-              forecast: this.getRandomForecast(),
-              windSpeed: getParameter('ws') || this.getRandomWindSpeed(),
+              temperature: temperature !== null ? temperature : this.getRandomTemperature(),
+              humidity: humidity !== null ? humidity : this.getRandomHumidity(),
+              rainfall: rainfall !== null ? rainfall.toString() : this.getRandomRainfall(),
+              forecast: forecast || this.getRandomForecast(),
+              windSpeed: windSpeed !== null ? windSpeed : this.getRandomWindSpeed(),
               windDirection: this.getRandomWindDirection(),
-              pressure: getParameter('msl') || this.getRandomPressure(),
+              pressure: pressure !== null ? pressure : this.getRandomPressure(),
               uvIndex: this.getRandomUVIndex(),
               sunrise: '06:30',
               sunset: '18:45',
@@ -692,6 +713,45 @@ export class WeatherService {
       'Regnigt'
     ];
     return options[Math.floor(Math.random() * options.length)];
+  }
+
+  /**
+   * Convert SMHI weather symbol to Swedish description
+   */
+  private static getWeatherDescriptionFromSymbol(symbol: number | null): string | null {
+    if (symbol === null) return null;
+    
+    const weatherSymbols: Record<number, string> = {
+      1: 'Klar himmel',
+      2: 'Nästan klar himmel',
+      3: 'Växlande molnighet',
+      4: 'Halvklar himmel',
+      5: 'Molnigt',
+      6: 'Molnigt',
+      7: 'Halvklar himmel',
+      8: 'Molnigt',
+      9: 'Mycket molnigt',
+      10: 'Molnigt',
+      11: 'Dimma',
+      12: 'Lätt regn',
+      13: 'Regn',
+      14: 'Regn',
+      15: 'Kraftigt regn',
+      16: 'Åska',
+      17: 'Åska',
+      18: 'Kraftigt regn',
+      19: 'Lätt snöfall',
+      20: 'Snöfall',
+      21: 'Snöfall',
+      22: 'Kraftigt snöfall',
+      23: 'Snöfall',
+      24: 'Snöfall',
+      25: 'Snöfall',
+      26: 'Snöfall',
+      27: 'Snöfall'
+    };
+    
+    return weatherSymbols[symbol] || null;
   }
 
   private static getRandomWindSpeed(): number {

@@ -275,58 +275,73 @@ export function PersonalDashboardMobile({ user }: PersonalDashboardMobileProps =
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/50 to-purple-50/50 pb-32">
-      {/* Resource Categories */}
+      {/* Resource Categories - Enhanced with Section Header */}
       <div className="px-6 mb-6">
-        <h3 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
-          <Package size={20} className="text-[#3D4A2B]" strokeWidth={2.5} />
-          Resurser
-        </h3>
+        <div className="mb-4">
+          <h3 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">
+            <Package size={20} className="text-[#3D4A2B]" strokeWidth={2.5} />
+            Resurser
+          </h3>
+          <p className="text-sm text-gray-600">Översikt över dina resurser och förberedelser</p>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           {resourceCategories.map((category, index) => {
             const Icon = category.icon;
             const statusColor = getStatusColor(category.status);
+            const isCritical = category.status === 'critical' || category.status === 'poor';
             
             return (
               <button
                 key={index}
-                className="bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98 text-left relative overflow-hidden"
+                className="bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98 text-left relative overflow-hidden border-2"
+                style={{
+                  borderColor: isCritical ? `${statusColor}40` : '#E5E7EB',
+                  backgroundColor: isCritical ? `${statusColor}05` : 'white'
+                }}
               >
                 {category.needsAttention && (
-                  <div className="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                  <div className="absolute top-2 right-2 w-3 h-3 rounded-full animate-pulse"
+                       style={{ backgroundColor: 'var(--color-danger)' }} />
                 )}
                 
-                <div
-                  className="w-14 h-14 rounded-xl flex items-center justify-center mb-3"
-                  style={{ backgroundColor: `${statusColor}20` }}
-                >
-                  <Icon className="w-7 h-7" />
-                </div>
-                
-                <h4 className="font-bold text-gray-900 mb-1">{category.name}</h4>
-                
-                <div className="flex items-center justify-between mb-2">
-                  <span
-                    className="text-xs font-bold px-2 py-1 rounded-full"
-                    style={{
-                      backgroundColor: `${statusColor}20`,
-                      color: statusColor
-                    }}
+                <div className="flex items-center justify-between mb-3">
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center"
+                    style={{ backgroundColor: `${statusColor}20`, color: statusColor }}
                   >
-                    {getStatusLabel(category.status)}
-                  </span>
-                  <span className="text-sm font-bold text-gray-900">
-                    {category.score}%
-                  </span>
+                    <Icon className="w-6 h-6" />
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold" style={{ color: statusColor }}>
+                      {category.score}%
+                    </div>
+                    <div className="text-xs font-medium" style={{ color: statusColor }}>
+                      {getStatusLabel(category.status)}
+                    </div>
+                  </div>
                 </div>
                 
-                <div className="text-xs text-gray-600">
+                <h4 className="font-bold text-gray-900 mb-2">{category.name}</h4>
+                
+                <div className="text-xs text-gray-600 mb-3">
                   {category.daysRemaining > 0 ? (
                     <>
                       <span className="font-bold">{category.daysRemaining}</span> dagar kvar
                     </>
                   ) : (
-                    'Inga resurser'
+                    'Inga resurser registrerade'
                   )}
+                </div>
+                
+                {/* Progress bar */}
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="h-2 rounded-full transition-all duration-500"
+                    style={{ 
+                      backgroundColor: statusColor,
+                      width: `${category.score}%`
+                    }}
+                  />
                 </div>
               </button>
             );
@@ -335,13 +350,16 @@ export function PersonalDashboardMobile({ user }: PersonalDashboardMobileProps =
       </div>
 
 
-      {/* Quick Actions */}
+      {/* Quick Actions - Enhanced with Section Header */}
       {quickActions.length > 0 && (
         <div className="px-6">
-          <h3 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
-            <Zap size={20} className="text-amber-500" strokeWidth={2.5} />
-            Rekommenderade åtgärder
-          </h3>
+          <div className="mb-4">
+            <h3 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">
+              <Zap size={20} className="text-[#3D4A2B]" strokeWidth={2.5} />
+              Rekommenderade åtgärder
+            </h3>
+            <p className="text-sm text-gray-600">Åtgärder baserat på din nuvarande beredskap</p>
+          </div>
           <div className="space-y-3">
             {quickActions.map((action, index) => {
               const Icon = action.icon;

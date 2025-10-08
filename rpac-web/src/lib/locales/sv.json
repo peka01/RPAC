@@ -27,7 +27,8 @@
     "offline": "Offline",
     "crisis_mode": "Krisläge",
     "user": "Användare",
-    "login": "Logga in"
+    "login": "Logga in",
+    "mild_weather_expected": "Milt väder förväntas"
   },
   "notifications": {
     "title": "Notifieringar",

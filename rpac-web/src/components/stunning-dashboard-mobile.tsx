@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { t } from '@/lib/locales';
+import { useWeather } from '@/contexts/WeatherContext';
 import { 
   Shield, 
   Users, 
@@ -50,13 +51,6 @@ interface DashboardMetrics {
   expiringResources: number;
 }
 
-interface WeatherData {
-  temperature: number;
-  condition: string;
-  humidity: number;
-  windSpeed: number;
-  forecast: string;
-}
 
 export function StunningDashboardMobile({ user }: { user: User | null }) {
   const [metrics, setMetrics] = useState<DashboardMetrics>({
@@ -73,13 +67,7 @@ export function StunningDashboardMobile({ user }: { user: User | null }) {
     msbFulfillmentPercent: 0,
     expiringResources: 0
   });
-  const [weather, setWeather] = useState<WeatherData>({
-    temperature: 15,
-    condition: 'sunny',
-    humidity: 65,
-    windSpeed: 12,
-    forecast: 'Mild weather expected'
-  });
+  const { weather, forecast, loading: weatherLoading } = useWeather();
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -278,27 +266,35 @@ export function StunningDashboardMobile({ user }: { user: User | null }) {
           </h2>
         </div>
 
-        {/* Key Metrics - Mobile Optimized */}
+        {/* Key Metrics - Mobile Optimized with Section Header */}
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+            <Activity className="w-5 h-5 text-[#3D4A2B]" />
+            Din beredskap
+          </h2>
+          <p className="text-gray-600 text-sm">Översikt över din personliga beredskap och aktivitet</p>
+        </div>
+        
         <div className="space-y-4 mb-8">
           {/* Min odling - Cultivation Progress */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#5C6B47] to-[#707C5F] flex items-center justify-center">
-                  <Leaf className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#5C6B47] to-[#707C5F] flex items-center justify-center flex-shrink-0">
+                  <Leaf className="w-5 h-5 text-white" />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">{metrics.planName || 'Min odling'}</h3>
-                  <p className="text-sm text-gray-500">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-gray-900 text-sm leading-tight">{metrics.planName || 'Min odling'}</h3>
+                  <p className="text-xs text-gray-500">
                     {metrics.planName 
                       ? `${metrics.cropCount} grödor i planen`
                       : 'Börja planera'}
                   </p>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-3xl font-bold text-gray-900">{metrics.cultivationProgress}%</div>
-                <div className="text-sm text-gray-500">av hushållsbehov</div>
+              <div className="text-right flex-shrink-0 ml-3">
+                <div className="text-xl font-bold text-gray-900">{metrics.cultivationProgress}%</div>
+                <div className="text-xs text-gray-500">av hushållsbehov</div>
               </div>
             </div>
             <button 
@@ -375,23 +371,30 @@ export function StunningDashboardMobile({ user }: { user: User | null }) {
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900">Väder</h3>
-                <p className="text-sm text-gray-600">{weather.forecast}</p>
+                <p className="text-sm text-gray-600">
+                  {weatherLoading ? 'Laddar...' : weather ? weather.forecast : 'Ej tillgängligt'}
+                </p>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-gray-900">{weather.temperature}°C</div>
-              <div className="text-sm text-gray-500">Perfekt för odling</div>
+              <div className="text-2xl font-bold text-gray-900">
+                {weatherLoading ? '--' : weather ? `${Math.round(weather.temperature)}°C` : '--°C'}
+              </div>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
               <Droplets className="w-5 h-5 text-[#3D4A2B] mx-auto mb-1" />
-              <div className="text-sm font-medium text-gray-900">{weather.humidity}%</div>
+              <div className="text-sm font-medium text-gray-900">
+                {weatherLoading ? '--' : weather ? `${weather.humidity}%` : '--%'}
+              </div>
               <div className="text-xs text-gray-500">Luftfuktighet</div>
             </div>
             <div>
               <Wind className="w-5 h-5 text-[#3D4A2B] mx-auto mb-1" />
-              <div className="text-sm font-medium text-gray-900">{weather.windSpeed} m/s</div>
+              <div className="text-sm font-medium text-gray-900">
+                {weatherLoading ? '--' : weather ? `${weather.windSpeed} m/s` : '-- m/s'}
+              </div>
               <div className="text-xs text-gray-500">Vind</div>
             </div>
             <div>

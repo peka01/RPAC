@@ -173,30 +173,61 @@ export function ResourceSummaryCard({ user }: ResourceSummaryCardProps) {
           })}
         </div>
 
-        {/* Quick Stats */}
+        {/* Quick Stats - Enhanced with Context */}
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+            <Package className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
+            Resursöversikt
+          </h3>
+          <p className="text-sm" style={{ color: 'var(--color-muted)' }}>
+            Status för dina registrerade resurser
+          </p>
+        </div>
+        
         <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="text-center p-4 rounded-lg min-h-[80px] flex flex-col justify-center" style={{ backgroundColor: 'var(--bg-card)' }}>
-            <div className="text-2xl sm:text-3xl font-bold mb-1" style={{ color: 'var(--color-danger)' }}>
+          <div className="text-center p-4 rounded-xl min-h-[100px] flex flex-col justify-center border-2 hover:shadow-md transition-all"
+               style={{ 
+                 backgroundColor: 'var(--bg-card)',
+                 borderColor: 'var(--color-danger)30'
+               }}>
+            <div className="text-2xl sm:text-3xl font-bold mb-2" style={{ color: 'var(--color-danger)' }}>
               {resourceStats.criticalItems}
             </div>
-            <div className="text-sm font-medium leading-tight" style={{ color: 'var(--text-secondary)' }}>
+            <div className="text-sm font-medium leading-tight mb-1" style={{ color: 'var(--text-primary)' }}>
               {t('dashboard.critical_items')}
             </div>
+            <div className="text-xs" style={{ color: 'var(--color-muted)' }}>
+              Behöver omedelbar uppmärksamhet
+            </div>
           </div>
-          <div className="text-center p-4 rounded-lg min-h-[80px] flex flex-col justify-center" style={{ backgroundColor: 'var(--bg-card)' }}>
-            <div className="text-2xl sm:text-3xl font-bold mb-1" style={{ color: 'var(--color-warning)' }}>
+          <div className="text-center p-4 rounded-xl min-h-[100px] flex flex-col justify-center border-2 hover:shadow-md transition-all"
+               style={{ 
+                 backgroundColor: 'var(--bg-card)',
+                 borderColor: 'var(--color-warning)30'
+               }}>
+            <div className="text-2xl sm:text-3xl font-bold mb-2" style={{ color: 'var(--color-warning)' }}>
               {resourceStats.lowStock}
             </div>
-            <div className="text-sm font-medium leading-tight" style={{ color: 'var(--text-secondary)' }}>
+            <div className="text-sm font-medium leading-tight mb-1" style={{ color: 'var(--text-primary)' }}>
               {t('dashboard.low_stock')}
             </div>
+            <div className="text-xs" style={{ color: 'var(--color-muted)' }}>
+              Behöver förnyelse snart
+            </div>
           </div>
-          <div className="text-center p-4 rounded-lg min-h-[80px] flex flex-col justify-center" style={{ backgroundColor: 'var(--bg-card)' }}>
-            <div className="text-2xl sm:text-3xl font-bold mb-1" style={{ color: 'var(--color-sage)' }}>
+          <div className="text-center p-4 rounded-xl min-h-[100px] flex flex-col justify-center border-2 hover:shadow-md transition-all"
+               style={{ 
+                 backgroundColor: 'var(--bg-card)',
+                 borderColor: 'var(--color-sage)30'
+               }}>
+            <div className="text-2xl sm:text-3xl font-bold mb-2" style={{ color: 'var(--color-sage)' }}>
               {resourceStats.healthyItems}
             </div>
-            <div className="text-sm font-medium leading-tight" style={{ color: 'var(--text-secondary)' }}>
+            <div className="text-sm font-medium leading-tight mb-1" style={{ color: 'var(--text-primary)' }}>
               {t('dashboard.healthy_items')}
+            </div>
+            <div className="text-xs" style={{ color: 'var(--color-muted)' }}>
+              I bra skick
             </div>
           </div>
         </div>
