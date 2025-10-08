@@ -29,9 +29,10 @@ interface MessagingSystemProps {
   user: User;
   communityId?: string;
   initialTab?: 'direct' | 'community' | 'emergency' | 'resources';
+  hideTabs?: boolean;
 }
 
-export function MessagingSystemV2({ user, communityId, initialTab = 'community' }: MessagingSystemProps) {
+export function MessagingSystemV2({ user, communityId, initialTab = 'community', hideTabs = false }: MessagingSystemProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [activeContact, setActiveContact] = useState<Contact | null>(null);
@@ -289,52 +290,54 @@ export function MessagingSystemV2({ user, communityId, initialTab = 'community' 
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={() => setActiveTab('community')}
-            className={`flex-1 min-w-[120px] py-2 px-4 rounded-lg transition-all border-2 ${
-              activeTab === 'community'
-                ? 'bg-[#3D4A2B] text-white border-[#3D4A2B] font-semibold'
-                : 'bg-white text-gray-700 border-gray-300 hover:border-[#3D4A2B] hover:text-[#3D4A2B]'
-            }`}
-          >
-            <Users className="inline mr-2" size={18} />
-            Samhälle
-          </button>
-          <button
-            onClick={() => setActiveTab('resources')}
-            className={`flex-1 min-w-[120px] py-2 px-4 rounded-lg transition-all border-2 ${
-              activeTab === 'resources'
-                ? 'bg-[#3D4A2B] text-white border-[#3D4A2B] font-semibold'
-                : 'bg-white text-gray-700 border-gray-300 hover:border-[#3D4A2B] hover:text-[#3D4A2B]'
-            }`}
-          >
-            <Package className="inline mr-2" size={18} />
-            Resurser
-          </button>
-          <button
-            onClick={() => setActiveTab('direct')}
-            className={`flex-1 min-w-[120px] py-2 px-4 rounded-lg transition-all border-2 ${
-              activeTab === 'direct'
-                ? 'bg-[#3D4A2B] text-white border-[#3D4A2B] font-semibold'
-                : 'bg-white text-gray-700 border-gray-300 hover:border-[#3D4A2B] hover:text-[#3D4A2B]'
-            }`}
-          >
-            <MessageCircle className="inline mr-2" size={18} />
-            Direkt
-          </button>
-          <button
-            onClick={() => setActiveTab('emergency')}
-            className={`flex-1 min-w-[120px] py-2 px-4 rounded-lg transition-all border-2 ${
-              activeTab === 'emergency'
-                ? 'bg-red-600 text-white border-red-600 font-semibold'
-                : 'bg-white text-red-600 border-red-300 hover:border-red-600'
-            }`}
-          >
-            <AlertTriangle className="inline mr-2" size={18} />
-            Nöd
-          </button>
-        </div>
+        {!hideTabs && (
+          <div className="flex gap-2 flex-wrap">
+            <button
+              onClick={() => setActiveTab('community')}
+              className={`flex-1 min-w-[120px] py-2 px-4 rounded-lg transition-all border-2 ${
+                activeTab === 'community'
+                  ? 'bg-[#3D4A2B] text-white border-[#3D4A2B] font-semibold'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-[#3D4A2B] hover:text-[#3D4A2B]'
+              }`}
+            >
+              <Users className="inline mr-2" size={18} />
+              Samhälle
+            </button>
+            <button
+              onClick={() => setActiveTab('resources')}
+              className={`flex-1 min-w-[120px] py-2 px-4 rounded-lg transition-all border-2 ${
+                activeTab === 'resources'
+                  ? 'bg-[#3D4A2B] text-white border-[#3D4A2B] font-semibold'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-[#3D4A2B] hover:text-[#3D4A2B]'
+              }`}
+            >
+              <Package className="inline mr-2" size={18} />
+              Resurser
+            </button>
+            <button
+              onClick={() => setActiveTab('direct')}
+              className={`flex-1 min-w-[120px] py-2 px-4 rounded-lg transition-all border-2 ${
+                activeTab === 'direct'
+                  ? 'bg-[#3D4A2B] text-white border-[#3D4A2B] font-semibold'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-[#3D4A2B] hover:text-[#3D4A2B]'
+              }`}
+            >
+              <MessageCircle className="inline mr-2" size={18} />
+              Direkt
+            </button>
+            <button
+              onClick={() => setActiveTab('emergency')}
+              className={`flex-1 min-w-[120px] py-2 px-4 rounded-lg transition-all border-2 ${
+                activeTab === 'emergency'
+                  ? 'bg-red-600 text-white border-red-600 font-semibold'
+                  : 'bg-white text-red-600 border-red-300 hover:border-red-600'
+              }`}
+            >
+              <AlertTriangle className="inline mr-2" size={18} />
+              Nöd
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Error message */}

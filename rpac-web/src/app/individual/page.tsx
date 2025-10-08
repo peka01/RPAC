@@ -179,7 +179,7 @@ function IndividualPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#5C6B47]/10 via-white to-[#707C5F]/10">
+    <div className="min-h-screen bg-gradient-to-br from-[#2A331E]/5 via-[#3D4A2B]/3 to-[#4A5239]/8">
       {/* Mobile Navigation Component */}
       <div className="lg:hidden">
         <IndividualMobileNav

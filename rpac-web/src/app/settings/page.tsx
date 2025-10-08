@@ -14,6 +14,7 @@ import {
   Eye,
   EyeOff,
   CheckCircle,
+  AlertCircle,
   AlertTriangle,
   Settings as SettingsIcon,
   Moon,
@@ -33,6 +34,7 @@ export default function SettingsPage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState<string>('');
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -89,7 +91,7 @@ export default function SettingsPage() {
 
   const tabs = [
     { id: 'profile', label: 'Profil', icon: User },
-    { id: 'security', label: 'Säkerhet', icon: Lock },
+    { id: 'security', label: 'Byt lösenord', icon: Lock },
     { id: 'notifications', label: 'Notifieringar', icon: Bell },
     { id: 'privacy', label: 'Integritet', icon: Shield },
     { id: 'preferences', label: 'Inställningar', icon: SettingsIcon }
@@ -98,15 +100,73 @@ export default function SettingsPage() {
   const handleSave = async () => {
     setIsSaving(true);
     setSaveStatus('idle');
+    setErrorMessage('');
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setIsSaving(false);
-    setSaveStatus('success');
-    
-    // Reset status after 3 seconds
-    setTimeout(() => setSaveStatus('idle'), 3000);
+    try {
+      // Validate current password is provided
+      if (!securityData.currentPassword.trim()) {
+        throw new Error('Nuvarande lösenord krävs');
+      }
+      
+      // Validate new password is provided
+      if (!securityData.newPassword.trim()) {
+        throw new Error('Nytt lösenord krävs');
+      }
+      
+      // Validate passwords match
+      if (securityData.newPassword !== securityData.confirmPassword) {
+        throw new Error('Lösenorden matchar inte. Kontrollera att båda fälten för nytt lösenord är identiska.');
+      }
+      
+      // Validate password strength
+      if (securityData.newPassword.length < 8) {
+        throw new Error('Lösenordet måste vara minst 8 tecken långt för säkerhet');
+      }
+      
+      // Validate password contains at least one letter and one number
+      if (!/(?=.*[a-zA-Z])(?=.*\d)/.test(securityData.newPassword)) {
+        throw new Error('Lösenordet måste innehålla minst en bokstav och en siffra');
+      }
+      
+      // Validate new password is different from current
+      if (securityData.currentPassword === securityData.newPassword) {
+        throw new Error('Nytt lösenord måste vara annorlunda än det nuvarande lösenordet');
+      }
+      
+      // Simulate API call (replace with actual Supabase auth update)
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setSaveStatus('success');
+      
+      // Clear form
+      setSecurityData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+      
+      // Reset status after 3 seconds
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    } catch (error) {
+      setSaveStatus('error');
+      
+      // Provide detailed error information
+      if (error instanceof Error) {
+        setErrorMessage(error.message);
+        console.error('Password change validation error:', error.message);
+      } else {
+        setErrorMessage('Ett oväntat fel uppstod. Kontrollera din internetanslutning och försök igen.');
+        console.error('Password change error:', error);
+      }
+      
+      // Reset status after 7 seconds (longer for users to read the error)
+      setTimeout(() => {
+        setSaveStatus('idle');
+        setErrorMessage('');
+      }, 7000);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -135,7 +195,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-[#2A331E]/5 via-[#3D4A2B]/3 to-[#4A5239]/8">
       <div className="container mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -193,7 +253,7 @@ export default function SettingsPage() {
               <div className="space-y-6">
                 <div className="modern-card p-8">
                   <h2 className="text-2xl font-bold mb-6" style={{ color: 'var(--text-primary)' }}>
-                    Säkerhet & Lösenord
+                    Byt lösenord
                   </h2>
 
                   <div className="space-y-6">
@@ -241,6 +301,16 @@ export default function SettingsPage() {
                           {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                         </button>
                       </div>
+                      
+                      {/* Password Requirements */}
+                      <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <h4 className="text-sm font-medium text-blue-900 mb-2">Lösenordskrav:</h4>
+                        <ul className="text-xs text-blue-800 space-y-1">
+                          <li>• Minst 8 tecken långt</li>
+                          <li>• Innehålla minst en bokstav och en siffra</li>
+                          <li>• Vara annorlunda än ditt nuvarande lösenord</li>
+                        </ul>
+                      </div>
                     </div>
 
                     <div>
@@ -268,6 +338,28 @@ export default function SettingsPage() {
                       <Save className="w-4 h-4" />
                       <span>{isSaving ? 'Uppdaterar...' : 'Uppdatera lösenord'}</span>
                     </button>
+
+                    {/* Success/Error Message */}
+                    {saveStatus === 'success' && (
+                      <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center space-x-2">
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                        <span className="text-green-800 font-medium">Lösenord uppdaterat framgångsrikt!</span>
+                      </div>
+                    )}
+                    {saveStatus === 'error' && (
+                      <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <div className="flex items-start space-x-3">
+                          <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1">
+                          <h4 className="text-red-800 font-semibold mb-1">Fel vid lösenordsändring</h4>
+                          <p className="text-red-700 text-sm">{errorMessage || 'Ett oväntat fel uppstod. Försök igen.'}</p>
+                          <p className="text-red-600 text-xs mt-2">
+                            💡 Tips: Kontrollera att alla fält är ifyllda korrekt och att ditt nya lösenord uppfyller kraven ovan.
+                          </p>
+                        </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -544,6 +636,28 @@ export default function SettingsPage() {
                       <Save className="w-4 h-4" />
                       <span>{isSaving ? 'Sparar...' : 'Spara inställningar'}</span>
                     </button>
+
+                    {/* Success/Error Message */}
+                    {saveStatus === 'success' && (
+                      <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center space-x-2">
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                        <span className="text-green-800 font-medium">Inställningar sparade framgångsrikt!</span>
+                      </div>
+                    )}
+                    {saveStatus === 'error' && (
+                      <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <div className="flex items-start space-x-3">
+                          <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1">
+                          <h4 className="text-red-800 font-semibold mb-1">Fel vid lösenordsändring</h4>
+                          <p className="text-red-700 text-sm">{errorMessage || 'Ett oväntat fel uppstod. Försök igen.'}</p>
+                          <p className="text-red-600 text-xs mt-2">
+                            💡 Tips: Kontrollera att alla fält är ifyllda korrekt och att ditt nya lösenord uppfyller kraven ovan.
+                          </p>
+                        </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

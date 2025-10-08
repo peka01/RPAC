@@ -93,9 +93,9 @@ export const userProfileSchema = z.object({
     .min(1, 'Hushållsstorlek måste vara minst 1')
     .max(20, 'Hushållsstorlek får inte vara mer än 20'),
   
-  has_children: z.boolean(),
-  has_elderly: z.boolean(),
-  has_pets: z.boolean(),
+  has_children: z.boolean().optional(),
+  has_elderly: z.boolean().optional(),
+  has_pets: z.boolean().optional(),
   
   pet_types: z.string()
     .max(100, 'Djursorter får inte vara längre än 100 tecken')

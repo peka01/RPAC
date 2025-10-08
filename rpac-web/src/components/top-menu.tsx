@@ -60,11 +60,16 @@ export function TopMenu({ user }: TopMenuProps) {
         <div className="flex items-center justify-between px-4 py-3">
           {/* Left side - Logo */}
           <div className="flex items-center">
-            <img 
-              src="/beready-logo2.png" 
-              alt="BE READY" 
-              className="h-16 w-auto"
-            />
+            <a 
+              href="/dashboard"
+              className="cursor-pointer hover:opacity-80 transition-opacity"
+            >
+              <img 
+                src="/beready-logo2.png" 
+                alt="BE READY" 
+                className="h-16 w-auto"
+              />
+            </a>
           </div>
 
           {/* Right side - User menu and notifications */}
@@ -73,9 +78,9 @@ export function TopMenu({ user }: TopMenuProps) {
             {user && (
               <button
                 onClick={() => setShowNotifications(true)}
-                className="relative w-10 h-10 bg-white/60 hover:bg-white/80 rounded-lg flex items-center justify-center transition-all duration-200 shadow-sm border border-gray-200/30"
+                className="relative w-12 h-12 bg-white/60 hover:bg-white/80 rounded-lg flex items-center justify-center transition-all duration-200 shadow-sm border border-gray-200/30"
               >
-                <Bell className="w-5 h-5 text-gray-600" />
+                <Bell className="w-6 h-6 text-gray-600" />
                 {/* Notification badge could be added here */}
               </button>
             )}
@@ -85,20 +90,17 @@ export function TopMenu({ user }: TopMenuProps) {
               <div className="relative user-menu-container">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/60 transition-all duration-200 shadow-sm border border-gray-200/30"
+                  className="flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-white/60 transition-all duration-200 shadow-sm border border-gray-200/30"
                 >
-                  <div className="w-8 h-8 bg-white/40 rounded-lg flex items-center justify-center">
-                    <User className="w-4 h-4 text-gray-600" />
+                  <div className="w-10 h-10 bg-white/40 rounded-lg flex items-center justify-center">
+                    <User className="w-6 h-6 text-gray-600" />
                   </div>
                   <div className="text-left">
-                    <div className="text-gray-900 text-sm font-medium">
+                    <div className="text-gray-900 text-base font-medium">
                       {user.email?.split('@')[0] || t('dashboard.user')}
                     </div>
-                    <div className="text-gray-500 text-xs">
-                      {getTimeOfDayGreeting()}
-                    </div>
                   </div>
-                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                  <ChevronDown className="w-5 h-5 text-gray-500" />
                 </button>
 
                 {/* User Menu Dropdown */}
@@ -130,12 +132,12 @@ export function TopMenu({ user }: TopMenuProps) {
             ) : (
               <button
                 onClick={() => router.push('/')}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/60 transition-all duration-200 shadow-sm border border-gray-200/30"
+                className="flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-white/60 transition-all duration-200 shadow-sm border border-gray-200/30"
               >
-                <div className="w-8 h-8 bg-white/40 rounded-lg flex items-center justify-center">
-                  <User className="w-4 h-4 text-gray-600" />
+                <div className="w-10 h-10 bg-white/40 rounded-lg flex items-center justify-center">
+                  <User className="w-6 h-6 text-gray-600" />
                 </div>
-                <span className="text-gray-700 text-sm">{t('dashboard.login')}</span>
+                <span className="text-gray-700 text-base font-medium">{t('dashboard.login')}</span>
               </button>
             )}
           </div>

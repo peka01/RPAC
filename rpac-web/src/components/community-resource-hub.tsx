@@ -49,6 +49,7 @@ interface CommunityResourceHubProps {
   isAdmin?: boolean;
   onSendMessage?: (content: string) => void;
   initialTab?: string | null;
+  hideTabs?: boolean; // New prop to hide the resource tabs
 }
 
 type ViewTier = 'shared' | 'owned' | 'help';
@@ -70,7 +71,8 @@ export function CommunityResourceHub({
   communityName,
   isAdmin = false,
   onSendMessage,
-  initialTab
+  initialTab,
+  hideTabs = false
 }: CommunityResourceHubProps) {
   const [activeTab, setActiveTab] = useState<ViewTier>('shared');
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
@@ -561,76 +563,79 @@ export function CommunityResourceHub({
 
   return (
     <div className="space-y-6">
-      {/* Enhanced Hero Section with Better Resource Overview */}
-      <div className="bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-2xl p-8 shadow-2xl">
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">📦 Resurser</h1>
-            <p className="text-white/80 text-lg">{actualCommunityName}</p>
-            <div className="flex items-center gap-4 mt-3">
-              <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1.5">
-                <Users size={16} />
-                <span className="text-sm font-semibold">{stats.contributors} bidragare</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1.5">
-                <CheckCircle size={16} />
-                <span className="text-sm font-semibold">{stats.availableShared} tillgängliga</span>
+      {/* Enhanced Hero Section with Better Resource Overview - Only show if tabs are not hidden */}
+      {!hideTabs && (
+        <div className="bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-2xl p-8 shadow-2xl">
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">📦 Resurser</h1>
+              <p className="text-white/80 text-lg">{actualCommunityName}</p>
+              <div className="flex items-center gap-4 mt-3">
+                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1.5">
+                  <Users size={16} />
+                  <span className="text-sm font-semibold">{stats.contributors} bidragare</span>
+                </div>
+                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1.5">
+                  <CheckCircle size={16} />
+                  <span className="text-sm font-semibold">{stats.availableShared} tillgängliga</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
+      )}
 
-      </div>
-
-      {/* Three-Tier Navigation */}
-      <div className="flex gap-2 flex-wrap">
-        <button
-          onClick={() => setActiveTab('shared')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
-            activeTab === 'shared'
-              ? 'bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white shadow-lg'
-              : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
-          }`}
-        >
-          <Share2 size={20} />
-          <span>Delade från medlemmar</span>
-          <span className="bg-white/20 text-white px-2 py-0.5 rounded-full text-xs font-bold">
-            {stats.totalShared}
-          </span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('owned')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
-            activeTab === 'owned'
-              ? 'bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white shadow-lg'
-              : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
-          }`}
-        >
-          <Building2 size={20} />
-          <span>Gemensamma resurser</span>
-          <span className="bg-white/20 text-white px-2 py-0.5 rounded-full text-xs font-bold">
-            {stats.totalOwned}
-          </span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('help')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
-            activeTab === 'help'
-              ? 'bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white shadow-lg'
-              : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
-          }`}
-        >
-          <AlertCircle size={20} />
-          <span>Hjälpförfrågningar</span>
-          {stats.activeHelp > 0 && (
-            <span className="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs font-bold animate-pulse">
-              {stats.activeHelp}
+      {/* Three-Tier Navigation - Only show if tabs are not hidden */}
+      {!hideTabs && (
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => setActiveTab('shared')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
+              activeTab === 'shared'
+                ? 'bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white shadow-lg'
+                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+            }`}
+          >
+            <Share2 size={20} />
+            <span>Delade från medlemmar</span>
+            <span className="bg-white/20 text-white px-2 py-0.5 rounded-full text-xs font-bold">
+              {stats.totalShared}
             </span>
-          )}
-        </button>
-      </div>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('owned')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
+              activeTab === 'owned'
+                ? 'bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white shadow-lg'
+                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+            }`}
+          >
+            <Building2 size={20} />
+            <span>Gemensamma resurser</span>
+            <span className="bg-white/20 text-white px-2 py-0.5 rounded-full text-xs font-bold">
+              {stats.totalOwned}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('help')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
+              activeTab === 'help'
+                ? 'bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white shadow-lg'
+                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+            }`}
+          >
+            <AlertCircle size={20} />
+            <span>Hjälpförfrågningar</span>
+            {stats.activeHelp > 0 && (
+              <span className="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs font-bold animate-pulse">
+                {stats.activeHelp}
+              </span>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* Search and Filter Bar */}
       <div className="bg-white rounded-xl p-4 shadow-md">

@@ -116,8 +116,6 @@ export function SimpleCultivationManager({ userId, householdSize = 2 }: SimpleCu
   };
 
   const handleDeletePlan = async (planId: string) => {
-    if (!confirm('Är du säker på att du vill ta bort denna odlingsplan?')) return;
-
     const success = await cultivationPlanService.deletePlan(planId);
     if (success) {
       await loadPlans();
@@ -234,6 +232,17 @@ export function SimpleCultivationManager({ userId, householdSize = 2 }: SimpleCu
                         aria-label={`Redigera ${plan.plan_name}`}
                       >
                         <Edit size={16} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeletePlan(plan.id!);
+                        }}
+                        className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Ta bort plan"
+                        aria-label={`Ta bort ${plan.plan_name}`}
+                      >
+                        <Trash size={16} />
                       </button>
                     </div>
                   </div>
@@ -435,13 +444,6 @@ export function SimpleCultivationManager({ userId, householdSize = 2 }: SimpleCu
                   <span>Sätt som primär plan</span>
                 </button>
               )}
-              <button
-                onClick={() => handleDeletePlan(selectedPlan.id!)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-red-500 text-red-600 font-bold text-sm rounded-lg hover:bg-red-500 hover:text-white transition-colors"
-              >
-                <Trash size={16} />
-                <span>Ta bort plan</span>
-              </button>
             </div>
           </div>
         </>

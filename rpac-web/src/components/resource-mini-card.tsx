@@ -64,7 +64,7 @@ export function ResourceMiniCard({
 
   return (
     <div 
-      className={`group flex items-center gap-3 px-3 py-2 mb-1.5 rounded-lg border transition-all hover:shadow-md relative ${
+      className={`group flex items-center gap-2 px-3 py-2 mb-1.5 rounded-lg border transition-all hover:shadow-md relative ${
         isEmpty ? 'bg-gray-50 border-gray-300' : 'bg-white border-gray-200 hover:border-gray-300'
       }`}
       style={{ minHeight: '48px', fontSize: '0.9rem' }}
@@ -74,10 +74,6 @@ export function ResourceMiniCard({
         <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-500 rounded-l-lg" />
       )}
 
-      {/* Icon */}
-      <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-xl">
-        {config.emoji}
-      </div>
 
       {/* Name */}
       <div className="flex-1 min-w-0">

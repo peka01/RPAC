@@ -422,13 +422,6 @@ export function SimpleCultivationManagerMobile({ userId, householdSize = 2 }: Si
                   <span>Sätt som primär</span>
                 </button>
               )}
-              <button
-                onClick={() => handleDeletePlan(selectedPlan.id!)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-red-500 text-red-600 font-bold rounded-lg active:scale-98 transition-transform"
-              >
-                <Trash size={16} />
-                <span>Ta bort plan</span>
-              </button>
             </div>
           </div>
         </div>
@@ -468,6 +461,7 @@ export function SimpleCultivationManagerMobile({ userId, householdSize = 2 }: Si
             setShowCreateModal(true);
             setShowPlanSelector(false);
           }}
+          onDelete={handleDeletePlan}
           onClose={() => setShowPlanSelector(false)}
         />
       )}
@@ -662,12 +656,13 @@ function CropSelectorModalMobile({ onClose, onSelect, existingCrops }: {
 }
 
 // Plan Selector Sheet
-function PlanSelectorSheet({ plans, selectedPlan, householdSize, onSelect, onEdit, onClose }: {
+function PlanSelectorSheet({ plans, selectedPlan, householdSize, onSelect, onEdit, onDelete, onClose }: {
   plans: CultivationPlan[];
   selectedPlan: CultivationPlan | null;
   householdSize: number;
   onSelect: (plan: CultivationPlan) => void;
   onEdit: (plan: CultivationPlan) => void;
+  onDelete: (planId: string) => void;
   onClose: () => void;
 }) {
   return (
@@ -715,6 +710,16 @@ function PlanSelectorSheet({ plans, selectedPlan, householdSize, onSelect, onEdi
                         aria-label={`Redigera ${plan.plan_name}`}
                       >
                         <Edit size={14} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(plan.id!);
+                        }}
+                        className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg active:scale-95 transition-all"
+                        aria-label={`Ta bort ${plan.plan_name}`}
+                      >
+                        <Trash size={14} />
                       </button>
                     </div>
                   </div>

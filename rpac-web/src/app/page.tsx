@@ -105,6 +105,13 @@ export default function LoginPage() {
 
       setResetMessage('Ett e-postmeddelande med instruktioner för att återställa ditt lösenord har skickats till ' + resetEmail);
       setResetEmail('');
+      
+      // Close modal after 3 seconds to let user read the success message
+      setTimeout(() => {
+        setShowForgotPassword(false);
+        setResetMessage('');
+        setError('');
+      }, 3000);
     } catch (err: unknown) {
       const _message = err instanceof Error ? err.message : t('errors.generic_error');
       setError(_message);
@@ -447,12 +454,25 @@ export default function LoginPage() {
 
             {/* Success Message */}
             {resetMessage && (
-              <div className="mb-4 p-3 rounded-lg flex items-center space-x-2"
+              <div className="mb-4 p-3 rounded-lg flex items-center justify-between"
                    style={{ backgroundColor: 'var(--color-success)20', border: '1px solid var(--color-success)40' }}>
-                <Shield className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
-                <p className="text-sm" style={{ color: 'var(--color-success)' }}>
-                  {resetMessage}
-                </p>
+                <div className="flex items-center space-x-2">
+                  <Shield className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
+                  <p className="text-sm" style={{ color: 'var(--color-success)' }}>
+                    {resetMessage}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowForgotPassword(false);
+                    setResetMessage('');
+                    setError('');
+                  }}
+                  className="ml-2 p-1 rounded hover:bg-green-100 transition-colors"
+                  title="Stäng"
+                >
+                  <X className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
+                </button>
               </div>
             )}
 
