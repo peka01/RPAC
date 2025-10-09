@@ -1,15 +1,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { SimpleCultivationManager } from './simple-cultivation-manager';
-import { SimpleCultivationManagerMobile } from './simple-cultivation-manager-mobile';
+import { CommunityResourceHub } from './community-resource-hub';
+import { CommunityResourceHubMobile } from './community-resource-hub-mobile';
+import type { User } from '@supabase/supabase-js';
 
-interface SimpleCultivationResponsiveProps {
-  userId: string;
-  householdSize?: number;
+interface CommunityResourceHubResponsiveProps {
+  user: User;
+  communityId: string;
+  communityName: string;
+  isAdmin?: boolean;
+  onSendMessage?: (content: string) => void;
+  initialTab?: string | null;
+  hideTabs?: boolean;
 }
 
-export function SimpleCultivationResponsive({ userId, householdSize }: SimpleCultivationResponsiveProps) {
+export function CommunityResourceHubResponsive(props: CommunityResourceHubResponsiveProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
@@ -26,10 +32,10 @@ export function SimpleCultivationResponsive({ userId, householdSize }: SimpleCul
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Prevent hydration mismatch
+  // Prevent hydration mismatch by not rendering until client-side
   if (!isClient) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3D4A2B] mx-auto mb-4"></div>
           <p className="text-gray-600">Laddar...</p>
@@ -39,8 +45,8 @@ export function SimpleCultivationResponsive({ userId, householdSize }: SimpleCul
   }
 
   return isMobile ? (
-    <SimpleCultivationManagerMobile userId={userId} householdSize={householdSize} />
+    <CommunityResourceHubMobile {...props} />
   ) : (
-    <SimpleCultivationManager userId={userId} householdSize={householdSize} />
+    <CommunityResourceHub {...props} />
   );
 }

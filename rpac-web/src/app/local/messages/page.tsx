@@ -159,28 +159,28 @@ export default function MessagesPage() {
   if (!communityId) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-4 md:py-8">
           <div className="max-w-4xl mx-auto">
-            {/* Page Header */}
-            <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="bg-[#3D4A2B]/10 rounded-xl p-3">
-                  <MessageCircle className="w-8 h-8 text-[#3D4A2B]" />
+            {/* Page Header - Mobile Optimized */}
+            <div className="bg-white rounded-xl shadow-lg p-4 md:p-8 mb-4 md:mb-8">
+              <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
+                <div className="bg-[#3D4A2B]/10 rounded-xl p-2 md:p-3">
+                  <MessageCircle className="w-6 h-6 md:w-8 md:h-8 text-[#3D4A2B]" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">Meddelanden</h1>
-                  <p className="text-gray-600">Chatta med andra medlemmar i ditt samhälle</p>
+                  <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">Meddelanden</h1>
+                  <p className="text-sm md:text-base text-gray-600">Chatta med andra medlemmar i ditt samhälle</p>
                 </div>
               </div>
               
-              <div className="bg-[#8B4513]/10 border border-[#8B4513]/20 rounded-lg p-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <Users className="w-6 h-6 text-[#8B4513]" />
-                  <h3 className="text-lg font-semibold text-[#8B4513]">
+              <div className="bg-[#8B4513]/10 border border-[#8B4513]/20 rounded-lg p-4 md:p-6">
+                <div className="flex items-center gap-2 md:gap-3 mb-3">
+                  <Users className="w-5 h-5 md:w-6 md:h-6 text-[#8B4513]" />
+                  <h3 className="text-base md:text-lg font-semibold text-[#8B4513]">
                     {userCommunities.length === 0 ? 'Inga samhällen hittades' : 'Välj ett samhälle först'}
                   </h3>
                 </div>
-                <p className="text-gray-700 mb-4">
+                <p className="text-sm md:text-base text-gray-700 mb-4">
                   {userCommunities.length === 0 
                     ? 'Du är inte medlem i några lokala samhällen än. Gå med i ett samhälle för att chatta med andra medlemmar.'
                     : 'Du behöver vara medlem i ett lokalt samhälle för att chatta med andra medlemmar.'
@@ -188,7 +188,7 @@ export default function MessagesPage() {
                 </p>
                 <a
                   href="/local/discover"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-[#3D4A2B] text-white font-medium rounded-lg hover:bg-[#2A331E] transition-colors"
+                  className="inline-flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-[#3D4A2B] text-white font-medium rounded-lg hover:bg-[#2A331E] transition-colors text-sm md:text-base touch-manipulation active:scale-95"
                 >
                   <MapPin className="w-4 h-4" />
                   Hitta samhällen
@@ -203,30 +203,30 @@ export default function MessagesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4 md:py-8">
         <div className="max-w-6xl mx-auto">
-          {/* Page Header */}
-          <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <div className="bg-[#3D4A2B]/10 rounded-xl p-3">
-                  <MessageCircle className="w-8 h-8 text-[#3D4A2B]" />
+          {/* Page Header - Mobile Optimized */}
+          <div className="bg-white rounded-xl shadow-lg p-4 md:p-8 mb-4 md:mb-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6">
+              <div className="flex items-center gap-3 md:gap-4">
+                <div className="bg-[#3D4A2B]/10 rounded-xl p-2 md:p-3">
+                  <MessageCircle className="w-6 h-6 md:w-8 md:h-8 text-[#3D4A2B]" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">Meddelanden</h1>
-                  <p className="text-gray-600">Chatta med andra medlemmar</p>
+                  <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">Meddelanden</h1>
+                  <p className="text-sm md:text-base text-gray-600">Chatta med andra medlemmar</p>
                 </div>
               </div>
               
-              {/* Community Selector */}
+              {/* Community Selector - Mobile Responsive */}
               {userCommunities.length > 1 && (
-                <div className="bg-gradient-to-r from-[#3D4A2B]/10 to-[#5C6B47]/10 border-2 border-[#3D4A2B]/30 rounded-xl px-6 py-4 shadow-lg">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2 text-sm">
-                      <div className="bg-[#3D4A2B] rounded-full p-2">
-                        <Users size={16} className="text-white" />
+                <div className="bg-gradient-to-r from-[#3D4A2B]/10 to-[#5C6B47]/10 border-2 border-[#3D4A2B]/30 rounded-xl px-4 md:px-6 py-3 md:py-4 shadow-lg">
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                    <div className="flex items-center gap-2 text-xs md:text-sm">
+                      <div className="bg-[#3D4A2B] rounded-full p-1.5 md:p-2">
+                        <Users size={14} className="md:w-4 md:h-4 text-white" />
                       </div>
-                      <span className="font-bold text-[#3D4A2B] text-base">Aktivt samhälle:</span>
+                      <span className="font-bold text-[#3D4A2B] text-sm md:text-base">Aktivt samhälle:</span>
                     </div>
                     <select
                       value={communityId || ''}
@@ -239,7 +239,7 @@ export default function MessagesPage() {
                           localStorage.setItem('selectedCommunityId', selectedCommunity.id);
                         }
                       }}
-                      className="px-4 py-3 bg-white border-2 border-[#3D4A2B]/40 rounded-lg focus:outline-none focus:ring-4 focus:ring-[#3D4A2B]/20 text-gray-900 font-bold text-base cursor-pointer hover:border-[#3D4A2B] hover:shadow-md transition-all min-w-[220px] shadow-sm"
+                      className="px-3 md:px-4 py-2 md:py-3 bg-white border-2 border-[#3D4A2B]/40 rounded-lg focus:outline-none focus:ring-4 focus:ring-[#3D4A2B]/20 text-gray-900 font-bold text-sm md:text-base cursor-pointer hover:border-[#3D4A2B] hover:shadow-md transition-all w-full md:min-w-[220px] shadow-sm"
                     >
                       {userCommunities.map((community) => (
                         <option key={community.id} value={community.id} className="font-bold">
@@ -253,12 +253,14 @@ export default function MessagesPage() {
             </div>
           </div>
 
-          {/* Messaging System */}
-          <MessagingSystemV2 
-            user={user} 
-            communityId={communityId}
-            initialTab="community"
-          />
+          {/* Messaging System - Full Height on Mobile */}
+          <div className="h-[calc(100vh-200px)] md:h-auto">
+            <MessagingSystemV2 
+              user={user} 
+              communityId={communityId}
+              initialTab="community"
+            />
+          </div>
         </div>
       </div>
     </div>

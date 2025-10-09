@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { resourceSharingService, type SharedResource, type HelpRequest } from '@/lib/resource-sharing-service';
 import { communityResourceService, type CommunityResource } from '@/lib/community-resource-service';
+import { communityService, type LocalCommunity } from '@/lib/supabase';
 import { supabase } from '@/lib/supabase';
 import { CommunityResourceModal } from './community-resource-modal';
 import { SharedResourceActionsModal } from './shared-resource-actions-modal';
@@ -80,6 +81,11 @@ export function CommunityResourceHubMobile({
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilterSheet, setShowFilterSheet] = useState(false);
+  
+  // Community selector state
+  const [userCommunities, setUserCommunities] = useState<LocalCommunity[]>([]);
+  const [currentCommunityId, setCurrentCommunityId] = useState<string>(communityId);
+  const [currentCommunityName, setCurrentCommunityName] = useState<string>(communityName);
 
   // Data states
   const [sharedResources, setSharedResources] = useState<SharedResource[]>([]);
@@ -98,12 +104,25 @@ export function CommunityResourceHubMobile({
 
   useEffect(() => {
     console.log('CommunityResourceHubMobile useEffect triggered with communityId:', communityId);
-    if (communityId) {
-      console.log('Loading data for community:', communityId);
+    if (currentCommunityId) {
+      console.log('Loading data for community:', currentCommunityId);
       loadAllData();
       loadCommunityName();
     }
-  }, [communityId]);
+  }, [currentCommunityId]);
+
+  // Load user communities for selector
+  useEffect(() => {
+    if (user && user.id !== 'demo-user') {
+      loadUserCommunities();
+    }
+  }, [user]);
+
+  // Update current community when props change
+  useEffect(() => {
+    setCurrentCommunityId(communityId);
+    setCurrentCommunityName(communityName);
+  }, [communityId, communityName]);
 
   // Listen for openResourceManagement events from notifications
   useEffect(() => {
@@ -158,11 +177,11 @@ export function CommunityResourceHubMobile({
 
   const loadCommunityName = async () => {
     try {
-      console.log('Loading community name for ID:', communityId);
+      console.log('Loading community name for ID:', currentCommunityId);
       const { data: community, error } = await supabase
         .from('local_communities')
         .select('community_name')
-        .eq('id', communityId)
+        .eq('id', currentCommunityId)
         .single();
       
       if (error) {
@@ -177,6 +196,36 @@ export function CommunityResourceHubMobile({
       }
     } catch (error) {
       console.error('Error loading community name:', error);
+    }
+  };
+
+  const loadUserCommunities = async () => {
+    try {
+      const memberships = await communityService.getUserMemberships(user.id);
+      
+      if (memberships.length > 0) {
+        const communities = await Promise.all(
+          memberships.map(id => communityService.getCommunityById(id))
+        );
+        
+        const validCommunities = communities.filter(c => c !== null) as LocalCommunity[];
+        setUserCommunities(validCommunities);
+      }
+    } catch (error) {
+      console.error('Error loading communities:', error);
+    }
+  };
+
+  const handleCommunityChange = (newCommunityId: string) => {
+    const selectedCommunity = userCommunities.find(c => c.id === newCommunityId);
+    if (selectedCommunity) {
+      setCurrentCommunityId(selectedCommunity.id);
+      setCurrentCommunityName(selectedCommunity.community_name);
+      localStorage.setItem('selectedCommunityId', selectedCommunity.id);
+      
+      // Reload data for the new community
+      loadAllData();
+      loadCommunityName();
     }
   };
 
@@ -197,9 +246,9 @@ export function CommunityResourceHubMobile({
 
     try {
       const [shared, owned, help] = await Promise.all([
-        resourceSharingService.getCommunityResources(communityId, user.id),
-        communityResourceService.getCommunityResources(communityId),
-        resourceSharingService.getCommunityHelpRequests(communityId)
+        resourceSharingService.getCommunityResources(currentCommunityId, user.id),
+        communityResourceService.getCommunityResources(currentCommunityId),
+        resourceSharingService.getCommunityHelpRequests(currentCommunityId)
       ]);
 
       setSharedResources(shared);
@@ -419,7 +468,7 @@ export function CommunityResourceHubMobile({
   console.log('CommunityResourceHubMobile render - managingResource:', managingResource);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#5C6B47]/10 via-white to-[#707C5F]/10 pb-6">
+    <div className="min-h-screen bg-gradient-to-br from-[#5C6B47]/10 via-white to-[#707C5F]/10 pb-20">
       {/* Header */}
       <div className="bg-gradient-to-br from-[#3D4A2B] to-[#2A331E] text-white px-4 pt-6 pb-8 shadow-lg">
         <div className="mb-6">
@@ -428,6 +477,29 @@ export function CommunityResourceHubMobile({
             <Building2 size={14} />
             {actualCommunityName}
           </p>
+          
+          {/* Mobile Community Selector */}
+          {userCommunities.length > 1 && (
+            <div className="mt-4 bg-white/20 backdrop-blur-sm rounded-xl p-3 border border-white/30 max-w-full overflow-hidden">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="bg-white/20 rounded-full p-2">
+                  <Users size={14} className="text-white" />
+                </div>
+                <span className="font-bold text-white text-sm">Aktivt samhälle:</span>
+              </div>
+              <select
+                value={currentCommunityId}
+                onChange={(e) => handleCommunityChange(e.target.value)}
+                className="w-full px-3 py-2 bg-white border-2 border-white/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/20 text-gray-900 font-medium text-sm cursor-pointer hover:border-white/60 hover:shadow-md transition-all shadow-sm"
+              >
+                {userCommunities.map((community) => (
+                  <option key={community.id} value={community.id} className="font-medium text-sm">
+                    {community.community_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         {/* Enhanced Stats Grid */}

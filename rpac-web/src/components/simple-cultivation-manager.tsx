@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Sprout, TrendingUp, Calendar, Edit, Trash, Star, ChevronRight, X, Check, AlertCircle, HelpCircle } from 'lucide-react';
-import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { 
   cultivationPlanService, 
   CultivationPlan, 
@@ -116,6 +115,8 @@ export function SimpleCultivationManager({ userId, householdSize = 2 }: SimpleCu
   };
 
   const handleDeletePlan = async (planId: string) => {
+    if (!confirm('Är du säker på att du vill ta bort denna odlingsplan?')) return;
+
     const success = await cultivationPlanService.deletePlan(planId);
     if (success) {
       await loadPlans();
@@ -135,7 +136,10 @@ export function SimpleCultivationManager({ userId, householdSize = 2 }: SimpleCu
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar odlingsplaner..." />
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3D4A2B] mx-auto mb-4"></div>
+          <p className="text-gray-600">Laddar odlingsplaner...</p>
+        </div>
       </div>
     );
   }
@@ -232,17 +236,6 @@ export function SimpleCultivationManager({ userId, householdSize = 2 }: SimpleCu
                         aria-label={`Redigera ${plan.plan_name}`}
                       >
                         <Edit size={16} />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeletePlan(plan.id!);
-                        }}
-                        className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Ta bort plan"
-                        aria-label={`Ta bort ${plan.plan_name}`}
-                      >
-                        <Trash size={16} />
                       </button>
                     </div>
                   </div>
@@ -444,6 +437,13 @@ export function SimpleCultivationManager({ userId, householdSize = 2 }: SimpleCu
                   <span>Sätt som primär plan</span>
                 </button>
               )}
+              <button
+                onClick={() => handleDeletePlan(selectedPlan.id!)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-red-500 text-red-600 font-bold text-sm rounded-lg hover:bg-red-500 hover:text-white transition-colors"
+              >
+                <Trash size={16} />
+                <span>Ta bort plan</span>
+              </button>
             </div>
           </div>
         </>
@@ -727,4 +727,3 @@ function CropSelectorModal({ onClose, onSelect, existingCrops }: {
     </div>
   );
 }
-

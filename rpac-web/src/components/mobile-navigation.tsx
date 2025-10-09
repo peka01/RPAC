@@ -11,7 +11,9 @@ import {
   Menu,
   X,
   LogOut,
-  Bell
+  Bell,
+  Package,
+  HelpCircle
 } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { useState, useEffect } from 'react';
@@ -119,7 +121,10 @@ export function MobileNavigation() {
     }
   };
 
-  const navItems = [
+  // Check if we're on resource pages
+  const isOnResourcePages = pathname?.startsWith('/local/resources/');
+
+  const mainNavItems = [
     {
       href: '/dashboard',
       icon: Home,
@@ -145,6 +150,29 @@ export function MobileNavigation() {
       description: t('navigation.descriptions.regional_coordination')
     },
   ];
+
+  const resourceNavItems = [
+    {
+      href: '/local/resources/shared',
+      icon: Users,
+      label: 'Delade från medlemmar',
+      description: 'Resurser som medlemmar delar'
+    },
+    {
+      href: '/local/resources/owned',
+      icon: Package,
+      label: 'Gemensamma resurser',
+      description: 'Samhällets gemensamma resurser'
+    },
+    {
+      href: '/local/resources/help',
+      icon: HelpCircle,
+      label: 'Hjälpförfrågningar',
+      description: 'Behov av hjälp i samhället'
+    }
+  ];
+
+  const navItems = isOnResourcePages ? resourceNavItems : mainNavItems;
 
   const isActive = (href: string) => {
     if (href === '/dashboard') {

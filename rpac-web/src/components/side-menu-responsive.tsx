@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { SideMenu } from './side-menu';
 import { TopMenu } from './top-menu';
-import { MobileNavigation } from './mobile-navigation';
+import { MobileNavigationV2 } from './mobile-navigation-v2';
 import { KRISterAssistantResponsive } from './krister-assistant-responsive';
 import { useUserProfile } from '@/lib/useUserProfile';
+import { useMobileDetection } from '@/hooks/useMobileDetection';
 import { supabase } from '@/lib/supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -16,7 +17,7 @@ interface SideMenuResponsiveProps {
 }
 
 export function SideMenuResponsive({ children, hideMobileNav = false }: SideMenuResponsiveProps) {
-  const [isMobile, setIsMobile] = useState(false);
+  const { isMobile, isClient } = useMobileDetection();
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isOnline, setIsOnline] = useState(true);
@@ -28,13 +29,6 @@ export function SideMenuResponsive({ children, hideMobileNav = false }: SideMenu
 
   useEffect(() => {
     setMounted(true);
-    
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024); // lg breakpoint
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
 
     // Check user authentication
     const checkUser = async () => {
@@ -64,7 +58,6 @@ export function SideMenuResponsive({ children, hideMobileNav = false }: SideMenu
     return () => {
       subscription.unsubscribe();
       clearInterval(pulseInterval);
-      window.removeEventListener('resize', checkMobile);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
@@ -84,7 +77,7 @@ export function SideMenuResponsive({ children, hideMobileNav = false }: SideMenu
   };
 
   // Prevent hydration mismatch
-  if (!mounted) {
+  if (!mounted || !isClient) {
     return <>{children}</>;
   }
 
@@ -96,6 +89,7 @@ export function SideMenuResponsive({ children, hideMobileNav = false }: SideMenu
           user={user}
         />
       )}
+
 
       {/* Desktop Side Menu - Hidden on mobile */}
       {!isMobile && (
@@ -110,15 +104,15 @@ export function SideMenuResponsive({ children, hideMobileNav = false }: SideMenu
       {/* Content with appropriate padding */}
       <main className={`
         transition-all duration-300 ease-in-out
-        ${!isMobile ? 'ml-80 pt-16' : 'ml-0 pt-0'}
-        ${isMobile && !hideMobileNav ? 'pb-40' : 'pb-0'}
+        ${!isMobile ? 'ml-80 pt-16' : 'ml-0 pt-20'}
+        ${isMobile && !hideMobileNav ? 'pb-20' : 'pb-0'}
         min-h-screen
       `}>
         {children}
       </main>
 
-      {/* Mobile Bottom Navigation - Only show if not hidden */}
-      {isMobile && !hideMobileNav && <MobileNavigation />}
+      {/* Mobile Navigation - Only show if not hidden */}
+      {isMobile && !hideMobileNav && <MobileNavigationV2 />}
 
       {/* KRISter AI Assistant - Available everywhere when user is logged in */}
       {mounted && user && (

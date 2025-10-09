@@ -3065,15 +3065,17 @@ avatars/
 4. **Dashboard Enhancement** - Better integration between all features
 5. **Regional Coordination** - Prepare for cross-community resource sharing
 
-### 2025-01-27 - ENHANCED CULTIVATION PLANNING SYSTEM ✅
-**MAJOR BREAKTHROUGH**: Complete cultivation planning system with AI integration, plan management, and URL parameter handling!
+### 2025-10-09 - PRODUCTION CULTIVATION SYSTEM RESTORED ✅
+**CRITICAL FIX**: Restored the correct production cultivation system that matches the live interface!
 
-#### Enhanced Cultivation Planning Features
-- **5-Step Planning Flow**: Profile → Nutrition → Crops → Plan → Gaps analysis
-- **AI-Powered Plan Generation**: OpenAI GPT-4 integration for personalized cultivation plans
-- **Plan Management**: Save, load, edit, and delete multiple named cultivation plans
-- **Real-time Calculations**: Live updates of space requirements, costs, and nutrition analysis
-- **Crop Amount Controls**: Adjustable quantities with dynamic space and cost calculations
+#### Production Cultivation System Features
+- **SimpleCultivationResponsive**: Main responsive wrapper component
+- **SimpleCultivationManager**: Desktop version with full plan management
+- **SimpleCultivationManagerMobile**: Mobile-optimized version
+- **Plan Management**: Create, edit, delete, and set primary cultivation plans
+- **Crop Management**: Add/remove crops with automatic yield calculations
+- **Nutrition Analysis**: Real-time calculations of household self-sufficiency
+- **Monthly Activities**: Automatic generation of sowing and harvesting schedules
 - **Gap Analysis**: AI-driven identification of nutritional gaps and grocery recommendations
 - **URL Parameter Handling**: Direct navigation to specific planning sections via URL parameters
 
@@ -3092,12 +3094,12 @@ avatars/
 - **Intuitive Navigation**: Clear visual hierarchy with emoji section headers
 
 #### Key Technical Implementations
-- **Enhanced Cultivation Planner**: Complete rewrite with 5-step flow and AI integration
-- **Plan Persistence**: Supabase storage with localStorage fallback for offline capability
-- **URL Parameter Handling**: Added useSearchParams to individual page for direct navigation
-- **Crop Management**: Dynamic amount controls with real-time space and cost calculations
-- **AI Integration**: OpenAI GPT-4 for personalized cultivation plan generation
-- **Error Recovery**: Graceful handling of AI failures and data inconsistencies
+- **SimpleCultivationResponsive**: Restored from git history to match production interface
+- **Plan Persistence**: Full Supabase integration with cultivation_plans table
+- **Crop Library**: Comprehensive crop database with nutrition and yield data
+- **Nutrition Calculations**: Real-time household self-sufficiency percentage calculations
+- **Responsive Design**: Separate mobile and desktop components for optimal UX
+- **Plan Management**: Complete CRUD operations for cultivation plans
 - **Dashboard Integration**: Dynamic cultivation plan display with real-time data
 
 #### Database Schema Enhancements
@@ -3669,5 +3671,72 @@ The RPAC application now features a comprehensive hierarchical navigation system
 
 ---
 
-**Uppdaterad:** 2025-01-28  
+### 2025-10-09 - CULTIVATION SYSTEM CLEANUP & RESTORATION ✅
+
+#### **Critical Fix Applied**
+- **Production Interface Match**: Restored `SimpleCultivationResponsive` component that matches live production interface
+- **Component Restoration**: Recreated `SimpleCultivationManager` and `SimpleCultivationManagerMobile` from git history
+- **Route Correction**: Fixed `/individual?section=cultivation` to use correct production component
+- **Database Integration**: Full Supabase integration with `cultivation_plans` table
+
+#### **System Architecture**
+- **SimpleCultivationResponsive**: Main responsive wrapper (mobile/desktop detection)
+- **SimpleCultivationManager**: Desktop version with full plan management interface
+- **SimpleCultivationManagerMobile**: Mobile-optimized version with touch-friendly controls
+- **cultivation-plan-service.ts**: Core service with crop library and nutrition calculations
+
+#### **Key Features Restored**
+- **Plan Management**: Create, edit, delete, and set primary cultivation plans
+- **Crop Management**: Add/remove crops with automatic yield calculations
+- **Nutrition Analysis**: Real-time household self-sufficiency percentage calculations
+- **Monthly Activities**: Automatic generation of sowing and harvesting schedules
+- **Responsive Design**: Separate mobile and desktop components for optimal UX
+
+#### **Production Interface Elements**
+- **"Mina odlingsplaner"** section with plan cards
+- **Summary statistics cards** (crops, calories, household needs percentage)
+- **"Valda grödor"** section with crop list and management
+- **Interactive elements** (+ Ny plan, + Lägg till gröda buttons)
+- **Plan management** (edit, delete, set primary functionality)
+
+---
+
+### 2025-10-09 - DATABASE CLEANUP & OPTIMIZATION ✅
+
+#### **Database Cleanup Completed**
+- **Obsolete Files Removed**: 6 obsolete database migration files deleted
+- **Obsolete Tables Identified**: 5 cultivation-related tables marked for removal
+- **Cleanup Script Created**: `CULTIVATION_DATABASE_CLEANUP.sql` for live database cleanup
+- **Documentation Added**: `DATABASE_CLEANUP_PLAN.md` with complete cleanup strategy
+
+#### **Files Removed**
+- `COMPLETE_MIGRATION.sql` - Old cultivation_calendar setup
+- `nutrition-data-schema.sql` - Nutrition calculations (moved to cultivation_plans)
+- `final-resource-sharing-fix.sql` - Temporary fix file
+- `add-reminder-fields.sql` - Reminder fields (moved to cultivation_reminders)
+- `add-machinery-category.sql` - Unused machinery category
+- `add-message-type-constraint.sql` - Message constraints handled elsewhere
+
+#### **Database Tables to Remove (via cleanup script)**
+- `cultivation_calendar` - Old calendar system (replaced by cultivation_plans)
+- `crisis_cultivation_plans` - Crisis cultivation feature (removed)
+- `garden_layouts` - Garden layout feature (removed)
+- `nutrition_calculations` - Nutrition calculations (moved to cultivation_plans JSONB)
+- `plant_diagnoses` - Plant diagnosis feature (removed)
+
+#### **Active Database System**
+- **cultivation_plans** - ✅ Main cultivation planning system
+- **cultivation_reminders** - ✅ Reminder system
+- **All community/messaging tables** - ✅ Active and maintained
+
+#### **Benefits Achieved**
+- **Reduced Confusion**: No more obsolete migration files
+- **Cleaner Database**: Removed unused tables and columns
+- **Better Maintenance**: Clear separation between active and obsolete code
+- **Faster Queries**: Fewer tables to scan
+- **Reduced Storage**: Less database storage used
+
+---
+
+**Uppdaterad:** 2025-10-09  
 **Nästa review:** Vid varje större feature-lansering

@@ -234,28 +234,6 @@ export function StunningDashboardMobile({ user }: { user: User | null }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#2A331E]/5 via-[#3D4A2B]/3 to-[#4A5239]/8 pb-32">
-      {/* Mobile Header */}
-      <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#3D4A2B] to-[#5C6B47] flex items-center justify-center">
-              <Shield className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-gray-900">Beready</h1>
-              <p className="text-xs text-gray-500">Din beredskap</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <button className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
-              <Bell className="w-5 h-5 text-gray-600" />
-            </button>
-            <button className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
-              <Menu className="w-5 h-5 text-gray-600" />
-            </button>
-          </div>
-        </div>
-      </div>
 
 
       {/* Hero Section */}

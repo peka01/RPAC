@@ -33,9 +33,7 @@ export function NotificationCenterMobile({ user, router, onNotificationClick, on
 
   // Load notifications
   useEffect(() => {
-    console.log('NotificationCenterMobile useEffect triggered, user:', user);
     if (user?.id) {
-      console.log('Loading notifications for user:', user.id);
       loadNotifications();
     }
   }, [user?.id]);
@@ -58,8 +56,6 @@ export function NotificationCenterMobile({ user, router, onNotificationClick, on
       }
 
       const notificationList = data || [];
-      console.log('Loaded notifications:', notificationList.length, 'notifications');
-      console.log('Notifications data:', notificationList);
       setNotifications(notificationList);
       setUnreadCount(notificationList.filter(n => !n.is_read).length);
     } catch (err) {
@@ -116,13 +112,12 @@ export function NotificationCenterMobile({ user, router, onNotificationClick, on
         return;
       }
 
-      if (data) {
+        if (data) {
         setNotifications(prev => {
           const updated = prev.filter(n => n.id !== notificationId);
           setUnreadCount(updated.filter(n => !n.is_read).length);
           return updated;
         });
-        console.log('Notification deleted successfully');
       } else {
         console.error('Notification not found or could not be deleted');
       }
@@ -210,20 +205,20 @@ export function NotificationCenterMobile({ user, router, onNotificationClick, on
       <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
         <button
           onClick={onClose}
-          className="p-2 rounded-lg hover:bg-gray-100 transition-colors touch-manipulation"
+          className="p-2 rounded-lg hover:bg-gray-100 transition-colors touch-manipulation flex-shrink-0"
         >
           <ArrowLeft className="w-6 h-6 text-gray-700" />
         </button>
-        <h1 className="text-lg font-semibold text-gray-900">
+        <h1 className="text-lg font-semibold text-gray-900 flex-1 text-center px-2">
           {t('notifications.title')} {unreadCount > 0 && `(${unreadCount})`}
         </h1>
-        <div className="w-10">
+        <div className="flex-shrink-0">
           {unreadCount > 0 && (
             <button
               onClick={markAllAsRead}
-              className="text-sm text-[#3D4A2B] hover:text-[#2A331E] transition-colors touch-manipulation"
+              className="text-xs text-[#3D4A2B] hover:text-[#2A331E] transition-colors touch-manipulation whitespace-nowrap"
             >
-              {t('notifications.mark_all_read')}
+              Markera alla
             </button>
           )}
         </div>
@@ -243,10 +238,8 @@ export function NotificationCenterMobile({ user, router, onNotificationClick, on
             <p className="text-sm">{t('notifications.no_notifications_description')}</p>
           </div>
         ) : (
-          <div className="space-y-1 pb-4">
-            {notifications.map((notification) => {
-              console.log('Rendering notification:', notification.type, notification.title, 'is_read:', notification.is_read);
-              return (
+          <div className="space-y-1 pb-24">
+            {notifications.map((notification) => (
               <div
                 key={notification.id}
                 className={`p-4 border-b border-gray-100 active:bg-gray-50 transition-colors ${
@@ -312,13 +305,9 @@ export function NotificationCenterMobile({ user, router, onNotificationClick, on
                         </>
                       ) : notification.type === 'resource_request' ? (
                         <>
-                          {console.log('Rendering Hantera förfrågan button for notification:', notification)}
-                          {console.log('Notification is_read:', notification.is_read)}
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              console.log('Hantera förfrågan clicked for notification:', notification);
-                              console.log('Action URL:', notification.action_url);
                               
                               // Close the notification modal first
                               if (onClose) {
@@ -331,27 +320,22 @@ export function NotificationCenterMobile({ user, router, onNotificationClick, on
                                   const url = new URL(notification.action_url, window.location.origin);
                                   const resourceId = url.searchParams.get('resource');
                                   const communityId = url.searchParams.get('community');
-                                  console.log('Parsed resourceId from URL:', resourceId);
-                                  console.log('Parsed communityId from URL:', communityId);
                                   
                                   if (resourceId) {
-                                    console.log('Navigating to local resources page first...');
                                     // Navigate to the local page with both community and resource parameters
                                     if (router) {
                                       const navigationUrl = communityId 
                                         ? `/local?tab=resources&community=${communityId}&resource=${resourceId}`
                                         : `/local?tab=resources&resource=${resourceId}`;
                                       
-                                      console.log('Navigation URL:', navigationUrl);
                                       router.push(navigationUrl);
                                       
                                       // Wait for navigation and component mounting, then dispatch event
                                       setTimeout(() => {
-                                        console.log('Dispatching openResourceManagement event with resourceId:', resourceId);
                                         window.dispatchEvent(new CustomEvent('openResourceManagement', { 
                                           detail: { resourceId } 
                                         }));
-                                      }, 3000); // Even longer delay to ensure page navigation and component mounting
+                                      }, 1000); // Reduced delay for better UX
                                     } else {
                                       console.error('Router not available for navigation');
                                     }
@@ -405,8 +389,7 @@ export function NotificationCenterMobile({ user, router, onNotificationClick, on
                   </div>
                 </div>
               </div>
-              );
-            })}
+            ))}
           </div>
         )}
       </div>

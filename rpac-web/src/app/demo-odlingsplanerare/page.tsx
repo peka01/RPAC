@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { SuperbOdlingsplanerare } from '@/components/CultivationPlanner';
+import { SimpleCultivationResponsive } from '@/components/simple-cultivation-responsive';
 
 export default function DemoOdlingsplanerarePage() {
   const [user] = useState({
@@ -11,7 +11,7 @@ export default function DemoOdlingsplanerarePage() {
 
   return (
     <div>
-      <SuperbOdlingsplanerare user={user} />
+      <SimpleCultivationResponsive userId={user.id} householdSize={2} />
     </div>
   );
 }

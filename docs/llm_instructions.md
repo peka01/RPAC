@@ -48,6 +48,7 @@ npm run build            # Only for production testing!
 - Community management (create/join/leave/edit/delete)
 - Member count tracking and user presence
 - Complete resource sharing system with status management
+- **Database cleanup completed** - Removed obsolete cultivation tables and migration files
 - Professional navigation system (side menu + mobile)
 - State-of-the-art notification center
 

@@ -16,7 +16,7 @@ import {
   Share2
 } from 'lucide-react';
 import { CommunityDiscoveryMobile } from './community-discovery-mobile';
-import { MessagingSystemMobile } from './messaging-system-mobile';
+import { MessagingSystemV2 } from './messaging-system-v2';
 import { CommunityResourceHubMobile } from './community-resource-hub-mobile';
 import { useUserProfile } from '@/lib/useUserProfile';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
@@ -28,15 +28,17 @@ interface CommunityHubMobileEnhancedProps {
   user: User;
   initialCommunityId?: string | null;
   initialTab?: string | null;
+  initialMessagingType?: string | null;
 }
 
-export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTab }: CommunityHubMobileEnhancedProps) {
+export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTab, initialMessagingType }: CommunityHubMobileEnhancedProps) {
   const [activeView, setActiveView] = useState<'home' | 'discovery' | 'messaging' | 'resources' | 'community-detail'>('home');
   const [activeCommunityId, setActiveCommunityId] = useState<string | undefined>();
   const [userCommunities, setUserCommunities] = useState<LocalCommunity[]>([]);
   const [loadingCommunities, setLoadingCommunities] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [messagingType, setMessagingType] = useState<'community' | 'direct'>('community');
   const { profile, loading } = useUserProfile(user);
   const userPostalCode = profile?.postal_code;
 
@@ -56,8 +58,13 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
       setActiveView('resources');
     } else if (initialTab === 'messages') {
       setActiveView('messaging');
+      if (initialMessagingType === 'direct') {
+        setMessagingType('direct');
+      } else {
+        setMessagingType('community');
+      }
     }
-  }, [initialCommunityId, initialTab]);
+  }, [initialCommunityId, initialTab, initialMessagingType]);
 
   // Check admin status when active community changes
   useEffect(() => {
@@ -76,9 +83,11 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
   const loadUserCommunities = async () => {
     if (!user || user.id === 'demo-user') return;
     
+    console.log('🏘️ CommunityHubMobileEnhanced loadUserCommunities called for user:', user.id);
     setLoadingCommunities(true);
     try {
       const memberships = await communityService.getUserMemberships(user.id);
+      console.log('📋 User memberships:', memberships);
       
       if (memberships.length > 0) {
         const communities = await Promise.all(
@@ -86,11 +95,15 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
         );
         
         const validCommunities = communities.filter(c => c !== null) as LocalCommunity[];
+        console.log('🏘️ Valid communities:', validCommunities);
         setUserCommunities(validCommunities);
         
         if (!activeCommunityId && !initialCommunityId && validCommunities.length > 0) {
+          console.log('🔄 Setting first community as active:', validCommunities[0].id);
           setActiveCommunityId(validCommunities[0].id);
         }
+      } else {
+        console.log('⚠️ No community memberships found for user');
       }
     } catch (err) {
       console.error('Error loading user communities:', err);
@@ -360,7 +373,12 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
 
           {/* Community Selector - Only show if user has multiple communities */}
           {userCommunities.length > 1 && (
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 max-w-full overflow-hidden">
+              {console.log('📱 Community selector viewport check:', { 
+                viewportWidth: window.innerWidth, 
+                communities: userCommunities.length,
+                containerWidth: 'max-w-full'
+              })}
               <div className="flex items-center gap-3 mb-2">
                 <Users size={18} />
                 <span className="text-sm font-medium">Aktivt samhälle:</span>
@@ -368,11 +386,11 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
               <select
                 value={activeCommunityId}
                 onChange={(e) => setActiveCommunityId(e.target.value)}
-                className="w-full px-4 py-3 bg-white border-2 border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-white text-gray-900 font-bold text-lg cursor-pointer hover:border-[#5C6B47] transition-colors"
+                className="w-full px-3 py-2 bg-white border-2 border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-white text-gray-900 font-medium text-sm cursor-pointer hover:border-[#5C6B47] transition-colors"
               >
                 {userCommunities.map((community) => (
-                  <option key={community.id} value={community.id} className="font-semibold">
-                    {community.community_name} ({community.member_count || 0} medlemmar)
+                  <option key={community.id} value={community.id} className="font-medium text-sm">
+                    {community.community_name}
                   </option>
                 ))}
               </select>
@@ -537,38 +555,68 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
       )}
 
         {activeView === 'messaging' && (
-          <div className="pb-24">
-            {userCommunities.length > 0 && activeCommunityId ? (
-              <MessagingSystemMobile 
-                user={user}
-                communityId={activeCommunityId}
-                onUnreadCountChange={setUnreadCount}
-              />
-            ) : (
-              <div className="flex items-center justify-center min-h-screen px-4">
-                <div className="text-center">
-                  <div className="bg-[#5C6B47]/10 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
-                    <MessageCircle className="text-[#5C6B47]" size={48} />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">Inget samhälle valt</h3>
-                  <p className="text-gray-600 mb-8">
-                    Gå med i ett samhälle för att börja chatta med andra medlemmar
-                  </p>
+          <div className="fixed inset-0 bg-white z-50">
+            {/* Full-screen messaging header */}
+            <div className="bg-gradient-to-r from-[#3D4A2B] to-[#2A331E] text-white px-4 py-4 safe-area-pt">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
                   <button
-                    onClick={() => setActiveView('discovery')}
-                    className="px-8 py-4 bg-[#3D4A2B] text-white font-bold rounded-xl hover:bg-[#2A331E] transition-all touch-manipulation active:scale-95"
+                    onClick={() => setActiveView('home')}
+                    className="p-2 hover:bg-white/10 rounded-full touch-manipulation"
                   >
-                    Hitta samhällen
+                    <ChevronLeft size={24} strokeWidth={2.5} />
                   </button>
+                  <div>
+                    <h1 className="text-lg font-bold">Meddelanden</h1>
+                    <p className="text-white/80 text-sm">Chat med samhället</p>
+                  </div>
                 </div>
               </div>
-            )}
+            </div>
+
+            {/* Full-screen messaging content */}
+            <div className="h-[calc(100vh-80px)]">
+              {userCommunities.length > 0 && activeCommunityId ? (
+                <>
+                  {console.log('🏘️ CommunityHubMobileEnhanced rendering MessagingSystemV2 with:', {
+                    userCommunities: userCommunities.length,
+                    activeCommunityId,
+                    messagingType,
+                    user: user?.id
+                  })}
+                  <MessagingSystemV2 
+                    user={user}
+                    communityId={activeCommunityId}
+                    initialTab={messagingType}
+                    hideTabs={true}
+                  />
+                </>
+              ) : (
+                <div className="flex items-center justify-center h-full px-4">
+                  <div className="text-center">
+                    <div className="bg-[#5C6B47]/10 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+                      <MessageCircle className="text-[#5C6B47]" size={48} />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-3">Inget samhälle valt</h3>
+                    <p className="text-gray-600 mb-8">
+                      Gå med i ett samhälle för att börja chatta med andra medlemmar
+                    </p>
+                    <button
+                      onClick={() => setActiveView('discovery')}
+                      className="px-8 py-4 bg-[#3D4A2B] text-white font-bold rounded-xl hover:bg-[#2A331E] transition-all touch-manipulation active:scale-95"
+                    >
+                      Hitta samhällen
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
 
-      {/* Bottom Navigation */}
-      <BottomNav />
+      {/* Bottom Navigation - Hidden when messaging is active */}
+      {activeView !== 'messaging' && <BottomNav />}
     </div>
   );
 }

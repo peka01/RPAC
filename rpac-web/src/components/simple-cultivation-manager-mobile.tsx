@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Sprout, TrendingUp, Calendar, Trash, Star, ChevronRight, X, AlertCircle, ChevronDown, ChevronUp, Check, HelpCircle, Edit } from 'lucide-react';
-import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { 
   cultivationPlanService, 
   CultivationPlan, 
@@ -150,7 +149,10 @@ export function SimpleCultivationManagerMobile({ userId, householdSize = 2 }: Si
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar odlingsplaner..." />
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3D4A2B] mx-auto mb-4"></div>
+          <p className="text-gray-600">Laddar odlingsplaner...</p>
+        </div>
       </div>
     );
   }
@@ -422,6 +424,13 @@ export function SimpleCultivationManagerMobile({ userId, householdSize = 2 }: Si
                   <span>Sätt som primär</span>
                 </button>
               )}
+              <button
+                onClick={() => handleDeletePlan(selectedPlan.id!)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-red-500 text-red-600 font-bold rounded-lg active:scale-98 transition-transform"
+              >
+                <Trash size={16} />
+                <span>Ta bort plan</span>
+              </button>
             </div>
           </div>
         </div>
@@ -461,7 +470,6 @@ export function SimpleCultivationManagerMobile({ userId, householdSize = 2 }: Si
             setShowCreateModal(true);
             setShowPlanSelector(false);
           }}
-          onDelete={handleDeletePlan}
           onClose={() => setShowPlanSelector(false)}
         />
       )}
@@ -656,13 +664,12 @@ function CropSelectorModalMobile({ onClose, onSelect, existingCrops }: {
 }
 
 // Plan Selector Sheet
-function PlanSelectorSheet({ plans, selectedPlan, householdSize, onSelect, onEdit, onDelete, onClose }: {
+function PlanSelectorSheet({ plans, selectedPlan, householdSize, onSelect, onEdit, onClose }: {
   plans: CultivationPlan[];
   selectedPlan: CultivationPlan | null;
   householdSize: number;
   onSelect: (plan: CultivationPlan) => void;
   onEdit: (plan: CultivationPlan) => void;
-  onDelete: (planId: string) => void;
   onClose: () => void;
 }) {
   return (
@@ -711,16 +718,6 @@ function PlanSelectorSheet({ plans, selectedPlan, householdSize, onSelect, onEdi
                       >
                         <Edit size={14} />
                       </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDelete(plan.id!);
-                        }}
-                        className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg active:scale-95 transition-all"
-                        aria-label={`Ta bort ${plan.plan_name}`}
-                      >
-                        <Trash size={14} />
-                      </button>
                     </div>
                   </div>
                   <p className="text-sm text-gray-600 mb-2 line-clamp-1">
@@ -749,4 +746,3 @@ function PlanSelectorSheet({ plans, selectedPlan, householdSize, onSelect, onEdi
     </div>
   );
 }
-

@@ -4,10 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ResourceManagementHubResponsive } from '@/components/resource-management-hub-responsive';
 import { IndividualDashboard } from '@/components/individual-dashboard';
-import { PersonalDashboard } from '@/components/personal-dashboard';
-import { PersonalDashboardResponsive } from '@/components/personal-dashboard-responsive';
 import { SimpleCultivationResponsive } from '@/components/simple-cultivation-responsive';
-import { IndividualMobileNav } from '@/components/individual-mobile-nav';
 import { useUserProfile } from '@/lib/useUserProfile';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { supabase } from '@/lib/supabase';
@@ -151,7 +148,7 @@ function IndividualPageContent() {
       );
     }
 
-    // Cultivation Section - Directly show the simple cultivation manager
+    // Cultivation Section - Show the simple cultivation responsive component
     if (activeSection === 'cultivation') {
       return (
         <SimpleCultivationResponsive 
@@ -180,18 +177,8 @@ function IndividualPageContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#2A331E]/5 via-[#3D4A2B]/3 to-[#4A5239]/8">
-      {/* Mobile Navigation Component */}
-      <div className="lg:hidden">
-        <IndividualMobileNav
-          navigationSections={navigationSections}
-          activeSection={activeSection}
-          activeSubsection={activeSubsection}
-          onSectionChange={handleSectionChange}
-        />
-      </div>
-
-      {/* Simple Header */}
-      <div className="bg-gradient-to-r from-[#3D4A2B] to-[#2A331E] text-white shadow-lg">
+      {/* Desktop Header */}
+      <div className="hidden md:block bg-gradient-to-r from-[#3D4A2B] to-[#2A331E] text-white shadow-lg">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div>
@@ -218,8 +205,36 @@ function IndividualPageContent() {
         </div>
       </div>
 
+      {/* Mobile Header */}
+      <div className="md:hidden bg-gradient-to-r from-[#3D4A2B] to-[#2A331E] text-white shadow-lg">
+        <div className="px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl font-bold mb-1">
+                {activeSection === 'cultivation' ? 'Min odling' : 
+                 activeSection === 'resources' ? 'Resurser' : 
+                 t('individual.title')}
+              </h1>
+              <p className="text-[#C8D5B9] text-sm">
+                {activeSection === 'cultivation' ? 'Din personliga odlingscentral' :
+                 activeSection === 'resources' ? 'Hantera dina resurser och verktyg' :
+                 t('individual.subtitle')}
+              </p>
+            </div>
+            {profile?.household_size && profile.household_size > 1 && (
+              <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2 text-xs">
+                  <Users size={14} />
+                  <span>{profile.household_size} personer</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
         {renderContent()}
       </div>
     </div>

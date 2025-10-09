@@ -233,14 +233,15 @@ Study these for best practices:
 
 **Mobile:**
 - `individual-mobile-nav.tsx` - Navigation patterns
-- `personal-dashboard-mobile.tsx` - Score displays
-- `cultivation-reminders-mobile.tsx` - CRUD operations
-- `cultivation-calendar-mobile.tsx` - Swipeable navigation
+- `stunning-dashboard-mobile.tsx` - Score displays
+- `simple-cultivation-manager-mobile.tsx` - CRUD operations
+- `community-hub-mobile-enhanced.tsx` - Swipeable navigation
 
 **Desktop:**
 - `community-resource-hub.tsx` - Tabbed lists with ResourceListView
 - `unified-profile-settings.tsx` - Form handling, progressive disclosure
 - `messaging-system-v2.tsx` - Real-time updates, clean UI
+- `simple-cultivation-manager.tsx` - Plan management, nutrition analysis
 
 ---
 
