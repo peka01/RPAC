@@ -22,6 +22,7 @@ import { t } from '@/lib/locales';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { messagingService, type Message, type Contact } from '@/lib/messaging-service';
 import { ResourceSharingPanel } from './resource-sharing-panel';
+import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
