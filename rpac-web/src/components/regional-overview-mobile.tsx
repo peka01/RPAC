@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { MapPin, Users, TrendingUp, AlertTriangle, ExternalLink, Activity, Package, ChevronRight, Info } from 'lucide-react';
+import { MapPin, Users, AlertTriangle, ExternalLink, Activity, Package, Info } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { getRegionalStatistics, getCommunitiesInCounty, type RegionalStatistics, type CommunityOverview } from '@/lib/regional-service';
 import { getLansstyrelsenLinks, getCountyDisplayName, getOfficialCrisisLinks } from '@/lib/lansstyrelsen-api';
@@ -19,6 +19,7 @@ export function RegionalOverviewMobile({ county }: RegionalOverviewMobileProps) 
 
   useEffect(() => {
     loadRegionalData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [county]);
 
   const loadRegionalData = async () => {

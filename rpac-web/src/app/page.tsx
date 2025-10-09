@@ -13,13 +13,41 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
-  const [name, setName] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [gdprConsent, setGdprConsent] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
   const [resetMessage, setResetMessage] = useState('');
   const router = useRouter();
+
+  // Helper function to suggest display name from email
+  const suggestDisplayNameFromEmail = (email: string): string => {
+    if (!email || !email.includes('@')) return '';
+    
+    const localPart = email.split('@')[0];
+    // Remove common separators and convert to title case
+    const parts = localPart.split(/[._-]/);
+    const capitalized = parts.map(part => {
+      if (part.length === 0) return '';
+      return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+    });
+    
+    return capitalized.join(' ').trim();
+  };
+
+  // Auto-suggest display name when email changes during signup
+  const handleEmailChange = (newEmail: string) => {
+    setEmail(newEmail);
+    if (isSignUp && !displayName) {
+      // Only suggest if display name hasn't been manually set
+      const suggestion = suggestDisplayNameFromEmail(newEmail);
+      if (suggestion) {
+        setDisplayName(suggestion);
+      }
+    }
+  };
 
   // Check if user is already logged in
   useEffect(() => {
@@ -37,19 +65,33 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('handleLogin called', { isSignUp, email, name });
+    console.log('handleLogin called', { isSignUp, email, displayName });
     setLoading(true);
     setError('');
 
     try {
       if (isSignUp) {
+        // Validate display name
+        if (!displayName || displayName.trim() === '') {
+          setError(t('auth.display_name_required'));
+          setLoading(false);
+          return;
+        }
+        
+        // Validate GDPR consent
+        if (!gdprConsent) {
+          setError(t('auth.gdpr_consent_required'));
+          setLoading(false);
+          return;
+        }
+        
         console.log('Attempting signup...');
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: {
-              name: name
+              display_name: displayName.trim()
             }
           }
         });
@@ -57,6 +99,26 @@ export default function LoginPage() {
         console.log('User created:', data.user?.id);
         console.log('Session:', data.session);
         if (error) throw error;
+        
+        // Create user profile with display name
+        if (data.user) {
+          console.log('Creating user profile with display_name...');
+          const { error: profileError } = await supabase
+            .from('user_profiles')
+            .upsert({
+              user_id: data.user.id,
+              display_name: displayName.trim(),
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            }, {
+              onConflict: 'user_id'
+            });
+          
+          if (profileError) {
+            console.warn('Failed to create user profile:', profileError);
+            // Don't fail signup if profile creation fails
+          }
+        }
         
         // Check if email confirmation is required
         if (data.user && !data.session) {
@@ -264,28 +326,6 @@ export default function LoginPage() {
 
         {/* Form */}
         <form onSubmit={handleLogin} className="space-y-4">
-          {isSignUp && (
-            <div>
-              <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                {t('forms.name')}
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full p-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
-                style={{ 
-                  borderColor: 'var(--color-secondary)',
-                  backgroundColor: 'var(--bg-card)',
-                  color: 'var(--text-primary)',
-                  '--tw-ring-color': 'var(--color-primary)'
-                } as React.CSSProperties}
-                placeholder={t('placeholders.enter_name')}
-                required
-              />
-            </div>
-          )}
-
           <div>
             <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
               {t('forms.email')}
@@ -293,7 +333,7 @@ export default function LoginPage() {
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => handleEmailChange(e.target.value)}
               className="w-full p-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
               style={{ 
                 borderColor: 'var(--color-secondary)',
@@ -305,6 +345,28 @@ export default function LoginPage() {
               required
             />
           </div>
+
+          {isSignUp && (
+            <div>
+              <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                {t('forms.display_name')} <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                className="w-full p-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors"
+                style={{ 
+                  borderColor: 'var(--color-secondary)',
+                  backgroundColor: 'var(--bg-card)',
+                  color: 'var(--text-primary)',
+                  '--tw-ring-color': 'var(--color-primary)'
+                } as React.CSSProperties}
+                placeholder={t('placeholders.enter_display_name')}
+                required
+              />
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
@@ -343,10 +405,37 @@ export default function LoginPage() {
             )}
           </div>
 
+          {/* GDPR Consent Checkbox (only for sign up) */}
+          {isSignUp && (
+            <div className="space-y-3">
+              <div className="flex items-start space-x-3 p-4 rounded-lg" 
+                   style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--color-secondary)' }}>
+                <input
+                  type="checkbox"
+                  id="gdpr-consent"
+                  checked={gdprConsent}
+                  onChange={(e) => setGdprConsent(e.target.checked)}
+                  className="mt-1 w-4 h-4 rounded border-2 focus:ring-2 focus:ring-opacity-50"
+                  style={{ 
+                    borderColor: 'var(--color-primary)',
+                    accentColor: 'var(--color-primary)'
+                  }}
+                  required
+                />
+                <label htmlFor="gdpr-consent" className="text-sm cursor-pointer" style={{ color: 'var(--text-primary)' }}>
+                  {t('auth.gdpr_consent_text')}
+                </label>
+              </div>
+              <p className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
+                {t('auth.gdpr_learn_more')}
+              </p>
+            </div>
+          )}
+
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || (isSignUp && !gdprConsent)}
             className="w-full modern-button flex items-center justify-center space-x-2 px-4 py-3 text-white disabled:opacity-50"
             style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)' }}
           >
@@ -411,7 +500,8 @@ export default function LoginPage() {
               setError('');
               setEmail('');
               setPassword('');
-              setName('');
+              setDisplayName('');
+              setGdprConsent(false);
             }}
             className="text-sm font-semibold mt-1 underline transition-colors hover:opacity-80"
             style={{ color: 'var(--color-primary)' }}

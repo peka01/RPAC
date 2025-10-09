@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Bell } from 'lucide-react';
 import { NotificationCenter } from './notification-center';
 import { NotificationCenterMobile } from './notification-center-mobile';
@@ -16,8 +17,8 @@ interface NotificationCenterResponsiveProps {
 }
 
 export function NotificationCenterResponsive({ user, onNotificationClick, onClose, isOpen }: NotificationCenterResponsiveProps) {
+  const router = useRouter();
   const [isMobile, setIsMobile] = useState(false);
-  const [showMobileCenter, setShowMobileCenter] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
@@ -58,33 +59,22 @@ export function NotificationCenterResponsive({ user, onNotificationClick, onClos
 
   const handleMobileNotificationClick = (notification: Notification) => {
     handleNotificationClick(notification);
-    setShowMobileCenter(false);
+    if (onClose) {
+      onClose();
+    }
   };
 
   if (isMobile) {
     return (
       <>
-        {/* Mobile Notification Bell */}
-        <button
-          onClick={() => setShowMobileCenter(true)}
-          className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors touch-manipulation"
-          aria-label="Notifieringar"
-        >
-          <Bell className="w-6 h-6 text-gray-700" />
-          {unreadCount > 0 && (
-            <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </div>
-          )}
-        </button>
-
         {/* Mobile Notification Center - Full Screen Modal */}
-        {showMobileCenter && (
+        {isOpen && (
           <div className="fixed inset-0 z-50 bg-white">
             <NotificationCenterMobile
               user={user}
+              router={router}
               onNotificationClick={handleMobileNotificationClick}
-              onClose={() => setShowMobileCenter(false)}
+              onClose={onClose}
             />
           </div>
         )}

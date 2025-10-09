@@ -176,7 +176,7 @@ export function getAvailableOpenDataCategories() {
  * Check if Länsstyrelsen data is available (placeholder for future API integration)
  * Currently returns false as we're linking to websites rather than consuming APIs
  */
-export async function checkLansstyrelsenDataAvailability(county: string): Promise<boolean> {
+export async function checkLansstyrelsenDataAvailability(_county: string): Promise<boolean> {
   // Future: Implement actual API availability check
   // For now, we provide links to official websites
   return false;

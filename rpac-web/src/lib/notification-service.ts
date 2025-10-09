@@ -51,11 +51,12 @@ export const notificationService = {
   async createMessageNotification(params: {
     recipientId: string;
     senderName: string;
+    senderId?: string;
     messageContent: string;
     isEmergency?: boolean;
     communityId?: string;
   }): Promise<void> {
-    const { recipientId, senderName, messageContent, isEmergency, communityId } = params;
+    const { recipientId, senderName, senderId, messageContent, isEmergency, communityId } = params;
 
     // Check for recent duplicate notifications (within last 5 seconds)
     // This prevents double-notifications if the function is called multiple times
@@ -83,9 +84,18 @@ export const notificationService = {
       ? `${messageContent.substring(0, 100)}...`
       : messageContent;
 
-    const actionUrl = communityId 
-      ? `/local?tab=messaging&community=${communityId}`
-      : `/local?tab=messaging`;
+    // Determine the correct action URL based on message type
+    let actionUrl: string;
+    if (communityId) {
+      // Community message
+      actionUrl = `/local/messages/community?communityId=${communityId}`;
+    } else if (senderId) {
+      // Direct message - link to conversation with the sender
+      actionUrl = `/local/messages/direct?userId=${senderId}`;
+    } else {
+      // Fallback to direct messages page
+      actionUrl = `/local/messages/direct`;
+    }
 
     await this.createNotification({
       userId: recipientId,
@@ -93,7 +103,12 @@ export const notificationService = {
       title,
       content,
       senderName,
-      actionUrl
+      actionUrl,
+      metadata: {
+        is_community_message: !!communityId,
+        community_id: communityId,
+        sender_id: senderId
+      }
     });
   },
 

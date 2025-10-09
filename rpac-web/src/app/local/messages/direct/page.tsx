@@ -85,6 +85,9 @@ export default function DirectMessagesPage() {
     }
   };
 
+  // Get userId from URL params to open specific conversation
+  const targetUserId = searchParams.get('userId');
+
   useEffect(() => {
     // Get community ID from URL params first
     const communityParam = searchParams.get('community');
@@ -196,6 +199,7 @@ export default function DirectMessagesPage() {
             user={user} 
             communityId={communityId}
             initialTab="direct"
+            initialContactId={targetUserId || undefined}
             hideTabs={true}
           />
         </div>

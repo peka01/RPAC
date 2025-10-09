@@ -158,12 +158,14 @@
   },
   "forms": {
     "name": "Namn",
+    "display_name": "Visningsnamn",
     "email": "E-postadress",
     "password": "Lösenord",
     "processing": "Bearbetar..."
   },
   "placeholders": {
     "enter_name": "Ange ditt fullständiga namn",
+    "enter_display_name": "T.ex. Per Karlsson",
     "enter_email": "din@email.se",
     "enter_password": "Ditt lösenord",
     "enter_password_new": "Minst 6 tecken",
@@ -201,7 +203,14 @@
     "your_password": "Ditt lösenord",
     "login_required": "Logga in krävs",
     "login_required_description": "För att använda samhällsfunktioner behöver du vara inloggad.",
-    "go_to_login": "Gå till inloggning"
+    "go_to_login": "Gå till inloggning",
+    "display_name_required": "Visningsnamn måste anges",
+    "display_name_helper": "Detta namn kommer att visas för andra användare i samhällsfunktioner",
+    "gdpr_consent_required": "Du måste godkänna villkoren för att skapa ett konto",
+    "gdpr_consent_text": "Jag godkänner att Beready lagrar och behandlar mina personuppgifter enligt GDPR. Jag förstår att jag kan återkalla mitt samtycke när som helst.",
+    "gdpr_learn_more": "Läs mer om hur vi skyddar din integritet",
+    "privacy_policy": "Integritetspolicy",
+    "terms_of_service": "Användarvillkor"
   },
   "loading": {
     "loading": "Laddar...",

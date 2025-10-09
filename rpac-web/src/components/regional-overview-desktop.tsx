@@ -17,6 +17,7 @@ export function RegionalOverviewDesktop({ county }: RegionalOverviewDesktopProps
 
   useEffect(() => {
     loadRegionalData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [county]);
 
   const loadRegionalData = async () => {
@@ -43,7 +44,6 @@ export function RegionalOverviewDesktop({ county }: RegionalOverviewDesktopProps
   const lansstyrelseLlinks = getLansstyrelsenLinks(county);
   const countyDisplayName = getCountyDisplayName(county);
   const officialLinks = getOfficialCrisisLinks();
-  const openDataCategories = getAvailableOpenDataCategories();
 
   const formatTimeAgo = (timestamp: string) => {
     const now = new Date();

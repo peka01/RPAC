@@ -1,3 +1,157 @@
+### 2025-10-09 - USER REGISTRATION & DISPLAY NAME IMPROVEMENTS 🎨 **FEATURE + BUGFIX**
+
+Completely overhauled user registration with mandatory display names, GDPR consent, and fixed the "Medlem X" display issue across the entire application.
+
+#### New Registration Features
+1. **Mandatory Display Name Field**:
+   - New required field during registration (marked with red asterisk *)
+   - Auto-suggests display name from email address (e.g., `per.karlsson@title.se` → "Per Karlsson")
+   - Smart capitalization: splits on `.`, `_`, `-` and capitalizes each part
+   - Stored in both `auth.users.user_metadata` and `user_profiles.display_name`
+
+2. **GDPR Consent Checkbox**:
+   - Required checkbox before account creation
+   - Swedish text: "Jag godkänner att Beready lagrar och behandlar mina personuppgifter enligt GDPR..."
+   - Submit button disabled until checked
+   - Validation error if user tries to bypass
+
+3. **Enhanced UX**:
+   - Email field moved to top (fills first, triggers name suggestion)
+   - Display name helper text explains it's visible to other users (then removed per user request)
+   - All text properly localized in `sv.json`
+
+#### "Medlem 4" Bug Fixes
+1. **Root Cause Identified**:
+   - Some users existed in `auth.users` but had NO entry in `user_profiles` table
+   - Created before user_profiles auto-creation was implemented
+   - Messaging system showed "Medlem X" as fallback for missing profiles
+
+2. **Solutions Implemented**:
+   - **Database Script**: `create-missing-user-profiles.sql` - Creates profiles for all auth users without one
+   - **Display Name Backfill**: `backfill-display-names.sql` - Generates display names from email addresses for existing users
+   - **Registration Fix**: New registrations now create user_profiles automatically with upsert logic
+
+3. **Verified Results**:
+   - ✅ "Medlem 4" → "Simon Salgfors"
+   - ✅ All users now have proper display names
+   - ✅ Contacts list shows real names instead of numbered fallbacks
+
+#### Direct Message Notification Fixes
+1. **Problem**: "Svara" button on direct message notifications opened wrong page (community messages instead of specific conversation)
+
+2. **Solutions**:
+   - **notification-service.ts**: Updated `createMessageNotification` to include `senderId` parameter
+   - **messaging-service.ts**: Now passes `senderId` when creating direct message notifications
+   - **Action URLs**: New notifications use `/local/messages/direct?userId={senderId}` format
+   - **Old Notifications**: SQL script `fix-direct-message-notification-urls-simple.sql` updates old notifications
+   - **Smart Fallback**: Frontend looks up sender by `display_name` if userId missing
+
+3. **Auto-Open Conversation**:
+   - Added `initialContactId` prop to `MessagingSystemV2` component
+   - `/local/messages/direct/page.tsx` reads `userId` from URL params
+   - Automatically selects and opens conversation with specified user
+   - Console logging: `🎯 Auto-selecting contact from URL: [name]`
+
+4. **Auto-Focus Input**:
+   - Message input field auto-focuses when conversation opens
+   - 500ms delay ensures component is fully rendered
+   - Smooth UX for replying from notifications
+
+#### Files Modified
+**Frontend**:
+- `rpac-web/src/app/page.tsx` - Registration form with display name & GDPR
+- `rpac-web/src/lib/locales/sv.json` - New localization strings (display_name, GDPR, etc.)
+- `rpac-web/src/lib/messaging-service.ts` - Added senderId to notifications, updated getOnlineUsers
+- `rpac-web/src/lib/notification-service.ts` - Smart URL generation for direct messages
+- `rpac-web/src/components/notification-center.tsx` - Smart sender lookup by display_name
+- `rpac-web/src/components/messaging-system-v2.tsx` - Auto-focus input, auto-select contact
+- `rpac-web/src/app/local/messages/direct/page.tsx` - Read userId from URL params
+
+**Database Scripts**:
+- `rpac-web/database/create-missing-user-profiles.sql` - Creates profiles for users without one
+- `rpac-web/database/backfill-display-names.sql` - Generates display names from emails
+- `rpac-web/database/fix-direct-message-notification-urls-simple.sql` - Updates old notification URLs
+- `rpac-web/database/add-get-community-members-rpc.sql` - RPC function to fetch emails (optional)
+- `rpac-web/database/diagnose-display-names.sql` - Diagnostic query to check display name status
+
+**Documentation**:
+- `docs/REGISTRATION_GDPR_IMPROVEMENTS.md` - Complete implementation guide
+
+#### Localization Keys Added
+```json
+{
+  "forms": {
+    "display_name": "Visningsnamn"
+  },
+  "placeholders": {
+    "enter_display_name": "T.ex. Per Karlsson"
+  },
+  "auth": {
+    "display_name_required": "Visningsnamn måste anges",
+    "display_name_helper": "Detta namn kommer att visas för andra användare i samhällsfunktioner",
+    "gdpr_consent_required": "Du måste godkänna villkoren för att skapa ett konto",
+    "gdpr_consent_text": "Jag godkänner att Beready lagrar och behandlar mina personuppgifter enligt GDPR...",
+    "gdpr_learn_more": "Läs mer om hur vi skyddar din integritet",
+    "privacy_policy": "Integritetspolicy",
+    "terms_of_service": "Användarvillkor"
+  }
+}
+```
+
+#### Technical Implementation
+**Display Name Suggestion Algorithm**:
+```typescript
+const suggestDisplayNameFromEmail = (email: string): string => {
+  const localPart = email.split('@')[0];
+  const parts = localPart.split(/[._-]/);
+  const capitalized = parts.map(part => 
+    part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+  );
+  return capitalized.join(' ').trim();
+};
+```
+
+**SQL Display Name Generation** (PostgreSQL):
+```sql
+array_to_string(
+  ARRAY(
+    SELECT initcap(part)
+    FROM regexp_split_to_table(split_part(email, '@', 1), '[._-]') AS part
+    WHERE length(part) > 0
+  ),
+  ' '
+)
+```
+
+#### Migration Required
+Run these SQL scripts in Supabase (in order):
+1. `create-missing-user-profiles.sql` - One-time cleanup for existing users
+2. `backfill-display-names.sql` - Generate display names for all users
+3. `fix-direct-message-notification-urls-simple.sql` - Fix old notification URLs
+
+#### Testing Checklist
+- [x] New user registration creates user_profile automatically
+- [x] Display name auto-suggests from email
+- [x] GDPR checkbox is required
+- [x] Display names shown in contacts list
+- [x] "Medlem X" replaced with real names
+- [x] Direct message notifications open correct conversation
+- [x] Message input auto-focuses
+- [x] Old notifications work (at least open direct messages tab)
+- [x] No console errors
+- [x] All localization strings working
+
+#### Breaking Changes
+None - all changes are additive and backwards compatible.
+
+#### Future Enhancements
+- Add actual Privacy Policy and Terms of Service pages
+- Allow users to update display name in settings
+- Add privacy settings for display name visibility
+- Implement GDPR data export/deletion features
+
+---
+
 ### 2025-10-09 - REGIONAL VIEW: LÄNSSTYRELSEN LINK FIXES 🔗 **BUGFIX**
 
 Fixed multiple issues with Länsstyrelsen integration in the regional view to ensure only working links are displayed and correct county information is shown.

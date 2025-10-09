@@ -169,10 +169,11 @@ export const messagingService = {
       // Create notification for recipient
       try {
         if (recipientId) {
-          // Direct message notification
+          // Direct message notification - include senderId so notification links to the conversation
           await notificationService.createMessageNotification({
             recipientId,
             senderName: senderName,
+            senderId: senderId, // Pass sender ID for direct message link
             messageContent: content,
             isEmergency: isEmergency
           });
@@ -406,83 +407,140 @@ export const messagingService = {
    * Get online users in a community
    */
   async getOnlineUsers(communityId: string): Promise<Contact[]> {
-    // Get community members
-    const { data: memberships, error: membershipsError } = await supabase
-      .from('community_memberships')
-      .select('user_id, role')
-      .eq('community_id', communityId);
+    // Get community members - include emails from the join
+    // We need to use a database function or RPC to get emails since auth.users is not directly accessible
+    const { data: memberData, error: membershipsError } = await supabase
+      .rpc('get_community_members_with_emails', { p_community_id: communityId });
     
-    if (membershipsError) throw membershipsError;
-    if (!memberships || memberships.length === 0) return [];
-    
-    // Get user profiles for these members
-    const userIds = memberships.map(m => m.user_id);
-    const { data: profiles, error: profilesError } = await supabase
-      .from('user_profiles')
-      .select('user_id, display_name, first_name, last_name, name_display_preference, avatar_url')
-      .in('user_id', userIds);
-    
-    if (profilesError) {
-      console.warn('Could not fetch user profiles:', profilesError);
-      // Continue without profiles rather than failing completely
+    if (membershipsError) {
+      console.warn('RPC call failed, falling back to basic query:', membershipsError);
+      // Fallback to basic query without emails
+      const { data: memberships, error: fallbackError } = await supabase
+        .from('community_memberships')
+        .select('user_id, role')
+        .eq('community_id', communityId);
+      
+      if (fallbackError) throw fallbackError;
+      if (!memberships || memberships.length === 0) return [];
+      
+      // Get user profiles
+      const userIds = memberships.map(m => m.user_id);
+      const { data: profiles, error: profilesError } = await supabase
+        .from('user_profiles')
+        .select('user_id, display_name, first_name, last_name, name_display_preference, avatar_url')
+        .in('user_id', userIds);
+      
+      if (profilesError) {
+        console.warn('Could not fetch user profiles:', profilesError);
+      }
+      
+      // Check presence
+      const { data: presenceData } = await supabase
+        .from('user_presence')
+        .select('*')
+        .in('user_id', userIds)
+        .gte('last_seen', new Date(Date.now() - 5 * 60 * 1000).toISOString());
+      
+      // Format contacts with display names from user_profiles
+      return memberships.map((membership: any, index: number) => {
+        const presence = presenceData?.find(p => p.user_id === membership.user_id);
+        const profile = profiles?.find(p => p.user_id === membership.user_id);
+        
+        console.log('👤 Processing contact:', { 
+          user_id: membership.user_id, 
+          profile_found: !!profile,
+          display_name: profile?.display_name 
+        });
+        
+        let userName = 'Medlem';
+        
+        if (!profile) {
+          console.warn('⚠️ No profile found for user:', membership.user_id);
+          userName = `Medlem ${index + 1}`;
+        } else if (!profile.display_name || profile.display_name.trim() === '') {
+          console.warn('⚠️ Profile has no display_name:', membership.user_id);
+          userName = `Medlem ${index + 1}`;
+        } else {
+          // Use display_name directly (it should be properly set now)
+          userName = profile.display_name.trim();
+          console.log('✅ Using display_name:', userName);
+        }
+        
+        return {
+          id: membership.user_id,
+          name: userName,
+          email: undefined,
+          status: presence ? 'online' : 'offline',
+          community_id: communityId,
+          role: membership.role as Contact['role']
+        };
+      });
     }
+    
+    if (!memberData || memberData.length === 0) return [];
+    
+    const userIds = memberData.map((m: any) => m.user_id);
     
     // Check presence
     const { data: presenceData } = await supabase
       .from('user_presence')
       .select('*')
       .in('user_id', userIds)
-      .gte('last_seen', new Date(Date.now() - 5 * 60 * 1000).toISOString()); // Active in last 5 minutes
+      .gte('last_seen', new Date(Date.now() - 5 * 60 * 1000).toISOString());
     
-    // Format contacts with display names from user_profiles based on privacy preference
-    return memberships.map((membership: any, index: number) => {
-      const presence = presenceData?.find(p => p.user_id === membership.user_id);
-      const profile = profiles?.find(p => p.user_id === membership.user_id);
+    // Format contacts with emails from RPC
+    return memberData.map((member: any, index: number) => {
+      const presence = presenceData?.find(p => p.user_id === member.user_id);
+      const userEmail = member.email;
       
-      // Determine display name based on user's privacy preference
+      // Determine display name
       let userName = 'Medlem';
       
-      // If no profile or empty display_name, use numbered fallback
-      if (!profile || !profile.display_name || profile.display_name.trim() === '') {
-        userName = `Medlem ${index + 1}`;
+      if (!member.display_name || member.display_name.trim() === '') {
+        // Fallback to email (username part only) or numbered fallback
+        if (userEmail) {
+          userName = userEmail.split('@')[0];
+        } else {
+          userName = `Medlem ${index + 1}`;
+        }
       } else {
-        const preference = profile.name_display_preference || 'display_name';
+        const preference = member.name_display_preference || 'display_name';
         
         switch (preference) {
           case 'display_name':
-            userName = profile.display_name.trim() || `Medlem ${index + 1}`;
+            userName = member.display_name.trim() || (userEmail ? userEmail.split('@')[0] : `Medlem ${index + 1}`);
             break;
           case 'first_last':
-            if (profile.first_name && profile.last_name) {
-              userName = `${profile.first_name} ${profile.last_name}`;
+            if (member.first_name && member.last_name) {
+              userName = `${member.first_name} ${member.last_name}`;
             } else {
-              userName = profile.display_name.trim() || `Medlem ${index + 1}`;
+              userName = member.display_name.trim() || (userEmail ? userEmail.split('@')[0] : `Medlem ${index + 1}`);
             }
             break;
           case 'initials':
-            if (profile.first_name && profile.last_name) {
-              userName = `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase();
-            } else if (profile.display_name && profile.display_name.trim()) {
-              userName = profile.display_name.trim().substring(0, 2).toUpperCase();
+            if (member.first_name && member.last_name) {
+              userName = `${member.first_name[0]}${member.last_name[0]}`.toUpperCase();
+            } else if (member.display_name && member.display_name.trim()) {
+              userName = member.display_name.trim().substring(0, 2).toUpperCase();
             } else {
               userName = 'M';
             }
             break;
           case 'email':
-            userName = profile.display_name.trim() || `Medlem ${index + 1}`;
+            userName = member.display_name.trim() || (userEmail ? userEmail.split('@')[0] : `Medlem ${index + 1}`);
             break;
           default:
-            userName = profile.display_name.trim() || `Medlem ${index + 1}`;
+            userName = member.display_name.trim() || (userEmail ? userEmail.split('@')[0] : `Medlem ${index + 1}`);
         }
       }
       
       return {
-        id: membership.user_id,
+        id: member.user_id,
         name: userName,
-        email: undefined,
+        email: userEmail,
         status: presence ? 'online' : 'offline',
         community_id: communityId,
-        role: membership.role as Contact['role']
+        role: member.role as Contact['role']
       };
     });
   },

@@ -330,9 +330,33 @@ export function GlobalMobileHeader({ user }: GlobalMobileHeaderProps) {
                           <button
                             onClick={async (e) => {
                               e.stopPropagation();
+                              console.log('🔔 Svara button clicked for notification:', notification);
+                              console.log('🔔 Notification type:', notification.type);
+                              console.log('🔔 Action URL:', notification.action_url);
+                              console.log('🔔 Metadata:', notification.metadata);
+                              
                               setShowNotifications(false);
-                              // Navigate to messaging
-                              window.location.href = '/local/messaging?tab=direct';
+                              
+                              // Navigate to direct messages page
+                              if (notification.action_url) {
+                                console.log('🔔 Using action_url:', notification.action_url);
+                                window.location.href = notification.action_url;
+                              } else if (notification.metadata) {
+                                // Try to extract sender info from metadata
+                                const senderId = notification.metadata.sender_id || notification.metadata.from_user_id;
+                                console.log('🔔 Extracted senderId from metadata:', senderId);
+                                if (senderId) {
+                                  const targetUrl = `/local/messages/direct?userId=${senderId}`;
+                                  console.log('🔔 Navigating to:', targetUrl);
+                                  window.location.href = targetUrl;
+                                } else {
+                                  console.log('🔔 No senderId, fallback to general direct messages');
+                                  window.location.href = '/local/messages/direct';
+                                }
+                              } else {
+                                console.log('🔔 No metadata, fallback to general direct messages');
+                                window.location.href = '/local/messages/direct';
+                              }
                             }}
                             className="px-3 py-1 text-xs bg-[#3D4A2B] text-white rounded-md hover:bg-[#2A331E] transition-colors"
                           >
@@ -345,8 +369,14 @@ export function GlobalMobileHeader({ user }: GlobalMobileHeaderProps) {
                             onClick={async (e) => {
                               e.stopPropagation();
                               setShowNotifications(false);
-                              // Navigate to emergency or messaging
-                              window.location.href = '/local/messaging?tab=direct';
+                              
+                              // Navigate based on action URL or to community messages
+                              if (notification.action_url) {
+                                window.location.href = notification.action_url;
+                              } else {
+                                // Emergency messages typically go to community chat
+                                window.location.href = '/local/messages/community';
+                              }
                             }}
                             className="px-3 py-1 text-xs bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
                           >

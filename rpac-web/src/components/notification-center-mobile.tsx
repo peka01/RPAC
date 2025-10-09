@@ -286,8 +286,50 @@ export function NotificationCenterMobile({ user, router, onNotificationClick, on
                         <>
                           <button
                             onClick={(e) => {
+                              console.log('🔔🔔🔔 MOBILE NOTIFICATION CENTER - Svara button clicked!');
+                              console.log('🔔 Notification:', notification);
+                              console.log('🔔 Router available:', !!router);
                               e.stopPropagation();
-                              handleNotificationClick(notification);
+                              
+                              // Close the notification modal first
+                              if (onClose) {
+                                onClose();
+                              }
+                              
+                              // Navigate to the direct messages page
+                              if (notification.action_url) {
+                                // If there's an action URL, use it
+                                if (router) {
+                                  router.push(notification.action_url);
+                                } else {
+                                  window.location.href = notification.action_url;
+                                }
+                              } else if (notification.metadata) {
+                                // Try to extract sender info from metadata
+                                const senderId = notification.metadata.sender_id || notification.metadata.from_user_id;
+                                if (senderId && router) {
+                                  router.push(`/local/messages/direct?userId=${senderId}`);
+                                } else {
+                                  // Fallback to general direct messages page
+                                  if (router) {
+                                    router.push('/local/messages/direct');
+                                  } else {
+                                    window.location.href = '/local/messages/direct';
+                                  }
+                                }
+                              } else {
+                                // Fallback to general direct messages page
+                                if (router) {
+                                  router.push('/local/messages/direct');
+                                } else {
+                                  window.location.href = '/local/messages/direct';
+                                }
+                              }
+                              
+                              // Mark as read
+                              if (!notification.is_read) {
+                                markAsRead(notification.id);
+                              }
                             }}
                             className="w-full px-4 py-3 bg-[#3D4A2B] text-white rounded-lg hover:bg-[#2A331E] transition-colors touch-manipulation text-sm font-medium min-h-[44px] flex items-center justify-center"
                           >

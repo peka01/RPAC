@@ -8,12 +8,13 @@ import { t } from '@/lib/locales';
 import type { User } from '@supabase/supabase-js';
 
 export default function RegionalPage() {
-  const [user, setUser] = useState<User | null>(null);
+  const [, setUser] = useState<User | null>(null);
   const [county, setCounty] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadUserAndCounty();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadUserAndCounty = async () => {

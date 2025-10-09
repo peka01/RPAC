@@ -226,9 +226,72 @@ export function NotificationCenter({ user, onNotificationClick, isOpen: external
         return (
           <div className="flex gap-2">
             <button
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation();
-                handleNotificationClick(notification);
+                console.log('🔔 Desktop Svara button clicked for notification:', notification);
+                console.log('🔔 Notification type:', notification.type);
+                console.log('🔔 Action URL:', notification.action_url);
+                console.log('🔔 Sender name:', notification.sender_name);
+                
+                // Close notification panel
+                if (onClose) {
+                  onClose();
+                } else {
+                  setInternalIsOpen(false);
+                }
+                
+                // Check if action_url already has a userId parameter
+                if (notification.action_url && notification.action_url.includes('userId=')) {
+                  console.log('🔔 Action URL has userId, using it directly');
+                  window.location.href = notification.action_url;
+                  if (!notification.is_read) {
+                    markAsRead(notification.id);
+                  }
+                  return;
+                }
+                
+                // For direct messages without userId, try to look up the sender by display_name
+                if (notification.action_url?.includes('/local/messages/direct') && notification.sender_name) {
+                  console.log('🔔 Looking up sender by name:', notification.sender_name);
+                  
+                  try {
+                    // Search for user by display_name
+                    const { data: profiles, error } = await supabase
+                      .from('user_profiles')
+                      .select('user_id, display_name')
+                      .ilike('display_name', notification.sender_name)
+                      .limit(1);
+                    
+                    if (!error && profiles && profiles.length > 0) {
+                      const senderId = profiles[0].user_id;
+                      console.log('🔔 Found sender ID:', senderId);
+                      window.location.href = `/local/messages/direct?userId=${senderId}`;
+                      if (!notification.is_read) {
+                        markAsRead(notification.id);
+                      }
+                      return;
+                    } else {
+                      console.log('🔔 Could not find sender by name');
+                    }
+                  } catch (err) {
+                    console.error('🔔 Error looking up sender:', err);
+                  }
+                }
+                
+                // Fallback: use action_url if available
+                if (notification.action_url) {
+                  console.log('🔔 Using action_url:', notification.action_url);
+                  window.location.href = notification.action_url;
+                } else {
+                  // No action_url - default to direct messages
+                  console.log('🔔 No action_url, fallback to direct messages');
+                  window.location.href = '/local/messages/direct';
+                }
+                
+                // Mark as read
+                if (!notification.is_read) {
+                  markAsRead(notification.id);
+                }
               }}
               className="px-3 py-1 text-xs bg-[#3D4A2B] text-white rounded-md hover:bg-[#2A331E] transition-colors"
             >

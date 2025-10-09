@@ -77,7 +77,7 @@ export interface PlantDiagnosisResult {
  */
 async function callWorkerAPI(prompt: string): Promise<string> {
   try {
-    const response = await fetch('https://api.beready.se', {
+    const response = await fetch(WORKER_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

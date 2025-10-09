@@ -29,10 +29,11 @@ interface MessagingSystemProps {
   user: User;
   communityId?: string;
   initialTab?: 'direct' | 'community' | 'emergency' | 'resources';
+  initialContactId?: string;
   hideTabs?: boolean;
 }
 
-export function MessagingSystemV2({ user, communityId, initialTab = 'community', hideTabs = false }: MessagingSystemProps) {
+export function MessagingSystemV2({ user, communityId, initialTab = 'community', initialContactId, hideTabs = false }: MessagingSystemProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [activeContact, setActiveContact] = useState<Contact | null>(null);
@@ -45,6 +46,17 @@ export function MessagingSystemV2({ user, communityId, initialTab = 'community',
   const [searchQuery, setSearchQuery] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const realtimeChannelRef = useRef<RealtimeChannel | null>(null);
+  const messageInputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-focus message input after messages load (for navigation from notifications)
+  useEffect(() => {
+    // Small delay to ensure component is fully rendered
+    const timer = setTimeout(() => {
+      messageInputRef.current?.focus();
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [messages.length]); // Focus when messages are loaded
 
   // Load initial data
   useEffect(() => {
@@ -119,6 +131,17 @@ export function MessagingSystemV2({ user, communityId, initialTab = 'community',
         console.log('👥 Filtered contacts (excluding self):', filteredContacts.length, filteredContacts);
         console.log('👥 Contact details:', onlineUsers.map(c => ({ id: c.id, name: c.name, status: c.status })));
         setContacts(filteredContacts);
+        
+        // Auto-select contact if initialContactId is provided
+        if (initialContactId) {
+          const targetContact = filteredContacts.find(c => c.id === initialContactId);
+          if (targetContact) {
+            console.log('🎯 Auto-selecting contact from URL:', targetContact.name);
+            setActiveContact(targetContact);
+          } else {
+            console.warn('⚠️ Target contact not found in community:', initialContactId);
+          }
+        }
       } else {
         console.log('⚠️ No communityId provided for loading contacts');
       }
@@ -202,9 +225,29 @@ export function MessagingSystemV2({ user, communityId, initialTab = 'community',
     if (!user?.id) return;
 
     try {
+      // Get user's display name from profile, fallback to email
+      let senderName = user.email?.split('@')[0] || 'Okänd användare';
+      try {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('display_name')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (profile?.display_name) {
+          senderName = profile.display_name;
+        } else {
+          // Fallback to full email if no display name
+          senderName = user.email || 'Okänd användare';
+        }
+      } catch (err) {
+        console.log('Could not fetch user profile, using email:', user.email);
+        senderName = user.email || 'Okänd användare';
+      }
+      
       const params: any = {
         senderId: user.id,
-        senderName: user.user_metadata?.name || user.email || 'Okänd användare',
+        senderName,
         content: isEmergency ? `🚨 NÖDMEDDELANDE: ${newMessage}` : newMessage,
         messageType: type,
         isEmergency
@@ -602,6 +645,7 @@ export function MessagingSystemV2({ user, communityId, initialTab = 'community',
             
             <div className="flex gap-2">
               <textarea
+                ref={messageInputRef}
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={handleKeyPress}

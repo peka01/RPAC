@@ -370,7 +370,7 @@ export function MobileNavigation() {
                     switch (notification.type) {
                       case 'message':
                       case 'emergency':
-                        router.push('/local?tab=messaging');
+                        router.push('/local/messages/community');
                         break;
                       case 'resource_request':
                         router.push('/local?tab=resources');
