@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { X, Shield, Plus, Check, Package, AlertTriangle } from 'lucide-react';
-import { resourceService } from '@/lib/supabase';
+import { resourceService, Resource } from '@/lib/supabase';
 import { t } from '@/lib/locales';
 import { msbRecommendations, categoryConfig } from './simple-add-resource-modal';
 
@@ -16,7 +16,7 @@ interface BulkMsbModalProps {
 
 interface MsbResourceSelection {
   name: string;
-  category: string;
+  category: Resource['category'];
   unit: string;
   days_remaining: number;
   quantity: number;
@@ -115,7 +115,7 @@ export function BulkMsbModal({ isOpen, onClose, userId, existingResources, onSuc
           await resourceService.addResource({
             user_id: userId,
             name: item.name,
-            category: item.category,
+            category: item.category as Resource['category'],
             quantity: item.quantity,
             unit: item.unit,
             days_remaining: item.days_remaining,
