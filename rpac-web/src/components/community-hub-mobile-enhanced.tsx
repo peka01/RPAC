@@ -374,11 +374,6 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
           {/* Community Selector - Only show if user has multiple communities */}
           {userCommunities.length > 1 && (
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 max-w-full overflow-hidden">
-              {console.log('📱 Community selector viewport check:', { 
-                viewportWidth: window.innerWidth, 
-                communities: userCommunities.length,
-                containerWidth: 'max-w-full'
-              })}
               <div className="flex items-center gap-3 mb-2">
                 <Users size={18} />
                 <span className="text-sm font-medium">Aktivt samhälle:</span>
@@ -578,12 +573,6 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
             <div className="h-[calc(100vh-80px)]">
               {userCommunities.length > 0 && activeCommunityId ? (
                 <>
-                  {console.log('🏘️ CommunityHubMobileEnhanced rendering MessagingSystemV2 with:', {
-                    userCommunities: userCommunities.length,
-                    activeCommunityId,
-                    messagingType,
-                    user: user?.id
-                  })}
                   <MessagingSystemV2 
                     user={user}
                     communityId={activeCommunityId}
