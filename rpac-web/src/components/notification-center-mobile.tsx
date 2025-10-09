@@ -304,19 +304,6 @@ export function NotificationCenterMobile({ user, router, onNotificationClick, on
                                 } else {
                                   window.location.href = notification.action_url;
                                 }
-                              } else if (notification.metadata) {
-                                // Try to extract sender info from metadata
-                                const senderId = notification.metadata.sender_id || notification.metadata.from_user_id;
-                                if (senderId && router) {
-                                  router.push(`/local/messages/direct?userId=${senderId}`);
-                                } else {
-                                  // Fallback to general direct messages page
-                                  if (router) {
-                                    router.push('/local/messages/direct');
-                                  } else {
-                                    window.location.href = '/local/messages/direct';
-                                  }
-                                }
                               } else {
                                 // Fallback to general direct messages page
                                 if (router) {

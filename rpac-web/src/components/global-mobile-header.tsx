@@ -333,28 +333,14 @@ export function GlobalMobileHeader({ user }: GlobalMobileHeaderProps) {
                               console.log('🔔 Svara button clicked for notification:', notification);
                               console.log('🔔 Notification type:', notification.type);
                               console.log('🔔 Action URL:', notification.action_url);
-                              console.log('🔔 Metadata:', notification.metadata);
-                              
                               setShowNotifications(false);
                               
                               // Navigate to direct messages page
                               if (notification.action_url) {
                                 console.log('🔔 Using action_url:', notification.action_url);
                                 window.location.href = notification.action_url;
-                              } else if (notification.metadata) {
-                                // Try to extract sender info from metadata
-                                const senderId = notification.metadata.sender_id || notification.metadata.from_user_id;
-                                console.log('🔔 Extracted senderId from metadata:', senderId);
-                                if (senderId) {
-                                  const targetUrl = `/local/messages/direct?userId=${senderId}`;
-                                  console.log('🔔 Navigating to:', targetUrl);
-                                  window.location.href = targetUrl;
-                                } else {
-                                  console.log('🔔 No senderId, fallback to general direct messages');
-                                  window.location.href = '/local/messages/direct';
-                                }
                               } else {
-                                console.log('🔔 No metadata, fallback to general direct messages');
+                                console.log('🔔 No action_url, fallback to general direct messages');
                                 window.location.href = '/local/messages/direct';
                               }
                             }}
