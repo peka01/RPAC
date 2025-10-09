@@ -518,7 +518,7 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
                           setSelectedSharedResource(sharedResource);
                           setShowSharedResourceModal(true);
                         }}
-                        className="flex-1 py-2.5 px-4 bg-gradient-to-r from-[#5C6B47] to-[#4A5239] hover:from-[#4A5239] hover:to-[#3D4A2B] text-white rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 relative min-h-[44px] flex items-center justify-center"
+                        className="py-2.5 px-6 bg-gradient-to-r from-[#5C6B47] to-[#4A5239] hover:from-[#4A5239] hover:to-[#3D4A2B] text-white rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 relative min-h-[44px] flex items-center justify-center"
                       >
                         <span>Hantera</span>
                         {(sharedResource.pending_requests_count ?? 0) > 0 && (
