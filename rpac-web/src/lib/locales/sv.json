@@ -216,6 +216,10 @@
     "loading": "Laddar...",
     "starting": "Startar..."
   },
+  "ui": {
+    "card_view": "Kortvy",
+    "table_view": "Tabellvy"
+  },
   "local_community": {
     "title": "Mitt närområde",
     "navigation_title": "Lokalt",
@@ -654,8 +658,21 @@
       "responsible": "Ansvarig",
       "last_maintenance": "Senast testad",
       "book_usage": "Boka användning",
-      "add_resource": "Lägg till samhällsresurs",
-      "no_resources": "Inga gemensamma resurser än"
+      "add_resource": "Lägg till gemensam resurs",
+      "no_resources": "Inga gemensamma resurser än",
+      "no_resources_title": "Inga gemensamma resurser tillagda ännu",
+      "no_resources_admin_message": "Lägg till gemensam utrustning, faciliteter eller kompetenser som samhället kan använda.",
+      "no_resources_member_message": "Samhället har inte registrerat några gemensamma resurser ännu.",
+      "manage_resource": "Hantera",
+      "request_resource": "Be om denna",
+      "book_resource": "Boka resurs",
+      "edit_resource": "Redigera resurs",
+      "delete_resource": "Ta bort resurs",
+      "manage_shared_resource": "Hantera din delade resurs",
+      "request_this_resource": "Be om denna resurs",
+      "book_this_resource": "Boka resurs",
+      "edit_this_resource": "Redigera resurs",
+      "delete_this_resource": "Ta bort resurs"
     },
     "help": {
       "create_request": "Skapa förfrågan",

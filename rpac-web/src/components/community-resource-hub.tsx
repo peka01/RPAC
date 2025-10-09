@@ -465,7 +465,7 @@ export function CommunityResourceHub({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar" />
+        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message={t('loading.loading')} />
       </div>
     );
   }
@@ -602,12 +602,12 @@ export function CommunityResourceHub({
           <div className="text-center py-12 bg-white rounded-xl shadow-md">
             <Building2 size={64} className="mx-auto mb-4 text-gray-300" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Inga samhällsresurser ännu
+              {t('community_resources.owned.no_resources_title')}
             </h3>
             <p className="text-gray-600 mb-6">
               {isAdmin 
-                ? 'Lägg till gemensam utrustning, faciliteter eller kompetenser som samhället kan använda.' 
-                : 'Samhället har inte registrerat några resurser ännu.'}
+                ? t('community_resources.owned.no_resources_admin_message')
+                : t('community_resources.owned.no_resources_member_message')}
             </p>
             {isAdmin && (
               <button
@@ -733,7 +733,7 @@ export function CommunityResourceHub({
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
-                title="Kortvy"
+                title={t('ui.card_view')}
               >
                 <Grid3x3 size={18} />
               </button>
@@ -744,7 +744,7 @@ export function CommunityResourceHub({
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
-                title="Tabellvy"
+                title={t('ui.table_view')}
               >
                 <List size={18} />
               </button>
@@ -1513,9 +1513,9 @@ function SharedResourceCard({ resource, currentUserId, onRequest, onCancelReques
           <button
             onClick={(e) => { e.stopPropagation(); onManage(resource.id); }}
             className="w-full py-3 bg-[#5C6B47] text-white rounded-lg text-sm font-bold hover:bg-[#4A5239] transition-all shadow-md hover:shadow-lg min-h-[48px] relative"
-            aria-label="Hantera din delade resurs"
+            aria-label={t('community_resources.owned.manage_shared_resource')}
           >
-            Hantera
+            {t('community_resources.owned.manage_resource')}
             {(resource.pending_requests_count ?? 0) > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
                 {resource.pending_requests_count}
@@ -1533,9 +1533,9 @@ function SharedResourceCard({ resource, currentUserId, onRequest, onCancelReques
           <button
             onClick={(e) => { e.stopPropagation(); onRequest(resource.id); }}
             className="w-full py-3 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-lg text-sm font-bold hover:shadow-xl transition-all shadow-md min-h-[48px]"
-            aria-label="Be om denna resurs"
+            aria-label={t('community_resources.owned.request_this_resource')}
           >
-            Be om denna
+            {t('community_resources.owned.request_resource')}
           </button>
         ) : (
           <div className="w-full py-3 bg-gray-100 text-gray-500 rounded-lg text-xs text-center font-semibold min-h-[48px] flex items-center justify-center">
@@ -1776,10 +1776,10 @@ function CommunityResourceCard({ resource, currentUserId, isAdmin, onEdit, onDel
           <button
             onClick={(e) => { e.stopPropagation(); onBook(resource.id); }}
             className="w-full py-3 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-lg font-bold hover:shadow-xl transition-all shadow-md flex items-center justify-center gap-2 min-h-[48px]"
-            aria-label="Boka resurs"
+            aria-label={t('community_resources.owned.book_this_resource')}
           >
             <Calendar size={18} />
-            <span>Boka resurs</span>
+            <span>{t('community_resources.owned.book_resource')}</span>
           </button>
         )}
         
@@ -1788,15 +1788,15 @@ function CommunityResourceCard({ resource, currentUserId, isAdmin, onEdit, onDel
             <button
               onClick={(e) => { e.stopPropagation(); onEdit(resource.id); }}
               className="flex-1 py-3 bg-[#5C6B47] text-white rounded-lg font-bold hover:bg-[#4A5239] transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 min-h-[48px]"
-              aria-label="Redigera resurs"
+              aria-label={t('community_resources.owned.edit_this_resource')}
             >
               <Edit2 size={18} />
-              <span>Redigera</span>
+              <span>{t('community_resources.owned.edit_resource')}</span>
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); onDelete(resource.id); }}
               className="px-4 py-3 bg-[#8B4513]/10 text-[#8B4513] rounded-lg font-bold hover:bg-[#8B4513]/20 transition-all shadow-md hover:shadow-lg min-h-[48px] min-w-[48px]"
-              aria-label="Ta bort resurs"
+              aria-label={t('community_resources.owned.delete_this_resource')}
             >
               <Trash2 size={18} />
             </button>
