@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, TrendingUp, Package, CheckCircle, AlertTriangle, Clock, Shield, Pencil, Trash, Share2, Users, HelpCircle, ChevronDown, ChevronUp, Search, X, Eye, EyeOff, Heart, CheckCircle2, XCircle, Timer, Check } from 'lucide-react';
+import { Plus, TrendingUp, Package, CheckCircle, AlertTriangle, Clock, Shield, Pencil, Trash, Share2, Users, HelpCircle, ChevronDown, ChevronUp, ChevronRight, Search, X, Eye, EyeOff, Heart, CheckCircle2, XCircle, Timer, Check, MapPin } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { resourceService, Resource } from '@/lib/supabase';
 import { resourceSharingService, SharedResource } from '@/lib/resource-sharing-service';
@@ -435,85 +435,99 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
           </div>
 
           {showSharedResources && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {sharedResources.map((sharedResource) => {
                 const statusColor = sharedResource.status === 'available' ? 'green' : 
                                   sharedResource.status === 'requested' ? 'yellow' : 'blue';
                 const statusLabel = sharedResource.status === 'available' ? 'Tillgänglig' :
                                   sharedResource.status === 'requested' ? 'Begärd' : 'Hämtad';
+                const statusIcon = sharedResource.status === 'available' ? '✓' :
+                                  sharedResource.status === 'requested' ? '◷' : '✔';
                 
                 return (
-                  <div key={sharedResource.id} className="bg-white rounded-lg p-4 border border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">
+                  <div key={sharedResource.id} className="bg-white rounded-2xl p-5 border-2 border-gray-100 shadow-md hover:shadow-lg hover:border-[#5C6B47]/30 transition-all duration-200">
+                    {/* Header with Icon and Title */}
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#5C6B47]/10 to-[#707C5F]/10 flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <span className="text-3xl">
                           {categoryConfig[sharedResource.resource_category as keyof typeof categoryConfig]?.emoji || '📦'}
                         </span>
-                        <div>
-                          <h4 className="font-semibold text-gray-900">{sharedResource.resource_name}</h4>
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <span>{sharedResource.shared_quantity} {sharedResource.resource_unit || 'st'}</span>
-                            {sharedResource.location && (
-                              <>
-                                <span>•</span>
-                                <span>{sharedResource.location}</span>
-                              </>
-                            )}
-                          </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-gray-900 text-lg mb-1 truncate">{sharedResource.resource_name}</h4>
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <Package size={14} className="flex-shrink-0" />
+                          <span className="font-semibold text-[#3D4A2B] truncate">
+                            {sharedResource.shared_quantity} {sharedResource.resource_unit || 'st'}
+                          </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${
-                          statusColor === 'green' ? 'bg-green-100 text-green-700' :
-                          statusColor === 'yellow' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-blue-100 text-blue-700'
-                        }`}>
-                          {statusLabel}
-                        </span>
-                        <button
-                          onClick={() => {
-                            setSelectedSharedResource(sharedResource);
-                            setShowSharedResourceModal(true);
-                          }}
-                          className="px-3 py-1.5 bg-[#5C6B47] text-white rounded-lg text-xs font-medium hover:bg-[#4A5239] transition-all relative"
-                        >
-                          Hantera
-                          {(sharedResource.pending_requests_count ?? 0) > 0 && (
-                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-bold">
-                              {sharedResource.pending_requests_count}
-                            </span>
-                          )}
-                        </button>
-                      </div>
                     </div>
-                    {sharedResource.notes && (
-                      <div className="mt-2 text-sm text-gray-600 italic">
-                        "{sharedResource.notes}"
+
+                    {/* Location */}
+                    {sharedResource.location && (
+                      <div className="flex items-center gap-2 text-sm text-gray-600 mb-4 pl-1">
+                        <MapPin size={14} className="flex-shrink-0 text-gray-400" />
+                        <span className="truncate">{sharedResource.location}</span>
                       </div>
                     )}
-                    
+
+                    {/* Notes */}
+                    {sharedResource.notes && (
+                      <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <p className="text-sm text-gray-700 italic">"{sharedResource.notes}"</p>
+                      </div>
+                    )}
+
                     {/* Community Link */}
                     {sharedResource.community_id && (
-                      <div className="mt-3 pt-3 border-t border-gray-100">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Users size={14} />
-                            <span>Delad i {sharedResource.community_name || 'samhälle'}</span>
+                      <div className="mb-4 p-3 bg-[#5C6B47]/5 rounded-lg border border-[#5C6B47]/20">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2 text-sm font-medium text-gray-700 flex-1 min-w-0">
+                            <Users size={14} className="flex-shrink-0 text-[#5C6B47]" />
+                            <span className="truncate">Delad i {sharedResource.community_name || 'samhälle'}</span>
                           </div>
                           <button
                             onClick={() => {
                               // Navigate to community resource hub with shared tab
                               router.push(`/local?community=${sharedResource.community_id}&tab=shared`);
                             }}
-                            className="flex items-center gap-1 text-xs text-[#5C6B47] hover:text-[#4A5239] font-medium underline transition-colors hover:bg-[#5C6B47]/5 px-2 py-1 rounded"
+                            className="flex items-center gap-1 text-xs text-[#5C6B47] hover:text-[#2A331E] font-semibold px-3 py-1.5 bg-white hover:bg-[#5C6B47]/10 rounded-lg border border-[#5C6B47]/20 hover:border-[#5C6B47]/40 transition-all flex-shrink-0"
                             title="Gå till samhällets resursvy för att se hur denna resurs visas för andra"
                           >
-                            <span>Visa i samhälle</span>
-                            <span>→</span>
+                            <span className="whitespace-nowrap">Visa i samhälle</span>
+                            <ChevronRight size={12} />
                           </button>
                         </div>
                       </div>
                     )}
+
+                    {/* Status and Action Button */}
+                    <div className="flex items-center gap-3">
+                      <span className={`px-3 py-2 rounded-lg text-xs font-semibold border flex-shrink-0 ${
+                        statusColor === 'green' 
+                          ? 'bg-green-50 text-green-700 border-green-200' :
+                        statusColor === 'yellow' 
+                          ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                        'bg-blue-50 text-blue-700 border-blue-200'
+                      }`}>
+                        {statusIcon} {statusLabel}
+                      </span>
+                      <button
+                        onClick={() => {
+                          setSelectedSharedResource(sharedResource);
+                          setShowSharedResourceModal(true);
+                        }}
+                        className="flex-1 py-2.5 px-4 bg-gradient-to-r from-[#5C6B47] to-[#4A5239] hover:from-[#4A5239] hover:to-[#3D4A2B] text-white rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 relative min-h-[44px] flex items-center justify-center"
+                      >
+                        <span>Hantera</span>
+                        {(sharedResource.pending_requests_count ?? 0) > 0 && (
+                          <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold shadow-lg animate-pulse">
+                            {sharedResource.pending_requests_count}
+                          </span>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 );
               })}

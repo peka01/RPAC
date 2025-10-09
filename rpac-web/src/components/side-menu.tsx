@@ -277,7 +277,7 @@ export function SideMenu({ user, isOnline, isCrisisMode, communityPulse }: SideM
                   {/* Unified Container - Parent + Children as ONE unit */}
                   <div 
                     className={`
-                      relative overflow-hidden rounded-2xl
+                      relative rounded-2xl
                       transition-all duration-500 ease-out
                       ${isSectionActive 
                         ? `bg-gradient-to-br ${theme.gradient} border-2 ${theme.border} shadow-xl ${theme.glow}` 
@@ -289,7 +289,7 @@ export function SideMenu({ user, isOnline, isCrisisMode, communityPulse }: SideM
                     <div className={`
                       absolute inset-0 bg-gradient-to-br ${theme.gradient} 
                       opacity-0 hover:opacity-100 transition-opacity duration-300
-                      pointer-events-none
+                      pointer-events-none rounded-2xl
                     `} />
                     
                     {/* Parent Section */}
@@ -419,11 +419,11 @@ export function SideMenu({ user, isOnline, isCrisisMode, communityPulse }: SideM
                                 >
                                   {/* Child Item - Cohesive with parent */}
                                   <div className="relative flex items-center">
-                                    {/* Horizontal connector from vertical line */}
-                                    <div className="absolute left-1 top-1/2 w-4 h-0.5 bg-[#3D4A2B]/25 rounded-full -translate-y-1/2" />
+                                    {/* Horizontal connector from vertical line - seamless connection at 9px */}
+                                    <div className="absolute left-[9px] top-1/2 w-4 h-0.5 bg-[#3D4A2B]/25 -translate-y-1/2" />
                                     
                                     <div className={`
-                                      flex items-center flex-1 ml-5 rounded-xl overflow-hidden relative
+                                      flex items-center flex-1 ml-[25px] rounded-xl overflow-hidden relative
                                       ${isChildActive 
                                         ? 'bg-gradient-to-r from-[#5C6B47]/20 to-[#5C6B47]/10 shadow-lg ring-2 ring-[#5C6B47]/30' 
                                         : 'bg-white/20 hover:bg-white/40 shadow-sm hover:shadow-md'

@@ -900,7 +900,7 @@ function OwnedResourcesView({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {resources.map((resource) => {
         const typeConfig = resourceTypeConfig[resource.resource_type as keyof typeof resourceTypeConfig] || resourceTypeConfig.other;
         const category = categoryConfig[resource.category as keyof typeof categoryConfig] || categoryConfig.other;
@@ -909,46 +909,54 @@ function OwnedResourcesView({
           <button
             key={resource.id}
             onClick={() => onResourceClick(resource)}
-            className="w-full bg-white rounded-2xl p-4 shadow-md border border-[#5C6B47]/20 hover:shadow-lg transition-all touch-manipulation active:scale-98"
+            className="w-full bg-white rounded-2xl p-5 shadow-lg border-2 border-gray-100 hover:shadow-xl hover:border-[#5C6B47]/30 transition-all duration-200 touch-manipulation active:scale-[0.98]"
           >
-            <div className="flex items-start gap-3">
-              <div className="text-3xl flex-shrink-0">{typeConfig.emoji}</div>
-              <div className="flex-1 text-left">
-                <h3 className="font-bold text-gray-900 mb-1">{resource.resource_name}</h3>
-                <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                  <span className="font-semibold text-[#3D4A2B]">
+            {/* Header with Icon and Title */}
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#5C6B47]/10 to-[#707C5F]/10 flex items-center justify-center flex-shrink-0 shadow-sm">
+                <span className="text-3xl">{typeConfig.emoji}</span>
+              </div>
+              <div className="flex-1 text-left min-w-0">
+                <h3 className="font-bold text-gray-900 text-lg mb-1 truncate">{resource.resource_name}</h3>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Package size={14} className="flex-shrink-0" />
+                  <span className="font-semibold text-[#3D4A2B] truncate">
                     {resource.quantity} {resource.unit || 'st'}
                   </span>
-                  {resource.location && (
-                    <>
-                      <span>•</span>
-                      <span className="flex items-center gap-1">
-                        <MapPin size={12} />
-                        {resource.location}
-                      </span>
-                    </>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-1 bg-[#556B2F]/10 text-[#556B2F] rounded-lg text-xs font-semibold">
-                    {typeConfig.label}
-                  </span>
-                  <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${resource.status === 'available' ? 'bg-green-100 text-green-700' :
-                      resource.status === 'maintenance' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-gray-100 text-gray-700'
-                    }`}>
-                    {resource.status === 'available' ? 'Tillgänglig' :
-                      resource.status === 'maintenance' ? 'Underhåll' :
-                        resource.status === 'in_use' ? 'Används' : 'Ej tillgänglig'}
-                  </span>
-                  {resource.booking_required && (
-                    <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold">
-                      Bokning krävs
-                    </span>
-                  )}
                 </div>
               </div>
-              <ChevronDown className="text-gray-400 transform -rotate-90" size={20} />
+            </div>
+
+            {/* Location */}
+            {resource.location && (
+              <div className="flex items-center gap-2 text-sm text-gray-600 mb-3 pl-1">
+                <MapPin size={14} className="flex-shrink-0 text-gray-400" />
+                <span className="truncate">{resource.location}</span>
+              </div>
+            )}
+
+            {/* Status Badges */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="px-3 py-1.5 bg-[#556B2F]/10 text-[#556B2F] rounded-lg text-xs font-semibold border border-[#556B2F]/20">
+                {typeConfig.label}
+              </span>
+              <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${
+                resource.status === 'available' 
+                  ? 'bg-green-50 text-green-700 border-green-200' :
+                resource.status === 'maintenance' 
+                  ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                'bg-gray-50 text-gray-700 border-gray-200'
+              }`}>
+                {resource.status === 'available' ? '✓ Tillgänglig' :
+                  resource.status === 'maintenance' ? '⚠ Underhåll' :
+                    resource.status === 'in_use' ? '◉ Används' : '◯ Ej tillgänglig'}
+              </span>
+              {resource.booking_required && (
+                <span className="px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold flex items-center gap-1">
+                  <Calendar size={12} />
+                  Bokning
+                </span>
+              )}
             </div>
           </button>
         );

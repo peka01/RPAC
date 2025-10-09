@@ -284,215 +284,226 @@ export function StunningDashboard({ user }: { user: User | null }) {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
              {/* Min odling - Cultivation Progress */}
-             <div className="group bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-gray-100 hover:border-[#3D4A2B]/30">
-               {/* Header with icon and metric */}
-               <div className="flex items-center justify-between mb-3">
-                 <div className="flex items-center gap-3">
-                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#5C6B47] to-[#707C5F] flex items-center justify-center flex-shrink-0">
-                     <Leaf className="w-5 h-5 text-white" />
+             <div className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#3D4A2B]/30 hover:-translate-y-1">
+               {/* Header - Improved spacing and alignment */}
+               <div className="flex items-start justify-between mb-4">
+                 <div className="flex items-center gap-3 flex-1 min-w-0">
+                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#5C6B47] to-[#707C5F] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
+                     <Leaf className="w-6 h-6 text-white" />
                    </div>
                    <div className="flex-1 min-w-0">
-                     <h3 className="font-semibold text-gray-900 text-sm leading-tight">{metrics.planName || 'Min odling'}</h3>
-                     <p className="text-xs text-gray-500">Självförsörjning</p>
+                     <h3 className="font-bold text-gray-900 text-base leading-tight mb-0.5 truncate">{metrics.planName || 'Min odling'}</h3>
+                     <p className="text-xs text-gray-500 font-medium truncate">Självförsörjning</p>
                    </div>
                  </div>
-                 <div className="text-right flex-shrink-0 ml-3">
-                   <div className="text-xl font-bold text-gray-900">{metrics.cultivationProgress}%</div>
-                   <div className="text-xs text-gray-500">av behov</div>
+                 <div className="text-right flex-shrink-0 ml-4">
+                   <div className="text-3xl font-bold text-gray-900 mb-0.5">{metrics.cultivationProgress}%</div>
+                   <div className="text-xs text-gray-500 uppercase tracking-wider font-semibold whitespace-nowrap">Behov</div>
                  </div>
                </div>
                
-               {/* Content section */}
-               <div className="mb-3">
-                 <p className="text-xs text-gray-600 mb-2 leading-relaxed">
+               {/* Content - Improved readability */}
+               <div className="mb-4">
+                 <p className="text-sm text-gray-600 mb-3 leading-relaxed">
                    {metrics.planName 
                      ? `${metrics.cropCount} grödor i planen`
                      : 'Börja planera din odling'}
                  </p>
                  
-                 {/* Progress bar */}
-                 <div className="w-full bg-gray-200 rounded-full h-1.5">
+                 {/* Enhanced progress bar with gradient */}
+                 <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
                    <div
-                     className="h-1.5 rounded-full transition-all duration-500"
+                     className="h-2 rounded-full transition-all duration-700 ease-out relative overflow-hidden"
                      style={{ 
-                       backgroundColor: metrics.cultivationProgress >= 80 ? '#10B981' : metrics.cultivationProgress >= 60 ? '#3D4A2B' : metrics.cultivationProgress >= 40 ? '#F59E0B' : '#EF4444',
+                       background: metrics.cultivationProgress >= 80 
+                         ? 'linear-gradient(90deg, #10B981 0%, #059669 100%)' 
+                         : metrics.cultivationProgress >= 60 
+                         ? 'linear-gradient(90deg, #3D4A2B 0%, #5C6B47 100%)' 
+                         : metrics.cultivationProgress >= 40 
+                         ? 'linear-gradient(90deg, #F59E0B 0%, #D97706 100%)' 
+                         : 'linear-gradient(90deg, #EF4444 0%, #DC2626 100%)',
                        width: `${Math.min(100, metrics.cultivationProgress)}%`
                      }}
-                   />
+                   >
+                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+                   </div>
                  </div>
                </div>
                
-               {/* Action button */}
+               {/* Action button - Enhanced styling */}
                <button 
                  onClick={() => router.push('/individual?section=cultivation')}
-                 className="text-xs text-[#3D4A2B] hover:text-[#2A331E] font-medium flex items-center"
+                 className="w-full py-2.5 px-4 rounded-lg bg-[#3D4A2B]/5 hover:bg-[#3D4A2B]/10 border border-[#3D4A2B]/20 hover:border-[#3D4A2B]/40 text-sm text-[#3D4A2B] hover:text-[#2A331E] font-semibold flex items-center justify-center gap-2 transition-all duration-200"
                >
                  <span>Hantera odling</span>
-                 <ChevronRight className="w-3 h-3 ml-1" />
+                 <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                </button>
              </div>
 
              {/* Mina resurser */}
-             <div className="group bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-gray-100 hover:border-[#3D4A2B]/30">
-               {/* Header with icon and metric */}
-               <div className="flex items-center justify-between mb-3">
-                 <div className="flex items-center gap-3">
-                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#3D4A2B] to-[#5C6B47] flex items-center justify-center flex-shrink-0">
-                     <Shield className="w-5 h-5 text-white" />
+             <div className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#3D4A2B]/30 hover:-translate-y-1">
+               <div className="flex items-start justify-between mb-4">
+                 <div className="flex items-center gap-3 flex-1 min-w-0">
+                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#3D4A2B] to-[#5C6B47] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
+                     <Shield className="w-6 h-6 text-white" />
                    </div>
                    <div className="flex-1 min-w-0">
-                     <h3 className="font-semibold text-gray-900 text-sm leading-tight">Mina resurser</h3>
-                     <p className="text-xs text-gray-500">MSB-beredskap</p>
+                     <h3 className="font-bold text-gray-900 text-base leading-tight mb-0.5 truncate">Mina resurser</h3>
+                     <p className="text-xs text-gray-500 font-medium truncate">MSB-beredskap</p>
                    </div>
                  </div>
-                 <div className="text-right flex-shrink-0 ml-3">
-                   <div className="text-xl font-bold text-gray-900">{metrics.msbFulfillmentPercent}%</div>
-                   <div className="text-xs text-gray-500">MSB %</div>
+                 <div className="text-right flex-shrink-0 ml-4">
+                   <div className="text-3xl font-bold text-gray-900 mb-0.5">{metrics.msbFulfillmentPercent}%</div>
+                   <div className="text-xs text-gray-500 uppercase tracking-wider font-semibold whitespace-nowrap">MSB</div>
                  </div>
                </div>
                
-               {/* Content section */}
-               <div className="mb-3">
-                 <p className="text-xs text-gray-600 mb-2 leading-relaxed">
-                   {metrics.resourceCount} resurser tillagda{metrics.expiringResources > 0 ? `, ${metrics.expiringResources} förfallna` : ''}
+               <div className="mb-4">
+                 <p className="text-sm text-gray-600 mb-3 leading-relaxed">
+                   {metrics.resourceCount} resurser tillagda
+                   {metrics.expiringResources > 0 && (
+                     <span className="inline-flex items-center ml-2 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-medium whitespace-nowrap">
+                       <AlertTriangle className="w-3 h-3 mr-1 flex-shrink-0" />
+                       {metrics.expiringResources} förfaller
+                     </span>
+                   )}
                  </p>
                  
-                 {/* Progress bar */}
-                 <div className="w-full bg-gray-200 rounded-full h-1.5">
+                 <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
                    <div
-                     className="h-1.5 rounded-full transition-all duration-500"
+                     className="h-2 rounded-full transition-all duration-700 ease-out relative overflow-hidden"
                      style={{ 
-                       backgroundColor: metrics.msbFulfillmentPercent >= 80 ? '#10B981' : metrics.msbFulfillmentPercent >= 60 ? '#3D4A2B' : metrics.msbFulfillmentPercent >= 40 ? '#F59E0B' : '#EF4444',
+                       background: metrics.msbFulfillmentPercent >= 80 
+                         ? 'linear-gradient(90deg, #10B981 0%, #059669 100%)' 
+                         : metrics.msbFulfillmentPercent >= 60 
+                         ? 'linear-gradient(90deg, #3D4A2B 0%, #5C6B47 100%)' 
+                         : metrics.msbFulfillmentPercent >= 40 
+                         ? 'linear-gradient(90deg, #F59E0B 0%, #D97706 100%)' 
+                         : 'linear-gradient(90deg, #EF4444 0%, #DC2626 100%)',
                        width: `${Math.min(100, metrics.msbFulfillmentPercent)}%`
                      }}
-                   />
+                   >
+                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+                   </div>
                  </div>
                </div>
                
-               {/* Action button */}
                <button 
                  onClick={() => router.push('/individual?section=resources')}
-                 className="text-xs text-[#3D4A2B] hover:text-[#2A331E] font-medium flex items-center"
+                 className="w-full py-2.5 px-4 rounded-lg bg-[#3D4A2B]/5 hover:bg-[#3D4A2B]/10 border border-[#3D4A2B]/20 hover:border-[#3D4A2B]/40 text-sm text-[#3D4A2B] hover:text-[#2A331E] font-semibold flex items-center justify-center gap-2 transition-all duration-200"
                >
                  <span>Hantera resurser</span>
-                 <ChevronRight className="w-3 h-3 ml-1" />
+                 <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                </button>
              </div>
 
             {/* Community Connections */}
-            <div className="group bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-gray-100 hover:border-[#3D4A2B]/30">
-              {/* Header with icon and metric */}
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4A5239] to-[#707C5F] flex items-center justify-center flex-shrink-0">
-                    <Users className="w-5 h-5 text-white" />
+            <div className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#3D4A2B]/30 hover:-translate-y-1">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#4A5239] to-[#707C5F] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
+                    <Users className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 text-sm leading-tight">Lokalt nätverk</h3>
-                    <p className="text-xs text-gray-500">Samhällsanslutning</p>
+                    <h3 className="font-bold text-gray-900 text-base leading-tight mb-0.5 truncate">Lokalt nätverk</h3>
+                    <p className="text-xs text-gray-500 font-medium truncate">Samhällsanslutning</p>
                   </div>
                 </div>
-                <div className="text-right flex-shrink-0 ml-3">
-                  <div className="text-xl font-bold text-gray-900">{metrics.communityConnections}</div>
-                  <div className="text-xs text-gray-500">samhällen</div>
+                <div className="text-right flex-shrink-0 ml-4">
+                  <div className="text-3xl font-bold text-gray-900 mb-0.5">{metrics.communityConnections}</div>
+                  <div className="text-xs text-gray-500 font-semibold whitespace-nowrap">
+                    {metrics.communityConnections === 1 ? 'samhälle' : 'samhällen'}
+                  </div>
                 </div>
               </div>
               
-              {/* Content section */}
-              <div className="mb-3">
-                <p className="text-xs text-gray-600 mb-2 leading-relaxed">
+              <div className="mb-4">
+                <p className="text-sm text-gray-600 mb-3 leading-relaxed">
                   {metrics.communityConnections > 0 
                     ? 'Ansluten till lokala samhällen' 
                     : 'Gå med i ditt närområde'}
                 </p>
                 
-                {/* Status indicator */}
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${metrics.communityConnections > 0 ? 'bg-green-500' : 'bg-orange-500'}`}></div>
-                  <span className="text-xs text-gray-500">
-                    {metrics.communityConnections > 0 ? 'Aktiv anslutning' : 'Behöver anslutning'}
-                  </span>
+                <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                  <div
+                    className="h-2 rounded-full transition-all duration-700 ease-out relative overflow-hidden bg-gradient-to-r from-[#4A5239] to-[#707C5F]"
+                    style={{ 
+                      width: metrics.communityConnections > 0 ? '100%' : '0%'
+                    }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+                  </div>
                 </div>
               </div>
               
-              {/* Action button */}
               <button 
                 onClick={() => router.push('/local')}
-                className="text-xs text-[#3D4A2B] hover:text-[#2A331E] font-medium flex items-center"
+                className="w-full py-2.5 px-4 rounded-lg bg-[#4A5239]/5 hover:bg-[#4A5239]/10 border border-[#4A5239]/20 hover:border-[#4A5239]/40 text-sm text-[#4A5239] hover:text-[#2A331E] font-semibold flex items-center justify-center gap-2 transition-all duration-200"
               >
-                <span>{metrics.communityConnections > 0 ? 'Hantera' : 'Hitta samhällen'}</span>
-                <ChevronRight className="w-3 h-3 ml-1" />
+                <span>{metrics.communityConnections > 0 ? 'Hantera nätverk' : 'Hitta samhällen'}</span>
+                <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </button>
             </div>
 
             {/* Meddelanden */}
-            <div className="group bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-gray-100 hover:border-[#3D4A2B]/30">
-              {/* Header with icon and metric */}
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4A5239] to-[#707C5F] flex items-center justify-center flex-shrink-0">
-                    <MessageCircle className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 text-sm leading-tight">Meddelanden</h3>
-                    <p className="text-xs text-gray-500">Kommunikation</p>
-                  </div>
-                </div>
-                <div className="text-right flex-shrink-0 ml-3">
-                  <div className="text-xl font-bold text-gray-900">{metrics.unreadMessages}</div>
-                  <div className="text-xs text-gray-500">olästa</div>
-                </div>
-              </div>
+            <div className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#3D4A2B]/30 hover:-translate-y-1 relative overflow-hidden">
+              {/* Notification pulse animation in background */}
+              {metrics.unreadMessages > 0 && (
+                <div className="absolute top-0 right-0 w-20 h-20 bg-red-400/10 rounded-full -translate-y-10 translate-x-10 animate-pulse-slow" />
+              )}
               
-              {/* Content section */}
-              <div className="mb-3">
-                <p className="text-xs text-gray-600 mb-3 leading-relaxed">
-                  {metrics.unreadMessages > 0 
-                    ? `Du har ${metrics.unreadMessages} olästa meddelanden` 
-                    : 'Inga nya meddelanden'}
-                </p>
-                
-                {/* Status indicator */}
-                <div className="flex items-center gap-2 mb-3">
-                  <div className={`w-2 h-2 rounded-full ${metrics.unreadMessages > 0 ? 'bg-red-500' : 'bg-green-500'}`}></div>
-                  <span className="text-xs text-gray-500">
-                    {metrics.unreadMessages > 0 ? 'Nya meddelanden' : 'Alla lästa'}
-                  </span>
+              <div className="relative z-10">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="relative flex-shrink-0">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#4A5239] to-[#707C5F] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md">
+                        <MessageCircle className="w-6 h-6 text-white" />
+                      </div>
+                      {metrics.unreadMessages > 0 && (
+                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center animate-bounce shadow-lg">
+                          <span className="text-white text-xs font-bold">{metrics.unreadMessages}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-gray-900 text-base leading-tight mb-0.5 truncate">Meddelanden</h3>
+                      <p className="text-xs text-gray-500 font-medium truncate">Kommunikation</p>
+                    </div>
+                  </div>
                 </div>
                 
-                {/* Separate message type buttons */}
-                <div className="space-y-2">
-                  <button 
-                    onClick={() => router.push('/local')}
-                    className="w-full flex items-center justify-between p-2 rounded-lg bg-[#3D4A2B]/5 hover:bg-[#3D4A2B]/10 transition-colors"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 text-[#3D4A2B]" />
-                      <span className="text-xs font-medium text-gray-900">Samhälle</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {metrics.unreadMessages > 0 && (
-                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                      )}
-                      <ChevronRight className="w-3 h-3 text-gray-400" />
-                    </div>
-                  </button>
+                <div className="mb-4">
+                  <p className="text-sm text-gray-600 mb-3 leading-relaxed">
+                    {metrics.unreadMessages > 0 
+                      ? `${metrics.unreadMessages} olästa` 
+                      : 'Alla lästa'}
+                  </p>
                   
-                  <button 
-                    onClick={() => router.push('/local/messages')}
-                    className="w-full flex items-center justify-between p-2 rounded-lg bg-[#3D4A2B]/5 hover:bg-[#3D4A2B]/10 transition-colors"
-                  >
-                    <div className="flex items-center gap-2">
-                      <MessageCircle className="w-4 h-4 text-[#3D4A2B]" />
-                      <span className="text-xs font-medium text-gray-900">Privat</span>
-                    </div>
-                    <div className="flex items-center gap-2">
+                  {/* Split button navigation */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <button 
+                      onClick={() => router.push('/local/messages')}
+                      className="relative overflow-hidden p-3 rounded-lg bg-gradient-to-br from-[#3D4A2B]/5 to-[#3D4A2B]/10 hover:from-[#3D4A2B]/10 hover:to-[#3D4A2B]/20 border border-[#3D4A2B]/20 hover:border-[#3D4A2B]/40 transition-all duration-200 hover:shadow-md"
+                    >
+                      <div className="flex items-center justify-center gap-1.5 relative z-10">
+                        <Users className="w-4 h-4 text-[#3D4A2B] flex-shrink-0" />
+                        <span className="text-sm font-semibold text-gray-900 truncate">Samhälle</span>
+                      </div>
                       {metrics.unreadMessages > 0 && (
-                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                        <div className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
                       )}
-                      <ChevronRight className="w-3 h-3 text-gray-400" />
-                    </div>
-                  </button>
+                    </button>
+                    
+                    <button 
+                      onClick={() => router.push('/local/messages/direct')}
+                      className="relative overflow-hidden p-3 rounded-lg bg-gradient-to-br from-[#4A5239]/5 to-[#4A5239]/10 hover:from-[#4A5239]/10 hover:to-[#4A5239]/20 border border-[#4A5239]/20 hover:border-[#4A5239]/40 transition-all duration-200 hover:shadow-md"
+                    >
+                      <div className="flex items-center justify-center gap-1.5 relative z-10">
+                        <MessageCircle className="w-4 h-4 text-[#4A5239] flex-shrink-0" />
+                        <span className="text-sm font-semibold text-gray-900 truncate">Privat</span>
+                      </div>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

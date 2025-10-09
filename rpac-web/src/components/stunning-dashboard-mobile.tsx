@@ -277,67 +277,143 @@ export function StunningDashboardMobile({ user }: { user: User | null }) {
         
         <div className="space-y-4 mb-8">
           {/* Min odling - Cultivation Progress */}
-          <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#5C6B47] to-[#707C5F] flex items-center justify-center flex-shrink-0">
-                  <Leaf className="w-5 h-5 text-white" />
+          <div className="bg-white rounded-2xl p-5 shadow-lg border-2 border-gray-100 active:scale-[0.98] transition-transform">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="relative flex-shrink-0">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#5C6B47] to-[#707C5F] flex items-center justify-center shadow-md">
+                    <Leaf className="w-6 h-6 text-white" />
+                  </div>
+                  {/* Progress ring overlay */}
+                  <svg className="absolute -inset-1 w-14 h-14 transform -rotate-90">
+                    <circle cx="28" cy="28" r="26" stroke="#E5E7EB" strokeWidth="2" fill="none" />
+                    <circle 
+                      cx="28" cy="28" r="26" 
+                      stroke={metrics.cultivationProgress >= 80 ? '#10B981' : 
+                             metrics.cultivationProgress >= 60 ? '#3D4A2B' : '#F59E0B'}
+                      strokeWidth="2" 
+                      fill="none"
+                      strokeDasharray={`${(metrics.cultivationProgress / 100) * 163.36} 163.36`}
+                      className="transition-all duration-1000"
+                    />
+                  </svg>
                 </div>
+                
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-gray-900 text-sm leading-tight">{metrics.planName || 'Min odling'}</h3>
-                  <p className="text-xs text-gray-500">
+                  <h3 className="font-bold text-gray-900 text-base leading-tight truncate">
+                    {metrics.planName || 'Min odling'}
+                  </h3>
+                  <p className="text-xs text-gray-500 font-medium truncate">
                     {metrics.planName 
-                      ? `${metrics.cropCount} grödor i planen`
+                      ? `${metrics.cropCount} grödor`
                       : 'Börja planera'}
                   </p>
                 </div>
               </div>
+              
               <div className="text-right flex-shrink-0 ml-3">
-                <div className="text-xl font-bold text-gray-900">{metrics.cultivationProgress}%</div>
-                <div className="text-xs text-gray-500">av hushållsbehov</div>
+                <div className="text-3xl font-bold text-gray-900 leading-none">
+                  {metrics.cultivationProgress}%
+                </div>
+                <div className="text-xs text-gray-500 font-semibold whitespace-nowrap mt-1">
+                  av behov
+                </div>
               </div>
             </div>
+            
+            <div className="mb-4">
+              <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                <div
+                  className="h-3 rounded-full transition-all duration-1000 ease-out relative"
+                  style={{ 
+                    background: `linear-gradient(90deg, 
+                      ${metrics.cultivationProgress >= 80 ? '#10B981, #059669' : 
+                        metrics.cultivationProgress >= 60 ? '#3D4A2B, #5C6B47' : 
+                        metrics.cultivationProgress >= 40 ? '#F59E0B, #D97706' : 
+                        '#EF4444, #DC2626'})`,
+                    width: `${Math.min(100, metrics.cultivationProgress)}%`
+                  }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
+                </div>
+              </div>
+            </div>
+            
             <button 
               onClick={() => router.push('/individual?section=cultivation')}
-              className="w-full text-sm text-[#3D4A2B] hover:text-[#2A331E] font-medium flex items-center justify-center py-2 border border-[#3D4A2B]/20 rounded-lg hover:bg-[#3D4A2B]/5 transition-all"
+              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#3D4A2B] to-[#5C6B47] hover:from-[#2A331E] hover:to-[#4A5239] text-white font-semibold text-base flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-95 transition-all duration-200 touch-manipulation"
             >
+              <Leaf className="w-5 h-5 flex-shrink-0" />
               <span>Hantera odling</span>
-              <ChevronRight className="w-4 h-4 ml-1" />
+              <ChevronRight className="w-5 h-5 flex-shrink-0" />
             </button>
           </div>
 
           {/* Secondary Metrics Grid */}
           <div className="grid grid-cols-2 gap-4">
             {/* Mina resurser */}
-            <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#3D4A2B] to-[#5C6B47] flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-white" />
+            <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-4 shadow-lg border-2 border-gray-100 active:scale-[0.97] transition-transform">
+              <div className="relative mb-3">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#3D4A2B] to-[#5C6B47] flex items-center justify-center mx-auto shadow-md">
+                  <Shield className="w-7 h-7 text-white" />
                 </div>
-                <div>
-                  <div className="text-2xl font-bold text-gray-900">{metrics.msbFulfillmentPercent}%</div>
-                  <div className="text-xs text-gray-500">av MSB:s rekommendationer</div>
+                <div className="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full bg-white shadow-md border-2 border-[#3D4A2B]">
+                  <span className="text-xs font-bold text-[#3D4A2B]">
+                    {metrics.msbFulfillmentPercent}%
+                  </span>
                 </div>
               </div>
-              <h4 className="font-medium text-gray-900 text-sm">Mina resurser</h4>
-              <p className="text-xs text-gray-500 mt-1">
-                {metrics.resourceCount} resurser tillagda{metrics.expiringResources > 0 ? `, ${metrics.expiringResources} förfallna` : ''}
+              
+              <h4 className="font-bold text-gray-900 text-sm text-center mb-1 truncate px-1">
+                Mina resurser
+              </h4>
+              <p className="text-xs text-gray-500 text-center font-medium mb-2 truncate px-1">
+                MSB-beredskap
               </p>
+              
+              <div className="flex items-center justify-center gap-1.5 pt-2 border-t border-gray-200">
+                <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                  metrics.msbFulfillmentPercent >= 80 ? 'bg-green-500 animate-pulse' :
+                  metrics.msbFulfillmentPercent >= 60 ? 'bg-[#3D4A2B]' :
+                  'bg-orange-500 animate-pulse'
+                }`} />
+                <span className="text-xs text-gray-600 font-medium truncate">
+                  {metrics.resourceCount} st
+                </span>
+              </div>
             </div>
 
             {/* Meddelanden */}
-            <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4A5239] to-[#707C5F] flex items-center justify-center">
-                  <MessageCircle className="w-5 h-5 text-white" />
+            <button 
+              onClick={() => router.push('/local/messages')}
+              className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-4 shadow-lg border-2 border-gray-100 active:scale-[0.97] transition-transform relative overflow-hidden touch-manipulation"
+            >
+              {metrics.unreadMessages > 0 && (
+                <div className="absolute top-0 right-0 w-20 h-20 bg-red-400/10 rounded-full -translate-y-10 translate-x-10 animate-pulse" />
+              )}
+              
+              <div className="relative z-10">
+                <div className="relative mb-3">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#4A5239] to-[#707C5F] flex items-center justify-center mx-auto shadow-md">
+                    <MessageCircle className="w-7 h-7 text-white" />
+                  </div>
+                  {metrics.unreadMessages > 0 && (
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center animate-bounce shadow-lg">
+                      <span className="text-white text-xs font-bold">
+                        {metrics.unreadMessages}
+                      </span>
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <div className="text-2xl font-bold text-gray-900">{metrics.unreadMessages}</div>
-                  <div className="text-xs text-gray-500">olästa</div>
-                </div>
+                
+                <h4 className="font-bold text-gray-900 text-sm text-center mb-1 truncate px-1">
+                  Meddelanden
+                </h4>
+                <p className="text-xs text-gray-500 text-center font-medium truncate px-1">
+                  {metrics.unreadMessages > 0 ? `${metrics.unreadMessages} olästa` : 'Alla lästa'}
+                </p>
               </div>
-              <h4 className="font-medium text-gray-900 text-sm">Meddelanden</h4>
-            </div>
+            </button>
           </div>
 
           {/* Community Connections */}

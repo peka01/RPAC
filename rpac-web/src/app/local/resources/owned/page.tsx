@@ -169,7 +169,7 @@ export default function OwnedResourcesPage() {
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">Gemensamma resurser</h1>
-                  <p className="text-gray-600">Resurser som ägs av hela samhället</p>
+                  <p className="text-gray-600">Resurser som vi har tillsammans</p>
                 </div>
               </div>
               
@@ -214,7 +214,7 @@ export default function OwnedResourcesPage() {
                 </div>
                 <div className="flex-1">
                   <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">Gemensamma resurser</h1>
-                  <p className="text-sm md:text-base text-gray-600">Resurser som ägs av hela samhället</p>
+                  <p className="text-sm md:text-base text-gray-600">Resurser som vi har tillsammans</p>
                 </div>
               </div>
               
