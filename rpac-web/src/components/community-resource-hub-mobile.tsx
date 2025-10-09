@@ -124,14 +124,39 @@ export function CommunityResourceHubMobile({
     setCurrentCommunityName(communityName);
   }, [communityId, communityName]);
 
+  // Check for resource parameter in URL and open modal
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const resourceId = urlParams.get('resource');
+    
+    if (resourceId && sharedResources.length > 0) {
+      console.log('🔗 Mobile: Found resource parameter in URL:', resourceId);
+      const resource = sharedResources.find(r => r.id === resourceId);
+      
+      if (resource) {
+        console.log('✅ Mobile: Opening modal for resource from URL:', resource);
+        setManagingResource(resource);
+        
+        // Remove the resource parameter from URL without reloading
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete('resource');
+        window.history.replaceState({}, '', newUrl.toString());
+      } else {
+        console.warn('⚠️ Mobile: Resource not found in sharedResources for URL parameter:', resourceId);
+      }
+    }
+  }, [sharedResources]);
+
   // Listen for openResourceManagement events from notifications
   useEffect(() => {
     const handleOpenResourceManagement = (event: CustomEvent) => {
       const { resourceId } = event.detail;
-      console.log('Mobile component received openResourceManagement event with resourceId:', resourceId);
+      console.log('Mobile hub received openResourceManagement event with resourceId:', resourceId);
       console.log('Available sharedResources:', sharedResources.map(r => ({ id: r.id, resource_id: r.resource_id, status: r.status })));
       
-      // If sharedResources is empty, wait a bit and try again
+      // If sharedResources is empty, wait and retry
       if (sharedResources.length === 0) {
         console.log('SharedResources is empty, waiting for data to load...');
         
@@ -141,15 +166,14 @@ export function CommunityResourceHubMobile({
             console.log(`Retry attempt ${attempt} - sharedResources now:`, sharedResources.map(r => ({ id: r.id, resource_id: r.resource_id, status: r.status })));
             const resource = sharedResources.find(r => r.id === resourceId);
             if (resource) {
-              console.log('Found resource for management (retry):', resource);
+              console.log('✅ Found resource for management (retry):', resource);
               setManagingResource(resource);
             } else if (attempt < 5) {
-              console.log(`Resource still not found, retrying in ${attempt * 1000}ms...`);
               retryWithDelay(attempt + 1);
             } else {
-              console.error('Resource not found after 5 retry attempts for ID:', resourceId);
+              console.error('❌ Failed to find resource after 5 attempts:', resourceId);
             }
-          }, attempt * 1000); // Increasing delay: 1s, 2s, 3s, 4s, 5s
+          }, attempt * 500); // Increasing delay: 500ms, 1000ms, 1500ms, 2000ms, 2500ms
         };
         
         retryWithDelay(1);
@@ -159,12 +183,26 @@ export function CommunityResourceHubMobile({
       // Find the resource in sharedResources
       const resource = sharedResources.find(r => r.id === resourceId);
       if (resource) {
-        console.log('Found resource for management:', resource);
-        console.log('Setting managingResource state...');
+        console.log('✅ Found resource for management immediately:', resource);
         setManagingResource(resource);
-        console.log('managingResource state should now be set');
       } else {
-        console.error('Resource not found in sharedResources for ID:', resourceId);
+        console.warn('⚠️ Resource not found immediately, will retry:', resourceId);
+        // Still retry even if sharedResources is not empty, in case the data hasn't loaded yet
+        const retryWithDelay = (attempt: number) => {
+          setTimeout(() => {
+            const resource = sharedResources.find(r => r.id === resourceId);
+            if (resource) {
+              console.log('✅ Found resource for management (delayed retry):', resource);
+              setManagingResource(resource);
+            } else if (attempt < 3) {
+              retryWithDelay(attempt + 1);
+            } else {
+              console.error('❌ Failed to find resource after retries:', resourceId);
+            }
+          }, attempt * 300);
+        };
+        
+        retryWithDelay(1);
       }
     };
 

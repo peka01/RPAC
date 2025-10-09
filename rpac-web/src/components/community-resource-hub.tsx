@@ -102,15 +102,86 @@ export function CommunityResourceHub({
     }
   }, [communityId]);
 
+  // Check for resource parameter in URL and open modal
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const resourceId = urlParams.get('resource');
+    
+    if (resourceId && sharedResources.length > 0) {
+      console.log('🔗 Found resource parameter in URL:', resourceId);
+      const resource = sharedResources.find(r => r.id === resourceId);
+      
+      if (resource) {
+        console.log('✅ Opening modal for resource from URL:', resource);
+        setManagingResource(resource);
+        
+        // Remove the resource parameter from URL without reloading
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete('resource');
+        window.history.replaceState({}, '', newUrl.toString());
+      } else {
+        console.warn('⚠️ Resource not found in sharedResources for URL parameter:', resourceId);
+      }
+    }
+  }, [sharedResources]);
+
   // Listen for custom event to open resource management modal
   useEffect(() => {
     const handleOpenResourceManagement = (event: CustomEvent) => {
       const { resourceId } = event.detail;
+      console.log('Desktop hub received openResourceManagement event with resourceId:', resourceId);
+      console.log('Available sharedResources:', sharedResources.map(r => ({ id: r.id, resource_id: r.resource_id, status: r.status })));
+      
       if (resourceId) {
+        // If sharedResources is empty, wait and retry
+        if (sharedResources.length === 0) {
+          console.log('SharedResources is empty, waiting for data to load...');
+          
+          // Try multiple times with increasing delays
+          const retryWithDelay = (attempt: number) => {
+            setTimeout(() => {
+              console.log(`Retry attempt ${attempt} - sharedResources now:`, sharedResources.map(r => ({ id: r.id, resource_id: r.resource_id, status: r.status })));
+              const resource = sharedResources.find(r => r.id === resourceId);
+              if (resource) {
+                console.log('✅ Found resource for management (retry):', resource);
+                setManagingResource(resource);
+              } else if (attempt < 5) {
+                retryWithDelay(attempt + 1);
+              } else {
+                console.error('❌ Failed to find resource after 5 attempts:', resourceId);
+              }
+            }, attempt * 500); // Increasing delay: 500ms, 1000ms, 1500ms, 2000ms, 2500ms
+          };
+          
+          retryWithDelay(1);
+          return;
+        }
+        
         // Find the resource in sharedResources and open the modal
         const resource = sharedResources.find(r => r.id === resourceId);
         if (resource) {
+          console.log('✅ Found resource for management immediately:', resource);
           setManagingResource(resource);
+        } else {
+          console.warn('⚠️ Resource not found immediately, will retry:', resourceId);
+          // Still retry even if sharedResources is not empty, in case the data hasn't loaded yet
+          const retryWithDelay = (attempt: number) => {
+            setTimeout(() => {
+              const resource = sharedResources.find(r => r.id === resourceId);
+              if (resource) {
+                console.log('✅ Found resource for management (delayed retry):', resource);
+                setManagingResource(resource);
+              } else if (attempt < 3) {
+                retryWithDelay(attempt + 1);
+              } else {
+                console.error('❌ Failed to find resource after retries:', resourceId);
+              }
+            }, attempt * 300);
+          };
+          
+          retryWithDelay(1);
         }
       }
     };

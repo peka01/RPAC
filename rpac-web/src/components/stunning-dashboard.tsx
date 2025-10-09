@@ -111,7 +111,7 @@ export function StunningDashboard({ user }: { user: User | null }) {
         // Load user profile data
         const { data: profile } = await supabase
           .from('user_profiles')
-          .select('display_name, first_name, last_name, name_display_preference')
+          .select('display_name, first_name, last_name, name_display_preference, household_size')
           .eq('user_id', user.id)
           .single();
         
@@ -163,7 +163,20 @@ export function StunningDashboard({ user }: { user: User | null }) {
           if (cultivationPlans.crops && cultivationPlans.crops.length > 0) {
             // Import the nutrition calculation function
             const { calculatePlanNutrition } = await import('@/lib/cultivation-plan-service');
-            const nutrition = calculatePlanNutrition(cultivationPlans, 2, 30); // Default household size 2, 30 days
+            const householdSize = profile?.household_size || 2; // Use actual household size, default to 2
+            console.log('🏠 Dashboard household size:', {
+              profileHouseholdSize: profile?.household_size,
+              usedHouseholdSize: householdSize,
+              cropsCount: cultivationPlans.crops.length
+            });
+            const nutrition = calculatePlanNutrition(cultivationPlans, householdSize, 30);
+            console.log('📊 Dashboard nutrition calculation:', {
+              totalKcal: nutrition.totalKcal,
+              kcalPerDay: nutrition.kcalPerDay,
+              targetKcalPerDay: nutrition.targetKcalPerDay,
+              percentOfTarget: nutrition.percentOfTarget,
+              householdSize
+            });
             cultivationProgress = nutrition.percentOfTarget;
           }
         }

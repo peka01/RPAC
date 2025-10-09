@@ -206,18 +206,52 @@ export default function SharedResourcesPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           {/* Page Header */}
-          <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <div className="bg-[#3D4A2B]/10 rounded-xl p-3">
-                  <Share2 className="w-8 h-8 text-[#3D4A2B]" />
+          <div className="bg-white rounded-xl shadow-lg p-4 md:p-8 mb-6 md:mb-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex items-center gap-3 md:gap-4">
+                <div className="bg-[#3D4A2B]/10 rounded-xl p-2 md:p-3">
+                  <Share2 className="w-6 h-6 md:w-8 md:h-8 text-[#3D4A2B]" />
                 </div>
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">Delade från medlemmar</h1>
-                  <p className="text-gray-600">Resurser som medlemmar delar med varandra</p>
+                <div className="flex-1">
+                  <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">Delade från medlemmar</h1>
+                  <p className="text-sm md:text-base text-gray-600">Resurser som medlemmar delar med varandra</p>
                 </div>
               </div>
               
+              {/* Community Switcher - DESKTOP ONLY (mobile has it in the component) */}
+              {userCommunities.length > 1 && (
+                <div className="hidden md:block bg-gradient-to-br from-[#4A5239]/10 to-[#5C6B47]/10 border border-[#4A5239]/20 rounded-xl p-4 min-w-[320px]">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Users className="w-4 h-4 text-[#3D4A2B]" strokeWidth={2.5} />
+                    <span className="text-xs font-semibold text-[#3D4A2B] uppercase tracking-wide">
+                      {t('community.active_community')}
+                    </span>
+                  </div>
+                  <select
+                    value={communityId || ''}
+                    onChange={(e) => {
+                      const newCommunityId = e.target.value;
+                      const selectedCommunity = userCommunities.find(c => c.id === newCommunityId);
+                      if (selectedCommunity) {
+                        setCommunityId(newCommunityId);
+                        setCommunityName(selectedCommunity.community_name);
+                        localStorage.setItem('selectedCommunityId', newCommunityId);
+                      }
+                    }}
+                    className="w-full px-3 py-2.5 bg-white/90 backdrop-blur-sm border-2 border-[#3D4A2B]/20 rounded-lg text-[#2A331E] font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-[#5C6B47] focus:border-[#5C6B47] cursor-pointer hover:bg-white hover:border-[#5C6B47] transition-all duration-200 shadow-sm"
+                    disabled={loadingCommunities}
+                  >
+                    {userCommunities.map((community) => (
+                      <option key={community.id} value={community.id} className="font-semibold">
+                        {community.community_name} ({community.member_count || 0} {t('community.members_count')})
+                      </option>
+                    ))}
+                  </select>
+                  <div className="text-[#707C5F] text-xs mt-2 text-center font-medium">
+                    {userCommunities.length} {t('community.communities_count')}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

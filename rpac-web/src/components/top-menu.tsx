@@ -22,6 +22,7 @@ export function TopMenu({ user }: TopMenuProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Get user display name based on profile preference
   const getUserDisplayName = () => {
@@ -51,6 +52,29 @@ export function TopMenu({ user }: TopMenuProps) {
     }
   };
 
+  // Load unread notification count
+  const loadUnreadCount = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('is_read', false);
+
+      if (error) {
+        console.error('Error loading unread count:', error);
+        setUnreadCount(0);
+        return;
+      }
+
+      const count = data?.length || 0;
+      console.log('🔢 Top menu unread count updated:', count);
+      setUnreadCount(count);
+    } catch (err) {
+      console.error('Error loading unread count:', err);
+    }
+  };
+
   // Load user profile data
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -73,6 +97,42 @@ export function TopMenu({ user }: TopMenuProps) {
 
     loadUserProfile();
   }, [user]);
+
+  // Load unread count and subscribe to changes
+  useEffect(() => {
+    if (!user?.id) return;
+
+    // Initial load
+    loadUnreadCount(user.id);
+
+    // Subscribe to realtime changes
+    const subscription = supabase
+      .channel('notifications-top-menu')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`
+        }, 
+        (payload) => {
+          console.log('📬 Notification change detected in top menu:', payload.eventType);
+          loadUnreadCount(user.id);
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('📡 Top menu subscribed to notifications');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Failed to subscribe to notifications');
+        }
+      });
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [user?.id]);
 
   const handleLogout = async () => {
     try {
@@ -126,16 +186,21 @@ export function TopMenu({ user }: TopMenuProps) {
 
           {/* Right side - User menu and notifications */}
           <div className="flex items-center gap-3">
-            {/* Notifications */}
-            {user && (
-              <button
-                onClick={() => setShowNotifications(true)}
-                className="relative w-12 h-12 bg-white/60 hover:bg-white/80 rounded-lg flex items-center justify-center transition-all duration-200 shadow-sm border border-gray-200/30"
-              >
-                <Bell className="w-6 h-6 text-gray-600" />
-                {/* Notification badge could be added here */}
-              </button>
-            )}
+          {/* Notifications */}
+          {user && (
+            <button
+              onClick={() => setShowNotifications(true)}
+              className="relative w-12 h-12 bg-white/60 hover:bg-white/80 rounded-lg flex items-center justify-center transition-all duration-200 shadow-sm border border-gray-200/30"
+              aria-label={`Notifieringar${unreadCount > 0 ? ` (${unreadCount} nya)` : ''}`}
+            >
+              <Bell className="w-6 h-6 text-gray-600" />
+              {unreadCount > 0 && (
+                <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </div>
+              )}
+            </button>
+          )}
 
             {/* User Menu */}
             {user ? (
@@ -201,7 +266,12 @@ export function TopMenu({ user }: TopMenuProps) {
         <NotificationCenterResponsive
           user={user}
           isOpen={showNotifications}
-          onClose={() => setShowNotifications(false)}
+          onClose={() => {
+            setShowNotifications(false);
+            // Refresh the unread count when closing the notification panel
+            console.log('🔄 Notification panel closed, refreshing unread count...');
+            loadUnreadCount(user.id);
+          }}
         />
       )}
     </>

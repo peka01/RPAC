@@ -154,7 +154,12 @@ export function NotificationCenter({ user, onNotificationClick, isOpen: external
   const markAllAsRead = async () => {
     try {
       const unreadNotifications = notifications.filter(n => !n.is_read);
-      if (unreadNotifications.length === 0) return;
+      console.log('📝 Marking all notifications as read. Unread count:', unreadNotifications.length);
+      
+      if (unreadNotifications.length === 0) {
+        console.log('⏭️ No unread notifications to mark');
+        return;
+      }
 
       const { error } = await supabase
         .from('notifications')
@@ -166,16 +171,20 @@ export function NotificationCenter({ user, onNotificationClick, isOpen: external
         .eq('is_read', false);
 
       if (error) {
-        console.error('Error marking all notifications as read:', error);
+        console.error('❌ Error marking all notifications as read:', error);
         return;
       }
 
+      console.log('✅ Successfully marked all notifications as read in database');
+      
       setNotifications(prev => 
         prev.map(n => ({ ...n, is_read: true, read_at: new Date().toISOString() }))
       );
       setUnreadCount(0);
+      
+      console.log('✅ Local state updated: unreadCount set to 0');
     } catch (err) {
-      console.error('Error marking all notifications as read:', err);
+      console.error('❌ Error marking all notifications as read:', err);
     }
   };
 

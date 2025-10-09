@@ -31,19 +31,20 @@ export const generateIntelligentRecommendations = (
   const targetCalories = Math.round(annualCalorieNeed * targetSelfSufficiency);
   
   // Available crops with calorie density (calories per m²)
+  // Using CROP_LIBRARY data: kcalPerKg × yieldPerPlant
   const availableCrops = [
-    { name: "Potatis", caloriesPerPlant: 800, spacePerPlant: 0.5, pricePerPlant: 2, caloriesPerM2: 1600 },
-    { name: "Morötter", caloriesPerPlant: 400, spacePerPlant: 0.1, pricePerPlant: 1, caloriesPerM2: 4000 },
-    { name: "Kål", caloriesPerPlant: 250, spacePerPlant: 0.3, pricePerPlant: 3, caloriesPerM2: 833 },
-    { name: "Lök", caloriesPerPlant: 400, spacePerPlant: 0.05, pricePerPlant: 0.5, caloriesPerM2: 8000 },
-    { name: "Tomater", caloriesPerPlant: 160, spacePerPlant: 0.2, pricePerPlant: 5, caloriesPerM2: 800 },
-    { name: "Gurka", caloriesPerPlant: 150, spacePerPlant: 0.2, pricePerPlant: 4, caloriesPerM2: 750 },
-    { name: "Spenat", caloriesPerPlant: 200, spacePerPlant: 0.1, pricePerPlant: 1, caloriesPerM2: 2000 },
-    { name: "Bönor", caloriesPerPlant: 350, spacePerPlant: 0.1, pricePerPlant: 3, caloriesPerM2: 3500 },
-    { name: "Ärtor", caloriesPerPlant: 350, spacePerPlant: 0.1, pricePerPlant: 2, caloriesPerM2: 3500 },
-    { name: "Rädisor", caloriesPerPlant: 200, spacePerPlant: 0.05, pricePerPlant: 1, caloriesPerM2: 4000 },
-    { name: "Rödbetor", caloriesPerPlant: 300, spacePerPlant: 0.1, pricePerPlant: 2, caloriesPerM2: 3000 },
-    { name: "Kålrot", caloriesPerPlant: 400, spacePerPlant: 0.2, pricePerPlant: 3, caloriesPerM2: 2000 }
+    { name: "Potatis", caloriesPerPlant: 385, spacePerPlant: 0.5, pricePerPlant: 2, caloriesPerM2: 770 * 3 }, // 770 kcal/kg × 0.5 kg/plant
+    { name: "Morötter", caloriesPerPlant: 41, spacePerPlant: 0.1, pricePerPlant: 1, caloriesPerM2: 410 * 4 }, // 410 kcal/kg × 0.1 kg/plant
+    { name: "Kål", caloriesPerPlant: 250, spacePerPlant: 0.3, pricePerPlant: 3, caloriesPerM2: 250 * 5 }, // 250 kcal/kg × 1 kg/plant
+    { name: "Lök", caloriesPerPlant: 60, spacePerPlant: 0.05, pricePerPlant: 0.5, caloriesPerM2: 400 * 3 }, // 400 kcal/kg × 0.15 kg/plant
+    { name: "Tomater", caloriesPerPlant: 540, spacePerPlant: 0.2, pricePerPlant: 5, caloriesPerM2: 180 * 6 }, // 180 kcal/kg × 3 kg/plant
+    { name: "Gurka", caloriesPerPlant: 300, spacePerPlant: 0.2, pricePerPlant: 4, caloriesPerM2: 150 * 4 }, // 150 kcal/kg × 2 kg/plant
+    { name: "Spenat", caloriesPerPlant: 23, spacePerPlant: 0.1, pricePerPlant: 1, caloriesPerM2: 230 * 2 }, // 230 kcal/kg × 0.1 kg/plant
+    { name: "Bönor", caloriesPerPlant: 381, spacePerPlant: 0.1, pricePerPlant: 3, caloriesPerM2: 1270 * 2 }, // 1270 kcal/kg × 0.3 kg/plant
+    { name: "Ärtor", caloriesPerPlant: 162, spacePerPlant: 0.1, pricePerPlant: 2, caloriesPerM2: 810 * 1.5 }, // 810 kcal/kg × 0.2 kg/plant
+    { name: "Rädisor", caloriesPerPlant: 24, spacePerPlant: 0.05, pricePerPlant: 1, caloriesPerM2: 160 * 3 }, // 160 kcal/kg × 0.15 kg/plant
+    { name: "Rödbetor", caloriesPerPlant: 172, spacePerPlant: 0.1, pricePerPlant: 2, caloriesPerM2: 430 * 4 }, // 430 kcal/kg × 0.4 kg/plant
+    { name: "Kålrot", caloriesPerPlant: 185, spacePerPlant: 0.2, pricePerPlant: 3, caloriesPerM2: 370 * 2.5 } // 370 kcal/kg × 0.5 kg/plant
   ];
 
   // Sort crops by calorie density (calories per m²) - highest first

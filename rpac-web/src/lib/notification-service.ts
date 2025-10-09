@@ -57,6 +57,24 @@ export const notificationService = {
   }): Promise<void> {
     const { recipientId, senderName, messageContent, isEmergency, communityId } = params;
 
+    // Check for recent duplicate notifications (within last 5 seconds)
+    // This prevents double-notifications if the function is called multiple times
+    const fiveSecondsAgo = new Date(Date.now() - 5000).toISOString();
+    const { data: recentNotifications } = await supabase
+      .from('notifications')
+      .select('id')
+      .eq('user_id', recipientId)
+      .eq('sender_name', senderName)
+      .eq('type', isEmergency ? 'emergency' : 'message')
+      .gte('created_at', fiveSecondsAgo)
+      .limit(1);
+
+    // If there's a recent identical notification, skip creating a new one
+    if (recentNotifications && recentNotifications.length > 0) {
+      console.log('⏭️ Skipping duplicate notification for', recipientId, 'from', senderName);
+      return;
+    }
+
     const title = isEmergency 
       ? `🚨 Nödsituation från ${senderName}`
       : `💬 Nytt meddelande från ${senderName}`;
@@ -90,6 +108,23 @@ export const notificationService = {
     communityId?: string;
   }): Promise<void> {
     const { recipientId, requesterName, resourceName, resourceId, communityId } = params;
+
+    // Check for recent duplicate notifications (within last 5 seconds)
+    const fiveSecondsAgo = new Date(Date.now() - 5000).toISOString();
+    const { data: recentNotifications } = await supabase
+      .from('notifications')
+      .select('id')
+      .eq('user_id', recipientId)
+      .eq('sender_name', requesterName)
+      .eq('type', 'resource_request')
+      .gte('created_at', fiveSecondsAgo)
+      .limit(1);
+
+    // If there's a recent identical notification, skip creating a new one
+    if (recentNotifications && recentNotifications.length > 0) {
+      console.log('⏭️ Skipping duplicate resource request notification for', recipientId, 'from', requesterName);
+      return;
+    }
 
     const actionUrl = communityId 
       ? `/local?tab=resources&community=${communityId}&resource=${resourceId}`

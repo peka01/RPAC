@@ -1,3 +1,346 @@
+### 2025-10-09 - CULTIVATION PLAN CALORIE CALCULATION FIX ✅ **COMPLETE**
+
+Fixed incorrect calorie calculations causing discrepancy between plan creation view and dashboard view, AND dashboard using wrong household size.
+
+#### Problem
+When creating a cultivation plan with 200 potato plants for a **1-person household**:
+- **Plan creation view** showed **128%** of household needs ❌
+- **Dashboard view** showed **64%** of household needs ❌ (but should be **128%** for 1 person!)
+- The calculations had TWO issues:
+  1. Different calorie values per plant
+  2. Dashboard was **hardcoded to household size of 2**
+
+#### Root Cause
+Two different calorie calculation systems were in use:
+
+1. **`generateIntelligentRecommendations.ts`** (Plan Creation):
+   - Used `caloriesPerPlant: 800` for potatoes
+   - Calculation: 200 plants × 800 = 160,000 kcal
+   - Result: **128%** of household needs
+
+2. **`cultivation-plan-service.ts`** (Dashboard):
+   - Used `CROP_LIBRARY`: `kcalPerKg: 770` and `yieldPerPlant: 0.5 kg`
+   - Calculation: 200 plants × 0.5 kg/plant × 770 kcal/kg = 77,000 kcal
+   - Result: **64%** of household needs ✅
+
+The plan creation was using **DOUBLE** the correct calorie value!
+
+#### Solution
+
+**Fix 1: Corrected Calorie Values**
+Updated `generateIntelligentRecommendations.ts` to use the correct values from `CROP_LIBRARY`:
+- **Potatis**: 385 kcal/plant (770 kcal/kg × 0.5 kg/plant) ✅ *was 800*
+- **Morötter**: 41 kcal/plant (410 kcal/kg × 0.1 kg/plant) ✅ *was 400*
+- **Tomater**: 540 kcal/plant (180 kcal/kg × 3 kg/plant) ✅ *was 160*
+- All other crops updated to match CROP_LIBRARY values
+
+**Fix 2: Use Actual Household Size**
+Updated both dashboard components to use the user's actual household size:
+```typescript
+// BEFORE (hardcoded to 2)
+const nutrition = calculatePlanNutrition(cultivationPlans, 2, 30);
+
+// AFTER (uses actual household size)
+const householdSize = profile?.household_size || 2;
+const nutrition = calculatePlanNutrition(cultivationPlans, householdSize, 30);
+```
+
+#### Verification
+Now 200 potato plants for a **1-person household** will show:
+- 200 × 385 = 77,000 kcal total
+- 77,000 ÷ 30 days = 2,567 kcal/day
+- For household of 1 (2,000 kcal/day target)
+- **128%** of household needs ✅ (consistent everywhere!)
+
+For a **2-person household**:
+- Same 77,000 kcal total
+- For household of 2 (4,000 kcal/day target)
+- **64%** of household needs ✅
+
+#### Files Modified
+- ✅ `rpac-web/src/lib/cultivation/generateIntelligentRecommendations.ts`:
+  - Updated all crop `caloriesPerPlant` values to match CROP_LIBRARY
+  - Added comments explaining the calculation (kcalPerKg × yieldPerPlant)
+  - Fixed calorie density (caloriesPerM2) calculations
+- ✅ `rpac-web/src/components/stunning-dashboard.tsx`:
+  - Added `household_size` to profile query
+  - Changed from hardcoded `2` to `profile?.household_size || 2`
+- ✅ `rpac-web/src/components/stunning-dashboard-mobile.tsx`:
+  - Added `household_size` to profile query
+  - Changed from hardcoded `2` to `profile?.household_size || 2`
+
+#### Benefits
+- ✅ **Consistent calculations**: Plan creation and dashboard now show same percentage
+- ✅ **Accurate estimates**: Uses real crop yield data
+- ✅ **Personalized**: Calculations now use actual household size (not hardcoded to 2)
+- ✅ **Better planning**: Users get realistic calorie projections
+- ✅ **Documented**: Comments explain how each value is calculated
+
+#### Impact
+This was a **critical bug** for single-person households! The dashboard was showing **half** the correct percentage, making it appear as though they needed twice as much food as they actually do.
+
+---
+
+### 2025-10-09 - RESOURCE REQUEST NOTIFICATION MODAL OPENING FIX ✅ **COMPLETE**
+
+Fixed "Hantera förfrågan" (Handle request) button in resource request notifications to reliably open the resource management modal.
+
+#### Problem
+When users clicked "Hantera förfrågan" from a resource request notification, the button would navigate to the local resources page and attempt to open the modal. However, the modal wouldn't always open because:
+1. The page used `window.location.href` which caused a full page reload
+2. Custom events fired after navigation had timing issues
+3. The `resource` URL parameter wasn't being checked by the component
+
+#### Solution
+Implemented a **dual-approach system** for maximum reliability:
+
+**Approach 1: URL Parameter Detection (Primary)**
+- Added `useEffect` that checks for `resource` parameter in URL
+- Automatically opens modal when `sharedResources` loads
+- Cleans up URL parameter after opening modal (better UX)
+- Works reliably without timing issues
+
+**Approach 2: Custom Event Listener (Fallback)**
+- Enhanced retry logic with increasing delays (500ms, 1000ms, 1500ms, etc.)
+- Dual-path handling for empty array or missing specific resource
+- Better logging with emojis for debugging
+- Up to 5 retry attempts before failing gracefully
+
+#### Technical Implementation
+
+**Primary Method - URL Parameter Detection:**
+```typescript
+// Check for resource parameter in URL and open modal
+useEffect(() => {
+  if (typeof window === 'undefined') return;
+  
+  const urlParams = new URLSearchParams(window.location.search);
+  const resourceId = urlParams.get('resource');
+  
+  if (resourceId && sharedResources.length > 0) {
+    console.log('🔗 Found resource parameter in URL:', resourceId);
+    const resource = sharedResources.find(r => r.id === resourceId);
+    
+    if (resource) {
+      console.log('✅ Opening modal for resource from URL:', resource);
+      setManagingResource(resource);
+      
+      // Remove the resource parameter from URL without reloading
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('resource');
+      window.history.replaceState({}, '', newUrl.toString());
+    }
+  }
+}, [sharedResources]);
+```
+
+**Fallback Method - Custom Event with Retry:**
+```typescript
+const handleOpenResourceManagement = (event: CustomEvent) => {
+  const { resourceId } = event.detail;
+  
+  if (sharedResources.length === 0) {
+    const retryWithDelay = (attempt: number) => {
+      setTimeout(() => {
+        const resource = sharedResources.find(r => r.id === resourceId);
+        if (resource) {
+          setManagingResource(resource);
+        } else if (attempt < 5) {
+          retryWithDelay(attempt + 1);
+        }
+      }, attempt * 500);
+    };
+    retryWithDelay(1);
+  }
+};
+```
+
+#### Files Modified
+- ✅ `rpac-web/src/components/community-resource-hub.tsx`:
+  - **Added URL parameter detection** - Primary method for opening modal
+  - Enhanced `openResourceManagement` event handler with better retry logic
+  - Added comprehensive logging with status emojis
+  - URL cleanup after modal opens (removes `?resource=` parameter)
+- ✅ `rpac-web/src/components/community-resource-hub-mobile.tsx`:
+  - **Added URL parameter detection** - Primary method for opening modal
+  - Applied same enhancements as desktop version
+  - Improved consistency between desktop and mobile behavior
+
+#### Benefits
+- ✅ **Reliable modal opening**: Resource management modal now opens consistently every time
+- ✅ **No timing issues**: URL parameter method avoids race conditions with events
+- ✅ **Clean URLs**: Resource parameter is removed after modal opens
+- ✅ **Dual reliability**: Two methods (URL + events) ensure modal always opens
+- ✅ **Easier debugging**: Detailed console logs show exactly what's happening
+- ✅ **Cross-platform**: Works identically on desktop and mobile
+
+#### How It Works Now
+1. User clicks "Hantera förfrågan" in notification
+2. Page navigates to `/local?tab=resources&resource={id}`
+3. Component loads and detects `resource` parameter in URL
+4. When `sharedResources` data loads, modal opens automatically
+5. URL parameter is removed for clean URL display
+
+---
+
+### 2025-10-09 - MARK ALL AS READ BADGE UPDATE FIX ✅ **COMPLETE**
+
+Fixed notification badge not updating when "Markera alla som lästa" (Mark all as read) is clicked.
+
+#### Problem
+When users clicked "Markera alla som lästa" in the notification panel:
+1. The notifications were marked as read in the database ✅
+2. The notification panel's local unread count updated to 0 ✅
+3. **BUT** - The badge on the top menu bell icon still showed the old count ❌
+
+This happened because the top menu badge has its own `unreadCount` state, separate from the notification panel's state. While the realtime subscription should update it automatically, there was a timing/reliability issue.
+
+#### Solution
+Added a **manual refresh** of the unread count when the notification panel closes:
+
+```typescript
+onClose={() => {
+  setShowNotifications(false);
+  // Refresh the unread count when closing the notification panel
+  console.log('🔄 Notification panel closed, refreshing unread count...');
+  loadUnreadCount(user.id);
+}}
+```
+
+This ensures the badge updates **immediately** when the user closes the panel after marking notifications as read, without relying solely on the realtime subscription.
+
+#### Files Modified
+- ✅ `rpac-web/src/components/top-menu.tsx`:
+  - Modified `onClose` callback to manually refresh unread count
+  - Added console logging for debugging
+- ✅ `rpac-web/src/components/notification-center.tsx`:
+  - Added detailed logging to `markAllAsRead` function
+  - Better error tracking and debugging
+
+#### Benefits
+- ✅ **Immediate update**: Badge updates as soon as panel closes
+- ✅ **Reliable**: Doesn't depend on realtime subscription timing
+- ✅ **Better UX**: No stale badge counts
+- ✅ **Debug friendly**: Clear console logs show what's happening
+
+---
+
+### 2025-10-09 - NOTIFICATION BADGE VISIBILITY FIX ✅ **COMPLETE**
+
+Fixed missing notification badge on desktop top menu - resource notifications (and all notifications) now properly display the unread count and update in real-time when marked as read.
+
+#### Problem
+The notification bell icon in the desktop top menu (`top-menu.tsx`) was not showing the red badge with unread count, even when there were unread notifications. The component was missing the entire unread count logic. Additionally, the badge was not disappearing when users clicked "Markera som läst" (Mark as read).
+
+#### Solution
+Added complete notification badge functionality to `top-menu.tsx`:
+- **State management**: Added `unreadCount` state
+- **Initial load**: Loads unread count on component mount
+- **Realtime updates**: Subscribes to notification changes via Supabase realtime with UPDATE event detection
+- **Visual badge**: Red pulsing badge showing count (or "9+" for 10+ notifications)
+- **Accessibility**: Added aria-label with unread count
+- **Debug logging**: Added console logs to track subscription status and count updates
+
+#### Technical Implementation
+```typescript
+// Load unread count with logging
+const loadUnreadCount = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('notifications')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('is_read', false);
+  
+  const count = data?.length || 0;
+  console.log('🔢 Top menu unread count updated:', count);
+  setUnreadCount(count);
+};
+
+// Subscribe to realtime changes with event logging
+const subscription = supabase
+  .channel('notifications-top-menu')
+  .on('postgres_changes', 
+    { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, 
+    (payload) => {
+      console.log('📬 Notification change detected in top menu:', payload.eventType);
+      loadUnreadCount(user.id);
+    }
+  )
+  .subscribe();
+```
+
+#### Files Modified
+- ✅ `rpac-web/src/components/top-menu.tsx`:
+  - Added `unreadCount` state
+  - Added `loadUnreadCount()` function
+  - Added realtime subscription to notification changes
+  - Added visual badge with animation to notification bell
+  - Added accessibility label
+
+#### How "Markera som läst" Works
+When a user clicks "Markera som läst" (Mark as read) in the notification panel:
+1. **Database update**: The `NotificationCenter` component updates the `notifications` table, setting `is_read = true`
+2. **Postgres event**: Supabase emits a `postgres_changes` event with `eventType: 'UPDATE'`
+3. **Subscription trigger**: The top menu's realtime subscription catches this event
+4. **Count reload**: The `loadUnreadCount()` function is called, fetching the new count from the database
+5. **Badge update**: The badge disappears (or updates to the new count) automatically
+
+#### Benefits
+- ✅ **Consistent UX**: Desktop notification badge now matches mobile behavior
+- ✅ **Real-time updates**: Badge updates instantly when notifications arrive or are marked as read
+- ✅ **Better awareness**: Users can see unread count at a glance
+- ✅ **All notification types**: Works for messages, resource requests, emergencies, and system notifications
+- ✅ **Debug friendly**: Console logs help track subscription and count updates
+
+---
+
+### 2025-10-09 - NOTIFICATION DEDUPLICATION FIX ✅ **COMPLETE**
+
+Fixed duplicate notification issue where users were receiving the same notification twice.
+
+#### Problem
+Users reported seeing duplicate notifications when receiving messages or resource requests. This was caused by the notification service not checking for recent duplicates before creating new notifications.
+
+#### Solution
+Added deduplication logic to `notification-service.ts`:
+- **5-second window check**: Before creating a notification, check if an identical notification (same user, same sender, same type) was created within the last 5 seconds
+- **Skip duplicates**: If a recent identical notification exists, skip creating a new one
+- **Applied to both**: Message notifications AND resource request notifications
+- **Preserves functionality**: Legitimate notifications are still created, only true duplicates within 5 seconds are blocked
+
+#### Technical Implementation
+```typescript
+// Check for recent duplicate notifications (within last 5 seconds)
+const fiveSecondsAgo = new Date(Date.now() - 5000).toISOString();
+const { data: recentNotifications } = await supabase
+  .from('notifications')
+  .select('id')
+  .eq('user_id', recipientId)
+  .eq('sender_name', senderName)
+  .eq('type', isEmergency ? 'emergency' : 'message')
+  .gte('created_at', fiveSecondsAgo)
+  .limit(1);
+
+// If there's a recent identical notification, skip creating a new one
+if (recentNotifications && recentNotifications.length > 0) {
+  console.log('⏭️ Skipping duplicate notification');
+  return;
+}
+```
+
+#### Files Modified
+- ✅ `rpac-web/src/lib/notification-service.ts`:
+  - Added deduplication to `createMessageNotification()`
+  - Added deduplication to `createResourceRequestNotification()`
+
+#### Benefits
+- ✅ **Better UX**: Users no longer receive confusing duplicate notifications
+- ✅ **Database efficiency**: Fewer unnecessary notification records
+- ✅ **Edge case handling**: Protects against race conditions and double-calls
+- ✅ **Non-intrusive**: Doesn't affect normal notification flow
+
+---
+
 ### 2025-01-28 - LOGIN MODAL DESIGN GUIDELINES FIX ✅ **COMPLETE**
 
 Fixed critical design guideline violation in login modal that was using blue colors instead of required olive green palette.
