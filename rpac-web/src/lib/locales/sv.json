@@ -47,7 +47,6 @@
     "minutes_ago": "min sedan",
     "hours_ago": "tim sedan",
     "days_ago": "dagar sedan",
-    "emergency_from": "Nödsituation från",
     "message_from": "Nytt meddelande från",
     "resource_request_from": "Resursförfrågan från",
     "wants_to_borrow": "vill låna din",
@@ -384,11 +383,6 @@
     "login_required": "Du måste vara inloggad för att komma åt inställningar.",
     "allow_data_collection": "Tillåt anonymiserad datainsamling för förbättringar"
   },
-  "emergency": {
-    "important_power_outage": "VIKTIGT: Strömavbrott förväntas vara 2-4 timmar. Spara batterier och använd radio för uppdateringar.",
-    "emergency_info": "Nödlägesinfo",
-    "emergency_sent_to_all": "Nödmeddelande skickat till alla i närområdet"
-  },
   "descriptions": {
     "strengthen_resources": "Uppdatera och förbättra vad du har hemma",
     "coordinate_resources": "Dela saker med dina grannar",
@@ -481,6 +475,21 @@
     "msb_fill": "Fyll i när du skaffat",
     "empty_resource": "Töm resurs",
     "load_msb_resources": "Ladda MSB-resurser",
+    "bulk_add_msb": "Masslägg till MSB-resurser",
+    "bulk_add_msb_title": "Lägg till MSB-resurser",
+    "bulk_add_msb_description": "Välj och lägg till flera MSB-rekommenderade resurser samtidigt",
+    "bulk_add_stats_selected": "valda",
+    "bulk_add_stats_categories": "kategorier",
+    "bulk_add_stats_existing": "redan tillagda",
+    "bulk_add_filter_all": "Alla",
+    "bulk_add_select_all": "Välj alla",
+    "bulk_add_deselect_all": "Avmarkera alla",
+    "bulk_add_existing_badge": "Har redan",
+    "bulk_add_quantity_label": "Antal",
+    "bulk_add_no_resources": "Inga MSB-resurser i denna kategori",
+    "bulk_add_success": "{added} nya resurser tillagda, {updated} uppdaterade!",
+    "bulk_add_button": "Lägg till {count} resurser",
+    "bulk_add_select_min_one": "Välj minst en resurs med kvantitet > 0",
     "msb_supplies_description": "MSB-rekommenderade förnödenheter visas nedan. Fyll i dessa allt eftersom du skaffar dem",
     "family_scaling_note": "Kvantiteter skalas automatiskt för {familySize} personer enligt MSB-riktlinjer",
     "table_headers": {
@@ -851,12 +860,8 @@
     "title": "Meddelanden",
     "community_messages": "Samhällsmeddelanden",
     "direct_messages": "Direktmeddelanden",
-    "emergency_messages": "Nödkommunikation",
     "send": "Skicka",
     "type_message": "Skriv ett meddelande",
-    "emergency_description": "Beskriv nödsituationen",
-    "send_emergency": "SKICKA NÖD",
-    "emergency_sent": "NÖDMEDDELANDE SKICKAT - Väntar på svar",
     "connected": "Ansluten",
     "disconnected": "Frånkopplad",
     "online": "Online",
@@ -870,7 +875,6 @@
     "no_contacts": "Inga kontakter tillgängliga",
     "no_messages": "Inga meddelanden än",
     "start_conversation": "Skicka det första meddelandet för att starta konversationen",
-    "emergency_mode": "Nödläge aktiverat - Meddelanden skickas med hög prioritet",
     "press_enter": "Tryck Enter för att skicka • Shift+Enter för ny rad",
     "coordinator": "Koordinator"
   },
@@ -1076,8 +1080,7 @@
         "description": "Kommunicera med medlemmar i ditt lokala samhälle.",
         "tips": [
           "Samhällschatten syns för alla medlemmar i samhället",
-          "Använd direktmeddelanden för privata konversationer",
-          "Markera viktiga meddelanden som nödsituationer vid behov"
+          "Använd direktmeddelanden för privata konversationer"
         ]
       },
       "resource_sharing": {
@@ -1086,7 +1089,7 @@
         "tips": [
           "Dela endast vad du har överflöd av - behåll det du behöver för din familj",
           "Ange hur länge resursen är tillgänglig",
-          "Svara snabbt på förfrågningar för att hjälpa andra i nöd"
+          "Svara snabbt på förfrågningar för att hjälpa andra"
         ]
       }
     },

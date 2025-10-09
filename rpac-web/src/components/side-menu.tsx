@@ -118,8 +118,7 @@ export function SideMenu({ user, isOnline, isCrisisMode, communityPulse }: SideM
       category: 'KOMMUNIKATION',
       children: [
         { name: 'Samhälle', href: '/local/messages/community', icon: Users },
-        { name: 'Direkt', href: '/local/messages/direct', icon: MessageCircle },
-        { name: 'Nödsituationer', href: '/local/messages/emergency', icon: AlertTriangle }
+        { name: 'Direkt', href: '/local/messages/direct', icon: MessageCircle }
       ]
     },
   ];

@@ -151,8 +151,8 @@ export default function CommunityMessagesPage() {
                   <MessageCircle className="w-8 h-8 text-[#3D4A2B]" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">Samhällesmeddelanden</h1>
-                  <p className="text-gray-600">Chatta med andra medlemmar i {communityName}</p>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">Chatta med alla i {communityName}</h1>
+                  <p className="text-gray-600">Samhällschatt för alla medlemmar</p>
                 </div>
               </div>
               

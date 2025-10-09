@@ -148,6 +148,15 @@ export function StunningDashboard({ user }: { user: User | null }) {
         const msbCategoriesWithResources = new Set(msbResourcesAdded.map(r => r.category));
         const msbFulfillmentPercent = Math.round((msbCategoriesWithResources.size / msbCategories.length) * 100);
         
+        console.log('📊 MSB Fulfillment Calculation (Desktop):', {
+          totalResources: resources?.length || 0,
+          msbRecommended: resources?.filter(r => r.is_msb_recommended).length || 0,
+          msbWithQuantity: msbResourcesAdded.length,
+          categoriesCovered: Array.from(msbCategoriesWithResources),
+          fulfillmentPercent: msbFulfillmentPercent,
+          resourceDetails: msbResourcesAdded.map(r => ({ name: r.name, category: r.category, quantity: r.quantity, is_msb: r.is_msb_recommended }))
+        });
+        
         // Calculate expiring resources (within 30 days)
         const expiringResources = resources?.filter(r => 
           r.quantity > 0 && r.days_remaining < 30 && r.days_remaining < 99999

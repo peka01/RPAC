@@ -13,6 +13,7 @@ import { SimpleAddResourceModal, msbRecommendations } from './simple-add-resourc
 import { EditResourceModal } from './edit-resource-modal';
 import { ResourceShareToCommunityModal } from './resource-share-to-community-modal';
 import { SharedResourceActionsModal } from './shared-resource-actions-modal';
+import { BulkMsbModal } from './bulk-msb-modal';
 
 const categoryConfig = {
   food: { emoji: '🍞', label: 'Mat' },
@@ -37,6 +38,7 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
   const [myRequests, setMyRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showBulkMsbModal, setShowBulkMsbModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showSharedResourceModal, setShowSharedResourceModal] = useState(false);
@@ -129,6 +131,15 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
     const msbResourcesAdded = resources.filter(r => r.is_msb_recommended && r.quantity > 0);
     const msbCategoriesWithResources = new Set(msbResourcesAdded.map(r => r.category));
     const msbFulfillmentPercent = Math.round((msbCategoriesWithResources.size / msbCategories.length) * 100);
+    
+    console.log('📊 MSB Fulfillment Calculation (Resource Inventory):', {
+      totalResources: resources.length,
+      msbRecommended: resources.filter(r => r.is_msb_recommended).length,
+      msbWithQuantity: msbResourcesAdded.length,
+      categoriesCovered: Array.from(msbCategoriesWithResources),
+      fulfillmentPercent: msbFulfillmentPercent,
+      resourceDetails: msbResourcesAdded.map(r => ({ name: r.name, category: r.category, quantity: r.quantity, is_msb: r.is_msb_recommended }))
+    });
     
     // Calculate shared resources statistics
     const sharedCount = sharedResources.length;
@@ -359,6 +370,7 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
               <div className="text-sm font-semibold text-gray-700">MSB uppfyllnad</div>
             </div>
           </div>
+          
           {/* Tooltip */}
           <div className="absolute left-0 bottom-full mb-2 w-80 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 z-10">
             {t('dashboard.msb_tooltip')}
@@ -636,14 +648,25 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
             {filteredResources.length} {filteredResources.length === 1 ? 'resurs' : 'resurser'}
             {searchQuery && ` som matchar "${searchQuery}"`}
           </div>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#556B2F] to-[#3D4A2B] text-white font-bold text-sm rounded-lg hover:shadow-lg transition-all shadow-md min-h-[40px] touch-manipulation active:scale-98"
-            aria-label="Lägg till ny resurs"
-          >
-            <Plus size={18} />
-            <span>Lägg till resurs</span>
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#556B2F] to-[#3D4A2B] text-white font-bold text-sm rounded-lg hover:shadow-lg transition-all shadow-md min-h-[40px] touch-manipulation active:scale-98"
+              aria-label="Lägg till ny resurs"
+            >
+              <Plus size={18} />
+              <span>Lägg till resurs</span>
+            </button>
+            <button
+              onClick={() => setShowBulkMsbModal(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#3D4A2B] to-[#5C6B47] text-white font-bold text-sm rounded-lg hover:shadow-lg transition-all shadow-md min-h-[40px] touch-manipulation active:scale-98"
+              aria-label="Lägg till MSB-resurser"
+            >
+              <Plus size={18} />
+              <span className="hidden sm:inline">Lägg till MSB-resurser</span>
+              <span className="sm:hidden">MSB</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -769,6 +792,14 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         userId={userId}
+        onSuccess={loadResources}
+      />
+
+      <BulkMsbModal
+        isOpen={showBulkMsbModal}
+        onClose={() => setShowBulkMsbModal(false)}
+        userId={userId}
+        existingResources={resources}
         onSuccess={loadResources}
       />
 

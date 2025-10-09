@@ -34,7 +34,6 @@ export function ResourceMiniCard({
   sharedResource
 }: ResourceMiniCardProps) {
   const [showMenu, setShowMenu] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
   const config = categoryConfig[resource.category as CategoryKey];
   const isEmpty = resource.quantity === 0;
@@ -44,14 +43,20 @@ export function ResourceMiniCard({
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (showDeleteConfirm) {
-      onDelete(resource);
-      setShowDeleteConfirm(false);
-    } else {
-      setShowDeleteConfirm(true);
-      setTimeout(() => setShowDeleteConfirm(false), 3000);
-    }
+    console.log('🗑️ Mini card delete clicked for:', resource.name, {
+      resourceId: resource.id
+    });
+    
+    // Close menu first
     setShowMenu(false);
+    
+    // Use native confirm dialog for better reliability
+    if (window.confirm(`Är du säker på att du vill ta bort ${resource.name}?`)) {
+      console.log('✅ User confirmed delete for:', resource.name);
+      onDelete(resource);
+    } else {
+      console.log('❌ User cancelled delete for:', resource.name);
+    }
   };
 
   const getDurabilityDisplay = () => {
@@ -177,7 +182,7 @@ export function ResourceMiniCard({
                 className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
               >
                 <Trash size={14} />
-                {showDeleteConfirm ? 'Bekräfta radering' : 'Radera'}
+                Radera
               </button>
             </div>
           </>

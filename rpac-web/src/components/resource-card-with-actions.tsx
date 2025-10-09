@@ -32,7 +32,6 @@ export function ResourceCardWithActions({
   onShare,
   showActions = true
 }: ResourceCardWithActionsProps) {
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const config = categoryConfig[resource.category as CategoryKey];
   
   const isExpiringSoon = resource.quantity > 0 && resource.days_remaining < 30 && resource.days_remaining < 99999;
@@ -41,12 +40,16 @@ export function ResourceCardWithActions({
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click
-    if (showDeleteConfirm) {
+    console.log('🗑️ Delete button clicked for:', resource.name, {
+      resourceId: resource.id
+    });
+    
+    // Use native confirm dialog for better reliability
+    if (window.confirm(`Är du säker på att du vill ta bort ${resource.name}?`)) {
+      console.log('✅ User confirmed delete for:', resource.name);
       onDelete(resource);
-      setShowDeleteConfirm(false);
     } else {
-      setShowDeleteConfirm(true);
-      setTimeout(() => setShowDeleteConfirm(false), 3000);
+      console.log('❌ User cancelled delete for:', resource.name);
     }
   };
 
@@ -208,16 +211,11 @@ export function ResourceCardWithActions({
             
             <button
               onClick={handleDeleteClick}
-              className={`px-5 py-3 rounded-lg font-bold transition-all flex items-center justify-center gap-2 min-h-[48px] ${
-                showDeleteConfirm
-                  ? 'bg-[#8B4513] text-white shadow-lg'
-                  : 'bg-[#8B4513]/10 text-[#8B4513] hover:bg-[#8B4513]/20 shadow-md'
-              }`}
-              title={showDeleteConfirm ? 'Klicka igen för att bekräfta' : 'Ta bort'}
-              aria-label={showDeleteConfirm ? 'Bekräfta borttagning' : 'Ta bort resurs'}
+              className="px-5 py-3 rounded-lg font-bold transition-all flex items-center justify-center gap-2 min-h-[48px] bg-[#8B4513]/10 text-[#8B4513] hover:bg-[#8B4513]/20 shadow-md hover:shadow-lg"
+              title="Ta bort"
+              aria-label="Ta bort resurs"
             >
               <Trash size={18} />
-              {showDeleteConfirm && <span className="text-xs font-black">Bekräfta?</span>}
             </button>
           </div>
         )}
@@ -234,19 +232,22 @@ export function ResourceTableRow({
   onShare,
   showActions = true
 }: ResourceCardWithActionsProps) {
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const config = categoryConfig[resource.category as CategoryKey];
   
   const isExpiringSoon = resource.quantity > 0 && resource.days_remaining < 30 && resource.days_remaining < 99999;
   const isExpired = resource.quantity > 0 && resource.days_remaining <= 0;
 
   const handleDeleteClick = () => {
-    if (showDeleteConfirm) {
+    console.log('🗑️ Table delete button clicked for:', resource.name, {
+      resourceId: resource.id
+    });
+    
+    // Use native confirm dialog for better reliability
+    if (window.confirm(`Är du säker på att du vill ta bort ${resource.name}?`)) {
+      console.log('✅ User confirmed delete for:', resource.name);
       onDelete(resource);
-      setShowDeleteConfirm(false);
     } else {
-      setShowDeleteConfirm(true);
-      setTimeout(() => setShowDeleteConfirm(false), 3000);
+      console.log('❌ User cancelled delete for:', resource.name);
     }
   };
 
@@ -330,13 +331,9 @@ export function ResourceTableRow({
             
             <button
               onClick={handleDeleteClick}
-              className={`p-3 rounded-lg transition-all min-w-[48px] min-h-[48px] flex items-center justify-center ${
-                showDeleteConfirm
-                  ? 'bg-[#8B4513] text-white shadow-lg'
-                  : 'text-[#8B4513] hover:bg-[#8B4513]/10 shadow-sm hover:shadow-md'
-              }`}
-              title={showDeleteConfirm ? 'Klicka igen för att bekräfta' : 'Ta bort'}
-              aria-label={showDeleteConfirm ? 'Bekräfta borttagning' : 'Ta bort resurs'}
+              className="p-3 rounded-lg transition-all min-w-[48px] min-h-[48px] flex items-center justify-center text-[#8B4513] hover:bg-[#8B4513]/10 shadow-sm hover:shadow-md"
+              title="Ta bort"
+              aria-label="Ta bort resurs"
             >
               <Trash size={20} />
             </button>

@@ -1,3 +1,280 @@
+### 2025-10-09 - EMERGENCY MESSAGES FEATURE REMOVED 🗑️ **CLEANUP**
+
+Removed the entire "Nödsituationer" (Emergency messages) feature as it was not being used and added unnecessary complexity.
+
+#### What Was Removed
+- Emergency messages page (`/local/messages/emergency`)
+- Emergency menu item from side navigation
+- Emergency-specific localization strings
+- Emergency message UI options
+
+#### Files Deleted
+- ✅ `rpac-web/src/app/local/messages/emergency/page.tsx`
+
+#### Files Modified
+- ✅ `rpac-web/src/components/side-menu.tsx`:
+  - Removed "Nödsituationer" from Meddelanden submenu
+  - Now shows only "Samhälle" and "Direkt" under messages
+- ✅ `rpac-web/src/lib/locales/sv.json`:
+  - Removed `emergency_from`, `emergency_messages`, `emergency_description`
+  - Removed `send_emergency`, `emergency_sent`, `emergency_mode`
+  - Removed entire `emergency` section with emergency_info entries
+  - Cleaned up tips mentioning emergency features
+
+#### Backend Services (Kept)
+Database schema and services still support `is_emergency` flags for backward compatibility:
+- `messaging-service.ts` - Database field exists but UI removed
+- `notification-service.ts` - Can handle emergency flags if needed
+- Messages table still has `is_emergency` column
+
+These are harmless infrastructure that won't be used without the UI.
+
+#### Benefits
+- ✅ **Simpler UX**: Less confusing navigation options
+- ✅ **Cleaner codebase**: Removed unused feature code
+- ✅ **Focused functionality**: Users focus on community and direct messaging
+- ✅ **Reduced maintenance**: Less code to maintain and test
+
+---
+
+### 2025-10-09 - COMMUNITY MESSAGES TITLE UPDATE 💬 **UX IMPROVEMENT**
+
+Updated the community messages page title to show the actual community name dynamically.
+
+#### Changes
+- ❌ Old: "Samhällesmeddelanden" (static title)
+- ✅ New: "Chatta med alla i [community name]" (dynamic title)
+
+#### Files Modified
+- ✅ `rpac-web/src/app/local/messages/community/page.tsx`:
+  - Title: `Chatta med alla i {communityName}`
+  - Subtitle: `Samhällschatt för alla medlemmar`
+
+#### Benefits
+- ✅ **Clarity**: Users immediately see which community they're chatting in
+- ✅ **Context**: Especially helpful when member of multiple communities
+- ✅ **Better UX**: Dynamic, contextual information vs static label
+
+---
+
+### 2025-10-09 - CULTIVATION PLAN CROP EDITING ✏️ **NEW FEATURE**
+
+Added the ability to edit crops that have already been added to a cultivation plan.
+
+#### Feature Overview
+Users can now edit existing crops in their cultivation plans:
+- **Edit button** (pencil icon) next to each crop in the plan
+- Opens the same crop selector modal, but in "edit mode"
+- Pre-fills with current crop, quantity, and yield
+- Can change crop type, quantity, or both
+- Modal title changes to "Redigera gröda" when editing
+- Works on both **desktop and mobile**
+
+#### User Journey
+1. Navigate to **Individuell → Odlingsplanering**
+2. Select a plan with existing crops
+3. Click the **pencil icon** (✏️) next to any crop
+4. Modal opens with crop pre-selected and current quantity
+5. **Option 1**: Change quantity → yield updates automatically
+6. **Option 2**: Select a different crop → resets to default quantity
+7. Click "Lägg till" to save changes
+8. Plan updates immediately with new crop data
+
+#### Technical Implementation
+
+**Desktop (`simple-cultivation-manager.tsx`)**:
+- Added `editingCropIndex` state to track which crop is being edited
+- Added `handleEditCrop` function that updates the crop at the specified index
+- Added Pencil button next to each crop with `setEditingCropIndex(index)` onClick
+- Updated `CropSelectorModal` to accept `editingCrop` prop
+- Pre-fills `selectedCrop` and `quantity` when `editingCrop` is provided
+- Modal title dynamically changes based on edit mode
+- Available crops includes the current crop when editing
+
+**Mobile (`simple-cultivation-manager-mobile.tsx`)**:
+- Applied identical changes to mobile version
+- Touch-optimized button sizes (16px icons)
+- Bottom sheet modal with "Redigera gröda" title when editing
+
+**Key Logic**:
+```typescript
+const handleEditCrop = async (cropName: CropName, quantity: number, yieldKg: number) => {
+  if (!selectedPlan || editingCropIndex === null) return;
+
+  const updatedCrops = [...selectedPlan.crops];
+  updatedCrops[editingCropIndex] = {
+    cropName,
+    quantity,
+    estimatedYieldKg: yieldKg
+  };
+  
+  const success = await cultivationPlanService.updatePlan(selectedPlan.id!, {
+    crops: updatedCrops
+  });
+
+  if (success) {
+    await loadPlans();
+    setShowCropSelector(false);
+    setEditingCropIndex(null);
+  }
+};
+```
+
+#### Files Modified
+- ✅ `rpac-web/src/components/simple-cultivation-manager.tsx`:
+  - Added `editingCropIndex` state
+  - Added `handleEditCrop` handler
+  - Added Pencil icon import
+  - Added edit button UI
+  - Updated `CropSelectorModal` to support editing
+- ✅ `rpac-web/src/components/simple-cultivation-manager-mobile.tsx`:
+  - Applied same changes for mobile version
+  - Touch-optimized button spacing
+
+#### Benefits
+- ✅ **Fix mistakes**: Easily correct quantity errors
+- ✅ **Adjust plans**: Adapt to changed garden space or goals
+- ✅ **Swap crops**: Change potato → carrot without deleting/re-adding
+- ✅ **Better UX**: No need to delete and recreate crops
+- ✅ **Consistent**: Same modal for add and edit operations
+
+---
+
+### 2025-10-09 - BULK MSB RESOURCE ADD MODAL 🚀 **NEW FEATURE**
+
+Added a comprehensive bulk add modal for MSB-recommended resources, allowing users to quickly select and add multiple MSB resources at once.
+
+#### Feature Overview
+Users can now mass-add MSB resources through a dedicated modal that:
+- **Table/List View**: Clean, scannable table format for easy review
+- Shows all MSB-recommended items with category filters
+- Allows selecting multiple resources with checkboxes
+- Edit quantities inline before adding
+- Filters by category (Food, Water, Medicine, Energy, Tools, Other)
+- Shows which resources already exist (with amber "Har X" badges)
+- Updates existing resources or creates new ones
+- Provides visual feedback on categories covered (affects MSB fulfillment %)
+
+#### User Journey
+1. Navigate to **Individuell → Resurser**
+2. Click **"+ Lägg till MSB-resurser"** button (next to "Lägg till resurs")
+3. **Filter by category** or select "Alla" (All)
+4. **Bulk select**: Click "Välj alla" to select all visible resources
+5. **Check/uncheck** individual resources in the table
+6. **Edit quantities** inline for selected resources
+7. Click **"Lägg till X resurser"** to bulk add
+8. See success message with count of new vs. updated resources
+9. MSB fulfillment % updates immediately
+
+#### Key Benefits
+- ⚡ **Faster onboarding**: Add 10+ MSB resources in seconds instead of minutes
+- 📊 **Visual guidance**: See which categories are covered (important for MSB %)
+- 🔄 **Smart updates**: Automatically updates existing resources instead of duplicating
+- 📱 **Mobile-friendly**: Touch-optimized with responsive design
+- 🎨 **Cohesive UX**: Matches existing olive green design system
+
+#### Technical Implementation
+
+**New Component**: `rpac-web/src/components/bulk-msb-modal.tsx`
+- Uses `msbRecommendations` from `simple-add-resource-modal.tsx` as data source
+- Filters to show only `is_msb: true` items
+- Tracks selection state and quantities for each resource
+- Detects existing resources and shows amber badge
+- Calculates real-time stats (selected count, categories covered, existing items)
+- Uses `resourceService.addResource()` and `resourceService.updateResource()`
+
+**Integration Points**:
+- ✅ `rpac-web/src/components/personal-resource-inventory.tsx`:
+  - Added "Lägg till MSB-resurser" button next to "Lägg till resurs" button
+  - Button text abbreviated to "MSB" on mobile for space
+  - Added modal state (`showBulkMsbModal`)
+  - Integrated `<BulkMsbModal>` component with table view
+  - Passes `existingResources` to detect duplicates
+- ✅ `rpac-web/src/lib/locales/sv.json`:
+  - Added 13 new localization keys for bulk add feature
+  - All text properly localized (no hardcoded Swedish)
+
+**MSB Fulfillment Logic Reminder**:
+The MSB fulfillment percentage is **category-based**, not resource-count-based:
+- 6 categories: food, water, medicine, energy, tools, other
+- Each category covered = +16.67% (1/6)
+- Must have **at least one MSB resource with quantity > 0** in each category
+- Adding 10 resources in one category = still only 17% (1/6)
+- Adding 1 resource in each of 6 categories = 100% (6/6)
+
+#### Files Modified
+- ✅ **NEW** `rpac-web/src/components/bulk-msb-modal.tsx` (417 lines)
+- ✅ `rpac-web/src/components/personal-resource-inventory.tsx`:
+  - Added import for `BulkMsbModal`
+  - Added `showBulkMsbModal` state
+  - Added "Masslägg till MSB" button in MSB card
+  - Integrated modal component
+- ✅ `rpac-web/src/lib/locales/sv.json`:
+  - Added bulk add localization strings
+
+#### Debug Logging Added
+Also added comprehensive console logging to help debug MSB fulfillment calculations:
+- ✅ `rpac-web/src/components/stunning-dashboard.tsx`
+- ✅ `rpac-web/src/components/stunning-dashboard-mobile.tsx`
+- ✅ `rpac-web/src/components/personal-resource-inventory.tsx`
+
+Log output shows:
+- Total resources count
+- MSB-recommended resources count
+- MSB resources with quantity > 0
+- **Which categories are covered** (key insight!)
+- Fulfillment percentage
+- Detailed resource list with names, categories, quantities
+
+#### Future Enhancements
+- 🔮 Household-size-based quantity suggestions (scale by household size)
+- 🔮 Smart recommendations based on existing gaps
+- 🔮 Quick presets (e.g., "3-day emergency kit", "1-week supplies")
+- 🔮 Import/export MSB checklists
+
+---
+
+### 2025-10-09 - RESOURCE DELETE UX FIX ✅ **COMPLETE**
+
+Fixed resource deletion requiring two clicks where the menu would close after the first click, preventing the confirmation click.
+
+#### Problem
+When users tried to delete a resource:
+1. Click trash icon → Shows "Bekräfta?" (Confirm?)
+2. **Menu/card closes or re-renders** → Can't click second time
+3. Deletion never happens
+
+The two-click confirmation pattern was causing the component to lose state or close before the second click could be registered.
+
+#### Solution
+Replaced the custom two-click confirmation with native `window.confirm()` dialog:
+- **One click** → Shows native browser confirmation dialog
+- **User confirms or cancels** → No state management needed
+- **More reliable** → Dialog blocks until user responds
+- **No re-rendering issues** → Dialog is modal and persistent
+
+#### Files Modified
+- ✅ `rpac-web/src/components/resource-card-with-actions.tsx`:
+  - Removed `showDeleteConfirm` state
+  - Replaced two-click pattern with `window.confirm()`
+  - Simplified button styling (no conditional classes)
+  - Added console logging for debugging
+  - Applied to both card and table row versions
+- ✅ `rpac-web/src/components/resource-mini-card.tsx`:
+  - Removed `showDeleteConfirm` state
+  - Replaced two-click pattern with `window.confirm()`
+  - Fixed menu closing before confirmation click
+  - Simplified button text (no conditional text)
+
+#### Benefits
+- ✅ **Works reliably**: No more menu closing issues
+- ✅ **Simpler UX**: One click instead of two
+- ✅ **Native UI**: Uses familiar browser confirmation dialog
+- ✅ **No state bugs**: No setTimeout or state management
+- ✅ **Better mobile**: Native dialogs work better on touch devices
+
+---
+
 ### 2025-10-09 - CULTIVATION PLAN CALORIE CALCULATION FIX ✅ **COMPLETE**
 
 Fixed incorrect calorie calculations causing discrepancy between plan creation view and dashboard view, AND dashboard using wrong household size.

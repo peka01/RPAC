@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Sprout, TrendingUp, Calendar, Edit, Trash, Star, ChevronRight, X, Check, AlertCircle, HelpCircle } from 'lucide-react';
+import { Plus, Sprout, TrendingUp, Calendar, Edit, Trash, Star, ChevronRight, X, Check, AlertCircle, HelpCircle, Pencil } from 'lucide-react';
 import { 
   cultivationPlanService, 
   CultivationPlan, 
@@ -27,6 +27,7 @@ export function SimpleCultivationManager({ userId, householdSize = 2 }: SimpleCu
   const [showCropSelector, setShowCropSelector] = useState(false);
   const [showMonthlyView, setShowMonthlyView] = useState(false);
   const [editingPlan, setEditingPlan] = useState<CultivationPlan | null>(null);
+  const [editingCropIndex, setEditingCropIndex] = useState<number | null>(null);
 
   useEffect(() => {
     loadPlans();
@@ -97,6 +98,27 @@ export function SimpleCultivationManager({ userId, householdSize = 2 }: SimpleCu
     if (success) {
       await loadPlans();
       setShowCropSelector(false);
+    }
+  };
+
+  const handleEditCrop = async (cropName: CropName, quantity: number, yieldKg: number) => {
+    if (!selectedPlan || editingCropIndex === null) return;
+
+    const updatedCrops = [...selectedPlan.crops];
+    updatedCrops[editingCropIndex] = {
+      cropName,
+      quantity,
+      estimatedYieldKg: yieldKg
+    };
+    
+    const success = await cultivationPlanService.updatePlan(selectedPlan.id!, {
+      crops: updatedCrops
+    });
+
+    if (success) {
+      await loadPlans();
+      setShowCropSelector(false);
+      setEditingCropIndex(null);
     }
   };
 
@@ -397,13 +419,25 @@ export function SimpleCultivationManager({ userId, householdSize = 2 }: SimpleCu
                           {crop.quantity} plantor → {crop.estimatedYieldKg} kg → ~{Math.round(cropKcal)} kcal
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleRemoveCrop(index)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Ta bort gröda"
-                      >
-                        <Trash size={18} />
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            setEditingCropIndex(index);
+                            setShowCropSelector(true);
+                          }}
+                          className="p-2 text-[#3D4A2B] hover:bg-[#3D4A2B]/10 rounded-lg transition-colors"
+                          title="Redigera gröda"
+                        >
+                          <Pencil size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleRemoveCrop(index)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Ta bort gröda"
+                        >
+                          <Trash size={18} />
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
@@ -463,9 +497,13 @@ export function SimpleCultivationManager({ userId, householdSize = 2 }: SimpleCu
 
       {showCropSelector && selectedPlan && (
         <CropSelectorModal
-          onClose={() => setShowCropSelector(false)}
-          onSelect={handleAddCrop}
+          onClose={() => {
+            setShowCropSelector(false);
+            setEditingCropIndex(null);
+          }}
+          onSelect={editingCropIndex !== null ? handleEditCrop : handleAddCrop}
           existingCrops={selectedPlan.crops.map(c => c.cropName)}
+          editingCrop={editingCropIndex !== null ? selectedPlan.crops[editingCropIndex] : undefined}
         />
       )}
     </div>
@@ -599,16 +637,18 @@ function CreatePlanModal({ onClose, onCreate, editingPlan }: {
 }
 
 // Crop Selector Modal
-function CropSelectorModal({ onClose, onSelect, existingCrops }: {
+function CropSelectorModal({ onClose, onSelect, existingCrops, editingCrop }: {
   onClose: () => void;
   onSelect: (crop: CropName, quantity: number, yieldKg: number) => void;
   existingCrops: CropName[];
+  editingCrop?: CultivationCrop;
 }) {
-  const [selectedCrop, setSelectedCrop] = useState<CropName | null>(null);
-  const [quantity, setQuantity] = useState<number>(10);
+  const [selectedCrop, setSelectedCrop] = useState<CropName | null>(editingCrop?.cropName || null);
+  const [quantity, setQuantity] = useState<number>(editingCrop?.quantity || 10);
 
+  // When editing, allow the current crop to be selected even if it exists
   const availableCrops = Object.keys(CROP_LIBRARY).filter(
-    crop => !existingCrops.includes(crop as CropName)
+    crop => !existingCrops.includes(crop as CropName) || crop === editingCrop?.cropName
   ) as CropName[];
 
   // Auto-calculate yield whenever quantity or crop changes
@@ -626,7 +666,9 @@ function CropSelectorModal({ onClose, onSelect, existingCrops }: {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 my-8">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-2xl font-black text-gray-900">Lägg till gröda</h3>
+          <h3 className="text-2xl font-black text-gray-900">
+            {editingCrop ? 'Redigera gröda' : 'Lägg till gröda'}
+          </h3>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"

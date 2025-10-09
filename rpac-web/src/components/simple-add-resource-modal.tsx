@@ -6,7 +6,7 @@ import { t } from '@/lib/locales';
 import { resourceService, Resource } from '@/lib/supabase';
 
 // Category configuration
-const categoryConfig = {
+export const categoryConfig = {
   food: { emoji: '🍞', label: 'Mat', color: '#FFC000' },
   water: { emoji: '💧', label: 'Vatten', color: '#4A90E2' },
   medicine: { emoji: '💊', label: 'Medicin', color: '#8B4513' },
