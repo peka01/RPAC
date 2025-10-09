@@ -508,6 +508,10 @@
       "multiple": "resurser"
     },
     "days": "dagar",
+    "shared_resources_title": "Dina delade resurser",
+    "shared_resources_description": "Resurser du delar med dig av",
+    "show": "Visa",
+    "hide": "Dölj",
     "dashboard": {
       "title": "Min beredskapsstatus",
       "preparedness_score": "Beredskapspoäng",

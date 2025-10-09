@@ -45,21 +45,37 @@ interface SideMenuProps {
   communityPulse: boolean;
 }
 
+interface NavigationChild {
+  name: string;
+  href: string;
+  icon: any;
+  isSecondary?: boolean;
+  children?: NavigationChild[];
+}
+
+interface NavigationItem {
+  name: string;
+  href: string;
+  icon: any;
+  description: string;
+  category: string;
+  children?: NavigationChild[];
+}
+
 export function SideMenu({ user, isOnline, isCrisisMode, communityPulse }: SideMenuProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [isMinimized, setIsMinimized] = useState(false);
   const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set([
-    t('navigation.overview'),
-    t('navigation.individual'), 
-    t('navigation.local'),
-    t('navigation.regional'),
-    'Meddelanden'
-  ]));
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const [flyoutSection, setFlyoutSection] = useState<string | null>(null);
+  const [flyoutPosition, setFlyoutPosition] = useState<number>(0);
+  const flyoutRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
 
   // Professional Crisis Intelligence Navigation - Strict RPAC Icons
-  const navigation = [
+  const navigation: NavigationItem[] = [
     { 
       name: t('navigation.overview'), 
       href: '/dashboard', 
@@ -85,16 +101,9 @@ export function SideMenu({ user, isOnline, isCrisisMode, communityPulse }: SideM
           description: t('navigation.descriptions.community_resources'),
           category: t('navigation.categories.local'),
           children: [
-            { 
-              name: 'Resurser', 
-              href: '/local/resources/owned', 
-              icon: Package,
-              children: [
-                { name: 'Gemensamma resurser', href: '/local/resources/owned', icon: Building2 },
-                { name: 'Delade från medlemmar', href: '/local/resources/shared', icon: Share2 },
-                { name: 'Hjälpförfrågningar', href: '/local/resources/help', icon: AlertCircle }
-              ]
-            },
+            { name: 'Gemensamma resurser', href: '/local/resources/owned', icon: Building2 },
+            { name: 'Delade resurser', href: '/local/resources/shared', icon: Share2 },
+            { name: 'Hjälpförfrågningar', href: '/local/resources/help', icon: AlertCircle },
             { 
               name: 'Hitta fler samhällen', 
               href: '/local/discover', 
@@ -210,55 +219,54 @@ export function SideMenu({ user, isOnline, isCrisisMode, communityPulse }: SideM
     return currentFullUrl === href;
   };
 
+  // Close flyout when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      const clickedOutsideFlyout = flyoutRef.current && !flyoutRef.current.contains(target);
+      const clickedOutsideSidebar = sidebarRef.current && !sidebarRef.current.contains(target);
+      
+      if (clickedOutsideFlyout && clickedOutsideSidebar) {
+        setFlyoutSection(null);
+      }
+    };
+
+    if (flyoutSection) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [flyoutSection]);
+
 
   return (
     <>
       {/* Side Menu */}
-      <div className={`
-        fixed top-0 left-0 h-full z-40 transition-all duration-300 ease-in-out
-        ${isCollapsed ? 'w-16' : 'w-80'}
-        bg-gradient-to-br from-[#3D4A2B]/5 via-white to-[#5C6B47]/5
-        shadow-2xl border-r border-[#3D4A2B]/20
-        backdrop-blur-sm
-      `}>
+      <div 
+        ref={sidebarRef}
+        className={`
+          fixed top-0 left-0 h-full z-40 transition-all duration-300 ease-in-out
+          ${isCollapsed ? 'w-24' : 'w-80'}
+          bg-gradient-to-br from-[#3D4A2B]/5 via-white to-[#5C6B47]/5
+          shadow-2xl border-r border-[#3D4A2B]/20
+          backdrop-blur-sm
+        `}>
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-[#3D4A2B]/10 bg-white/80 backdrop-blur-sm" style={{ transform: 'scale(0.8)', transformOrigin: 'top left' }}>
-          {!isCollapsed && (
-            <div className="flex items-center gap-4">
-              <img 
-                src="/beready-logo2.png" 
-                alt="BE READY" 
-                className="h-10 w-auto"
-              />
-            </div>
+        <div className="flex items-center justify-center p-4 border-b border-[#3D4A2B]/10 bg-white/80 backdrop-blur-sm">
+          {!isCollapsed ? (
+            <img 
+              src="/beready-logo2.png" 
+              alt="BE READY" 
+              className="h-8 w-auto"
+            />
+          ) : (
+            <Shield className="w-6 h-6 text-[#3D4A2B]" strokeWidth={2.5} />
           )}
-          
-          {isCollapsed && (
-            <div className="flex items-center justify-center w-full">
-              <img 
-                src="/beready-logo2.png" 
-                alt="BE READY" 
-                className="h-8 w-auto"
-              />
-            </div>
-          )}
-          
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="w-10 h-10 bg-[#3D4A2B]/10 hover:bg-[#3D4A2B]/20 rounded-xl flex items-center justify-center transition-all duration-200 shadow-sm border border-[#3D4A2B]/20 hover:border-[#3D4A2B]/30"
-          >
-            {isCollapsed ? (
-              <ChevronRight className="w-5 h-5 text-[#3D4A2B]" strokeWidth={2} />
-            ) : (
-              <ChevronLeft className="w-5 h-5 text-[#3D4A2B]" strokeWidth={2} />
-            )}
-          </button>
         </div>
 
 
         {/* Navigation - Cohesive Connected Design */}
-        <nav className="flex-1 py-5 overflow-y-auto overflow-x-hidden" style={{ transform: 'scale(0.8)', transformOrigin: 'top left' }}>
-          <div className="space-y-3 px-4">
+        <nav className="flex-1 pt-8 pb-5 overflow-y-auto overflow-x-hidden">
+          <div className={`space-y-3 ${isCollapsed ? 'px-3' : 'px-4'}`}>
             {navigation.map((section) => {
               const isExpanded = expandedSections.has(section.name);
               const isSectionActive = isActive(section.href);
@@ -288,12 +296,22 @@ export function SideMenu({ user, isOnline, isCrisisMode, communityPulse }: SideM
                     <div className="relative flex items-center p-1">
                       <Link
                         href={section.href}
-                        onClick={() => {
+                        onClick={(e) => {
                           if (section.children && section.children.length > 0) {
-                            toggleSection(section.name);
+                            e.preventDefault();
+                            if (isCollapsed) {
+                              // When collapsed, show flyout menu at icon position
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              setFlyoutPosition(rect.top);
+                              setFlyoutSection(flyoutSection === section.name ? null : section.name);
+                            } else {
+                              // When expanded, toggle expansion
+                              toggleSection(section.name);
+                            }
                           }
                         }}
-                        className="group flex items-center gap-4 px-4 py-4 flex-1 touch-manipulation"
+                        className={`group flex items-center gap-4 flex-1 touch-manipulation relative ${isCollapsed ? 'justify-center px-2 py-4' : 'px-4 py-4'}`}
+                        title={isCollapsed ? section.name : undefined}
                       >
                         {/* Icon with magnetic hover effect */}
                         <div className={`
@@ -405,14 +423,18 @@ export function SideMenu({ user, isOnline, isCrisisMode, communityPulse }: SideM
                                     <div className="absolute left-1 top-1/2 w-4 h-0.5 bg-[#3D4A2B]/25 rounded-full -translate-y-1/2" />
                                     
                                     <div className={`
-                                      flex items-center flex-1 ml-5 rounded-xl overflow-hidden
+                                      flex items-center flex-1 ml-5 rounded-xl overflow-hidden relative
                                       ${isChildActive 
-                                        ? 'bg-white/40 border-l-4 border-[#5C6B47] shadow-md' 
+                                        ? 'bg-gradient-to-r from-[#5C6B47]/20 to-[#5C6B47]/10 shadow-lg ring-2 ring-[#5C6B47]/30' 
                                         : 'bg-white/20 hover:bg-white/40 shadow-sm hover:shadow-md'
                                       }
                                       transition-all duration-300 ease-out
                                       hover:translate-x-1
                                     `}>
+                                      {/* Active indicator - left accent */}
+                                      {isChildActive && (
+                                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#5C6B47] rounded-l-xl" />
+                                      )}
                                       <Link
                                         href={child.href}
                                         onClick={() => {
@@ -508,9 +530,9 @@ export function SideMenu({ user, isOnline, isCrisisMode, communityPulse }: SideM
                                                 <Link
                                                   href={subChild.href}
                                                   className={`
-                                                    group flex items-center gap-3 px-3 py-2.5 rounded-lg ml-3
+                                                    group flex items-center gap-3 px-3 py-2.5 rounded-lg ml-3 relative
                                                     ${isSubChildActive 
-                                                      ? 'bg-white/40 border-l-3 border-[#3D4A2B] shadow-md' 
+                                                      ? 'bg-gradient-to-r from-[#3D4A2B]/20 to-[#3D4A2B]/10 shadow-lg ring-2 ring-[#3D4A2B]/30' 
                                                       : 'bg-white/15 hover:bg-white/30 shadow-sm hover:shadow-md'
                                                     }
                                                     transition-all duration-300 ease-out
@@ -518,6 +540,10 @@ export function SideMenu({ user, isOnline, isCrisisMode, communityPulse }: SideM
                                                     touch-manipulation
                                                   `}
                                                 >
+                                                  {/* Active indicator - left accent for level 3 */}
+                                                  {isSubChildActive && (
+                                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#3D4A2B] rounded-l-lg" />
+                                                  )}
                                                   {/* Sub-child Icon */}
                                                   <div className={`
                                                     w-8 h-8 rounded-lg flex items-center justify-center
@@ -568,6 +594,78 @@ export function SideMenu({ user, isOnline, isCrisisMode, communityPulse }: SideM
             })}
           </div>
         </nav>
+
+        {/* Flyout Menu for Collapsed State */}
+        {isCollapsed && flyoutSection && (
+          <div
+            ref={flyoutRef}
+            className="fixed left-24 w-56 bg-white/95 backdrop-blur-sm shadow-2xl border border-[#3D4A2B]/20 rounded-r-xl z-50"
+            style={{
+              top: `${flyoutPosition}px`,
+              animation: 'slideIn 0.15s ease-out'
+            }}
+          >
+            {navigation.map((section) => {
+              if (section.name !== flyoutSection) return null;
+              
+              return (
+                <div key={section.name} className="py-2">
+                  {section.children && section.children.map((child, index) => {
+                    const isChildActive = isActive(child.href);
+                    
+                    return (
+                      <Link
+                        key={child.name}
+                        href={child.href}
+                        onClick={() => setFlyoutSection(null)}
+                        className={`
+                          flex items-center gap-3 px-3 py-2.5 mx-2 rounded-lg
+                          transition-all duration-200
+                          ${index > 0 ? 'mt-1' : ''}
+                          ${isChildActive 
+                            ? 'bg-gradient-to-r from-[#5C6B47]/20 to-[#5C6B47]/10 ring-1 ring-[#5C6B47]/30 shadow-md' 
+                            : 'hover:bg-[#3D4A2B]/5'
+                          }
+                        `}
+                      >
+                        <div className={`
+                          w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0
+                          ${isChildActive ? 'bg-[#5C6B47]/20' : 'bg-[#3D4A2B]/10'}
+                        `}>
+                          <child.icon 
+                            className={`w-4 h-4 ${isChildActive ? 'text-[#3D4A2B]' : 'text-[#4A5239]'}`}
+                            strokeWidth={2}
+                          />
+                        </div>
+                        <span className={`text-sm font-medium ${isChildActive ? 'text-[#2A331E]' : 'text-[#4A5239]'}`}>
+                          {child.name}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Toggle Button - Bottom of Sidebar */}
+        <div className="p-3">
+          <button
+            onClick={() => {
+              setIsCollapsed(!isCollapsed);
+            }}
+            className="w-full h-8 bg-transparent hover:bg-[#3D4A2B]/5 rounded-md flex items-center justify-center transition-all duration-200 group"
+            title={isCollapsed ? 'Expandera meny' : 'Minimera meny'}
+            aria-label={isCollapsed ? 'Expandera meny' : 'Minimera meny'}
+          >
+            {isCollapsed ? (
+              <ChevronRight className="w-4 h-4 text-[#3D4A2B]/40 group-hover:text-[#3D4A2B]" strokeWidth={1.5} />
+            ) : (
+              <ChevronLeft className="w-4 h-4 text-[#3D4A2B]/40 group-hover:text-[#3D4A2B]" strokeWidth={1.5} />
+            )}
+          </button>
+        </div>
 
       </div>
     </>

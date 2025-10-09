@@ -419,8 +419,8 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
                 <Share2 size={20} className="text-[#5C6B47]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Dina delade resurser</h3>
-                <p className="text-sm text-gray-600">Resurser du delar med andra</p>
+                <h3 className="text-lg font-bold text-gray-900">{t('resources.shared_resources_title')}</h3>
+                <p className="text-sm text-gray-600">{t('resources.shared_resources_description')}</p>
               </div>
             </div>
             <button
@@ -429,7 +429,7 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
             >
               {showSharedResources ? <EyeOff size={16} /> : <Eye size={16} />}
               <span className="text-sm font-medium">
-                {showSharedResources ? 'Dölj' : 'Visa'}
+                {showSharedResources ? t('resources.hide') : t('resources.show')}
               </span>
             </button>
           </div>

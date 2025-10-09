@@ -815,18 +815,6 @@ function SharedResourcesView({
 
   return (
     <div className="space-y-4">
-      {/* Resource Summary */}
-      <div className="bg-gradient-to-r from-[#5C6B47]/10 to-[#707C5F]/10 rounded-xl p-4 border border-[#5C6B47]/20">
-        <div className="flex items-center justify-between">
-          <div className="text-sm font-semibold text-[#3D4A2B]">
-            {groupedResources.length} olika resurstyper
-          </div>
-          <div className="text-sm text-gray-600">
-            Totalt {groupedResources.reduce((sum, group) => sum + group.reduce((s, r) => s + r.shared_quantity, 0), 0)} enheter
-          </div>
-        </div>
-      </div>
-
       {groupedResources.map((group, idx) => {
         const firstResource = group[0];
         const totalQuantity = group.reduce((sum, r) => sum + r.shared_quantity, 0);

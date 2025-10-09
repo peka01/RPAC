@@ -49,10 +49,68 @@ npm run build            # Only for production testing!
 - Member count tracking and user presence
 - Complete resource sharing system with status management
 - **Database cleanup completed** - Removed obsolete cultivation tables and migration files
-- Professional navigation system (side menu + mobile)
-- State-of-the-art notification center
+- **Professional navigation system with collapsible sidebar** - See "Navigation System Changes" below
+- State-of-the-art notification center with realtime updates
 
 **Phase 3 (Regional Coordination)**: 🔄 IN PROGRESS
+
+## 🎨 Navigation System Changes (October 9, 2025) - IMPORTANT FOR USER GUIDANCE
+
+### Overview
+The side navigation has been completely redesigned with a collapsible sidebar and flyout menus.
+
+### Key Changes for User Experience:
+
+#### 1. **Default Collapsed State**
+- All navigation sections start **collapsed** (closed) on first load
+- Users see only the top-level icons initially
+- Click to expand sections and see child items
+- Cleaner, less overwhelming initial view
+
+#### 2. **Collapsible Sidebar**
+- **Toggle button** at the bottom of sidebar (subtle chevron)
+- Click to collapse sidebar to just **icons** (96px width)
+- Click again to expand back to full width (320px)
+- Smooth 300ms animation
+
+#### 3. **Flyout Menus (When Collapsed)**
+- When sidebar is collapsed, clicking an icon with children shows a **compact flyout menu**
+- Flyout appears right next to the clicked icon (not full-height)
+- Shows all submenu items with icons
+- Click submenu item to navigate
+- Click outside to close flyout
+- Flyout is small and contextual (224px wide, auto-height)
+
+#### 4. **Active State Highlighting**
+- **NEW**: Gradient background with ring border (no more left border "parenthesis")
+- Active items have:
+  - Subtle gradient background (`from-[#5C6B47]/20 to-[#5C6B47]/10`)
+  - Ring border (`ring-2 ring-[#5C6B47]/30`)
+  - Enhanced shadow
+  - Thin accent bar (1px left border)
+- Much clearer visual feedback
+
+#### 5. **Removed Features**
+- ❌ Emergency messages section deleted (was unused)
+- ❌ "Resurser" parent menu removed (children promoted to top level)
+
+### For KRISter (AI Guide):
+When helping users navigate:
+- **Explain the collapsed state**: "All menus start closed. Click to expand and see options."
+- **Mention the toggle**: "You can minimize the sidebar using the small chevron at the bottom."
+- **Describe flyouts**: "When sidebar is minimized, click icons to see a popup menu."
+- **Guide on active states**: "The current page is highlighted with a green background and border."
+- **Navigation paths updated**:
+  - "Gemensamma resurser" is now directly under "Lokalt" (no "Resurser" parent)
+  - "Delade resurser" (formerly "Delade från medlemmar") is directly under "Lokalt"
+  - "Hjälpförfrågningar" is directly under "Lokalt"
+  - No more "Nödsituationer" - removed entirely
+
+### Technical Details:
+- Sidebar state persists during session (not across page reloads)
+- Flyout position calculated dynamically based on icon location
+- Click-outside detection closes flyouts
+- Mobile navigation unchanged (separate responsive component)
 
 ## Scope
 

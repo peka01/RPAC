@@ -1,3 +1,98 @@
+### 2025-10-09 - SIDE NAVIGATION IMPROVEMENTS 🎨 **UX ENHANCEMENT**
+
+Improved the side navigation with better active state indicators and collapsible functionality.
+
+#### Active State Improvements
+**Problem**: The active state used a thick left border (`border-l-4`) that looked like a parenthesis "(" and was unclear.
+
+**Solution**: Redesigned with multiple visual indicators:
+- **Gradient background**: Subtle color wash across the item
+- **Ring border**: 2px ring around entire item (`ring-2 ring-[color]/30`)
+- **Enhanced shadow**: Stronger shadow (`shadow-lg`)
+- **Thin accent bar**: 1px absolute positioned left bar (not 4px border)
+- Color-coded by level: Level 2 uses `#5C6B47`, Level 3 uses `#3D4A2B`
+
+**Benefits**:
+- ✅ Clear, unmistakable active state
+- ✅ No more "parenthesis" confusion
+- ✅ Consistent across all navigation levels
+- ✅ Maintains olive green design system
+
+#### Collapsible Sidebar
+Enhanced the existing collapse functionality for a true minimized experience:
+
+**Features**:
+- Subtle toggle button at bottom of sidebar (ghost chevron)
+- Collapses to 96px width (just icons)
+- Icons remain centered and fully functional
+- Native browser tooltips on hover when collapsed
+- All text and children hidden when collapsed
+- Smooth 300ms transition animation
+- **All sections start collapsed by default** (cleaner initial view)
+- When sidebar collapsed: clicking icons shows flyout submenu
+- When sidebar expanded: clicking icons toggles expansion
+
+**Toggle Button Design**:
+- Transparent background with minimal hover effect
+- 40% opacity icon that brightens on hover
+- No text label - just a subtle chevron indicator
+- Positioned at bottom of sidebar
+- "There when needed" - unobtrusive design
+
+**Usage**:
+1. Click the subtle chevron button at the bottom of the sidebar
+2. Sidebar collapses to icon-only vertical bar (96px)
+3. Hover over icons to see tooltip with section name
+4. **Click icons with children** to show flyout submenu to the right
+5. **Click icons without children** to navigate directly
+6. Click chevron again to expand full sidebar
+
+**Flyout Submenu (Collapsed Sidebar Mode)**:
+- When sidebar is collapsed (96px), clicking Level 1 items with children shows a compact flyout
+- Flyout is **small and contextual** (224px wide, auto-height)
+- Appears right next to the clicked icon (dynamically positioned)
+- Smooth 150ms slide-in animation
+- No header - just menu items for cleaner, more compact design
+- Lists all child items with icons and active state highlighting
+- Clicking a child item navigates and closes the flyout
+- Clicking outside the sidebar+flyout closes the flyout
+- Visual style: frosted glass (`bg-white/95 backdrop-blur-sm`) with rounded corners
+
+**Initial State**:
+- All navigation sections start **collapsed** (empty `expandedSections` Set)
+- Users see top-level items with right-pointing chevrons
+- Click to expand and reveal children
+- Provides cleaner, less overwhelming initial view
+
+**Files Modified**:
+- ✅ `rpac-web/src/components/side-menu.tsx`:
+  - Updated active state styling (removed `border-l-4`, added gradient + ring)
+  - Updated collapsed width to `w-24` (96px) for better icon spacing
+  - Added tooltips (`title` attribute) when collapsed
+  - Centered icons when collapsed with conditional classes
+  - Added compact flyout menu system for Level 2 navigation in collapsed mode
+  - Flyout positioning tracks clicked icon position
+  - Click-outside detection to close flyout
+  - Smooth slide-in animation for flyout (150ms)
+  - Changed initial state to empty Set (all sections start collapsed)
+  - Both level 2 and level 3 items updated
+- ✅ `docs/llm_instructions.md`:
+  - Added "Navigation System Changes" section for KRISter
+  - Detailed user-facing explanations of all navigation changes
+  - Updated navigation paths (removed "Resurser" parent, "Nödsituationer")
+  - Guidance for AI on helping users with new navigation
+
+#### Benefits
+- ✅ **Space saving**: Minimizes to 96px when collapsed
+- ✅ **Clear active state**: New design is unmistakable
+- ✅ **Full navigation access**: Flyout menus provide complete Level 2 access
+- ✅ **Quick navigation**: Icons remain accessible when collapsed
+- ✅ **Smooth UX**: Animated transitions feel polished
+- ✅ **Tooltips**: User knows what each icon represents
+- ✅ **Smart behavior**: Icons adapt based on having children or not
+
+---
+
 ### 2025-10-09 - EMERGENCY MESSAGES FEATURE REMOVED 🗑️ **CLEANUP**
 
 Removed the entire "Nödsituationer" (Emergency messages) feature as it was not being used and added unnecessary complexity.

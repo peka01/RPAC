@@ -825,32 +825,6 @@ export function CommunityResourceHub({
         {/* Tier 1: Shared from Members - Enhanced Display */}
         {activeTab === 'shared' && (
           <div className="space-y-6">
-            {/* Resource Summary Bar */}
-            {filteredShared.length > 0 && (
-              <div className="bg-gradient-to-r from-[#5C6B47]/10 to-[#707C5F]/10 rounded-xl p-4 border border-[#5C6B47]/20">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="text-sm font-semibold text-[#3D4A2B]">
-                      {groupedSharedResources.length} olika resurstyper
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      Totalt {filteredShared.reduce((sum, r) => sum + r.shared_quantity, 0)} enheter
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <div className="flex items-center gap-1">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-gray-600">{stats.availableShared} tillgängliga</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                      <span className="text-gray-600">{stats.totalShared - stats.availableShared} begärda</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {filteredShared.length === 0 ? (
               <div className="bg-white rounded-xl p-12 text-center shadow-md border border-gray-100">
                 <div className="w-20 h-20 bg-[#5C6B47]/10 rounded-full flex items-center justify-center mx-auto mb-6">
