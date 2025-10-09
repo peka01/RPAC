@@ -103,12 +103,7 @@ export const notificationService = {
       title,
       content,
       senderName,
-      actionUrl,
-      metadata: {
-        is_community_message: !!communityId,
-        community_id: communityId,
-        sender_id: senderId
-      }
+      actionUrl
     });
   },
 

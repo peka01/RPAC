@@ -1,7 +1,7 @@
 {
-  "name": "RPAC - Beredskap & Krisverktyg",
-  "short_name": "RPAC",
-  "description": "Resilience & Preparedness AI Companion - Svenskspråkigt krisverktyg för beredskap och ömsesidig hjälp",
+  "name": "BeReady - appen för krisberedskap",
+  "short_name": "BeReady",
+  "description": "BeReady - krisverktyg för beredskap och ömsesidig hjälp",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

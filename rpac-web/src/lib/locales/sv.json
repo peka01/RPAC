@@ -183,7 +183,7 @@
   "auth": {
     "create_account": "Skapa konto",
     "sign_in": "Logga in",
-    "welcome_back": "Välkommen till Beready",
+    "welcome_back": "Välkommen till BeReady",
     "start_journey": "Börja din beredskapsresa idag",
     "continue": "Logga in för att fortsätta",
     "already_have_account": "Har du redan ett konto?",
@@ -207,7 +207,7 @@
     "display_name_required": "Visningsnamn måste anges",
     "display_name_helper": "Detta namn kommer att visas för andra användare i samhällsfunktioner",
     "gdpr_consent_required": "Du måste godkänna villkoren för att skapa ett konto",
-    "gdpr_consent_text": "Jag godkänner att Beready lagrar och behandlar mina personuppgifter enligt GDPR. Jag förstår att jag kan återkalla mitt samtycke när som helst.",
+    "gdpr_consent_text": "Jag godkänner att BeReady lagrar och behandlar mina personuppgifter enligt GDPR. Jag förstår att jag kan återkalla mitt samtycke när som helst.",
     "gdpr_learn_more": "Läs mer om hur vi skyddar din integritet",
     "privacy_policy": "Integritetspolicy",
     "terms_of_service": "Användarvillkor"
@@ -313,7 +313,7 @@
     "preparedness_score_tooltip_calculation": "Beräkning: Poängen vägs samman från antal aktiva medlemmar, delade resurser, besvarade hjälpförfrågningar och hur länge samhällena varit aktiva. Skalan är 0-10 där 10 är högsta beredskap."
   },
   "dashboard": {
-    "title": "BEREADY",
+    "title": "BeReady",
     "good_evening": "God kväll",
     "good_night": "God natt",
     "good_morning": "God morgon",
@@ -411,7 +411,7 @@
     "click_to_edit": "Klicka för att redigera"
   },
   "metadata": {
-    "app_title": "Beready - Beredskap & krisverktyg",
+    "app_title": "BeReady - Beredskap & krisverktyg",
     "keywords_crisis": "krisberedskap",
     "keywords_resilience": "resiliens",
     "keywords_swedish": "svenska",
