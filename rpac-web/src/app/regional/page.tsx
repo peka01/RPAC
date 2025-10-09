@@ -1,288 +1,103 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MapPin, Users, TrendingUp, AlertTriangle } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
+import { RegionalOverviewResponsive } from '@/components/regional-overview-responsive';
 import { t } from '@/lib/locales';
 import type { User } from '@supabase/supabase-js';
 
 export default function RegionalPage() {
   const [user, setUser] = useState<User | null>(null);
+  const [county, setCounty] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
-  // Always use demo mode for now
   useEffect(() => {
-    const timer = setTimeout(() => {
-      console.log('RegionalPage: Using demo mode');
-      const demoUser = {
-        id: 'demo-user',
-        email: 'demo@rpac.se',
-        user_metadata: { name: 'Demo Användare' }
-      } as unknown as User;
-      setUser(demoUser);
-      setLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
+    loadUserAndCounty();
   }, []);
+
+  const loadUserAndCounty = async () => {
+    try {
+      // Get current user
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      
+      console.log('[RegionalPage] Current user:', currentUser?.id);
+      
+      if (currentUser) {
+        setUser(currentUser);
+        
+        // Get user profile to find their county
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('county, postal_code, city')
+          .eq('user_id', currentUser.id)
+          .single();
+
+        console.log('[RegionalPage] User profile:', profile);
+
+        if (profile?.county) {
+          console.log('[RegionalPage] Using county from profile:', profile.county);
+          setCounty(profile.county);
+        } else if (profile?.postal_code) {
+          // If no county set, try to derive from postal code
+          const derivedCounty = getCountyFromPostalCode(profile.postal_code);
+          console.log('[RegionalPage] Derived county from postal code', profile.postal_code, ':', derivedCounty);
+          setCounty(derivedCounty);
+        } else {
+          // Default to Stockholm if no location data
+          console.log('[RegionalPage] No location data, defaulting to Stockholm');
+          setCounty('Stockholm');
+        }
+      } else {
+        // For demo/non-logged in users, default to Stockholm
+        console.log('[RegionalPage] No user, defaulting to Stockholm');
+        setCounty('Stockholm');
+      }
+    } catch (error) {
+      console.error('[RegionalPage] Error loading user and county:', error);
+      // Fallback to Stockholm
+      setCounty('Stockholm');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Simple postal code to county mapping (simplified version)
+  const getCountyFromPostalCode = (postalCode: string): string => {
+    const code = postalCode.replace(/\s/g, '').substring(0, 3);
+    const firstTwo = parseInt(code.substring(0, 2));
+
+    // Simplified mapping based on postal code ranges
+    if (firstTwo >= 10 && firstTwo <= 19) return 'Stockholm';
+    if (firstTwo >= 20 && firstTwo <= 26) return 'Skåne';
+    if (firstTwo >= 30 && firstTwo <= 31) return 'Halland';
+    if (firstTwo >= 40 && firstTwo <= 49) return 'Västra Götaland';
+    if (firstTwo >= 50 && firstTwo <= 59) return 'Östergötland';
+    if (firstTwo >= 60 && firstTwo <= 64) return 'Jönköping';
+    if (firstTwo >= 65 && firstTwo <= 69) return 'Kronoberg';
+    if (firstTwo >= 70 && firstTwo <= 74) return 'Örebro';
+    if (firstTwo >= 75 && firstTwo <= 77) return 'Södermanland';
+    if (firstTwo >= 80 && firstTwo <= 83) return 'Gävleborg';
+    if (firstTwo >= 84 && firstTwo <= 86) return 'Västernorrland';
+    if (firstTwo >= 87 && firstTwo <= 89) return 'Jämtland';
+    if (firstTwo >= 90 && firstTwo <= 94) return 'Västerbotten';
+    if (firstTwo >= 95 && firstTwo <= 98) return 'Norrbotten';
+    
+    return 'Stockholm'; // Default fallback
+  };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <ShieldProgressSpinner variant="bounce" size="xl" color="olive" message="Laddar" />
+        <ShieldProgressSpinner 
+          variant="bounce" 
+          size="xl" 
+          color="olive" 
+          message={t('regional.loading_county_data')}
+        />
       </div>
     );
   }
 
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <ShieldProgressSpinner variant="bounce" size="xl" color="olive" message="Startar" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-gray-50">
-      {/* Desktop Layout */}
-      <div className="hidden md:block">
-        <div className="max-w-7xl mx-auto px-6 py-12 space-y-8">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold mb-2 text-gray-800">
-              {t('regional.title')}
-            </h1>
-          </div>
-
-          {/* Regional Status Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white rounded-lg shadow-md p-6 border">
-              <div className="flex items-center gap-3 mb-3">
-                <MapPin size={24} className="text-blue-600" />
-                <h3 className="text-lg font-semibold text-gray-800">
-                  {t('regional.active_communities')}
-                </h3>
-              </div>
-              <p className="text-3xl font-bold mb-2 text-blue-600">
-                12
-              </p>
-              <p className="text-sm text-gray-600">
-                {t('regional.registered_communities')}
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-md p-6 border">
-              <div className="flex items-center gap-3 mb-3">
-                <Users size={24} className="text-green-600" />
-                <h3 className="text-lg font-semibold text-gray-800">
-                  {t('regional.active_users')}
-                </h3>
-              </div>
-              <p className="text-3xl font-bold mb-2 text-green-600">
-                247
-              </p>
-              <p className="text-sm text-gray-600">
-                {t('regional.registered_users')}
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-md p-6 border">
-              <div className="flex items-center gap-3 mb-3">
-                <TrendingUp size={24} className="text-purple-600" />
-                <h3 className="text-lg font-semibold text-gray-800">
-                  {t('regional.preparedness_score')}
-                </h3>
-              </div>
-              <p className="text-3xl font-bold mb-2 text-purple-600">
-                8.2
-              </p>
-              <p className="text-sm text-gray-600">
-                {t('regional.average_score')}
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-md p-6 border">
-              <div className="flex items-center gap-3 mb-3">
-                <AlertTriangle size={24} className="text-red-600" />
-                <h3 className="text-lg font-semibold text-gray-800">
-                  {t('regional.help_requests')}
-                </h3>
-              </div>
-              <p className="text-3xl font-bold mb-2 text-red-600">
-                3
-              </p>
-              <p className="text-sm text-gray-600">
-                {t('regional.open_requests')}
-              </p>
-            </div>
-          </div>
-
-          {/* Regional Map Placeholder */}
-          <div className="bg-white rounded-lg shadow-md p-8 border">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">
-              {t('regional.regional_map')}
-            </h2>
-            <div className="bg-gray-200 rounded-lg h-64 flex items-center justify-center">
-              <p className="text-gray-600">
-                {t('regional.map_coming_soon')}
-              </p>
-            </div>
-          </div>
-
-          {/* Regional News/Updates */}
-          <div className="bg-white rounded-lg shadow-md p-6 border">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">
-              {t('regional.regional_updates')}
-            </h2>
-            <div className="space-y-4">
-              <div className="border-l-4 border-blue-500 pl-4">
-                <h3 className="font-medium text-gray-800">
-                  {t('regional.new_community_registered')}
-                </h3>
-                <p className="text-sm text-gray-600">
-                  {t('regional.malmo_centrum_registered')}
-                </p>
-                <p className="text-xs text-gray-500">2 {t('regional.hours_ago')}</p>
-              </div>
-              
-              <div className="border-l-4 border-green-500 pl-4">
-                <h3 className="font-medium text-gray-800">
-                  {t('regional.preparedness_exercise_completed')}
-                </h3>
-                <p className="text-sm text-gray-600">
-                  {t('regional.gothenburg_exercise')}
-                </p>
-                <p className="text-xs text-gray-500">1 {t('regional.day_ago')}</p>
-              </div>
-              
-              <div className="border-l-4 border-yellow-500 pl-4">
-                <h3 className="font-medium text-gray-800">
-                  {t('regional.weather_warning')}
-                </h3>
-                <p className="text-sm text-gray-600">
-                  {t('regional.stockholm_winds')}
-                </p>
-                <p className="text-xs text-gray-500">3 {t('regional.hours_ago')}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Layout */}
-      <div className="md:hidden">
-        <div className="px-4 py-6 space-y-6">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-2 text-gray-800">
-              {t('regional.title')}
-            </h1>
-          </div>
-
-          {/* Regional Status Cards - Mobile */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white rounded-lg shadow-md p-4 border">
-              <div className="flex items-center gap-2 mb-2">
-                <MapPin size={20} className="text-blue-600" />
-                <h3 className="text-sm font-semibold text-gray-800">
-                  {t('regional.active_communities')}
-                </h3>
-              </div>
-              <p className="text-2xl font-bold mb-1 text-blue-600">12</p>
-              <p className="text-xs text-gray-600">
-                {t('regional.registered_communities')}
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-md p-4 border">
-              <div className="flex items-center gap-2 mb-2">
-                <Users size={20} className="text-green-600" />
-                <h3 className="text-sm font-semibold text-gray-800">
-                  {t('regional.active_users')}
-                </h3>
-              </div>
-              <p className="text-2xl font-bold mb-1 text-green-600">247</p>
-              <p className="text-xs text-gray-600">
-                {t('regional.registered_users')}
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-md p-4 border">
-              <div className="flex items-center gap-2 mb-2">
-                <TrendingUp size={20} className="text-purple-600" />
-                <h3 className="text-sm font-semibold text-gray-800">
-                  {t('regional.preparedness_score')}
-                </h3>
-              </div>
-              <p className="text-2xl font-bold mb-1 text-purple-600">8.2</p>
-              <p className="text-xs text-gray-600">
-                {t('regional.average_score')}
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-md p-4 border">
-              <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle size={20} className="text-red-600" />
-                <h3 className="text-sm font-semibold text-gray-800">
-                  {t('regional.help_requests')}
-                </h3>
-              </div>
-              <p className="text-2xl font-bold mb-1 text-red-600">3</p>
-              <p className="text-xs text-gray-600">
-                {t('regional.open_requests')}
-              </p>
-            </div>
-          </div>
-
-          {/* Regional Map Placeholder - Mobile */}
-          <div className="bg-white rounded-lg shadow-md p-6 border">
-            <h2 className="text-lg font-semibold mb-3 text-gray-800">
-              {t('regional.regional_map')}
-            </h2>
-            <div className="bg-gray-200 rounded-lg h-48 flex items-center justify-center">
-              <p className="text-gray-600 text-sm">
-                {t('regional.map_coming_soon')}
-              </p>
-            </div>
-          </div>
-
-          {/* Regional News/Updates - Mobile */}
-          <div className="bg-white rounded-lg shadow-md p-6 border">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">
-              {t('regional.regional_updates')}
-            </h2>
-            <div className="space-y-4">
-              <div className="border-l-4 border-blue-500 pl-4">
-                <h3 className="font-medium text-gray-800 text-sm">
-                  {t('regional.new_community_registered')}
-                </h3>
-                <p className="text-xs text-gray-600">
-                  {t('regional.malmo_centrum_registered')}
-                </p>
-                <p className="text-xs text-gray-500">2 {t('regional.hours_ago')}</p>
-              </div>
-              
-              <div className="border-l-4 border-green-500 pl-4">
-                <h3 className="font-medium text-gray-800 text-sm">
-                  {t('regional.preparedness_exercise_completed')}
-                </h3>
-                <p className="text-xs text-gray-600">
-                  {t('regional.gothenburg_exercise')}
-                </p>
-                <p className="text-xs text-gray-500">1 {t('regional.day_ago')}</p>
-              </div>
-              
-              <div className="border-l-4 border-yellow-500 pl-4">
-                <h3 className="font-medium text-gray-800 text-sm">
-                  {t('regional.weather_warning')}
-                </h3>
-                <p className="text-xs text-gray-600">
-                  {t('regional.stockholm_winds')}
-                </p>
-                <p className="text-xs text-gray-500">3 {t('regional.hours_ago')}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  return <RegionalOverviewResponsive county={county} />;
 }

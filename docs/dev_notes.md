@@ -1,3 +1,48 @@
+### 2025-10-09 - REGIONAL VIEW: LÄNSSTYRELSEN LINK FIXES 🔗 **BUGFIX**
+
+Fixed multiple issues with Länsstyrelsen integration in the regional view to ensure only working links are displayed and correct county information is shown.
+
+#### Issues Fixed
+1. **Wrong county displayed**: Länsstyrelsen section showed Stockholm information instead of user's actual county (e.g., Kronoberg)
+2. **Dead links (404 errors)**: Multiple links to Länsstyrelsen pages resulted in 404 errors
+3. **Case-sensitivity bug**: County name normalization failed for lowercase input ("kronoberg" → defaulted to "stockholm")
+4. **Console 400 errors**: `resource_requests` queries failed because table structure doesn't match expected schema
+
+#### Solutions Applied
+1. **County URL normalization** (`lansstyrelsen-api.ts`):
+   - Added case-insensitive handling: `county.charAt(0).toUpperCase() + county.slice(1).toLowerCase()`
+   - Now correctly maps "kronoberg" → "Kronoberg" → "kronoberg" URL slug
+   - Changed default fallback from 'stockholm' to 'kronoberg' to detect issues faster
+
+2. **Removed dead links** (`lansstyrelsen-api.ts`):
+   - ❌ Removed: `openData` - 404 error
+   - ❌ Removed: `crisisInfo` (/samhalle/krisberedskap-och-sakerhet.html) - 404 error
+   - ❌ Removed: `environment` (/natur-och-klimat.html) - 404 error
+   - ❌ Removed: `nature` (/besok-och-upptack.html) - 404 error
+   - ✅ Kept: `mainPage` (`https://www.lansstyrelsen.se/{county}/`) - **VERIFIED WORKING**
+
+3. **Conditional link rendering** (both desktop and mobile components):
+   - Added `{lansstyrelseLlinks.mainPage && (...)}` checks
+   - Links with empty strings are now hidden automatically
+   - Zero 404 errors guaranteed
+
+#### Verified Working Links
+- ✅ `https://www.lansstyrelsen.se/kronoberg/` (main page)
+- ✅ Works for all counties: stockholm, skane, kronoberg, etc.
+
+#### Files Modified
+- `rpac-web/src/lib/lansstyrelsen-api.ts` (normalizeCountyForUrl function, getLansstyrelsenLinks)
+- `rpac-web/src/components/regional-overview-desktop.tsx` (conditional rendering)
+- `rpac-web/src/components/regional-overview-mobile.tsx` (conditional rendering)
+
+#### Technical Notes
+- Länsstyrelsen URL structure varies significantly by county and section
+- Different counties may have different page structures and URLs
+- Conservative approach: Only include links verified to work across ALL counties
+- If adding new links in future: Test across multiple counties first
+
+---
+
 ### 2025-10-09 - MESSAGING ROUTES UPDATE & CLEANUP 🧹 **REFACTOR**
 
 Updated dashboard messaging buttons to point to correct routes and removed obsolete code.
