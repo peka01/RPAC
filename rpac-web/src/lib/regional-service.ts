@@ -94,7 +94,7 @@ export async function getRegionalStatistics(county: string): Promise<RegionalSta
     // NOTE: resource_requests table doesn't have community_id field yet
     // It's designed for shared resource requests, not community help requests
     // Skip this query for now to avoid 400 errors
-    let helpRequestCount = 0;
+    const helpRequestCount = 0;
     // TODO: Implement proper community help requests table or adjust schema
 
     // Get shared resources count
@@ -254,7 +254,7 @@ export async function getCommunitiesInCounty(county: string): Promise<CommunityO
           // Get request count
           // NOTE: resource_requests table doesn't have community_id field
           // Skip this query to avoid 400 errors
-          let requestCount = 0;
+          const requestCount = 0;
 
           return {
             id: comm.id,
