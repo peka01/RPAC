@@ -353,18 +353,6 @@
     "add_to_improve_preparedness": "Lägg till ny resurs för att förbättra beredskapen",
     "click_to_edit": "Klicka för att redigera"
   },
-  "onboarding": {
-    "welcome_to_ready": "Välkommen till Beready",
-    "welcome_description": "Din trygga stöd när allt annat fallerar. Vi hjälper dig att förbereda dig för oväntade situationer.",
-    "skip": "Hoppa över",
-    "previous": "Föregående",
-    "get_started": "Kom igång",
-    "next": "Nästa",
-    "personal_preparedness_title": "Din personliga beredskap",
-    "personal_preparedness_description": "Håll koll på dina resurser, odla din egen mat och få AI-hjälp med växtdiagnos.",
-    "local_community_title": "Vårt lokala samhälle",
-    "local_community_description": "Dela resurser med grannar, kommunicera lokalt och bygga ett starkt nätverk."
-  },
   "metadata": {
     "app_title": "Beready - Beredskap & krisverktyg",
     "keywords_crisis": "krisberedskap",
@@ -374,72 +362,8 @@
     "keywords_community": "samhälle",
     "keywords_help": "hjälp"
   },
-  "welcome": {
-    "app_title": "Beready",
-    "tagline": "Ditt trygga stöd när allt annat fallerar",
-    "description": "Krisverktyg för beredskap och ömsesidig hjälp",
-    "ready_to_start": "Redo att komma igång?",
-    "create_account_description": "Skapa ditt konto och börja din beredskapsresa idag",
-    "get_started": "Kom igång",
-    "learn_more": "Läs mer",
-    "secure_private": "Säker och privat",
-    "works_offline": "Fungerar offline",
-    "completely_free": "Helt gratis",
-    "personal_preparedness": "Personlig beredskap",
-    "personal_description": "Håll koll på dina resurser och odla din egen mat med AI-hjälp",
-    "local_community": "Lokalt samhälle",
-    "local_description": "Dela resurser med grannar och bygga ett starkt nätverk",
-    "regional_help": "Regional hjälp",
-    "regional_description": "Få hjälp när du behöver det mest genom ömsesidig hjälp"
-  },
   "errors": {
     "generic_error": "Ett fel uppstod. Försök igen."
-  },
-  "professional": {
-    "tactical_communication": "Närkommunikation",
-    "external_communications": "Extern kommunikation",
-    "tactical_operations": "Viktiga åtgärder",
-    "secure_messaging": "Säkra meddelanden",
-    "radio_frequencies": "Radiofrekvenser",
-    "government_info": "Information från myndigheter",
-    "web_sources": "Webkällor",
-    "web_based_sources": "Webbaserade källor",
-    "visit_source": "Besök källa",
-    "online": "Online",
-    "limited": "Begränsad", 
-    "offline": "Offline",
-    "emergency_type": "Nöd",
-    "weather_type": "Väder",
-    "news_type": "Nyheter",
-    "government_type": "Myndighet"
-  },
-  "military_terms": {
-    "network": "NÄTVERK",
-    "direct": "DIREKT",
-    "crisis_mode": "KRISLÄGE", 
-    "radio": "RADIO",
-    "emergency_system": "LARMSYSTEM",
-    "radio_frequencies": "RADIOFREKVENSER",
-    "web_sources": "WEBKÄLLOR",
-    "emrg": "EMRG",
-    "rf": "RF",
-    "web": "WEB",
-    "local": "LOKALT"
-  },
-  "status_indicators": {
-    "online": "ONLINE",
-    "offline": "OFFLINE", 
-    "operational": "FUNGERAR",
-    "active": "AKTIV",
-    "standby": "VÄNTAR"
-  },
-  "status_messages": {
-    "offline_battery_low": "Offline-läge fungerar perfekt",
-    "online_battery_high": "Allt fungerar utmärkt",
-    "crisis_mode": "Du klarar detta - andas lugnt",
-    "low_battery": "Låg batterinivå - ladda snart",
-    "system_stable": "Allt fungerar bra och är redo",
-    "support_mode_active": "Stödläge aktivt - Du är trygg"
   },
   "buttons": {
     "register_resource": "Lägg till en resurs",
@@ -454,6 +378,9 @@
     "video_call": "Videosamtal"
   },
   "settings": {
+    "title": "Inställningar",
+    "subtitle": "Hantera din profil, säkerhet och preferenser",
+    "login_required": "Du måste vara inloggad för att komma åt inställningar.",
     "allow_data_collection": "Tillåt anonymiserad datainsamling för förbättringar"
   },
   "emergency": {
