@@ -482,7 +482,7 @@ export function StunningDashboard({ user }: { user: User | null }) {
                   {/* Split button navigation */}
                   <div className="grid grid-cols-2 gap-2">
                     <button 
-                      onClick={() => router.push('/local/messages')}
+                      onClick={() => router.push('/local/messages/community')}
                       className="relative overflow-hidden p-3 rounded-lg bg-gradient-to-br from-[#3D4A2B]/5 to-[#3D4A2B]/10 hover:from-[#3D4A2B]/10 hover:to-[#3D4A2B]/20 border border-[#3D4A2B]/20 hover:border-[#3D4A2B]/40 transition-all duration-200 hover:shadow-md"
                     >
                       <div className="flex items-center justify-center gap-1.5 relative z-10">
@@ -500,7 +500,7 @@ export function StunningDashboard({ user }: { user: User | null }) {
                     >
                       <div className="flex items-center justify-center gap-1.5 relative z-10">
                         <MessageCircle className="w-4 h-4 text-[#4A5239] flex-shrink-0" />
-                        <span className="text-sm font-semibold text-gray-900 truncate">Privat</span>
+                        <span className="text-sm font-semibold text-gray-900 truncate">Direkt</span>
                       </div>
                     </button>
                   </div>

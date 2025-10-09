@@ -1,3 +1,36 @@
+### 2025-10-09 - MESSAGING ROUTES UPDATE & CLEANUP 🧹 **REFACTOR**
+
+Updated dashboard messaging buttons to point to correct routes and removed obsolete code.
+
+#### Changes Made
+1. **Desktop Dashboard** (`stunning-dashboard.tsx`):
+   - "Samhälle" button: Changed from `/local/messages` → `/local/messages/community`
+   - "Privat" button label: Changed to "Direkt" for consistency
+   - Already pointed to `/local/messages/direct` (correct)
+
+2. **Mobile Dashboard** (`stunning-dashboard-mobile.tsx`):
+   - Messages card: Changed from `/local/messages` → `/local/messages/community`
+
+3. **Deleted Obsolete Page**:
+   - Removed `/rpac-web/src/app/local/messages/page.tsx` (old messaging page)
+   - New architecture uses separate `/community` and `/direct` routes
+   - No references to old route found in codebase
+
+#### Rationale
+- Cleaner routing structure with explicit `/community` and `/direct` endpoints
+- Matches side menu navigation structure
+- Removes duplicate/obsolete code
+- Better UX with direct navigation to intended message type
+
+#### Files Modified
+- `rpac-web/src/components/stunning-dashboard.tsx` (lines 485, 498, 503)
+- `rpac-web/src/components/stunning-dashboard-mobile.tsx` (line 388)
+
+#### Files Deleted
+- `rpac-web/src/app/local/messages/page.tsx`
+
+---
+
 ### 2025-10-09 - SIDE MENU TREE CONNECTOR FIX 🔧 **BUGFIX**
 
 Fixed missing and misaligned tree connector lines in side menu navigation.

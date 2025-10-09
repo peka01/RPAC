@@ -385,7 +385,7 @@ export function StunningDashboardMobile({ user }: { user: User | null }) {
 
             {/* Meddelanden */}
             <button 
-              onClick={() => router.push('/local/messages')}
+              onClick={() => router.push('/local/messages/community')}
               className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-4 shadow-lg border-2 border-gray-100 active:scale-[0.97] transition-transform relative overflow-hidden touch-manipulation"
             >
               {metrics.unreadMessages > 0 && (
