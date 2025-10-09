@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { X, Shield, Plus, Check, Package, AlertTriangle } from 'lucide-react';
 import { resourceService } from '@/lib/supabase';
-import { t } from '@/lib/locales/sv.json';
+import { t } from '@/lib/locales';
 import { msbRecommendations, categoryConfig } from './simple-add-resource-modal';
 
 interface BulkMsbModalProps {
