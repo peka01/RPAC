@@ -46,7 +46,7 @@ export function BulkMsbModal({ isOpen, onClose, userId, existingResources, onSuc
           
           allMsbResources.push({
             name: item.name,
-            category,
+            category: category as Resource['category'],
             unit: item.unit,
             days_remaining: item.days_remaining,
             quantity: existing?.quantity || item.quantity,
