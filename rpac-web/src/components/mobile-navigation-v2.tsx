@@ -127,7 +127,7 @@ export function MobileNavigationV2() {
     let subscription: any = null;
 
     try {
-      const { data, error } = supabase
+      subscription = supabase
         .channel('notifications')
         .on('postgres_changes', 
           { 
@@ -140,13 +140,13 @@ export function MobileNavigationV2() {
             loadUnreadCount(user.id);
           }
         )
-        .subscribe();
-
-      if (error) {
-        console.error('Error subscribing to notifications:', error);
-      } else {
-        subscription = data;
-      }
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('Successfully subscribed to notifications');
+          } else if (status === 'CHANNEL_ERROR') {
+            console.error('Error subscribing to notifications');
+          }
+        });
     } catch (error) {
       console.error('Error setting up notification subscription:', error);
     }
