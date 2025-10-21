@@ -204,14 +204,14 @@ export default function SuperAdminDashboard() {
           <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-orange-500">
             <div className="flex items-center justify-between mb-4">
               <Clock className="w-8 h-8 text-orange-600" />
-              {stats?.pendingRequests > 0 && (
+              {(stats?.pendingRequests ?? 0) > 0 && (
                 <span className="bg-orange-100 text-orange-700 text-xs font-bold px-2 py-1 rounded-full">
                   {stats?.pendingRequests}
                 </span>
               )}
             </div>
             <p className="text-gray-600 text-sm mb-1">{t('admin.stats.pending_requests')}</p>
-            <p className="text-3xl font-bold text-gray-900">{stats?.pendingRequests}</p>
+            <p className="text-3xl font-bold text-gray-900">{stats?.pendingRequests ?? 0}</p>
           </div>
         </div>
 
