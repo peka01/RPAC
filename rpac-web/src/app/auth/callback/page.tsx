@@ -6,6 +6,9 @@ import { supabase } from '@/lib/supabase';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { Shield, CheckCircle, AlertTriangle } from 'lucide-react';
 
+// Configure for Edge Runtime (required for Cloudflare Pages)
+export const runtime = 'edge';
+
 export default function AuthCallbackPage() {
   const router = useRouter();
   const searchParams = useSearchParams();

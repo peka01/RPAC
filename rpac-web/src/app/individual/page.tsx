@@ -12,6 +12,9 @@ import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { t } from '@/lib/locales';
 import { Home, Sprout, BookOpen, Users } from 'lucide-react';
 
+// Configure for Edge Runtime (required for Cloudflare Pages)
+export const runtime = 'edge';
+
 function IndividualPageContent() {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);

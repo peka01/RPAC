@@ -11,6 +11,9 @@ import type { User } from '@supabase/supabase-js';
 import type { LocalCommunity } from '@/lib/supabase';
 import { ResourceListView, Column } from '@/components/resource-list-view';
 
+// Configure for Edge Runtime (required for Cloudflare Pages)
+export const runtime = 'edge';
+
 export default function DiscoverPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);

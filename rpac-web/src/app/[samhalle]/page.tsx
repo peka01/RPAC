@@ -2,6 +2,9 @@ import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import CommunityHomespace from '@/components/community-homespace';
 
+// Configure for Edge Runtime (required for Cloudflare Pages)
+export const runtime = 'edge';
+
 // ISR: Revalidate every 60 seconds
 export const revalidate = 60;
 

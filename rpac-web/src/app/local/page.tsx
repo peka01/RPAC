@@ -9,6 +9,9 @@ import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 
+// Configure for Edge Runtime (required for Cloudflare Pages)
+export const runtime = 'edge';
+
 export default function LocalPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);

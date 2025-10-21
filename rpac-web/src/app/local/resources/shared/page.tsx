@@ -12,6 +12,9 @@ import { Share2, Users, MapPin, ChevronDown } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import type { LocalCommunity } from '@/lib/supabase';
 
+// Configure for Edge Runtime (required for Cloudflare Pages)
+export const runtime = 'edge';
+
 export default function SharedResourcesPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
