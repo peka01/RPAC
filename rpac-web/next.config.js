@@ -15,10 +15,7 @@ const nextConfig = {
   },
   // Hybrid rendering: Static pages + Dynamic routes for homespace
   // This works on Cloudflare Pages with Next.js runtime
-  trailingSlash: true,
-  experimental: {
-    missingSuspenseWithCSRBailout: false,
-  }
+  trailingSlash: true
 };
 
 module.exports = nextConfig;
