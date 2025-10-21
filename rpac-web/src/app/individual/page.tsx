@@ -2,9 +2,6 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-
-export const dynamic = 'force-dynamic';
-
 import { ResourceManagementHubResponsive } from '@/components/resource-management-hub-responsive';
 import { IndividualDashboard } from '@/components/individual-dashboard';
 import { SimpleCultivationResponsive } from '@/components/simple-cultivation-responsive';

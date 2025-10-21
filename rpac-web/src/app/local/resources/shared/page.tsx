@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-
-export const dynamic = 'force-dynamic';
 import { CommunityResourceHubResponsive } from '@/components/community-resource-hub-responsive';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { supabase } from '@/lib/supabase';

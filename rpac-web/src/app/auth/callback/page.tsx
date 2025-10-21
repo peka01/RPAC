@@ -6,8 +6,6 @@ import { supabase } from '@/lib/supabase';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { Shield, CheckCircle, AlertTriangle } from 'lucide-react';
 
-export const dynamic = 'force-dynamic';
-
 export default function AuthCallbackPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
