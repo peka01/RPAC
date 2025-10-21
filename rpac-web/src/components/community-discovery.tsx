@@ -8,6 +8,8 @@ import {
   Search,
   Navigation,
   CheckCircle,
+  Globe,
+  Lock,
   AlertCircle,
   Loader,
   X,

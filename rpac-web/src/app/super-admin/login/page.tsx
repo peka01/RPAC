@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { t } from '@/lib/locales';
+import Link from 'next/link';
 import { Shield, Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 export default function SuperAdminLoginPage() {
@@ -59,9 +59,10 @@ export default function SuperAdminLoginPage() {
 
       // Success! Redirect to super admin dashboard
       router.push('/super-admin');
-    } catch (err: any) {
+    } catch (err) {
       console.error('Login error:', err);
-      setError(err.message || 'Inloggningen misslyckades. Kontrollera dina uppgifter.');
+      const errorMessage = err instanceof Error ? err.message : 'Inloggningen misslyckades. Kontrollera dina uppgifter.';
+      setError(errorMessage);
       setLoading(false);
     }
   }
@@ -191,12 +192,12 @@ export default function SuperAdminLoginPage() {
 
           {/* Back to main site */}
           <div className="mt-4 text-center">
-            <a
+            <Link
               href="/"
               className="text-sm text-[#3D4A2B] hover:underline"
             >
               ← Tillbaka till BeReady
-            </a>
+            </Link>
           </div>
         </div>
       </div>
