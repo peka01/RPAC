@@ -634,12 +634,12 @@ export default function DiscoverPage() {
             <p className="text-gray-600 mb-6">
               {t('auth.login_required_description')}
             </p>
-            <a
+            <Link
               href="/dashboard"
               className="inline-block px-6 py-3 bg-[#3D4A2B] text-white font-medium rounded-lg hover:bg-[#2A331E] transition-colors"
             >
               {t('auth.go_to_login')}
-            </a>
+            </Link>
           </div>
         </div>
       </div>

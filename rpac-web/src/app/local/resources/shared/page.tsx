@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { CommunityResourceHubResponsive } from '@/components/community-resource-hub-responsive';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
@@ -135,12 +136,12 @@ export default function SharedResourcesPage() {
             <p className="text-gray-600 mb-6">
               {t('auth.login_required_description')}
             </p>
-            <a
+            <Link
               href="/dashboard"
               className="inline-block px-6 py-3 bg-[#3D4A2B] text-white font-medium rounded-lg hover:bg-[#2A331E] transition-colors"
             >
               {t('auth.go_to_login')}
-            </a>
+            </Link>
           </div>
         </div>
       </div>
@@ -186,13 +187,13 @@ export default function SharedResourcesPage() {
                     : 'Du behöver vara medlem i ett lokalt samhälle för att se delade resurser.'
                   }
                 </p>
-                <a
+                <Link
                   href="/local/discover"
                   className="inline-flex items-center gap-2 px-6 py-3 bg-[#3D4A2B] text-white font-medium rounded-lg hover:bg-[#2A331E] transition-colors"
                 >
                   <MapPin className="w-4 h-4" />
                   Hitta samhällen
-                </a>
+                </Link>
               </div>
             </div>
           </div>

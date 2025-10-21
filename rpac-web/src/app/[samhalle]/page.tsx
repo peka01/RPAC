@@ -6,8 +6,8 @@ import CommunityHomespace from '@/components/community-homespace';
 export const revalidate = 60;
 
 // Generate metadata for SEO
-export async function generateMetadata({ params }: { params: { samhalle: string } }) {
-  const { samhalle } = params;
+export async function generateMetadata({ params }: { params: Promise<{ samhalle: string }> }) {
+  const { samhalle } = await params;
 
   const { data: homespace } = await supabase
     .from('community_homespaces')
@@ -43,8 +43,8 @@ export async function generateMetadata({ params }: { params: { samhalle: string 
   };
 }
 
-export default async function SamhallePage({ params }: { params: { samhalle: string } }) {
-  const { samhalle } = params;
+export default async function SamhallePage({ params }: { params: Promise<{ samhalle: string }> }) {
+  const { samhalle } = await params;
 
   // Fetch homespace data
   const { data: homespace, error } = await supabase

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { CommunityHubEnhanced } from '@/components/community-hub-enhanced';
 import { CommunityHubMobileEnhanced } from '@/components/community-hub-mobile-enhanced';
@@ -111,12 +112,12 @@ export default function LocalPage() {
             <p className="text-gray-600 mb-6">
               Du behöver vara inloggad för att komma åt lokala samhällen
             </p>
-            <a
+            <Link
               href="/dashboard"
               className="inline-block px-6 py-3 bg-[#3D4A2B] text-white font-medium rounded-lg hover:bg-[#2A331E] transition-colors"
             >
               Gå till inloggning
-            </a>
+            </Link>
           </div>
         </div>
       </div>
