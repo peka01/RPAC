@@ -567,11 +567,9 @@ SELECT
   lc.location,
   lc.member_count,
   COUNT(hr.id) as active_help_requests,
-  COUNT(CASE WHEN hr.urgency = 'critical' THEN 1 END) as critical_requests,
-  COUNT(rs.id) as shared_resources
+  COUNT(CASE WHEN hr.urgency = 'critical' THEN 1 END) as critical_requests
 FROM local_communities lc
 LEFT JOIN help_requests hr ON lc.id = hr.community_id AND hr.status = 'open'
-LEFT JOIN resource_sharing rs ON lc.id = rs.community_id AND rs.status = 'available'
 GROUP BY lc.id, lc.community_name, lc.location, lc.member_count;
 
 -- =============================================
@@ -580,8 +578,8 @@ GROUP BY lc.id, lc.community_name, lc.location, lc.member_count;
 
 DO $$
 BEGIN
-  RAISE NOTICE 'RPAC Complete Database Schema Created Successfully!';
-  RAISE NOTICE 'Tables created: user_profiles, resources, cultivation_calendar, garden_layouts, cultivation_reminders, crisis_cultivation_plans, nutrition_calculations, plant_diagnoses, local_communities, community_memberships, messages, resource_sharing, help_requests, external_communication_sources, external_alerts';
-  RAISE NOTICE 'Indexes, RLS policies, triggers, and functions configured.';
-  RAISE NOTICE 'Ready for RPAC application deployment!';
+  RAISE NOTICE '✅ RPAC Complete Database Schema Created Successfully!';
+  RAISE NOTICE '📊 Core tables created and ready for use';
+  RAISE NOTICE '🔒 RLS policies, indexes, triggers, and functions configured';
+  RAISE NOTICE '🚀 Ready for RPAC application deployment!';
 END $$;

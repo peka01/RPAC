@@ -52,7 +52,8 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
   const [createForm, setCreateForm] = useState({
     name: '',
     description: '',
-    isPublic: true
+    isPublic: true,
+    accessType: 'öppet' as 'öppet' | 'stängt'
   });
   const [editForm, setEditForm] = useState({
     name: '',
@@ -239,6 +240,8 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
         postal_code: userPostalCode,
         county: locationInfo.county,
         is_public: createForm.isPublic,
+        access_type: createForm.accessType,
+        auto_approve_members: createForm.accessType === 'öppet',
         created_by: user.id
       });
 
@@ -252,7 +255,7 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
       }
 
       // Reset form and close modal
-      setCreateForm({ name: '', description: '', isPublic: true });
+      setCreateForm({ name: '', description: '', isPublic: true, accessType: 'öppet' });
       setShowCreateModal(false);
       
       // Refresh memberships and communities list
@@ -730,6 +733,54 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
                   </div>
                 </div>
               )}
+
+              {/* Access Type */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  {t('community.access_type') || 'Åtkomsttyp'} <span className="text-red-500">*</span>
+                </label>
+                <div className="space-y-3">
+                  <label className="flex items-start gap-3 p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-[#3D4A2B] transition-colors">
+                    <input
+                      type="radio"
+                      name="accessType"
+                      value="öppet"
+                      checked={createForm.accessType === 'öppet'}
+                      onChange={(e) => setCreateForm({ ...createForm, accessType: e.target.value as 'öppet' | 'stängt' })}
+                      className="mt-1 w-4 h-4 text-[#3D4A2B] border-gray-300 focus:ring-[#3D4A2B]"
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900 flex items-center gap-2">
+                        <Globe size={16} className="text-green-600" />
+                        {t('admin.access_types.öppet') || 'Öppet samhälle'}
+                      </div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        {t('admin.access_types.description.öppet') || 'Alla kan gå med direkt utan godkännande'}
+                      </div>
+                    </div>
+                  </label>
+                  
+                  <label className="flex items-start gap-3 p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-[#3D4A2B] transition-colors">
+                    <input
+                      type="radio"
+                      name="accessType"
+                      value="stängt"
+                      checked={createForm.accessType === 'stängt'}
+                      onChange={(e) => setCreateForm({ ...createForm, accessType: e.target.value as 'öppet' | 'stängt' })}
+                      className="mt-1 w-4 h-4 text-[#3D4A2B] border-gray-300 focus:ring-[#3D4A2B]"
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900 flex items-center gap-2">
+                        <Lock size={16} className="text-orange-600" />
+                        {t('admin.access_types.stängt') || 'Stängt samhälle'}
+                      </div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        {t('admin.access_types.description.stängt') || 'Medlemsansökningar kräver godkännande från administratör'}
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
 
               {/* Public Toggle */}
               <div className="flex items-start gap-3">
