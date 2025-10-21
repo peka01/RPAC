@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { CheckCircle, Bell, ArrowRight, X } from 'lucide-react';
 
 interface SuccessNotificationProps {
@@ -85,7 +86,7 @@ export function SuccessNotification({
               <span>{actionType === 'saved' ? 'Hittas i Påminnelser' : 'Tips markerat som klart'}</span>
             </div>
             {actionType === 'saved' ? (
-              <a
+              <Link
                 href="/individual?section=cultivation&subsection=reminders"
                 className="flex items-center space-x-1 px-3 py-1 text-sm rounded transition-all duration-200 hover:shadow-sm"
                 style={{ 
@@ -96,7 +97,7 @@ export function SuccessNotification({
               >
                 <span>Visa</span>
                 <ArrowRight className="w-4 h-4" />
-              </a>
+              </Link>
             ) : (
               <div className="flex items-center space-x-1 px-3 py-1 text-sm rounded"
                    style={{ 

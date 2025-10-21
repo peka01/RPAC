@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { 
   MapPin, 
   Users, 
@@ -432,12 +433,12 @@ export function CommunityDiscoveryMobile({ user, userPostalCode, onJoinCommunity
         <p className="text-gray-600 mb-6 text-sm">
           För att hitta samhällen i ditt område behöver vi veta din plats
         </p>
-        <a
+        <Link
           href="/settings"
           className="inline-block px-6 py-3 bg-[#3D4A2B] text-white font-bold rounded-xl hover:bg-[#2A331E] transition-all touch-manipulation active:scale-95"
         >
           Gå till inställningar
-        </a>
+        </Link>
       </div>
     );
   }

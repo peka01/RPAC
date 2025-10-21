@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { 
   User, 
   Settings, 
@@ -172,7 +173,7 @@ export function TopMenu({ user }: TopMenuProps) {
         <div className="flex items-center justify-between px-4 py-3">
           {/* Left side - Logo */}
           <div className="flex items-center">
-            <a 
+            <Link 
               href="/dashboard"
               className="cursor-pointer hover:opacity-80 transition-opacity"
             >
@@ -181,7 +182,7 @@ export function TopMenu({ user }: TopMenuProps) {
                 alt="BE READY" 
                 className="h-16 w-auto"
               />
-            </a>
+            </Link>
           </div>
 
           {/* Right side - User menu and notifications */}

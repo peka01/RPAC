@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { 
   MapPin, 
   Users, 
@@ -404,12 +405,12 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
         <p className="text-gray-600 mb-4">
           {t('profile.location_description')}
         </p>
-        <a
+        <Link
           href="/settings"
           className="inline-block px-6 py-3 bg-[#3D4A2B] text-white font-medium rounded-lg hover:bg-[#2A331E] transition-colors"
         >
           {t('local_community.location_settings')}
-        </a>
+        </Link>
       </div>
     );
   }
