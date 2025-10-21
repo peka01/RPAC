@@ -2,7 +2,8 @@
 name = "rpac-web"
 pages_build_output_dir = "rpac-web/out"
 
-# Compatibility flags for Node.js runtime features
+# Compatibility settings for Node.js runtime features
+compatibility_date = "2024-10-21"
 compatibility_flags = ["nodejs_compat"]
 
 # Environment variables and secrets
