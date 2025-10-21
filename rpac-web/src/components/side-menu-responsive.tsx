@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { SideMenu } from './side-menu';
+import { SideMenuClean } from './side-menu-clean';
 import { TopMenu } from './top-menu';
 import { MobileNavigationV2 } from './mobile-navigation-v2';
 import { KRISterAssistantResponsive } from './krister-assistant-responsive';
@@ -93,7 +94,7 @@ export function SideMenuResponsive({ children, hideMobileNav = false }: SideMenu
 
       {/* Desktop Side Menu - Hidden on mobile */}
       {!isMobile && (
-        <SideMenu
+        <SideMenuClean
           user={user}
           isOnline={isOnline}
           isCrisisMode={isCrisisMode}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { StunningDashboard } from './stunning-dashboard';
-import { StunningDashboardMobile } from './stunning-dashboard-mobile';
+import { StunningDashboardMobileV2 } from './stunning-dashboard-mobile-v2';
 import type { User } from '@supabase/supabase-js';
 
 interface StunningDashboardResponsiveProps {
@@ -24,7 +24,7 @@ export function StunningDashboardResponsive({ user }: StunningDashboardResponsiv
   }, []);
 
   return isMobile ? (
-    <StunningDashboardMobile user={user} />
+    <StunningDashboardMobileV2 user={user} />
   ) : (
     <StunningDashboard user={user} />
   );
