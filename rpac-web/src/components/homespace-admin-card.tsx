@@ -48,7 +48,7 @@ export default function HomespaceAdminCard({
 
       <p className="text-sm text-white/90 mb-6">
         {isPublished 
-          ? t('homespace.homepage_live', { slug: homespaceSlug })
+          ? t('homespace.homepage_live', { slug: homespaceSlug || '' })
           : t('homespace.create_homepage')
         }
       </p>
