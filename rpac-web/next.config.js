@@ -13,12 +13,9 @@ const nextConfig = {
     // Keep type checking but don't fail build
     ignoreBuildErrors: false,
   },
-  // Production configuration for Cloudflare Pages (only in production)
-  ...(process.env.NODE_ENV === 'production' && {
-    output: 'export',
-    trailingSlash: true,
-    distDir: 'out',
-  }),
+  // Hybrid rendering: Static pages + Dynamic routes for homespace
+  // This works on Cloudflare Pages with Next.js runtime
+  trailingSlash: true,
   experimental: {
     missingSuspenseWithCSRBailout: false,
   }

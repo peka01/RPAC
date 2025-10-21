@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { supabase, communityService } from '@/lib/supabase';
 import { t } from '@/lib/locales';
-import { Search, MapPin, Users, Filter, Star, Calendar, UserPlus, Edit, Trash, Plus, Settings, X } from 'lucide-react';
+import { Search, MapPin, Users, Filter, Star, Calendar, UserPlus, Edit, Trash, Plus, Settings, X, Globe } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import type { LocalCommunity } from '@/lib/supabase';
 import { ResourceListView, Column } from '@/components/resource-list-view';
@@ -18,9 +19,16 @@ export default function DiscoverPage() {
   const [filteredCommunities, setFilteredCommunities] = useState<LocalCommunity[]>([]);
   const [loadingCommunities, setLoadingCommunities] = useState(false);
   const [userMemberships, setUserMemberships] = useState<string[]>([]);
+  const [homespaces, setHomespaces] = useState<Record<string, { slug: string; published: boolean }>>({});
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingCommunity, setEditingCommunity] = useState<LocalCommunity | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    name: '',
+    description: '',
+    location: ''
+  });
   const [filters, setFilters] = useState({
     membership: 'all', // 'all', 'member', 'not_member'
     location: '',
@@ -88,9 +96,6 @@ export default function DiscoverPage() {
         const isAdmin = user && community.created_by === user.id;
         return (
           <div className="flex flex-wrap gap-1">
-            <span className="px-2 py-1 bg-[#3D4A2B]/10 text-[#3D4A2B] text-xs font-medium rounded-full">
-              Offentligt
-            </span>
             {isMember && (
               <span className="px-2 py-1 bg-[#3D4A2B]/20 text-[#3D4A2B] text-xs font-medium rounded-full">
                 Medlem
@@ -132,25 +137,40 @@ export default function DiscoverPage() {
               )}
             </button>
             
-            {isAdmin && (
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => setEditingCommunity(community)}
-                  className="p-1 text-gray-400 hover:text-[#3D4A2B] rounded"
-                  title="Redigera"
+            <div className="flex items-center gap-1">
+              {/* Homespace icon - Show if community has published homespace */}
+              {homespaces[community.id] && (
+                <Link
+                  href={`/${homespaces[community.id].slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-1 text-gray-400 hover:text-[#5C6B47] rounded"
+                  title="Besök samhällets hemsida"
                 >
-                  <Edit className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => handleDeleteCommunity(community.id)}
-                  disabled={actionLoading === community.id}
-                  className="p-1 text-gray-400 hover:text-red-600 rounded disabled:opacity-50"
-                  title="Ta bort"
-                >
-                  <Trash className="w-4 h-4" />
-                </button>
-              </div>
-            )}
+                  <Globe className="w-4 h-4" />
+                </Link>
+              )}
+              
+              {isAdmin && (
+                <>
+                  <button
+                    onClick={() => setEditingCommunity(community)}
+                    className="p-1 text-gray-400 hover:text-[#3D4A2B] rounded"
+                    title="Redigera"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteCommunity(community.id)}
+                    disabled={actionLoading === community.id}
+                    className="p-1 text-gray-400 hover:text-red-600 rounded disabled:opacity-50"
+                    title="Ta bort"
+                  >
+                    <Trash className="w-4 h-4" />
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         );
       }
@@ -183,18 +203,20 @@ export default function DiscoverPage() {
             }`} />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className={`text-lg font-bold leading-tight ${
-              isMember 
-                ? 'text-[#3D4A2B]' 
-                : 'text-gray-900'
-            }`}>
-              {community.community_name}
-              {isMember && (
-                <span className="ml-2 text-sm font-normal text-[#3D4A2B]/70">
-                  (Ditt samhälle)
-                </span>
-              )}
-            </h3>
+            <Link href="/local" className="hover:underline cursor-pointer">
+              <h3 className={`text-lg font-bold leading-tight ${
+                isMember 
+                  ? 'text-[#3D4A2B]' 
+                  : 'text-gray-900'
+              }`}>
+                {community.community_name}
+                {isMember && (
+                  <span className="ml-2 text-sm font-normal text-[#3D4A2B]/70">
+                    (Ditt samhälle)
+                  </span>
+                )}
+              </h3>
+            </Link>
             <div className="flex items-center gap-3 text-sm text-gray-600 mt-1">
               <div className="flex items-center gap-1">
                 <MapPin className="w-3 h-3" />
@@ -215,13 +237,6 @@ export default function DiscoverPage() {
 
         {/* Status tags */}
         <div className="flex flex-wrap gap-1 mb-3">
-          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-            isMember 
-              ? 'bg-[#3D4A2B]/20 text-[#3D4A2B]' 
-              : 'bg-[#3D4A2B]/10 text-[#3D4A2B]'
-          }`}>
-            Offentligt
-          </span>
           <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
             Aktivt
           </span>
@@ -238,51 +253,70 @@ export default function DiscoverPage() {
         </div>
 
         {/* Action buttons */}
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => handleToggleMembership(community.id)}
-            disabled={actionLoading === community.id}
-            className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-              isMember
-                ? 'bg-[#3D4A2B]/20 text-[#3D4A2B] border border-[#3D4A2B]/30 hover:bg-[#3D4A2B]/30'
-                : 'bg-[#3D4A2B] text-white hover:bg-[#2A331E]'
-            } ${actionLoading === community.id ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            {actionLoading === community.id ? (
-              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-            ) : isMember ? (
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleToggleMembership(community.id)}
+              disabled={actionLoading === community.id}
+              className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                isMember
+                  ? 'bg-[#3D4A2B]/20 text-[#3D4A2B] border border-[#3D4A2B]/30 hover:bg-[#3D4A2B]/30'
+                  : 'bg-[#3D4A2B] text-white hover:bg-[#2A331E]'
+              } ${actionLoading === community.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {actionLoading === community.id ? (
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              ) : isMember ? (
+                <>
+                  <Star className="w-4 h-4" />
+                  <span>Lämna</span>
+                </>
+              ) : (
+                <>
+                  <UserPlus className="w-4 h-4" />
+                  <span>Gå med</span>
+                </>
+              )}
+            </button>
+
+          </div>
+
+          {/* Icon Actions */}
+          <div className="flex items-center gap-1">
+            {/* Homespace icon - Show if community has published homespace */}
+            {homespaces[community.id] && (
+              <Link
+                href={`/${homespaces[community.id].slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 text-gray-500 hover:text-[#5C6B47] hover:bg-[#5C6B47]/10 rounded-lg transition-colors"
+                title="Besök samhällets hemsida"
+              >
+                <Globe className="w-4 h-4" />
+              </Link>
+            )}
+            
+            {/* CRUD Actions - Only for admins */}
+            {isAdmin && (
               <>
-                <Star className="w-4 h-4" />
-                <span>Lämna</span>
-              </>
-            ) : (
-              <>
-                <UserPlus className="w-4 h-4" />
-                <span>Gå med</span>
+                <button
+                  onClick={() => setEditingCommunity(community)}
+                  className="p-2 text-gray-500 hover:text-[#3D4A2B] hover:bg-[#3D4A2B]/10 rounded-lg transition-colors"
+                  title="Redigera samhälle"
+                >
+                  <Edit className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handleDeleteCommunity(community.id)}
+                  disabled={actionLoading === community.id}
+                  className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                  title="Ta bort samhälle"
+                >
+                  <Trash className="w-4 h-4" />
+                </button>
               </>
             )}
-          </button>
-
-          {/* CRUD Actions - Only for admins */}
-          {isAdmin && (
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setEditingCommunity(community)}
-                className="p-2 text-gray-500 hover:text-[#3D4A2B] hover:bg-[#3D4A2B]/10 rounded-lg transition-colors"
-                title="Redigera samhälle"
-              >
-                <Edit className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => handleDeleteCommunity(community.id)}
-                disabled={actionLoading === community.id}
-                className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                title="Ta bort samhälle"
-              >
-                <Trash className="w-4 h-4" />
-              </button>
-            </div>
-          )}
+          </div>
         </div>
       </div>
     );
@@ -397,12 +431,28 @@ export default function DiscoverPage() {
     setFilteredCommunities(filtered);
   }, [searchQuery, communities, filters, userMemberships]);
 
+  // Populate form when editing a community
+  useEffect(() => {
+    if (editingCommunity) {
+      setCreateForm({
+        name: editingCommunity.community_name || '',
+        description: editingCommunity.description || '',
+        location: editingCommunity.location || ''
+      });
+    } else {
+      setCreateForm({ name: '', description: '', location: '' });
+    }
+  }, [editingCommunity]);
+
   const loadCommunities = async () => {
     setLoadingCommunities(true);
     try {
       const allCommunities = await communityService.getCommunities();
       setCommunities(allCommunities);
       setFilteredCommunities(allCommunities);
+      
+      // Load homespaces for all communities
+      loadHomespaces(allCommunities.map(c => c.id));
     } catch (error) {
       console.error('Error loading communities:', error);
     } finally {
@@ -417,6 +467,31 @@ export default function DiscoverPage() {
       setUserMemberships(memberships);
     } catch (error) {
       console.error('Error loading user memberships:', error);
+    }
+  };
+
+  const loadHomespaces = async (communityIds: string[]) => {
+    try {
+      const { data, error } = await supabase
+        .from('community_homespaces')
+        .select('community_id, slug, published')
+        .in('community_id', communityIds)
+        .eq('published', true);
+
+      if (error) throw error;
+
+      if (data) {
+        const homespaceMap: Record<string, { slug: string; published: boolean }> = {};
+        data.forEach((homespace) => {
+          homespaceMap[homespace.community_id] = {
+            slug: homespace.slug,
+            published: homespace.published
+          };
+        });
+        setHomespaces(homespaceMap);
+      }
+    } catch (error) {
+      console.error('Error loading homespaces:', error);
     }
   };
 
@@ -464,6 +539,81 @@ export default function DiscoverPage() {
       } finally {
         setActionLoading(null);
       }
+    }
+  };
+
+  const handleCreateCommunity = async () => {
+    if (!user || user.id === 'demo-user') return;
+    if (!createForm.name.trim()) {
+      alert('Vänligen ange ett namn för samhället.');
+      return;
+    }
+
+    setCreateLoading(true);
+    try {
+      console.log('Creating community with data:', createForm);
+      
+      const newCommunity = await communityService.createCommunity({
+        community_name: createForm.name,
+        description: createForm.description || 'Ett lokalt beredskapssamhälle',
+        location: createForm.location || 'Sverige',
+        county: createForm.location || 'Sverige',
+        created_by: user.id,
+        is_public: true
+      });
+
+      console.log('Community created successfully:', newCommunity);
+
+      // Refresh communities list
+      await loadCommunities();
+      await loadUserMemberships();
+
+      // Reset form and close modal
+      setCreateForm({ name: '', description: '', location: '' });
+      setShowCreateModal(false);
+      
+      alert('Samhället har skapats!');
+    } catch (error) {
+      console.error('Error creating community:', error);
+      alert('Ett fel uppstod vid skapande av samhället. Försök igen.');
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const handleUpdateCommunity = async () => {
+    if (!user || !editingCommunity || user.id === 'demo-user') return;
+    if (!createForm.name.trim()) {
+      alert('Vänligen ange ett namn för samhället.');
+      return;
+    }
+
+    setCreateLoading(true);
+    try {
+      console.log('Updating community:', editingCommunity.id, createForm);
+      
+      await communityService.updateCommunity(editingCommunity.id, {
+        community_name: createForm.name,
+        description: createForm.description,
+        location: createForm.location,
+        county: createForm.location
+      });
+
+      console.log('Community updated successfully');
+
+      // Refresh communities list
+      await loadCommunities();
+
+      // Reset form and close modal
+      setCreateForm({ name: '', description: '', location: '' });
+      setEditingCommunity(null);
+      
+      alert('Samhället har uppdaterats!');
+    } catch (error) {
+      console.error('Error updating community:', error);
+      alert('Ett fel uppstod vid uppdatering av samhället. Försök igen.');
+    } finally {
+      setCreateLoading(false);
     }
   };
 
@@ -565,6 +715,7 @@ export default function DiscoverPage() {
                 onClick={() => {
                   setShowCreateModal(false);
                   setEditingCommunity(null);
+                  setCreateForm({ name: '', description: '', location: '' });
                 }}
                 className="text-gray-400 hover:text-gray-600"
               >
@@ -579,7 +730,8 @@ export default function DiscoverPage() {
                 </label>
                 <input
                   type="text"
-                  defaultValue={editingCommunity?.community_name || ''}
+                  value={createForm.name || (editingCommunity?.community_name || '')}
+                  onChange={(e) => setCreateForm(prev => ({ ...prev, name: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
                   placeholder="Samhällets namn"
                 />
@@ -590,7 +742,8 @@ export default function DiscoverPage() {
                   Beskrivning
                 </label>
                 <textarea
-                  defaultValue={editingCommunity?.description || ''}
+                  value={createForm.description || (editingCommunity?.description || '')}
+                  onChange={(e) => setCreateForm(prev => ({ ...prev, description: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
                   placeholder="Beskrivning av samhället"
                   rows={3}
@@ -603,7 +756,8 @@ export default function DiscoverPage() {
                 </label>
                 <input
                   type="text"
-                  defaultValue={editingCommunity?.location || ''}
+                  value={createForm.location || (editingCommunity?.location || '')}
+                  onChange={(e) => setCreateForm(prev => ({ ...prev, location: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
                   placeholder="Stad, region"
                 />
@@ -615,20 +769,26 @@ export default function DiscoverPage() {
                 onClick={() => {
                   setShowCreateModal(false);
                   setEditingCommunity(null);
+                  setCreateForm({ name: '', description: '', location: '' });
                 }}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                disabled={createLoading}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Avbryt
               </button>
               <button
-                onClick={() => {
-                  // TODO: Implement create/update logic
-                  setShowCreateModal(false);
-                  setEditingCommunity(null);
-                }}
-                className="flex-1 px-4 py-2 bg-[#3D4A2B] text-white font-medium rounded-lg hover:bg-[#2A331E] transition-colors"
+                onClick={editingCommunity ? handleUpdateCommunity : handleCreateCommunity}
+                disabled={createLoading || !createForm.name.trim()}
+                className="flex-1 px-4 py-2 bg-[#3D4A2B] text-white font-medium rounded-lg hover:bg-[#2A331E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {editingCommunity ? 'Uppdatera' : 'Skapa'}
+                {createLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    {editingCommunity ? 'Uppdaterar...' : 'Skapar...'}
+                  </>
+                ) : (
+                  editingCommunity ? 'Uppdatera' : 'Skapa'
+                )}
               </button>
             </div>
           </div>

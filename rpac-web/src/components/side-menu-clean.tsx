@@ -71,10 +71,11 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
     },
     { 
       name: t('navigation.local'),
-      href: '/local/resources/owned', 
+      href: '/local', 
       icon: Users,
       description: t('navigation.descriptions.community_resources'),
       children: [
+        { name: 'Mitt samhälle', href: '/local', icon: Home },
         { name: 'Gemensamma resurser', href: '/local/resources/owned', icon: Building2 },
         { name: 'Delade resurser', href: '/local/resources/shared', icon: Share2 },
         { name: 'Hjälpförfrågningar', href: '/local/resources/help', icon: AlertCircle },

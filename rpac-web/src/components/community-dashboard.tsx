@@ -13,12 +13,16 @@ import {
   MapPin,
   Activity,
   Clock,
-  CheckCircle
+  CheckCircle,
+  Globe
 } from 'lucide-react';
 import { resourceSharingService } from '@/lib/resource-sharing-service';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import type { User } from '@supabase/supabase-js';
 import type { LocalCommunity } from '@/lib/supabase';
+import { supabase, communityService } from '@/lib/supabase';
+import HomespaceEditorWrapper from '@/components/homespace-editor-wrapper';
+import { t } from '@/lib/locales';
 
 interface CommunityDashboardProps {
   user: User;
@@ -28,6 +32,9 @@ interface CommunityDashboardProps {
 
 export function CommunityDashboard({ user, community, onNavigate }: CommunityDashboardProps) {
   const [loading, setLoading] = useState(true);
+  const [showHomespaceEditor, setShowHomespaceEditor] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [homespaceSlug, setHomespaceSlug] = useState<string | null>(null);
   const [stats, setStats] = useState({
     totalResources: 0,
     availableResources: 0,
@@ -39,8 +46,40 @@ export function CommunityDashboard({ user, community, onNavigate }: CommunityDas
   useEffect(() => {
     if (community?.id) {
       loadCommunityStats();
+      checkAdminStatus();
     }
   }, [community?.id]);
+
+  useEffect(() => {
+    if (community?.id && isAdmin) {
+      loadHomespaceData();
+    }
+  }, [community?.id, isAdmin]);
+
+  const checkAdminStatus = async () => {
+    if (!community?.id || !user || user.id === 'demo-user') {
+      setIsAdmin(false);
+      return;
+    }
+    
+    const adminStatus = await communityService.isUserAdmin(community.id, user.id);
+    console.log('🔐 Admin status for community:', community.id, '=', adminStatus);
+    setIsAdmin(adminStatus);
+  };
+
+  const loadHomespaceData = async () => {
+    if (!community?.id) return;
+    
+    console.log('🏡 Loading homespace data for community:', community.id);
+    const { data } = await supabase
+      .from('community_homespaces')
+      .select('slug')
+      .eq('community_id', community.id)
+      .single();
+    
+    console.log('🏡 Homespace slug:', data?.slug);
+    setHomespaceSlug(data?.slug || null);
+  };
 
   // Don't render if community is not loaded yet
   if (!community) {
@@ -246,6 +285,36 @@ export function CommunityDashboard({ user, community, onNavigate }: CommunityDas
             </span>
           </div>
         </button>
+
+        {/* Homespace Admin Card - Only for admins */}
+        {isAdmin && (
+          <button
+            onClick={() => setShowHomespaceEditor(true)}
+            className="group bg-gradient-to-br from-[#5C6B47] to-[#3D4A2B] text-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] text-left border-2 border-transparent hover:border-[#5C6B47]"
+          >
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <Globe size={28} className="text-white" strokeWidth={2.5} />
+              </div>
+              <div>
+                <div className="text-xl font-bold mb-1">
+                  {t('homespace.button_text')}
+                </div>
+                <div className="text-sm text-white/80">
+                  {t('homespace.public_page')}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-white/90 font-mono text-xs bg-white/10 px-3 py-1.5 rounded-lg">
+                {homespaceSlug ? `beready.se/${homespaceSlug}` : t('homespace.edit_content')}
+              </span>
+              <span className="text-white font-bold group-hover:translate-x-1 transition-transform">
+                {t('homespace.edit_homepage')}
+              </span>
+            </div>
+          </button>
+        )}
       </div>
 
       {/* Help Requests Alert (if any) */}
@@ -343,6 +412,21 @@ export function CommunityDashboard({ user, community, onNavigate }: CommunityDas
           )}
         </div>
       </div>
+
+      {/* Homespace Editor Modal */}
+      {showHomespaceEditor && community?.id && (
+        <HomespaceEditorWrapper
+          communityId={community.id}
+          userId={user.id}
+          onClose={() => {
+            setShowHomespaceEditor(false);
+            // Reload homespace data after editing
+            if (isAdmin) {
+              loadHomespaceData();
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

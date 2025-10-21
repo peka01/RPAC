@@ -20,9 +20,10 @@ import { MessagingSystemV2 } from './messaging-system-v2';
 import { CommunityResourceHubMobile } from './community-resource-hub-mobile';
 import { useUserProfile } from '@/lib/useUserProfile';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
-import { communityService, type LocalCommunity } from '@/lib/supabase';
+import { communityService, type LocalCommunity, supabase } from '@/lib/supabase';
 import { t } from '@/lib/locales';
 import type { User } from '@supabase/supabase-js';
+import HomespaceEditorWrapper from '@/components/homespace-editor-wrapper';
 
 interface CommunityHubMobileEnhancedProps {
   user: User;
@@ -39,6 +40,8 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
   const [unreadCount, setUnreadCount] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const [messagingType, setMessagingType] = useState<'community' | 'direct'>('community');
+  const [showHomespaceEditor, setShowHomespaceEditor] = useState(false);
+  const [homespaceSlug, setHomespaceSlug] = useState<string | null>(null);
   const { profile, loading } = useUserProfile(user);
   const userPostalCode = profile?.postal_code;
 
@@ -79,6 +82,27 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
     
     checkAdminStatus();
   }, [activeCommunityId, user]);
+
+  // Load homespace data when community changes
+  useEffect(() => {
+    const loadHomespace = async () => {
+      if (activeCommunityId && isAdmin) {
+        console.log('🏡 Loading homespace for community:', activeCommunityId);
+        const { data } = await supabase
+          .from('community_homespaces')
+          .select('slug')
+          .eq('community_id', activeCommunityId)
+          .single();
+        
+        console.log('🏡 Homespace data:', data);
+        setHomespaceSlug(data?.slug || null);
+      } else {
+        console.log('🏡 Not loading homespace - activeCommunityId:', activeCommunityId, 'isAdmin:', isAdmin);
+      }
+    };
+    
+    loadHomespace();
+  }, [activeCommunityId, isAdmin]);
 
   const loadUserCommunities = async () => {
     if (!user || user.id === 'demo-user') return;
@@ -347,6 +371,8 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
   const CommunityDetailView = () => {
     const activeCommunity = userCommunities.find(c => c.id === activeCommunityId);
     
+    console.log('📋 CommunityDetailView - activeCommunityId:', activeCommunityId, 'isAdmin:', isAdmin, 'homespaceSlug:', homespaceSlug);
+    
     if (!activeCommunity) {
       return null;
     }
@@ -486,6 +512,27 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
                 <ChevronRight size={24} className="text-gray-400" />
               </div>
             </button>
+
+            {/* Homespace Admin Card - Only for admins */}
+            {isAdmin && (
+              <button
+                onClick={() => setShowHomespaceEditor(true)}
+                className="w-full bg-gradient-to-r from-[#5C6B47] to-[#3D4A2B] text-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="bg-white/20 rounded-full p-3">
+                    <Home size={24} />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <h3 className="font-bold text-lg mb-1">{t('homespace.button_text')}</h3>
+                    <p className="text-[#C8D5B9] text-sm">
+                      {homespaceSlug ? `beready.se/${homespaceSlug}` : t('homespace.edit_content')}
+                    </p>
+                  </div>
+                  <ChevronRight size={24} />
+                </div>
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -606,6 +653,26 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
 
       {/* Bottom Navigation - Hidden when messaging is active */}
       {activeView !== 'messaging' && <BottomNav />}
+
+      {/* Homespace Editor Modal */}
+      {showHomespaceEditor && activeCommunityId && (
+        <HomespaceEditorWrapper
+          communityId={activeCommunityId}
+          userId={user.id}
+          onClose={() => {
+            setShowHomespaceEditor(false);
+            // Reload homespace data after editing
+            if (isAdmin) {
+              supabase
+                .from('community_homespaces')
+                .select('slug')
+                .eq('community_id', activeCommunityId)
+                .single()
+                .then(({ data }) => setHomespaceSlug(data?.slug || null));
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

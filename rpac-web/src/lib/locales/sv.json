@@ -1210,5 +1210,185 @@
       "confirm": "Vill du starta en ny chatt? Din nuvarande konversation kommer att rensas.",
       "disabled": "Ingen chatt att rensa"
     }
+  },
+  "homespace": {
+    "title": "Samhällets hemsida",
+    "edit": "Redigera hemsida",
+    "preview": "Förhandsgranska",
+    "publish": "Publicera",
+    "unpublish": "Avpublicera",
+    "published": "Publicerad",
+    "draft": "Utkast",
+    "view_public": "Visa offentlig sida",
+    "copy_link": "Kopiera länk",
+    "link_copied": "Länk kopierad!",
+    "save_changes": "Spara ändringar",
+    "saving": "Sparar...",
+    "saved": "Sparat!",
+    "reset_template": "Återställ mall",
+    "reset_confirm": "Vill du återställa till standardmallen? Dina ändringar kommer att förloras.",
+    "button_text": "🏡 Samhällets hemsida",
+    "public_page": "Din publika hemsida",
+    "edit_content": "Redigera innehåll",
+    "edit_homepage": "Redigera →",
+    "homepage_live": "Din samhälles hemsida är live på beready.se/{slug}",
+    "create_homepage": "Skapa en offentlig hemsida för ditt samhälle",
+    "homepage_benefit": "💡 En hemsida gör det enkelt för nya medlemmar att hitta och lära känna ert samhälle",
+    "only_admin_edit": "Endast samhällets administratör kan redigera hemsidan",
+    "back_to_community": "Tillbaka till samhället",
+    "creating_homepage": "Skapar hemsida...",
+    "homepage_creating": "Din samhälles hemsida håller på att skapas. Vänta ett ögonblick...",
+    "try_again": "Försök igen",
+    "not_found_title": "Samhället hittades inte",
+    "not_found_description": "Detta samhälle har inte publicerat sin hemsida ännu, eller så finns det inte.",
+    "back_to_home": "Tillbaka till startsidan",
+    "find_communities": "Hitta samhällen",
+    "want_to_create": "Vill du skapa ett samhälle?",
+    "create_community_benefit": "Starta ditt eget beredskapssamhälle och få en egen hemsida på beready.se",
+    "create_community": "Skapa samhälle",
+    "hero": {
+      "apply_membership": "Ansök om medlemskap",
+      "contact_admin": "Kontakta administratör",
+      "members": "medlemmar",
+      "member": "medlem",
+      "active_since": "Aktiv sedan",
+      "location": "Område"
+    },
+    "sections": {
+      "current_info": "Aktuell information",
+      "about": "Om vårt samhälle",
+      "resources": "Våra resurser",
+      "preparedness": "Samhällets beredskap",
+      "activities": "Senaste uppdateringar",
+      "skills": "Våra gemensamma kompetenser",
+      "contact": "Bli medlem",
+      "membership": "Medlemskap"
+    },
+    "resources": {
+      "community_resources": "Gemensamma resurser",
+      "view_full": "Se fullständig resursöversikt",
+      "members_only": "endast medlemmar",
+      "categories": {
+        "vehicles": "Fordon",
+        "tools": "Verktyg",
+        "water": "Vatten",
+        "food": "Mat",
+        "energy": "Energi",
+        "medicine": "Medicin",
+        "communication": "Kommunikation"
+      }
+    },
+    "preparedness": {
+      "score": "Övergripande beredskapspoäng",
+      "detailed_analysis": "Detaljerad analys",
+      "status": {
+        "strong": "Stark",
+        "good": "God",
+        "developing": "Utvecklas",
+        "needs_improvement": "Behöver förstärkning"
+      },
+      "categories": {
+        "food": "Mat",
+        "water": "Vatten",
+        "energy": "Energi",
+        "tools": "Verktyg",
+        "medicine": "Medicin",
+        "communication": "Kommunikation"
+      }
+    },
+    "activities": {
+      "no_activities": "Inga aktiviteter än",
+      "view_older": "Visa äldre händelser",
+      "types": {
+        "member_joined": "Ny medlem välkommen",
+        "resource_added": "Resurs tillagd",
+        "milestone": "Milstolpe uppnådd",
+        "exercise": "Övning genomförd",
+        "custom": "Händelse"
+      }
+    },
+    "skills": {
+      "available_skills": "Vi har bred kompetens inom {count} områden",
+      "view_directory": "Se kompetenslista",
+      "common_skills": {
+        "plumbing": "VVS",
+        "electrical": "Elarbete",
+        "gardening": "Trädgårdsodling",
+        "first_aid": "Första hjälpen",
+        "carpentry": "Snickeri",
+        "mechanics": "Mekanik",
+        "cooking": "Matlagning",
+        "radio": "Radioteknik",
+        "medical": "Sjukvård",
+        "construction": "Byggnad",
+        "hunting": "Jakt",
+        "fishing": "Fiske",
+        "food_preservation": "Matkonservering",
+        "sewing": "Sömnad",
+        "teaching": "Undervisning"
+      }
+    },
+    "membership": {
+      "who_can_join": "Vem kan gå med",
+      "administrator": "Administratör",
+      "contact": "Kontakt",
+      "send_message": "Skicka meddelande",
+      "requirements_default": "Boende i närområdet\nEngagerad i lokal beredskap\nDela våra värderingar om ömsesidig hjälp"
+    },
+    "editor": {
+      "title": "Redigera samhällets hemsida",
+      "live_preview": "Live-förhandsgranskning",
+      "editor_view": "Redigeringsvy",
+      "content": "Innehåll",
+      "about_section": "Om vårt samhälle",
+      "about_help": "Berätta om ert samhälle, era värderingar och vad ni gör tillsammans",
+      "current_info_section": "Aktuell information",
+      "current_info_help": "Nyheter, meddelanden eller viktig information (visas högst upp på hemsidan)",
+      "membership_criteria": "Medlemskriterier",
+      "membership_help": "Beskriv vem som kan gå med i ert samhälle",
+      "visual": "Visuellt",
+      "banner_image": "Bannerbild",
+      "upload_image": "Ladda upp bild",
+      "choose_pattern": "Välj färgmönster",
+      "patterns": {
+        "olive_gradient": "Olivgrön gradient",
+        "olive_mesh": "Olivgrön mesh",
+        "olive_waves": "Olivgröna vågor",
+        "olive_geometric": "Olivgrön geometri"
+      },
+      "accent_color": "Accentfärg",
+      "visibility": "Synlighetsinställningar",
+      "show_current_info_public": "Visa aktuell information offentligt",
+      "show_resources_public": "Visa resursstatistik offentligt",
+      "show_preparedness_public": "Visa beredskapspoäng offentligt",
+      "show_member_activities": "Visa nya medlemmar i aktivitetsflödet",
+      "show_admin_contact": "Visa administratörens kontaktinfo offentligt",
+      "show_skills_public": "Visa kompetenser offentligt",
+      "customization": "Anpassningar",
+      "url_slug": "URL-adress",
+      "slug_help": "Din samhälles offentliga adress: beready.se/",
+      "slug_error": "URL-adressen kan endast innehålla bokstäver, siffror och bindestreck",
+      "slug_taken": "Denna URL-adress är redan upptagen",
+      "auto_save": "Sparar automatiskt var 30:e sekund",
+      "unsaved_changes": "Du har osparade ändringar"
+    },
+    "analytics": {
+      "title": "Statistik",
+      "views": "Visningar",
+      "applications": "Ansökningar",
+      "messages": "Meddelanden",
+      "last_viewed": "Senast visad"
+    },
+    "errors": {
+      "not_found": "Samhället hittades inte",
+      "not_published": "Detta samhälle har inte publicerat sin hemsida ännu",
+      "load_failed": "Kunde inte ladda hemsida",
+      "save_failed": "Kunde inte spara ändringar",
+      "slug_invalid": "Ogiltig URL-adress"
+    },
+    "seo": {
+      "default_title": "Beredskapssamhälle",
+      "default_description": "Lokalt beredskapssamhälle för ömsesidig hjälp och krisberedskap"
+    }
   }
 }

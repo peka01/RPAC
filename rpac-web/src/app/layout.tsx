@@ -48,23 +48,13 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="min-h-screen relative">
-            {/* Modern, clear olive-tinted background (no blue) */}
-            <div className="fixed inset-0 bg-gradient-to-br from-[#F8FAF7] via-white to-[#F3F6EE] dark:from-[#0F130B] dark:via-[#141A0E] dark:to-[#0F130B]"></div>
-            <div className="fixed inset-0 bg-[radial-gradient(1200px_800px_at_20%_15%,rgba(61,74,43,0.04),transparent_60%)]"></div>
-            <div className="fixed inset-0 bg-[radial-gradient(1000px_700px_at_80%_70%,rgba(92,107,71,0.03),transparent_60%)]"></div>
-            
-            {/* Main content with modern spacing */}
-            <div className="relative z-10">
-              <WeatherProviderWrapper>
-                <GlobalLoadingProvider>
-                  <ResponsiveLayoutWrapper>
-                    {children}
-                  </ResponsiveLayoutWrapper>
-                </GlobalLoadingProvider>
-              </WeatherProviderWrapper>
-            </div>
-          </div>
+          <WeatherProviderWrapper>
+            <GlobalLoadingProvider>
+              <ResponsiveLayoutWrapper>
+                {children}
+              </ResponsiveLayoutWrapper>
+            </GlobalLoadingProvider>
+          </WeatherProviderWrapper>
         </ThemeProvider>
       </body>
     </html>
