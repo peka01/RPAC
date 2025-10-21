@@ -2,6 +2,9 @@
 name = "rpac-web"
 pages_build_output_dir = "rpac-web/out"
 
+# Compatibility flags for Node.js runtime features
+compatibility_flags = ["nodejs_compat"]
+
 # Environment variables and secrets
 # The OPENAI_API_KEY should be set as a secret using:
 # wrangler secret put OPENAI_API_KEY
