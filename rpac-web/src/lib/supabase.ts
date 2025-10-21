@@ -49,6 +49,9 @@ export interface LocalCommunity {
   postal_code?: string
   county?: string
   is_public?: boolean
+  access_type?: 'öppet' | 'stängt'
+  auto_approve_members?: boolean
+  max_members?: number
   member_count?: number
   created_by: string
   created_at: string
