@@ -22,6 +22,7 @@ import type { User } from '@supabase/supabase-js';
 import type { LocalCommunity } from '@/lib/supabase';
 import { supabase, communityService } from '@/lib/supabase';
 import HomespaceEditorWrapper from '@/components/homespace-editor-wrapper';
+import { CommunityAdminSection } from '@/components/community-admin-section';
 import { t } from '@/lib/locales';
 
 interface CommunityDashboardProps {
@@ -139,6 +140,21 @@ export function CommunityDashboard({ user, community, onNavigate }: CommunityDas
               <p className="text-white/80 text-lg">
                 {community.description || 'Lokalt beredskapsamhälle'}
               </p>
+              {/* Public Homepage URL - visible to all */}
+              {homespaceSlug && (
+                <a
+                  href={`/${homespaceSlug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg transition-colors text-sm font-medium"
+                >
+                  <Globe size={16} />
+                  <span>beready.se/{homespaceSlug}</span>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="opacity-70">
+                    <path d="M10.5 1.5L1.5 10.5M10.5 1.5H3M10.5 1.5V9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </a>
+              )}
             </div>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2">
@@ -285,37 +301,21 @@ export function CommunityDashboard({ user, community, onNavigate }: CommunityDas
             </span>
           </div>
         </button>
-
-        {/* Homespace Admin Card - Only for admins */}
-        {isAdmin && (
-          <button
-            onClick={() => setShowHomespaceEditor(true)}
-            className="group bg-gradient-to-br from-[#5C6B47] to-[#3D4A2B] text-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] text-left border-2 border-transparent hover:border-[#5C6B47]"
-          >
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                <Globe size={28} className="text-white" strokeWidth={2.5} />
-              </div>
-              <div>
-                <div className="text-xl font-bold mb-1">
-                  {t('homespace.button_text')}
-                </div>
-                <div className="text-sm text-white/80">
-                  {t('homespace.public_page')}
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-white/90 font-mono text-xs bg-white/10 px-3 py-1.5 rounded-lg">
-                {homespaceSlug ? `beready.se/${homespaceSlug}` : t('homespace.edit_content')}
-              </span>
-              <span className="text-white font-bold group-hover:translate-x-1 transition-transform">
-                {t('homespace.edit_homepage')}
-              </span>
-            </div>
-          </button>
-        )}
       </div>
+
+      {/* Admin Section - Only visible to admins */}
+      {isAdmin && (
+        <CommunityAdminSection
+          user={user}
+          communityId={community.id}
+          communityName={community.community_name}
+          onSettingsUpdate={() => {
+            // Reload community data if needed
+            loadCommunityStats();
+          }}
+          onOpenHomespaceEditor={() => setShowHomespaceEditor(true)}
+        />
+      )}
 
       {/* Help Requests Alert (if any) */}
       {stats.helpRequests > 0 && (

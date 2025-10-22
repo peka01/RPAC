@@ -53,7 +53,12 @@ export default function UserManagementPage() {
   async function loadUsers() {
     try {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (!currentUser) return;
+      if (!currentUser) {
+        console.error('❌ No current user found');
+        return;
+      }
+
+      console.log('🔍 Calling get_all_users for user:', currentUser.id);
 
       // Call RPC function to get all users
       const { data, error } = await supabase.rpc('get_all_users', {
@@ -63,12 +68,23 @@ export default function UserManagementPage() {
         p_offset: 0
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ RPC Error:', error);
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
 
+      console.log('✅ Users loaded successfully:', data?.length || 0);
       setUsers(data || []);
       setFilteredUsers(data || []);
-    } catch (error) {
-      console.error('Error loading users:', error);
+    } catch (error: any) {
+      console.error('❌ Error loading users:', error);
+      console.error('Full error object:', JSON.stringify(error, null, 2));
     } finally {
       setLoading(false);
     }

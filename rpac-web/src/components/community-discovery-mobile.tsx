@@ -16,7 +16,9 @@ import {
   Trash2,
   ChevronDown,
   Filter,
-  Sparkles
+  Sparkles,
+  Globe,
+  Lock
 } from 'lucide-react';
 import { geographicService } from '@/lib/geographic-service';
 import { communityService, type LocalCommunity } from '@/lib/supabase';
@@ -49,7 +51,8 @@ export function CommunityDiscoveryMobile({ user, userPostalCode, onJoinCommunity
   const [createForm, setCreateForm] = useState({
     name: '',
     description: '',
-    isPublic: true
+    isPublic: true,
+    accessType: 'öppet' as 'öppet' | 'stängt'
   });
 
   useEffect(() => {
@@ -199,13 +202,15 @@ export function CommunityDiscoveryMobile({ user, userPostalCode, onJoinCommunity
         description: createForm.description,
         postal_code: userPostalCode,
         county: locationInfo.county,
-        is_public: createForm.isPublic
+        is_public: createForm.isPublic,
+        access_type: createForm.accessType,
+        auto_approve_members: createForm.accessType === 'öppet'
       });
 
       await communityService.joinCommunity(newCommunity.id, user.id);
       
       setShowCreateModal(false);
-      setCreateForm({ name: '', description: '', isPublic: true });
+      setCreateForm({ name: '', description: '', isPublic: true, accessType: 'öppet' });
       handleSearch();
       
       if (onJoinCommunity) {
@@ -236,6 +241,29 @@ export function CommunityDiscoveryMobile({ user, userPostalCode, onJoinCommunity
   };
 
   const isMember = (communityId: string) => userMemberships.includes(communityId);
+
+  // Early return if no postal code
+  if (!userPostalCode) {
+    return (
+      <div className="text-center py-12 px-4">
+        <div className="bg-[#5C6B47]/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+          <MapPin size={40} className="text-[#5C6B47]" />
+        </div>
+        <h4 className="text-lg font-semibold text-gray-800 mb-2">
+          Ange ditt postnummer
+        </h4>
+        <p className="text-gray-600 mb-6 text-sm">
+          För att hitta samhällen i ditt område behöver vi veta din plats
+        </p>
+        <Link
+          href="/settings"
+          className="inline-block px-6 py-3 bg-[#3D4A2B] text-white font-bold rounded-xl hover:bg-[#2A331E] transition-all touch-manipulation active:scale-95"
+        >
+          Gå till inställningar
+        </Link>
+      </div>
+    );
+  }
 
   // Filter Sheet Modal (Bottom Sheet)
   const FilterSheet = () => (
@@ -337,13 +365,14 @@ export function CommunityDiscoveryMobile({ user, userPostalCode, onJoinCommunity
       onClick={() => setShowCreateModal(false)}
     >
       <div 
-        className={`fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl transition-transform max-h-[90vh] overflow-y-auto ${
+        className={`fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl transition-transform max-h-[85vh] flex flex-col ${
           showCreateModal ? 'translate-y-0' : 'translate-y-full'
         }`}
         onClick={(e) => e.stopPropagation()}
       >
-        <form onSubmit={handleCreateCommunity} className="p-6 pb-8">
-          <div className="flex items-center justify-between mb-6">
+        {/* STICKY HEADER */}
+        <div className="flex-shrink-0 p-6 pb-4 border-b border-gray-200">
+          <div className="flex items-center justify-between">
             <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
               <Sparkles className="text-[#3D4A2B]" size={24} />
               Skapa samhälle
@@ -356,9 +385,13 @@ export function CommunityDiscoveryMobile({ user, userPostalCode, onJoinCommunity
               <X size={24} />
             </button>
           </div>
+        </div>
 
-          <div className="space-y-4">
-            <div>
+        {/* SCROLLABLE CONTENT */}
+        <div className="flex-1 overflow-y-auto">
+          <form onSubmit={handleCreateCommunity} className="p-6 pb-4" id="create-community-form">
+            <div className="space-y-4">
+              <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Samhällets namn *
               </label>
@@ -385,63 +418,96 @@ export function CommunityDiscoveryMobile({ user, userPostalCode, onJoinCommunity
               />
             </div>
 
-            <div className="flex items-center gap-3 p-4 bg-[#5C6B47]/10 rounded-xl">
-              <input
-                type="checkbox"
-                id="isPublic"
-                checked={createForm.isPublic}
-                onChange={(e) => setCreateForm({ ...createForm, isPublic: e.target.checked })}
-                className="w-5 h-5 rounded border-gray-300 text-[#3D4A2B] focus:ring-[#3D4A2B]"
-              />
-              <label htmlFor="isPublic" className="text-sm font-medium text-gray-700">
-                Gör synlig för andra (rekommenderat)
+            {/* Access Type */}
+            {console.log('🎯 RENDERING ACCESS TYPE SECTION IN MOBILE')}
+            {console.log('Debug translations:', {
+              accessType: t('community.access_type'),
+              oppet: t('admin.access_types.öppet'),
+              stangt: t('admin.access_types.stängt')
+            })}
+            <div style={{border: '5px solid red', padding: '20px', backgroundColor: 'yellow'}}>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                {t('community.access_type') || 'Åtkomsttyp'} <span className="text-red-500">*</span>
               </label>
+              <div className="space-y-3">
+                <label className="flex items-start gap-3 p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-[#3D4A2B] transition-colors">
+                  <input
+                    type="radio"
+                    name="accessType"
+                    value="öppet"
+                    checked={createForm.accessType === 'öppet'}
+                    onChange={(e) => setCreateForm({ ...createForm, accessType: e.target.value as 'öppet' | 'stängt' })}
+                    className="mt-1 w-5 h-5 text-[#3D4A2B] border-gray-300 focus:ring-[#3D4A2B]"
+                  />
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900 flex items-center gap-2">
+                      <Globe size={18} className="text-green-600" />
+                      {t('admin.access_types.öppet') || 'Öppet samhälle'}
+                    </div>
+                    <div className="text-sm text-gray-600 mt-1">
+                      {t('admin.access_types.description.öppet') || 'Alla kan gå med direkt utan godkännande'}
+                    </div>
+                  </div>
+                </label>
+                
+                <label className="flex items-start gap-3 p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-[#3D4A2B] transition-colors">
+                  <input
+                    type="radio"
+                    name="accessType"
+                    value="stängt"
+                    checked={createForm.accessType === 'stängt'}
+                    onChange={(e) => setCreateForm({ ...createForm, accessType: e.target.value as 'öppet' | 'stängt' })}
+                    className="mt-1 w-5 h-5 text-[#3D4A2B] border-gray-300 focus:ring-[#3D4A2B]"
+                  />
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900 flex items-center gap-2">
+                      <Lock size={18} className="text-orange-600" />
+                      {t('admin.access_types.stängt') || 'Stängt samhälle'}
+                    </div>
+                    <div className="text-sm text-gray-600 mt-1">
+                      {t('admin.access_types.description.stängt') || 'Medlemsansökningar kräver godkännande från administratör'}
+                    </div>
+                  </div>
+                </label>
+              </div>
             </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={creating || !createForm.name.trim()}
-            className="w-full mt-6 bg-[#3D4A2B] text-white font-bold py-4 px-6 rounded-xl hover:bg-[#2A331E] disabled:bg-gray-300 disabled:cursor-not-allowed transition-all touch-manipulation active:scale-98 flex items-center justify-center gap-2"
-          >
-            {creating ? (
-              <>
-                <Loader className="animate-spin" size={20} />
-                Skapar...
-              </>
-            ) : (
-              <>
-                <CheckCircle size={20} />
-                Skapa samhälle
-              </>
-            )}
-          </button>
-        </form>
+              <div className="flex items-center gap-3 p-4 bg-[#5C6B47]/10 rounded-xl">
+                <input
+                  type="checkbox"
+                  id="isPublic"
+                  checked={createForm.isPublic}
+                  onChange={(e) => setCreateForm({ ...createForm, isPublic: e.target.checked })}
+                  className="w-5 h-5 rounded border-gray-300 text-[#3D4A2B] focus:ring-[#3D4A2B]"
+                />
+                <label htmlFor="isPublic" className="text-sm font-medium text-gray-700">
+                  Gör synlig för andra (rekommenderat)
+                </label>
+              </div>
+
+              <button
+                type="submit"
+                disabled={creating || !createForm.name.trim()}
+                className="w-full mt-6 bg-[#3D4A2B] text-white font-bold py-4 px-6 rounded-xl hover:bg-[#2A331E] disabled:bg-gray-300 disabled:cursor-not-allowed transition-all touch-manipulation active:scale-98 flex items-center justify-center gap-2"
+              >
+                {creating ? (
+                  <>
+                    <Loader className="animate-spin" size={20} />
+                    Skapar...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle size={20} />
+                    Skapa samhälle
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
-
-  if (!userPostalCode) {
-    return (
-      <div className="text-center py-12 px-4">
-        <div className="bg-[#5C6B47]/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-          <MapPin size={40} className="text-[#5C6B47]" />
-        </div>
-        <h4 className="text-lg font-semibold text-gray-800 mb-2">
-          Ange ditt postnummer
-        </h4>
-        <p className="text-gray-600 mb-6 text-sm">
-          För att hitta samhällen i ditt område behöver vi veta din plats
-        </p>
-        <Link
-          href="/settings"
-          className="inline-block px-6 py-3 bg-[#3D4A2B] text-white font-bold rounded-xl hover:bg-[#2A331E] transition-all touch-manipulation active:scale-95"
-        >
-          Gå till inställningar
-        </Link>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">

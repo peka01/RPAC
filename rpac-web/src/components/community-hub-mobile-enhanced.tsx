@@ -25,6 +25,7 @@ import { communityService, type LocalCommunity, supabase } from '@/lib/supabase'
 import { t } from '@/lib/locales';
 import type { User } from '@supabase/supabase-js';
 import HomespaceEditorWrapper from '@/components/homespace-editor-wrapper';
+import { CommunityAdminSection } from '@/components/community-admin-section';
 
 interface CommunityHubMobileEnhancedProps {
   user: User;
@@ -395,6 +396,21 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
                 <MapPin size={14} />
                 <span>{activeCommunity.location}</span>
               </div>
+              {/* Public Homepage URL - visible to all */}
+              {homespaceSlug && (
+                <a
+                  href={`/${homespaceSlug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg transition-colors text-xs font-medium"
+                >
+                  <Home size={12} />
+                  <span>beready.se/{homespaceSlug}</span>
+                  <svg width="10" height="10" viewBox="0 0 12 12" fill="none" className="opacity-70">
+                    <path d="M10.5 1.5L1.5 10.5M10.5 1.5H3M10.5 1.5V9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </a>
+              )}
             </div>
           </div>
 
@@ -514,27 +530,23 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
               </div>
             </button>
 
-            {/* Homespace Admin Card - Only for admins */}
-            {isAdmin && (
-              <button
-                onClick={() => setShowHomespaceEditor(true)}
-                className="w-full bg-gradient-to-r from-[#5C6B47] to-[#3D4A2B] text-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-98"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="bg-white/20 rounded-full p-3">
-                    <Home size={24} />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <h3 className="font-bold text-lg mb-1">{t('homespace.button_text')}</h3>
-                    <p className="text-[#C8D5B9] text-sm">
-                      {homespaceSlug ? `beready.se/${homespaceSlug}` : t('homespace.edit_content')}
-                    </p>
-                  </div>
-                  <ChevronRight size={24} />
-                </div>
-              </button>
-            )}
           </div>
+
+          {/* Admin Section - Only for admins */}
+          {isAdmin && activeCommunityId && (
+            <div className="px-4 pb-6">
+              <CommunityAdminSection
+                user={user}
+                communityId={activeCommunityId}
+                communityName={activeCommunity.community_name}
+                onSettingsUpdate={() => {
+                  // Reload communities
+                  loadUserCommunities();
+                }}
+                onOpenHomespaceEditor={() => setShowHomespaceEditor(true)}
+              />
+            </div>
+          )}
         </div>
       </div>
     );

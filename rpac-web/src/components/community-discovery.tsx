@@ -60,7 +60,9 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
   const [editForm, setEditForm] = useState({
     name: '',
     description: '',
-    isPublic: true
+    isPublic: true,
+    accessType: 'öppet' as 'öppet' | 'stängt',
+    autoApproveMembers: true
   });
 
   useEffect(() => {
@@ -336,7 +338,9 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
     setEditForm({
       name: community.community_name,
       description: community.description || '',
-      isPublic: community.is_public ?? true
+      isPublic: community.is_public ?? true,
+      accessType: (community as any).access_type || 'öppet',
+      autoApproveMembers: (community as any).auto_approve_members ?? true
     });
     setShowEditModal(true);
   };
@@ -383,7 +387,9 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
       await communityService.updateCommunity(selectedCommunity.id, {
         community_name: editForm.name.trim(),
         description: editForm.description.trim(),
-        is_public: editForm.isPublic
+        is_public: editForm.isPublic,
+        access_type: editForm.accessType,
+        auto_approve_members: editForm.autoApproveMembers
       });
 
       setShowEditModal(false);
@@ -695,6 +701,12 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
             </h3>
 
             <form onSubmit={handleCreateCommunity} className="space-y-4">
+              {console.log('🐛 CREATE MODAL DEBUG:', { 
+                createForm, 
+                showCreateModal,
+                hasAccessType: !!createForm.accessType 
+              })}
+              
               {/* Community Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -737,7 +749,8 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
               )}
 
               {/* Access Type */}
-              <div>
+              {console.log('🎯 RENDERING ACCESS TYPE SECTION')}
+              <div style={{border: '3px solid red', padding: '10px'}}>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   {t('community.access_type') || 'Åtkomsttyp'} <span className="text-red-500">*</span>
                 </label>
@@ -877,6 +890,79 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
                   rows={4}
                   maxLength={500}
                 />
+              </div>
+
+              {/* Access Type (Öppet/Stängt) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  {t('community.access_type')} <span className="text-red-500">*</span>
+                </label>
+                <div className="space-y-3">
+                  <label className="flex items-start gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                    style={{
+                      borderColor: editForm.accessType === 'öppet' ? '#3D4A2B' : '#D1D5DB',
+                      backgroundColor: editForm.accessType === 'öppet' ? '#F0F4F0' : 'white'
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="editAccessType"
+                      value="öppet"
+                      checked={editForm.accessType === 'öppet'}
+                      onChange={(e) => setEditForm({ 
+                        ...editForm, 
+                        accessType: 'öppet',
+                        autoApproveMembers: true 
+                      })}
+                      className="mt-1 w-4 h-4 text-[#3D4A2B] border-gray-300 focus:ring-[#3D4A2B]"
+                    />
+                    <div className="flex-1">
+                      <div className="font-semibold text-gray-900">
+                        🌍 {t('community.open_community')}
+                      </div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        {t('community.open_community_description')}
+                      </div>
+                    </div>
+                  </label>
+
+                  <label className="flex items-start gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                    style={{
+                      borderColor: editForm.accessType === 'stängt' ? '#3D4A2B' : '#D1D5DB',
+                      backgroundColor: editForm.accessType === 'stängt' ? '#F0F4F0' : 'white'
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="editAccessType"
+                      value="stängt"
+                      checked={editForm.accessType === 'stängt'}
+                      onChange={(e) => setEditForm({ ...editForm, accessType: 'stängt' })}
+                      className="mt-1 w-4 h-4 text-[#3D4A2B] border-gray-300 focus:ring-[#3D4A2B]"
+                    />
+                    <div className="flex-1">
+                      <div className="font-semibold text-gray-900">
+                        🔒 {t('community.closed_community')}
+                      </div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        {t('community.closed_community_description')}
+                      </div>
+                      {editForm.accessType === 'stängt' && (
+                        <label className="flex items-center gap-2 mt-3 p-2 bg-blue-50 rounded">
+                          <input
+                            type="checkbox"
+                            checked={editForm.autoApproveMembers}
+                            onChange={(e) => setEditForm({ ...editForm, autoApproveMembers: e.target.checked })}
+                            className="w-4 h-4 text-[#3D4A2B] border-gray-300 rounded focus:ring-[#3D4A2B]"
+                          />
+                          <span className="text-sm text-gray-700">
+                            {t('community.auto_approve')}
+                          </span>
+                        </label>
+                      )}
+                    </div>
+                  </label>
+                </div>
               </div>
 
               {/* Public Toggle */}
