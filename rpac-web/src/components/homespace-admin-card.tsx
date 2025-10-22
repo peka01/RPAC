@@ -28,7 +28,7 @@ export default function HomespaceAdminCard({
             <Globe size={24} />
           </div>
           <div>
-            <h3 className="font-bold text-lg">{t('homespace.title')}</h3>
+            <h3 className="font-bold text-lg">{communityName}s hemsida</h3>
             <p className="text-sm text-white/80">
               {isPublished ? (
                 <span className="flex items-center gap-1">

@@ -5,7 +5,6 @@ import {
   Users,
   Settings,
   UserCheck,
-  UserX,
   Clock,
   MapPin,
   Home,
@@ -19,9 +18,10 @@ import {
   EyeOff,
   Trash2,
   Save,
-  X,
+  X as XIcon,
   ExternalLink,
-  BarChart3
+  BarChart3,
+  MessageCircle
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { t } from '@/lib/locales';
@@ -50,6 +50,7 @@ interface PendingRequest {
 }
 
 interface CommunityMember {
+  membership_id: string;
   user_id: string;
   email: string;
   display_name: string;
@@ -77,6 +78,8 @@ export function CommunityAdminSection({
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [memberFilter, setMemberFilter] = useState<'all' | 'pending' | 'approved'>('all');
+  const [showRemoveDialog, setShowRemoveDialog] = useState(false);
+  const [memberToRemove, setMemberToRemove] = useState<CommunityMember | null>(null);
   
   // Pending requests state
   const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([]);
@@ -244,7 +247,7 @@ export function CommunityAdminSection({
       // First get memberships - filter by status, not membership_status
       const { data: membershipsData, error: membershipsError } = await supabase
         .from('community_memberships')
-        .select('user_id, role, joined_at, status')
+        .select('id, user_id, role, joined_at, status')
         .eq('community_id', communityId)
         .eq('status', 'approved')  // ✅ Correct column name
         .order('joined_at', { ascending: false });
@@ -276,6 +279,7 @@ export function CommunityAdminSection({
       const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
       
       const transformedMembers = membershipsData.map(m => ({
+        membership_id: m.id,
         user_id: m.user_id,
         email: '',
         display_name: profilesMap.get(m.user_id)?.display_name || 'Okänd användare',
@@ -396,7 +400,7 @@ export function CommunityAdminSection({
       alert(t('community_admin.settings.save_success'));
       setOriginalSettings(settings);
       setHasChanges(false);
-      
+
       if (onSettingsUpdate) {
         onSettingsUpdate();
       }
@@ -405,6 +409,46 @@ export function CommunityAdminSection({
       alert(t('community_admin.settings.save_error'));
     } finally {
       setActionLoading(null);
+    }
+  };
+
+
+  const confirmRemoveMember = (member: CommunityMember) => {
+    setMemberToRemove(member);
+    setShowRemoveDialog(true);
+  };
+
+  const executeRemoveMember = async () => {
+    if (!memberToRemove) return;
+
+    // Get the reason from the textarea
+    const reasonElement = document.getElementById('removeReason') as HTMLTextAreaElement;
+    const reason = reasonElement?.value || null;
+
+    setActionLoading(memberToRemove.membership_id);
+    try {
+      const { error } = await supabase.rpc('remove_community_member', {
+        p_membership_id: memberToRemove.membership_id,
+        p_remover_id: user.id,
+        p_reason: reason
+      });
+
+      if (error) throw error;
+
+      // Show success message
+      alert(t('community_admin.members.remove_success').replace('{name}', memberToRemove.display_name));
+
+      // Reload members list
+      await loadMembers();
+
+      console.log('✅ Member removed and list refreshed');
+    } catch (error) {
+      console.error('Error removing member:', error);
+      alert(t('community_admin.members.remove_error'));
+    } finally {
+      setActionLoading(null);
+      setShowRemoveDialog(false);
+      setMemberToRemove(null);
     }
   };
 
@@ -709,6 +753,34 @@ export function CommunityAdminSection({
                                   </div>
                                 </div>
                               </div>
+
+                              {/* Action buttons - only show if user has permission */}
+                              {member.user_id !== user.id && (
+                                <div className="flex items-center gap-2">
+                                  {/* Message button */}
+                                  <a
+                                    href={`/local/messages/direct/?userId=${member.user_id}`}
+                                    className="w-8 h-8 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors flex items-center justify-center"
+                                    title="Skicka meddelande"
+                                  >
+                                    <MessageCircle size={16} />
+                                  </a>
+
+                                  {/* Remove member button */}
+                                  <button
+                                    onClick={() => confirmRemoveMember(member)}
+                                    disabled={actionLoading === member.membership_id}
+                                    className="w-8 h-8 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                                    title="Ta bort medlem"
+                                  >
+                                    {actionLoading === member.membership_id ? (
+                                      <ShieldProgressSpinner variant="bounce" size="sm" />
+                                    ) : (
+                                      <Trash2 size={16} />
+                                    )}
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           </div>
                         ))}
@@ -895,84 +967,22 @@ export function CommunityAdminSection({
               <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-bold text-gray-900 mb-1">
-                    {t('homespace.button_text')}
+                    🏡 {communityName}s hemsida
                   </h3>
                   <p className="text-sm text-gray-600">
-                    Skapa och redigera er offentliga hemsida
+                    {t('homespace.edit_description')}
                   </p>
                 </div>
 
-                {/* Homespace Editor Launch Card */}
+                {/* Homespace Editor Launch Button */}
                 <button
                   onClick={onOpenHomespaceEditor}
-                  className="w-full bg-gradient-to-br from-[#5C6B47] to-[#3D4A2B] text-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all hover:scale-[1.02] text-left group"
+                  className="w-full bg-[#3D4A2B] text-white rounded-lg hover:bg-[#2A331E] transition-colors font-semibold flex items-center justify-center gap-2 px-6 py-3 shadow-lg hover:shadow-xl"
                 >
-                  <div className="flex items-start gap-6">
-                    <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:bg-white/30 transition-colors">
-                      <Globe size={40} className="text-white" strokeWidth={2.5} />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="text-2xl font-bold mb-2 flex items-center gap-2">
-                        {t('homespace.edit_homepage')}
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="opacity-70 group-hover:translate-x-1 group-hover:opacity-100 transition-all">
-                          <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </h4>
-                      <p className="text-white/90 text-sm mb-4">
-                        Öppnar hemsideredigeraren i fullskärmsläge. Perfekt för nybörjare!
-                      </p>
-                      <div className="flex items-center gap-3 text-sm">
-                        <div className="flex items-center gap-1.5 bg-white/20 rounded-lg px-3 py-1.5">
-                          <span>✨</span>
-                          <span>Drag & drop-redigering</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 bg-white/20 rounded-lg px-3 py-1.5">
-                          <span>📱</span>
-                          <span>Mobilanpassad</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 bg-white/20 rounded-lg px-3 py-1.5">
-                          <span>🎨</span>
-                          <span>Färdiga mallar</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <Globe size={20} />
+                  {t('homespace.edit_homepage')}
                 </button>
 
-                {/* Help Cards */}
-                <div className="grid md:grid-cols-2 gap-4">
-                  {/* What is it */}
-                  <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <span className="text-white text-lg">💡</span>
-                      </div>
-                      <div className="text-sm text-blue-900">
-                        <p className="font-bold mb-1">Vad är hemsidan?</p>
-                        <p>
-                          En offentlig sida där ni kan presentera ert samhälle, visa kontaktinfo och berätta vad ni gör. 
-                          Perfekt för att rekrytera nya medlemmar!
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* How it works */}
-                  <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <span className="text-white text-lg">✏️</span>
-                      </div>
-                      <div className="text-sm text-green-900">
-                        <p className="font-bold mb-1">Så funkar det</p>
-                        <p>
-                          Klicka på knappen ovan för att öppna redigeraren. Dra och släpp element, skriv text och 
-                          ladda upp bilder. Ändringar sparas automatiskt!
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             )}
 
@@ -986,6 +996,66 @@ export function CommunityAdminSection({
           </>
         )}
       </div>
+
+      {/* Remove Member Confirmation Dialog */}
+      {showRemoveDialog && memberToRemove && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <Trash2 size={24} className="text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">
+                  {t('community_admin.members.confirm_remove').replace('{name}', memberToRemove.display_name)}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Denna åtgärd kan inte ångras
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3 mb-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  {t('community_admin.members.remove_reason')} ({t('community_admin.members.remove_reason_placeholder').toLowerCase()})
+                </label>
+                <textarea
+                  id="removeReason"
+                  rows={3}
+                  className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm"
+                  placeholder="Ange anledning..."
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={executeRemoveMember}
+                disabled={actionLoading === memberToRemove.membership_id}
+                className="flex-1 bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-colors font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Ta bort medlem"
+              >
+                {actionLoading === memberToRemove.membership_id ? (
+                  <ShieldProgressSpinner variant="bounce" size="sm" />
+                ) : (
+                  <Trash2 size={20} />
+                )}
+              </button>
+              <button
+                onClick={() => {
+                  setShowRemoveDialog(false);
+                  setMemberToRemove(null);
+                }}
+                className="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors font-semibold flex items-center justify-center gap-2"
+                title="Avbryt"
+              >
+                <XIcon size={20} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

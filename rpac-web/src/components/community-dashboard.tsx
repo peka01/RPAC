@@ -170,11 +170,10 @@ export function CommunityDashboard({ user, community, onNavigate }: CommunityDas
 
         {/* Quick Stats Grid - Enhanced with Context */}
         <div className="mb-6">
-          <h3 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
             <Activity className="w-5 h-5" />
-            Samhällsstatus
+            {t('local_community.status_title')}
           </h3>
-          <p className="text-white/80 text-sm">Översikt över ditt lokala samhälles aktivitet</p>
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -295,7 +294,7 @@ export function CommunityDashboard({ user, community, onNavigate }: CommunityDas
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-600">
-              Samhällschat och direktmeddelanden
+              {t('messaging.community_chat_description')}
             </span>
             <span className="text-[#3D4A2B] font-bold group-hover:translate-x-1 transition-transform">
               Öppna →

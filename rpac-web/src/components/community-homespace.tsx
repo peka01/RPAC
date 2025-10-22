@@ -1,10 +1,13 @@
 'use client';
 
 import { t } from '@/lib/locales';
-import { MapPin, Users, Calendar, ExternalLink, Mail, Shield, Wrench, Droplet, Heart, Zap, Activity } from 'lucide-react';
+import { MapPin, Users, Calendar, ExternalLink, Mail, Shield, Wrench, Droplet, Heart, Zap, Activity, Eye, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { supabase } from '@/lib/supabase';
+import HomepageContactSection from './homepage-contact-section';
+import HomepageGallerySection from './homepage-gallery-section';
+import HomepageEventsSection from './homepage-events-section';
 
 interface CommunityHomespaceProps {
   homespace: {
@@ -14,6 +17,7 @@ interface CommunityHomespaceProps {
     current_info: string | null;
     membership_criteria: string | null;
     custom_banner_url: string | null;
+    logo_url?: string | null;
     banner_pattern: string;
     accent_color: string;
     show_current_info_public: boolean;
@@ -49,6 +53,56 @@ export default function CommunityHomespace({ homespace, isPreview = false }: Com
   const [linkCopied, setLinkCopied] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
   const [adminContact, setAdminContact] = useState<{ name: string; email: string } | null>(null);
+  const [isPreviewMode, setIsPreviewMode] = useState(isPreview);
+  const [galleryImages, setGalleryImages] = useState<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
+
+  // Detect preview mode from URL parameter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const previewParam = urlParams.get('preview');
+    setIsPreviewMode(isPreview || previewParam === 'true');
+  }, [isPreview]);
+
+  // Load gallery images
+  useEffect(() => {
+    const loadGalleryImages = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('community_gallery')
+          .select('*')
+          .eq('community_id', homespace.communities.id)
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        setGalleryImages(data || []);
+      } catch (error) {
+        console.error('Error loading gallery images:', error);
+      }
+    };
+
+    loadGalleryImages();
+  }, [homespace.communities.id]);
+
+  // Load events
+  useEffect(() => {
+    const loadEvents = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('community_events')
+          .select('*')
+          .eq('community_id', homespace.communities.id)
+          .order('event_date', { ascending: true });
+        
+        if (error) throw error;
+        setEvents(data || []);
+      } catch (error) {
+        console.error('Error loading events:', error);
+      }
+    };
+
+    loadEvents();
+  }, [homespace.communities.id]);
 
   const bannerClass = homespace.custom_banner_url 
     ? '' 
@@ -132,101 +186,186 @@ export default function CommunityHomespace({ homespace, isPreview = false }: Com
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      {/* Preview Banner */}
-      {isPreview && (
-        <div className="bg-amber-500 text-white px-6 py-3 text-center font-medium">
-          {t('homespace.preview')} - {t('homespace.editor.unsaved_changes')}
+      {/* Preview Banner with Close Button */}
+      {isPreviewMode && (
+        <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white px-6 py-4 relative shadow-lg z-50">
+          <div className="max-w-6xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white/20 rounded-lg">
+                <Eye size={20} />
+              </div>
+              <div>
+                <div className="font-bold text-lg">Förhandsgranskning</div>
+                <div className="text-sm text-white/90">Osparade ändringar</div>
+              </div>
+            </div>
+            <button
+              onClick={() => window.close()}
+              className="flex items-center gap-2 px-6 py-3 bg-white text-amber-600 hover:bg-amber-50 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg border-2 border-white"
+            >
+              <X size={20} />
+              <span>Stäng förhandsgranskning</span>
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Hero Section */}
+      {/* Hero Section - Ultra Modern Design */}
       <div 
-        className={`${bannerClass} text-white px-6 py-12 md:py-16 relative`}
+        className={`${bannerClass} text-white px-4 md:px-6 py-16 md:py-24 relative overflow-hidden`}
         style={homespace.custom_banner_url ? {
           backgroundImage: `url(${homespace.custom_banner_url})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         } : {}}
       >
-        {/* Dark overlay for custom images to ensure text readability */}
-        {homespace.custom_banner_url && (
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
+        {/* Conditional overlays based on banner type */}
+        {homespace.custom_banner_url ? (
+          // Custom image - subtle dark overlay to ensure text readability
+          <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/60 to-black/75" />
+        ) : (
+          // Gradient banner - animated olive green overlay
+          <>
+            <div className="absolute inset-0 bg-gradient-to-br from-[#3D4A2B]/95 via-[#2A331E]/90 to-[#4A5239]/95"></div>
+            {/* Decorative geometric shapes - only for gradient banners */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#5C6B47]/20 rounded-full blur-2xl"></div>
+          </>
         )}
         
-        <div className="max-w-5xl mx-auto relative z-10">
-          {/* Community Name & Location */}
-          <div className="mb-8">
-            <h1 className="text-4xl md:text-5xl font-bold mb-3">
-              {homespace.communities.community_name}
-            </h1>
-            <div className="flex items-center gap-2 text-white/90 text-lg">
-              <MapPin size={20} />
-              <span>{homespace.communities.county}</span>
-            </div>
-          </div>
+        <div className="max-w-6xl mx-auto relative z-10">
+          {/* Main Content - Horizontal Layout on Desktop */}
+          <div className="flex flex-col md:flex-row md:items-center md:gap-12">
+            
+            {/* Logo Section - Left Side on Desktop */}
+            {(homespace as any).logo_url && (
+              <div className="flex-shrink-0 mb-8 md:mb-0 mx-auto md:mx-0">
+                <div className="relative group">
+                  {/* Glow effect behind logo */}
+                  <div className="absolute inset-0 bg-white/20 rounded-3xl blur-2xl group-hover:blur-3xl transition-all duration-500"></div>
+                  
+                  {/* Logo container with ultra-modern glass effect */}
+                  <div className="relative bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-white/30 shadow-2xl hover:shadow-white/20 hover:scale-105 transition-all duration-500 hover:border-white/50">
+                    <img 
+                      src={(homespace as any).logo_url} 
+                      alt={`${homespace.communities.community_name} logotyp`}
+                      className="w-28 h-28 md:w-40 md:h-40 object-contain filter drop-shadow-2xl"
+                    />
+                    {/* Subtle shine effect */}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Text Content - Right Side on Desktop */}
+            <div className="flex-1 text-center md:text-left">
+              {/* Community Name with gradient text */}
+              <h1 className="text-5xl md:text-7xl font-black mb-4 leading-tight">
+                <span className="bg-gradient-to-r from-white via-white to-white/90 bg-clip-text text-transparent drop-shadow-2xl">
+                  {homespace.communities.community_name}
+                </span>
+              </h1>
+              
+              {/* Location with icon */}
+              <div className="flex items-center gap-3 text-white/95 text-xl md:text-2xl mb-8 justify-center md:justify-start group">
+                <div className="p-2 bg-white/10 backdrop-blur-sm rounded-xl group-hover:bg-white/20 transition-all">
+                  <MapPin size={24} className="group-hover:scale-110 transition-transform" />
+                </div>
+                <span className="font-medium">{homespace.communities.county}</span>
+              </div>
 
-          {/* Quick Stats */}
-          <div className="flex flex-wrap gap-6 mb-8">
-            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2">
-              <Users size={20} />
-              <span className="font-semibold">{homespace.communities.member_count}</span>
-              <span className="text-sm text-white/80">
-                {homespace.communities.member_count === 1 ? t('homespace.hero.member') : t('homespace.hero.members')}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2">
-              <Calendar size={20} />
-              <span className="text-sm text-white/80">{t('homespace.hero.active_since')} {foundedYear}</span>
-            </div>
-          </div>
+              {/* Stats Cards - Modern glassmorphism */}
+              <div className="flex flex-wrap gap-4 mb-10 justify-center md:justify-start">
+                {/* Members stat */}
+                <div className="group relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#5C6B47]/30 to-[#4A5239]/30 rounded-2xl blur-xl group-hover:blur-2xl transition-all"></div>
+                  <div className="relative flex items-center gap-3 bg-gradient-to-br from-white/20 to-white/10 backdrop-blur-md rounded-2xl px-6 py-4 border border-white/30 hover:border-white/50 hover:scale-105 transition-all duration-300 shadow-xl">
+                    <div className="p-2 bg-white/20 rounded-xl">
+                      <Users size={24} />
+                    </div>
+                    <div className="text-left">
+                      <div className="text-3xl font-black">{homespace.communities.member_count}</div>
+                      <div className="text-sm text-white/80 font-medium">
+                        {homespace.communities.member_count === 1 ? t('homespace.hero.member') : t('homespace.hero.members')}
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-wrap gap-4">
-            <button
-              className="bg-white text-[#3D4A2B] px-6 py-3 rounded-xl font-bold hover:bg-gray-100 transition-all flex items-center gap-2 shadow-xl hover:shadow-2xl hover:scale-105"
-              onClick={() => window.location.href = '/settings'}
-            >
-              <Users size={20} />
-              {t('homespace.hero.apply_membership')}
-            </button>
-            <button
-              className="bg-white/90 backdrop-blur-md text-[#3D4A2B] px-6 py-3 rounded-xl font-semibold hover:bg-white transition-all flex items-center gap-2 border-2 border-white shadow-lg hover:shadow-xl hover:scale-105"
-              onClick={() => setShowContactForm(true)}
-            >
-              <Mail size={20} />
-              {t('homespace.hero.contact_admin')}
-            </button>
-            <button
-              className="bg-white/90 backdrop-blur-md text-[#3D4A2B] px-4 py-3 rounded-xl font-semibold hover:bg-white transition-all flex items-center gap-2 border-2 border-white shadow-lg hover:shadow-xl hover:scale-105"
-              onClick={copyLink}
-            >
-              <ExternalLink size={20} />
-              {linkCopied ? t('homespace.link_copied') : t('homespace.copy_link')}
-            </button>
+                {/* Active since stat */}
+                <div className="group relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#5C6B47]/30 to-[#4A5239]/30 rounded-2xl blur-xl group-hover:blur-2xl transition-all"></div>
+                  <div className="relative flex items-center gap-3 bg-gradient-to-br from-white/20 to-white/10 backdrop-blur-md rounded-2xl px-6 py-4 border border-white/30 hover:border-white/50 hover:scale-105 transition-all duration-300 shadow-xl">
+                    <div className="p-2 bg-white/20 rounded-xl">
+                      <Calendar size={24} />
+                    </div>
+                    <div className="text-left">
+                      <div className="text-2xl font-black">{foundedYear}</div>
+                      <div className="text-sm text-white/80 font-medium">{t('homespace.hero.active_since')}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* CTA Buttons - Refined & Organized */}
+              <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
+                {/* Primary CTA - Join (Most Important) */}
+                <button
+                  className="group relative bg-white text-[#3D4A2B] px-6 py-3 rounded-xl font-bold text-base shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 hover:scale-105 active:scale-95"
+                  onClick={() => window.location.href = '/settings'}
+                >
+                  <Users size={18} />
+                  <span>{t('homespace.hero.apply_membership')}</span>
+                </button>
+
+                {/* Secondary Actions - Grouped */}
+                <div className="flex gap-2">
+                  {/* Contact */}
+                  <button
+                    className="group bg-white/15 backdrop-blur-sm text-white px-4 py-3 rounded-xl font-semibold text-sm border border-white/30 hover:border-white/50 hover:bg-white/25 transition-all duration-300 flex items-center gap-2 hover:scale-105 active:scale-95"
+                    onClick={() => setShowContactForm(true)}
+                  >
+                    <Mail size={16} />
+                    <span className="hidden sm:inline">{t('homespace.hero.contact_admin')}</span>
+                    <span className="sm:hidden">Kontakt</span>
+                  </button>
+
+                  {/* Copy Link */}
+                  <button
+                    className="group bg-white/10 backdrop-blur-sm text-white px-4 py-3 rounded-xl font-semibold text-sm border border-white/20 hover:border-white/40 hover:bg-white/20 transition-all duration-300 flex items-center gap-2 hover:scale-105 active:scale-95"
+                    onClick={copyLink}
+                  >
+                    <ExternalLink size={16} className="group-hover:rotate-45 transition-transform duration-300" />
+                    <span className="hidden sm:inline">{linkCopied ? t('homespace.link_copied') : t('homespace.copy_link')}</span>
+                    <span className="sm:hidden">Länk</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="max-w-5xl mx-auto px-6 py-12">
-        {/* Current Info Section - Highlighted/Featured */}
+        {/* Current Info Section - Overlapping Banner */}
         {homespace.show_current_info_public && homespace.current_info && (
-          <section className="mb-12">
-            <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-200 rounded-2xl shadow-lg p-8 relative overflow-hidden">
-              {/* Decorative background pattern */}
-              <div className="absolute top-0 right-0 w-48 h-48 bg-amber-100 rounded-full opacity-20 blur-3xl -mr-24 -mt-24" />
-              <div className="absolute bottom-0 left-0 w-32 h-32 bg-yellow-100 rounded-full opacity-20 blur-2xl -ml-16 -mb-16" />
+          <section className="mb-12 -mt-16 relative z-20">
+            <div className="bg-white/95 backdrop-blur-md border-2 border-white/50 rounded-2xl shadow-2xl p-8 relative overflow-hidden">
+              {/* Subtle gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/80 to-white/60 rounded-2xl"></div>
               
               <div className="relative z-10">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-amber-500 text-white p-3 rounded-xl shadow-md">
+                  <div className="bg-gradient-to-br from-[#5C6B47] to-[#3D4A2B] text-white p-3 rounded-xl shadow-lg">
                     <span className="text-2xl">📢</span>
                   </div>
-                  <h2 className="text-3xl font-bold text-amber-900">
+                  <h2 className="text-3xl font-bold text-gray-900">
                     {t('homespace.sections.current_info')}
                   </h2>
                 </div>
-                <div className="prose prose-lg max-w-none prose-headings:text-amber-900 prose-a:text-amber-700 prose-strong:text-amber-900 prose-p:text-gray-800">
+                <div className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-a:text-[#5C6B47] prose-strong:text-gray-900 prose-p:text-gray-700">
                   <ReactMarkdown>{homespace.current_info}</ReactMarkdown>
                 </div>
               </div>
@@ -393,6 +532,46 @@ export default function CommunityHomespace({ homespace, isPreview = false }: Com
               </p>
             </div>
           </section>
+        )}
+
+        {/* Photo Gallery Section */}
+        <HomepageGallerySection
+          communityId={homespace.communities.id}
+          images={galleryImages}
+          onImagesChange={setGalleryImages}
+          isEditing={false}
+          onEdit={() => {}}
+          onSave={() => {}}
+          onCancel={() => {}}
+        />
+
+        {/* Events Calendar Section */}
+        <HomepageEventsSection
+          communityId={homespace.communities.id}
+          events={events}
+          onEventsChange={setEvents}
+          isEditing={false}
+          onEdit={() => {}}
+          onSave={() => {}}
+          onCancel={() => {}}
+        />
+
+        {/* Contact Information Section */}
+        {(homespace as any).show_contact_section && (
+          <HomepageContactSection
+            contactInfo={{
+              email: (homespace as any).contact_email,
+              phone: (homespace as any).contact_phone,
+              address: (homespace as any).contact_address,
+              facebook: (homespace as any).social_facebook,
+              instagram: (homespace as any).social_instagram
+            }}
+            onUpdate={() => {}}
+            isEditing={false}
+            onEdit={() => {}}
+            onSave={() => {}}
+            onCancel={() => {}}
+          />
         )}
 
         {/* Membership Section */}

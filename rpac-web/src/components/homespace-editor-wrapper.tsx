@@ -95,7 +95,7 @@ export default function HomespaceEditorWrapper({ communityId, userId, onClose }:
                 </div>
                 <div>
                   <h2 className="text-xl font-bold">
-                    {t('homespace.button_text')}
+                    🏡 {homespaceData?.communities?.community_name || 'Samhälle'}s hemsida
                   </h2>
                   <p className="text-white/80 text-sm">
                     {t('homespace.edit_content')}
