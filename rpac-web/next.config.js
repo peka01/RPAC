@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
+  // swcMinify is now default in Next.js 13+ and deprecated - removed
   images: { unoptimized: true },
   // Allow build to succeed with ESLint warnings (will fix gradually)
   eslint: {
