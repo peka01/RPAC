@@ -419,12 +419,15 @@ export function CommunityDiscoveryMobile({ user, userPostalCode, onJoinCommunity
             </div>
 
             {/* Access Type */}
-            {console.log('🎯 RENDERING ACCESS TYPE SECTION IN MOBILE')}
-            {console.log('Debug translations:', {
-              accessType: t('community.access_type'),
-              oppet: t('admin.access_types.öppet'),
-              stangt: t('admin.access_types.stängt')
-            })}
+            {(() => {
+              console.log('🎯 RENDERING ACCESS TYPE SECTION IN MOBILE');
+              console.log('Debug translations:', {
+                accessType: t('community.access_type'),
+                oppet: t('admin.access_types.öppet'),
+                stangt: t('admin.access_types.stängt')
+              });
+              return null;
+            })()}
             <div style={{border: '5px solid red', padding: '20px', backgroundColor: 'yellow'}}>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
                 {t('community.access_type') || 'Åtkomsttyp'} <span className="text-red-500">*</span>

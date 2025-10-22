@@ -718,7 +718,10 @@ export function CommunityAdminSection({
                 </div>
 
                 {/* Access Control */}
-                {console.log('🔥 RENDERING ACCESS CONTROL SECTION', settings)}
+                {(() => {
+                  console.log('🔥 RENDERING ACCESS CONTROL SECTION', settings);
+                  return null;
+                })()}
                 <div className="border-b border-gray-200 pb-6" style={{border: '5px solid red', backgroundColor: 'yellow', padding: '20px'}}>
                   <h4 className="font-semibold text-gray-900 mb-4">
                     {t('community_admin.settings.access_control')}
