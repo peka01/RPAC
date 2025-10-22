@@ -105,7 +105,7 @@ export function SideMenu({ user, isOnline, isCrisisMode, communityPulse }: SideM
             { name: 'Delade resurser', href: '/local/resources/shared', icon: Share2 },
             { name: 'Hjälpförfrågningar', href: '/local/resources/help', icon: AlertCircle },
             { 
-              name: 'Hitta fler samhällen', 
+              name: 'Hitta samhällen', 
               href: '/local/discover', 
               icon: Search,
               isSecondary: true

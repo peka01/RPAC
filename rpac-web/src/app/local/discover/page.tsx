@@ -69,9 +69,6 @@ export default function DiscoverPage() {
             <div className="ml-4">
               <div className={`text-sm font-medium ${isMember ? 'text-[#3D4A2B]' : 'text-gray-900'}`}>
                 {community.community_name}
-                {isMember && (
-                  <span className="ml-2 text-xs text-[#3D4A2B]/70">(Ditt samhälle)</span>
-                )}
               </div>
               <div className="text-sm text-gray-500 truncate max-w-xs">
                 {community.description}
@@ -231,16 +228,11 @@ export default function DiscoverPage() {
           <div className="flex-1 min-w-0">
             <Link href="/local" className="hover:underline cursor-pointer">
               <h3 className={`text-lg font-bold leading-tight ${
-                isMember 
-                  ? 'text-[#3D4A2B]' 
+                isMember
+                  ? 'text-[#3D4A2B]'
                   : 'text-gray-900'
               }`}>
                 {community.community_name}
-                {isMember && (
-                  <span className="ml-2 text-sm font-normal text-[#3D4A2B]/70">
-                    (Ditt samhälle)
-                  </span>
-                )}
               </h3>
             </Link>
             <div className="flex items-center gap-3 text-sm text-gray-600 mt-1">
@@ -263,11 +255,6 @@ export default function DiscoverPage() {
 
         {/* Status tags */}
         <div className="flex flex-wrap gap-1 mb-3">
-          {isMember && (
-            <span className="px-2 py-1 bg-[#3D4A2B]/20 text-[#3D4A2B] text-xs font-medium rounded-full">
-              Ditt samhälle
-            </span>
-          )}
           {isAdmin && (
             <span className="px-2 py-1 bg-[#B8860B]/20 text-[#B8860B] text-xs font-medium rounded-full">
               Admin
@@ -686,7 +673,7 @@ export default function DiscoverPage() {
                   <Search className="w-8 h-8 text-[#3D4A2B]" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">Hitta fler samhällen</h1>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">Hitta samhällen</h1>
                   <p className="text-gray-600">Upptäck och gå med i lokala samhällen nära dig</p>
                 </div>
               </div>

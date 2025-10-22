@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
   Users,
   Package,
@@ -275,9 +276,9 @@ export function CommunityDashboard({ user, community, onNavigate }: CommunityDas
           </div>
         </button>
 
-        <button
-          onClick={() => onNavigate('messaging')}
-          className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] text-left border-2 border-transparent hover:border-[#3D4A2B]"
+        <Link
+          href="/local/messages/community/"
+          className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] text-left border-2 border-transparent hover:border-[#3D4A2B] block"
         >
           <div className="flex items-center gap-4 mb-4">
             <div className="w-14 h-14 bg-[#3D4A2B]/10 rounded-xl flex items-center justify-center group-hover:bg-[#3D4A2B] transition-colors">
@@ -300,7 +301,7 @@ export function CommunityDashboard({ user, community, onNavigate }: CommunityDas
               Öppna →
             </span>
           </div>
-        </button>
+        </Link>
       </div>
 
       {/* Admin Section - Only visible to admins */}
@@ -341,45 +342,6 @@ export function CommunityDashboard({ user, community, onNavigate }: CommunityDas
           </div>
         </div>
       )}
-
-      {/* Community Info Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl p-6 shadow-md">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-[#556B2F]/10 rounded-lg flex items-center justify-center">
-              <Shield size={20} className="text-[#556B2F]" />
-            </div>
-            <h4 className="font-bold text-gray-900">Beredskap</h4>
-          </div>
-          <p className="text-sm text-gray-700">
-            Gemensam förberedelse för oväntade situationer genom resursdelning och samarbete.
-          </p>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 shadow-md">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-[#556B2F]/10 rounded-lg flex items-center justify-center">
-              <Users size={20} className="text-[#556B2F]" />
-            </div>
-            <h4 className="font-bold text-gray-900">Gemenskap</h4>
-          </div>
-          <p className="text-sm text-gray-700">
-            Starka band med grannar och lokala kontakter som kan hjälpa varandra när det behövs.
-          </p>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 shadow-md">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-[#556B2F]/10 rounded-lg flex items-center justify-center">
-              <TrendingUp size={20} className="text-[#556B2F]" />
-            </div>
-            <h4 className="font-bold text-gray-900">Utveckling</h4>
-          </div>
-          <p className="text-sm text-gray-700">
-            Kontinuerlig förbättring av samhällets resurser och kunskaper genom samarbete.
-          </p>
-        </div>
-      </div>
 
       {/* Recent Activity Preview (Optional) */}
       <div className="bg-white rounded-xl p-6 shadow-md">

@@ -359,7 +359,7 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
               <Plus size={24} />
             </div>
             <div className="flex-1 text-left">
-              <h3 className="font-bold text-lg mb-1">Hitta fler samhällen</h3>
+              <h3 className="font-bold text-lg mb-1">Hitta samhällen</h3>
               <p className="text-[#C8D5B9] text-sm">Utöka ditt nätverk</p>
             </div>
             <ChevronRight size={24} />
