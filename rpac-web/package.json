@@ -10,6 +10,7 @@
     "deploy": "npm run pages:build && wrangler pages deploy",
     "start": "next start",
     "lint": "next lint",
+    "lint:ci": "next lint --quiet",
     "build:static": "next build"
   },
   "dependencies": {

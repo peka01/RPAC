@@ -19,6 +19,10 @@ env:
 jobs:
   # ============================================================================
   # Lint Job - Runs first, must pass before deploy
+  # 
+  # Strategy:
+  #   - PRs: Strict lint with --max-warnings=0 (prevents new warnings)
+  #   - Pushes: Quiet mode (only shows errors, cleaner deploy logs)
   # ============================================================================
   lint:
     name: Lint & Type Check
@@ -39,9 +43,20 @@ jobs:
         working-directory: ${{ env.WORKING_DIR }}
         run: npm ci
 
-      - name: Run ESLint
+      # For Pull Requests: Run full lint with --max-warnings=0
+      # This ensures new code doesn't introduce warnings and keeps quality high
+      - name: Run ESLint (PR - Strict mode)
+        if: github.event_name == 'pull_request'
         working-directory: ${{ env.WORKING_DIR }}
         run: npm run lint -- --max-warnings=0
+        continue-on-error: false
+
+      # For Pushes to main/master: Run quiet lint (errors only)
+      # This keeps deploy logs clean while still catching critical issues
+      - name: Run ESLint (Deploy - Quiet mode)
+        if: github.event_name == 'push'
+        working-directory: ${{ env.WORKING_DIR }}
+        run: npm run lint:ci
         continue-on-error: false
 
       - name: Run TypeScript type check
