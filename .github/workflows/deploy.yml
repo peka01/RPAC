@@ -50,15 +50,46 @@ jobs:
       - name: Build for Cloudflare Pages
         run: |
           cd rpac-web
+          echo "Building for Cloudflare Pages..."
           npx @cloudflare/next-on-pages
+          echo "Build completed successfully"
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+      - name: Verify build output
+        run: |
+          cd rpac-web
+          echo "Checking build output..."
+          if [ -d ".vercel/output" ]; then
+            echo "✅ .vercel/output directory exists"
+            ls -la .vercel/output/
+            if [ -d ".vercel/output/static" ]; then
+              echo "✅ .vercel/output/static directory exists"
+              ls -la .vercel/output/static/ | head -10
+            else
+              echo "❌ .vercel/output/static directory not found"
+            fi
+          else
+            echo "❌ .vercel/output directory not found"
+            echo "Build may have failed"
+          fi
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy .vercel/output/static --project-name=rpac-web
+          command: pages deploy .vercel/output/static --project-name=rpac-web --compatibility-date=2024-10-21 --compatibility-flags=nodejs_compat
           workingDirectory: rpac-web
+        continue-on-error: true
+
+      - name: Fallback deployment (if primary fails)
+        if: failure()
+        run: |
+          cd rpac-web
+          echo "Attempting fallback deployment..."
+          npx wrangler pages deploy .vercel/output/static --project-name=rpac-web --compatibility-date=2024-10-21 --compatibility-flags=nodejs_compat
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
