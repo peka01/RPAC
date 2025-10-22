@@ -10,7 +10,8 @@ import {
   AlertTriangle, 
   Info,
   ChevronRight,
-  MoreHorizontal
+  MoreHorizontal,
+  Users
 } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { supabase } from '@/lib/supabase';
@@ -193,6 +194,12 @@ export function NotificationCenter({ user, onNotificationClick, isOpen: external
       markAsRead(notification.id);
     }
     
+    // Navigate to action_url if it exists
+    if (notification.action_url) {
+      console.log('🔗 Navigating to:', notification.action_url);
+      window.location.href = notification.action_url;
+    }
+    
     if (onNotificationClick) {
       onNotificationClick(notification);
     }
@@ -214,6 +221,10 @@ export function NotificationCenter({ user, onNotificationClick, isOpen: external
         return <MessageCircle className="w-5 h-5 text-green-600" />;
       case 'system':
         return <Info className="w-5 h-5 text-gray-600" />;
+      case 'membership_request':
+      case 'membership_approved':
+      case 'membership_rejected':
+        return <Users className="w-5 h-5 text-amber-600" />;
       default:
         return <Info className="w-5 h-5 text-gray-600" />;
     }
@@ -386,6 +397,159 @@ export function NotificationCenter({ user, onNotificationClick, isOpen: external
               className="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
             >
               {t('notifications.mark_as_read')}
+            </button>
+          </div>
+        );
+      case 'membership_request':
+        return (
+          <div className="flex gap-2">
+            <button
+              onClick={async (e) => {
+                e.stopPropagation();
+                try {
+                  // Extract community ID from action_url
+                  const urlMatch = notification.action_url?.match(/community=([^&]+)/);
+                  if (!urlMatch) {
+                    console.error('Could not extract community ID from action_url');
+                    return;
+                  }
+                  const communityId = urlMatch[1];
+                  
+                  // Get the pending membership for this notification
+                  // We need to find the user by sender_name
+                  const { data: profiles } = await supabase
+                    .from('user_profiles')
+                    .select('user_id')
+                    .eq('display_name', notification.sender_name)
+                    .limit(1);
+                  
+                  if (!profiles || profiles.length === 0) {
+                    console.error('Could not find user:', notification.sender_name);
+                    return;
+                  }
+                  
+                  const userId = profiles[0].user_id;
+                  
+                  // Update membership status to approved
+                  const { error: updateError } = await supabase
+                    .from('community_memberships')
+                    .update({ status: 'approved' })
+                    .eq('community_id', communityId)
+                    .eq('user_id', userId)
+                    .eq('status', 'pending');
+                  
+                  if (updateError) throw updateError;
+                  
+                  // Increment member count
+                  await supabase.rpc('increment_community_members', {
+                    community_id: communityId
+                  });
+                  
+                  // Send approval notification
+                  const { data: communityData } = await supabase
+                    .from('local_communities')
+                    .select('community_name')
+                    .eq('id', communityId)
+                    .single();
+                  
+                  const { notificationService: ns } = await import('@/lib/notification-service');
+                  await ns.createMembershipApprovedNotification({
+                    userId,
+                    communityName: communityData?.community_name || 'samhället',
+                    communityId,
+                    approvedBy: user?.email?.split('@')[0] || 'Admin'
+                  });
+                  
+                  // Mark notification as read
+                  markAsRead(notification.id);
+                  
+                  // Refresh notifications
+                  loadNotifications();
+                  
+                  alert('Medlemskap godkänt! ✅');
+                } catch (error) {
+                  console.error('Error approving membership:', error);
+                  alert('Kunde inte godkänna medlemskap. Försök igen.');
+                }
+              }}
+              className="px-3 py-1 text-xs bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            >
+              Godkänn
+            </button>
+            <button
+              onClick={async (e) => {
+                e.stopPropagation();
+                try {
+                  // Extract community ID from action_url
+                  const urlMatch = notification.action_url?.match(/community=([^&]+)/);
+                  if (!urlMatch) {
+                    console.error('Could not extract community ID from action_url');
+                    return;
+                  }
+                  const communityId = urlMatch[1];
+                  
+                  // Get the pending membership for this notification
+                  const { data: profiles } = await supabase
+                    .from('user_profiles')
+                    .select('user_id')
+                    .eq('display_name', notification.sender_name)
+                    .limit(1);
+                  
+                  if (!profiles || profiles.length === 0) {
+                    console.error('Could not find user:', notification.sender_name);
+                    return;
+                  }
+                  
+                  const userId = profiles[0].user_id;
+                  
+                  // Delete the pending membership
+                  const { error: deleteError } = await supabase
+                    .from('community_memberships')
+                    .delete()
+                    .eq('community_id', communityId)
+                    .eq('user_id', userId)
+                    .eq('status', 'pending');
+                  
+                  if (deleteError) throw deleteError;
+                  
+                  // Send rejection notification
+                  const { data: communityData } = await supabase
+                    .from('local_communities')
+                    .select('community_name')
+                    .eq('id', communityId)
+                    .single();
+                  
+                  const { notificationService: ns } = await import('@/lib/notification-service');
+                  await ns.createMembershipRejectedNotification({
+                    userId,
+                    communityName: communityData?.community_name || 'samhället',
+                    rejectedBy: user?.email?.split('@')[0] || 'Admin'
+                  });
+                  
+                  // Mark notification as read
+                  markAsRead(notification.id);
+                  
+                  // Refresh notifications
+                  loadNotifications();
+                  
+                  alert('Ansökan avslagen ❌');
+                } catch (error) {
+                  console.error('Error rejecting membership:', error);
+                  alert('Kunde inte avslå ansökan. Försök igen.');
+                }
+              }}
+              className="px-3 py-1 text-xs bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+            >
+              Avslå
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleNotificationClick(notification);
+              }}
+              className="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+            >
+              Hantera
             </button>
           </div>
         );

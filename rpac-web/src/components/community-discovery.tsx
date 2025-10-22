@@ -51,6 +51,8 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
   const [leaving, setLeaving] = useState(false);
   const [selectedCommunity, setSelectedCommunity] = useState<CommunityWithDistance | null>(null);
   const [userMemberships, setUserMemberships] = useState<string[]>([]);
+  const [pendingMemberships, setPendingMemberships] = useState<string[]>([]);
+  const [pendingRequestCounts, setPendingRequestCounts] = useState<Record<string, number>>({});
   const [createForm, setCreateForm] = useState({
     name: '',
     description: '',
@@ -88,10 +90,48 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
     try {
       console.log('Loading memberships for user:', user.id);
       const memberships = await communityService.getUserMemberships(user.id);
-      console.log('Loaded memberships:', memberships);
+      const pending = await communityService.getPendingMemberships(user.id);
+      console.log('Loaded memberships:', memberships, 'pending:', pending);
       setUserMemberships(memberships);
+      setPendingMemberships(pending);
+      
+      // Load pending request counts for communities where user is admin
+      await loadPendingRequestCounts(memberships);
     } catch (err) {
       console.error('Error loading memberships:', err);
+    }
+  };
+
+  const loadPendingRequestCounts = async (communityIds: string[]) => {
+    if (!user || user.id === 'demo-user' || communityIds.length === 0) return;
+    
+    try {
+      // Get communities where user is admin
+      const { data: adminCommunities } = await supabase
+        .from('community_memberships')
+        .select('community_id')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .eq('status', 'approved')
+        .in('community_id', communityIds);
+      
+      if (!adminCommunities || adminCommunities.length === 0) return;
+      
+      // Load pending request counts for admin communities
+      const counts: Record<string, number> = {};
+      await Promise.all(
+        adminCommunities.map(async ({ community_id }) => {
+          const count = await communityService.getPendingRequestCount(community_id);
+          if (count > 0) {
+            counts[community_id] = count;
+          }
+        })
+      );
+      
+      setPendingRequestCounts(counts);
+      console.log('Pending request counts:', counts);
+    } catch (err) {
+      console.error('Error loading pending request counts:', err);
     }
   };
 
@@ -250,12 +290,64 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
       });
 
       // Automatically join the community you just created (as admin)
+      console.log('🔧 Starting auto-join process for community:', newCommunity.id, 'user:', user.id);
       try {
-        await communityService.joinCommunity(newCommunity.id, user.id);
-        console.log('Creator automatically joined community as member');
+        // Try inserting with status first (if column exists)
+        console.log('📝 Attempting insert WITH status field...');
+        let { data: insertData, error: adminError } = await supabase
+          .from('community_memberships')
+          .insert({
+            community_id: newCommunity.id,
+            user_id: user.id,
+            role: 'admin',
+            status: 'approved'
+          })
+          .select();
+        
+        console.log('Insert result:', { data: insertData, error: adminError });
+        
+        // If error mentions status column, try without it (backwards compatibility)
+        if (adminError && (adminError.message?.includes('status') || adminError.message?.includes('column'))) {
+          console.log('⚠️ Status column error detected, retrying without status...');
+          const { data: retryData, error: retryError } = await supabase
+            .from('community_memberships')
+            .insert({
+              community_id: newCommunity.id,
+              user_id: user.id,
+              role: 'admin'
+            })
+            .select();
+          
+          adminError = retryError;
+          insertData = retryData;
+          console.log('Retry result:', { data: retryData, error: retryError });
+        }
+        
+        if (adminError) {
+          console.error('❌ Error inserting admin membership:', adminError);
+          console.error('Full error object:', JSON.stringify(adminError, null, 2));
+          throw adminError;
+        }
+        
+        console.log('✅ Successfully inserted membership:', insertData);
+        
+        // Increment member count
+        console.log('📊 Incrementing member count...');
+        const { error: countError } = await supabase.rpc('increment_community_members', {
+          community_id: newCommunity.id
+        });
+        
+        if (countError) {
+          console.error('⚠️ Error incrementing member count:', countError);
+        } else {
+          console.log('✅ Member count incremented');
+        }
+        
+        console.log('✅ Creator automatically joined community as admin');
       } catch (joinErr) {
-        console.error('Error auto-joining community:', joinErr);
-        // Non-fatal, continue
+        console.error('❌ FATAL: Error auto-joining community as admin:', joinErr);
+        console.error('Error details:', JSON.stringify(joinErr, null, 2));
+        setError(`Samhälle skapades men kunde inte lägga till dig som medlem: ${joinErr instanceof Error ? joinErr.message : 'Okänt fel'}`);
       }
 
       // Reset form and close modal
@@ -298,10 +390,58 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
     }
 
     try {
-      await communityService.joinCommunity(community.id, user.id);
-      await loadUserMemberships();
-      await handleSearch(); // Refresh to update member count
-      onJoinCommunity?.(community.id);
+      // Check if community is closed/requires approval
+      const { data: communityData } = await supabase
+        .from('local_communities')
+        .select('access_type, auto_approve_members')
+        .eq('id', community.id)
+        .single();
+      
+      const isClosed = communityData?.access_type === 'stängt';
+      const autoApprove = communityData?.auto_approve_members === true;
+      
+      if (isClosed && !autoApprove) {
+        // Create pending membership request
+        const { error: requestError } = await supabase
+          .from('community_memberships')
+          .insert({
+            community_id: community.id,
+            user_id: user.id,
+            role: 'member',
+            status: 'pending'
+          });
+        
+        if (requestError) throw requestError;
+        
+        // Get user's display name for notification
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('display_name, first_name, last_name')
+          .eq('user_id', user.id)
+          .single();
+        
+        const requesterName = profile?.display_name || profile?.first_name || user.email?.split('@')[0] || 'En användare';
+        
+        // Send notification to community admins
+        const { notificationService } = await import('@/lib/notification-service');
+        await notificationService.createMembershipRequestNotification({
+          communityId: community.id,
+          communityName: community.community_name,
+          requesterId: user.id,
+          requesterName
+        });
+        
+        // Show success message for pending request
+        setError('Ansökan skickad! Väntar på godkännande från administratör.');
+        await loadUserMemberships();
+        await handleSearch();
+      } else {
+        // Open community or auto-approve - join directly
+        await communityService.joinCommunity(community.id, user.id);
+        await loadUserMemberships();
+        await handleSearch();
+        onJoinCommunity?.(community.id);
+      }
     } catch (err) {
       console.error('Error joining community:', err);
       setError(err instanceof Error ? err.message : 'Ett fel uppstod vid anslutning till samhälle');
@@ -545,6 +685,12 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
                           {t('community.near_you')}
                         </span>
                       )}
+                      {canManageCommunity(community) && pendingRequestCounts[community.id] > 0 && (
+                        <span className="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded flex items-center gap-1 border border-amber-300">
+                          <AlertCircle size={14} />
+                          {pendingRequestCounts[community.id]} väntande
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-4 text-sm text-gray-600">
                       <div className="flex items-center gap-1">
@@ -585,6 +731,7 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
                     {(() => {
                       const isCreator = canManageCommunity(community);
                       const isMemberOfCommunity = isMember(community.id);
+                      const isPending = pendingMemberships.includes(community.id);
                       
                       if (isCreator) {
                         // Creators always see Edit/Delete buttons
@@ -607,7 +754,7 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
                           </>
                         );
                       } else if (isMemberOfCommunity) {
-                        // Members (not creators) see Leave button
+                        // Approved members see Leave button
                         return (
                           <button
                             onClick={() => handleLeaveCommunity(community)}
@@ -615,6 +762,18 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
                           >
                             <X size={16} />
                             {t('community.leave_community')}
+                          </button>
+                        );
+                      } else if (isPending) {
+                        // Pending approval - show disabled button
+                        return (
+                          <button
+                            disabled
+                            className="px-4 py-2 bg-amber-100 text-amber-800 text-sm font-medium rounded-lg cursor-not-allowed flex items-center gap-2 border border-amber-300"
+                            title="Väntar på godkännande"
+                          >
+                            <Loader className="animate-spin" size={16} />
+                            Väntande
                           </button>
                         );
                       } else {

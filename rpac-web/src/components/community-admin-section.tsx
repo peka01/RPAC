@@ -147,7 +147,7 @@ export function CommunityAdminSection({
         .from('community_memberships')
         .select('id, user_id, join_message, requested_at')
         .eq('community_id', communityId)
-        .eq('membership_status', 'pending')
+        .eq('status', 'pending')  // ✅ Correct column name
         .order('requested_at', { ascending: true });
 
       if (membershipsError) {
@@ -164,33 +164,68 @@ export function CommunityAdminSection({
         return;
       }
 
-      // Get user profiles
-      const userIds = membershipsData.map(m => m.user_id);
-      const { data: profilesData } = await supabase
-        .from('user_profiles')
-        .select('user_id, display_name, postal_code, county, family_size')
-        .in('user_id', userIds);
+      // Try to get community members with emails using RPC function
+      console.log('👥 Fetching member data for:', membershipsData.length, 'pending requests');
+      
+      const { data: membersWithEmails, error: membersRpcError } = await supabase
+        .rpc('get_community_members_with_emails', { p_community_id: communityId });
+      
+      let profilesMap = new Map();
+      let emailsMap = new Map();
 
-      // Get user emails from auth.users (need to use RPC or service role)
-      const { data: usersData } = await supabase
-        .from('user_profiles')
-        .select('user_id')
-        .in('user_id', userIds);
+      if (membersRpcError) {
+        console.warn('⚠️ RPC function not available, using fallback query:', membersRpcError.message);
+        
+        // Fallback: Get profiles without emails
+        const userIds = membershipsData.map(m => m.user_id);
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('user_profiles')
+          .select('user_id, display_name, postal_code, county')
+          .in('user_id', userIds);
 
-      const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
+        if (profilesError) {
+          console.error('❌ Error fetching profiles:', profilesError);
+        } else {
+          console.log('✅ Fetched profiles (no emails):', profilesData?.length);
+          profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
+        }
+      } else {
+        // Success: We have profiles with emails
+        console.log('✅ Fetched members with emails:', membersWithEmails?.length);
+        profilesMap = new Map(membersWithEmails?.map((m: any) => [m.user_id, m]) || []);
+        emailsMap = new Map(membersWithEmails?.map((m: any) => [m.user_id, m.email]) || []);
+      }
 
-      const transformedRequests = membershipsData.map(m => {
+      const transformedRequests = membershipsData.map((m, index) => {
         const profile = profilesMap.get(m.user_id);
+        const userEmail = emailsMap.get(m.user_id);
+        
+        // Determine display name with fallbacks:
+        // 1. display_name from profile
+        // 2. email prefix (username before @)
+        // 3. "Medlem X" as last resort
+        let displayName = 'Okänd användare';
+        if (profile?.display_name && profile.display_name.trim()) {
+          displayName = profile.display_name.trim();
+          console.log('✅ Using display_name:', displayName, 'for user:', m.user_id);
+        } else if (userEmail) {
+          displayName = userEmail.split('@')[0];
+          console.log('✅ Using email prefix:', displayName, 'for user:', m.user_id);
+        } else {
+          displayName = `Medlem ${index + 1}`;
+          console.log('⚠️ No name found, using fallback:', displayName, 'for user:', m.user_id);
+        }
+
         return {
           membership_id: m.id,
           user_id: m.user_id,
-          user_email: profile?.user_id ? 'user@example.com' : 'unknown',
-          display_name: profile?.display_name || 'Okänd användare',
+          user_email: userEmail || 'unknown',
+          display_name: displayName,
           join_message: m.join_message,
           requested_at: m.requested_at,
           postal_code: profile?.postal_code || null,
           county: profile?.county || null,
-          household_size: profile?.family_size || null
+          household_size: null // family_size column doesn't exist yet
         };
       });
 
@@ -206,12 +241,12 @@ export function CommunityAdminSection({
 
   const loadMembers = async () => {
     try {
-      // First get memberships
+      // First get memberships - filter by status, not membership_status
       const { data: membershipsData, error: membershipsError } = await supabase
         .from('community_memberships')
-        .select('user_id, role, joined_at, membership_status')
+        .select('user_id, role, joined_at, status')
         .eq('community_id', communityId)
-        .eq('membership_status', 'approved')
+        .eq('status', 'approved')  // ✅ Correct column name
         .order('joined_at', { ascending: false });
 
       if (membershipsError) {
@@ -246,7 +281,7 @@ export function CommunityAdminSection({
         display_name: profilesMap.get(m.user_id)?.display_name || 'Okänd användare',
         role: m.role,
         joined_at: m.joined_at,
-        membership_status: m.membership_status
+        membership_status: m.status  // ✅ Use correct column
       }));
 
       console.log('✅ Loaded members:', transformedMembers.length);
@@ -296,8 +331,13 @@ export function CommunityAdminSection({
       // Show success message
       alert(t('community_admin.pending_requests.approve_success').replace('{name}', displayName));
       
-      // Reload pending requests
-      await loadPendingRequests();
+      // Reload both pending requests and members list
+      await Promise.all([
+        loadPendingRequests(),
+        loadMembers()
+      ]);
+      
+      console.log('✅ Membership approved and lists refreshed');
     } catch (error) {
       console.error('Error approving membership:', error);
       alert(t('community_admin.pending_requests.approve_error'));
@@ -322,8 +362,13 @@ export function CommunityAdminSection({
       // Show success message
       alert(t('community_admin.pending_requests.reject_success').replace('{name}', displayName));
       
-      // Reload pending requests
-      await loadPendingRequests();
+      // Reload both pending requests and members list
+      await Promise.all([
+        loadPendingRequests(),
+        loadMembers()
+      ]);
+      
+      console.log('✅ Membership rejected and lists refreshed');
     } catch (error) {
       console.error('Error rejecting membership:', error);
       alert(t('community_admin.pending_requests.reject_error'));

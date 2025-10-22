@@ -275,22 +275,37 @@ export const communityService = {
   },
 
   async joinCommunity(communityId: string, userId: string): Promise<void> {
-    const { error } = await supabase
+    // Try inserting with status first
+    let { error } = await supabase
       .from('community_memberships')
       .insert({
         community_id: communityId,
         user_id: userId,
-        role: 'member'
-      })
+        role: 'member',
+        status: 'approved'  // Explicitly set as approved for open communities
+      });
     
-    if (error) throw error
+    // If status column doesn't exist, retry without it
+    if (error && error.message?.includes('status')) {
+      console.log('Status column not found, joining without status...');
+      const result = await supabase
+        .from('community_memberships')
+        .insert({
+          community_id: communityId,
+          user_id: userId,
+          role: 'member'
+        });
+      error = result.error;
+    }
+    
+    if (error) throw error;
 
     // Increment member count
     const { error: updateError } = await supabase.rpc('increment_community_members', {
       community_id: communityId
-    })
+    });
     
-    if (updateError) console.error('Error updating member count:', updateError)
+    if (updateError) console.error('Error updating member count:', updateError);
   },
 
   async leaveCommunity(communityId: string, userId: string): Promise<void> {
@@ -311,13 +326,67 @@ export const communityService = {
   },
 
   async getUserMemberships(userId: string): Promise<string[]> {
+    // Try with status filter first
     const { data, error } = await supabase
       .from('community_memberships')
-      .select('community_id')
-      .eq('user_id', userId)
+      .select('community_id, status')
+      .eq('user_id', userId);
     
-    if (error) throw error
-    return data?.map(m => m.community_id) || []
+    if (error) {
+      console.error('Error fetching memberships:', error);
+      throw error;
+    }
+    
+    // Filter by approved status if column exists, otherwise return all
+    if (data && data.length > 0) {
+      // Check if status field exists and has values
+      const hasStatusColumn = data[0].status !== undefined;
+      
+      if (hasStatusColumn) {
+        // Filter for approved memberships
+        return data
+          .filter(m => m.status === 'approved' || m.status === null)
+          .map(m => m.community_id) || [];
+      } else {
+        // Status column doesn't exist, return all memberships (backwards compatible)
+        return data.map(m => m.community_id) || [];
+      }
+    }
+    
+    return [];
+  },
+
+  async getPendingMemberships(userId: string): Promise<string[]> {
+    const { data, error } = await supabase
+      .from('community_memberships')
+      .select('community_id, status')
+      .eq('user_id', userId);
+    
+    if (error) {
+      console.error('Error fetching pending memberships:', error);
+      return []; // Return empty array instead of throwing
+    }
+    
+    // Only return pending if status column exists
+    if (data && data.length > 0 && data[0].status !== undefined) {
+      return data.filter(m => m.status === 'pending').map(m => m.community_id) || [];
+    }
+    
+    return [];
+  },
+
+  async getPendingRequestCount(communityId: string): Promise<number> {
+    const { count, error } = await supabase
+      .from('community_memberships')
+      .select('*', { count: 'exact', head: true })
+      .eq('community_id', communityId)
+      .eq('status', 'pending')
+    
+    if (error) {
+      console.error('Error getting pending request count:', error);
+      return 0;
+    }
+    return count || 0;
   },
 
   async getUserRole(communityId: string, userId: string): Promise<'admin' | 'moderator' | 'member' | null> {

@@ -22,6 +22,7 @@ export default function DiscoverPage() {
   const [filteredCommunities, setFilteredCommunities] = useState<LocalCommunity[]>([]);
   const [loadingCommunities, setLoadingCommunities] = useState(false);
   const [userMemberships, setUserMemberships] = useState<string[]>([]);
+  const [pendingMemberships, setPendingMemberships] = useState<string[]>([]);
   const [homespaces, setHomespaces] = useState<Record<string, { slug: string; published: boolean }>>({});
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingCommunity, setEditingCommunity] = useState<LocalCommunity | null>(null);
@@ -190,6 +191,7 @@ export default function DiscoverPage() {
   // Define card renderer for ResourceListView
   const cardRenderer = (community: LocalCommunity) => {
     const isMember = userMemberships.includes(community.id);
+    const isPending = pendingMemberships.includes(community.id);
     const isAdmin = user && community.created_by === user.id;
     const isOpen = community.access_type === 'öppet';
     return (
@@ -267,10 +269,12 @@ export default function DiscoverPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => handleToggleMembership(community.id)}
-              disabled={actionLoading === community.id}
+              disabled={actionLoading === community.id || isPending}
               className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                 isMember
                   ? 'bg-[#3D4A2B]/20 text-[#3D4A2B] border border-[#3D4A2B]/30 hover:bg-[#3D4A2B]/30'
+                  : isPending
+                  ? 'bg-amber-100 text-amber-800 border border-amber-300 cursor-not-allowed'
                   : 'bg-[#3D4A2B] text-white hover:bg-[#2A331E]'
               } ${actionLoading === community.id ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
@@ -280,6 +284,10 @@ export default function DiscoverPage() {
                 <>
                   <Star className="w-4 h-4" />
                   <span>Lämna</span>
+                </>
+              ) : isPending ? (
+                <>
+                  <span>Väntande</span>
                 </>
               ) : (
                 <>
@@ -475,7 +483,10 @@ export default function DiscoverPage() {
     if (!user || user.id === 'demo-user') return;
     try {
       const memberships = await communityService.getUserMemberships(user.id);
+      const pending = await communityService.getPendingMemberships(user.id);
       setUserMemberships(memberships);
+      setPendingMemberships(pending);
+      console.log('📊 Memberships loaded:', { approved: memberships.length, pending: pending.length });
     } catch (error) {
       console.error('Error loading user memberships:', error);
     }
@@ -518,12 +529,77 @@ export default function DiscoverPage() {
         await communityService.leaveCommunity(communityId, user.id);
         setUserMemberships(prev => prev.filter(id => id !== communityId));
       } else {
-        // Join community
-        await communityService.joinCommunity(communityId, user.id);
-        setUserMemberships(prev => [...prev, communityId]);
+        // ✅ JOIN COMMUNITY - CHECK IF CLOSED FIRST
+        console.log('🔧 Attempting to join community:', communityId);
+        
+        // Get community details to check access type
+        const community = communities.find(c => c.id === communityId);
+        const isClosed = community?.access_type === 'stängt';
+        const autoApprove = community?.auto_approve_members === true;
+        
+        console.log('Community access:', { isClosed, autoApprove, accessType: community?.access_type });
+        
+        if (isClosed && !autoApprove) {
+          // CLOSED COMMUNITY - CREATE PENDING REQUEST
+          console.log('🔒 Closed community - creating pending request...');
+          
+          // Try with status first
+          let { error: requestError } = await supabase
+            .from('community_memberships')
+            .insert({
+              community_id: communityId,
+              user_id: user.id,
+              role: 'member',
+              status: 'pending'
+            });
+          
+          // Fallback without status if column doesn't exist
+          if (requestError && (requestError.message?.includes('status') || requestError.message?.includes('column'))) {
+            console.log('⚠️ Status column not found - joining directly instead');
+            await communityService.joinCommunity(communityId, user.id);
+            setUserMemberships(prev => [...prev, communityId]);
+          } else if (requestError) {
+            throw requestError;
+          } else {
+            console.log('✅ Pending request created');
+            
+            // Get user profile for notification
+            const { data: profile } = await supabase
+              .from('user_profiles')
+              .select('display_name, first_name')
+              .eq('user_id', user.id)
+              .single();
+            
+            const requesterName = profile?.display_name || profile?.first_name || user.email?.split('@')[0] || 'En användare';
+            
+            // Send notification to admins
+            const { notificationService } = await import('@/lib/notification-service');
+            await notificationService.createMembershipRequestNotification({
+              communityId,
+              communityName: community?.community_name || 'samhället',
+              requesterId: user.id,
+              requesterName
+            });
+            
+            alert('Ansökan skickad! Väntar på godkännande från administratör.');
+            // Add to pending memberships (not approved yet)
+            setPendingMemberships(prev => [...prev, communityId]);
+          }
+        } else {
+          // OPEN COMMUNITY - JOIN DIRECTLY
+          console.log('🔓 Open community - joining directly...');
+          await communityService.joinCommunity(communityId, user.id);
+          setUserMemberships(prev => [...prev, communityId]);
+          console.log('✅ Joined successfully');
+        }
+        
+        // Refresh to update UI
+        await loadCommunities();
+        await loadUserMemberships();
       }
     } catch (error) {
-      console.error('Error toggling membership:', error);
+      console.error('❌ Error toggling membership:', error);
+      alert('Ett fel uppstod. Försök igen.');
     } finally {
       setActionLoading(null);
     }
@@ -577,6 +653,52 @@ export default function DiscoverPage() {
 
       console.log('Community created successfully:', newCommunity);
 
+      // ✅ AUTO-JOIN CREATOR AS ADMIN
+      console.log('🔧 Auto-joining creator as admin...');
+      try {
+        // Try inserting with status first
+        let { data: memberData, error: memberError } = await supabase
+          .from('community_memberships')
+          .insert({
+            community_id: newCommunity.id,
+            user_id: user.id,
+            role: 'admin',
+            status: 'approved'
+          })
+          .select();
+        
+        // Fallback if status column doesn't exist
+        if (memberError && (memberError.message?.includes('status') || memberError.message?.includes('column'))) {
+          console.log('⚠️ Status column not found, retrying without it...');
+          const { data: retryData, error: retryError } = await supabase
+            .from('community_memberships')
+            .insert({
+              community_id: newCommunity.id,
+              user_id: user.id,
+              role: 'admin'
+            })
+            .select();
+          memberError = retryError;
+          memberData = retryData;
+        }
+        
+        if (memberError) {
+          console.error('❌ Error auto-joining:', memberError);
+          throw memberError;
+        }
+        
+        console.log('✅ Creator joined as admin:', memberData);
+        
+        // Increment member count
+        await supabase.rpc('increment_community_members', {
+          community_id: newCommunity.id
+        });
+        
+      } catch (joinError) {
+        console.error('❌ FATAL: Failed to auto-join creator:', joinError);
+        alert('Samhället skapades men du kunde inte läggas till som medlem. Försök gå med manuellt.');
+      }
+
       // Refresh communities list
       await loadCommunities();
       await loadUserMemberships();
@@ -585,7 +707,7 @@ export default function DiscoverPage() {
       setCreateForm({ name: '', description: '', location: '', accessType: 'öppet' });
       setShowCreateModal(false);
       
-      alert('Samhället har skapats!');
+      alert('Samhället har skapats och du är nu admin!');
     } catch (error) {
       console.error('Error creating community:', error);
       alert('Ett fel uppstod vid skapande av samhället. Försök igen.');

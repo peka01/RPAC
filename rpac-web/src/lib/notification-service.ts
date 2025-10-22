@@ -8,7 +8,7 @@ import type { Notification } from '@/components/notification-center';
 
 export interface CreateNotificationParams {
   userId: string;
-  type: 'message' | 'resource_request' | 'emergency' | 'system';
+  type: 'message' | 'resource_request' | 'emergency' | 'system' | 'membership_request' | 'membership_approved' | 'membership_rejected';
   title: string;
   content: string;
   senderName?: string;
@@ -237,6 +237,105 @@ export const notificationService = {
     } catch (err) {
       console.error('Error marking all notifications as read:', err);
       throw err;
+    }
+  },
+
+  /**
+   * Create notification for new membership request (to community admin)
+   */
+  async createMembershipRequestNotification(params: {
+    communityId: string;
+    communityName: string;
+    requesterId: string;
+    requesterName: string;
+  }): Promise<void> {
+    const { communityId, communityName, requesterId, requesterName } = params;
+
+    try {
+      // Get community admins
+      const { data: admins, error: adminsError } = await supabase
+        .from('community_memberships')
+        .select('user_id')
+        .eq('community_id', communityId)
+        .eq('role', 'admin')
+        .eq('status', 'approved');
+
+      if (adminsError) throw adminsError;
+      if (!admins || admins.length === 0) return;
+
+      // Create notification for each admin
+      for (const admin of admins) {
+        await this.createNotification({
+          userId: admin.user_id,
+          type: 'membership_request',
+          title: '🔔 Ny medlemsansökan',
+          content: `${requesterName} vill gå med i ${communityName}`,
+          senderName: requesterName,
+          actionUrl: `/local?tab=myCommunities&community=${communityId}&adminTab=pending`
+        });
+      }
+
+      console.log(`✅ Sent membership request notifications to ${admins.length} admin(s)`);
+    } catch (err) {
+      console.error('Error creating membership request notification:', err);
+    }
+  },
+
+  /**
+   * Create notification when membership is approved (to requester)
+   */
+  async createMembershipApprovedNotification(params: {
+    userId: string;
+    communityName: string;
+    communityId: string;
+    approvedBy: string;
+  }): Promise<void> {
+    const { userId, communityName, communityId, approvedBy } = params;
+
+    try {
+      await this.createNotification({
+        userId,
+        type: 'membership_approved',
+        title: '✅ Medlemskap godkänt!',
+        content: `Din ansökan till ${communityName} har godkänts`,
+        senderName: approvedBy,
+        actionUrl: `/community/${communityId}`
+      });
+
+      console.log(`✅ Sent membership approved notification to user ${userId}`);
+    } catch (err) {
+      console.error('Error creating membership approved notification:', err);
+    }
+  },
+
+  /**
+   * Create notification when membership is rejected (to requester)
+   */
+  async createMembershipRejectedNotification(params: {
+    userId: string;
+    communityName: string;
+    rejectedBy: string;
+    reason?: string;
+  }): Promise<void> {
+    const { userId, communityName, rejectedBy, reason } = params;
+
+    try {
+      const content = reason 
+        ? `Din ansökan till ${communityName} har avslagits. Anledning: ${reason}`
+        : `Din ansökan till ${communityName} har avslagits`;
+
+      await this.createNotification({
+        userId,
+        type: 'membership_rejected',
+        title: '❌ Medlemskap avslaget',
+        content,
+        senderName: rejectedBy,
+        actionUrl: '/community'
+      });
+
+      console.log(`✅ Sent membership rejected notification to user ${userId}`);
+    } catch (err) {
+      console.error('Error creating membership rejected notification:', err);
     }
   }
 };
