@@ -19,7 +19,7 @@ import type { User } from '@supabase/supabase-js';
 
 export interface Notification {
   id: string;
-  type: 'message' | 'resource_request' | 'emergency' | 'system';
+  type: 'message' | 'resource_request' | 'emergency' | 'system' | 'membership_request' | 'membership_approved' | 'membership_rejected';
   title: string;
   content: string;
   sender_name?: string;

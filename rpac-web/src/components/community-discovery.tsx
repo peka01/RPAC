@@ -18,7 +18,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { geographicService } from '@/lib/geographic-service';
-import { communityService, type LocalCommunity } from '@/lib/supabase';
+import { supabase, communityService, type LocalCommunity } from '@/lib/supabase';
 import { t } from '@/lib/locales';
 import type { User } from '@supabase/supabase-js';
 
@@ -120,7 +120,7 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
       // Load pending request counts for admin communities
       const counts: Record<string, number> = {};
       await Promise.all(
-        adminCommunities.map(async ({ community_id }) => {
+        adminCommunities.map(async ({ community_id }: { community_id: string }) => {
           const count = await communityService.getPendingRequestCount(community_id);
           if (count > 0) {
             counts[community_id] = count;
