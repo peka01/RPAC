@@ -416,12 +416,12 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
         <p className="text-gray-600 mb-4">
           {t('profile.location_description')}
         </p>
-        <Link
-          href="/settings"
+        <a
+          href="/settings?highlight=postal_code"
           className="inline-block px-6 py-3 bg-[#3D4A2B] text-white font-medium rounded-lg hover:bg-[#2A331E] transition-colors"
         >
           {t('local_community.location_settings')}
-        </Link>
+        </a>
       </div>
     );
   }

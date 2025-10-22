@@ -11,14 +11,8 @@ import {
   X,
   Shield,
   MapPin,
-  Phone,
-  Home,
-  Heart,
   Users,
-  AlertTriangle,
-  ChevronDown,
-  ChevronUp,
-  Edit3
+  AlertTriangle
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
@@ -60,45 +54,26 @@ interface ProfileData {
   pet_types: string;
 }
 
-// Define Section component OUTSIDE to prevent re-creation on every render
+// Section component - all sections always visible
 const SectionComponent = ({ 
   title, 
   icon: Icon, 
-  sectionKey,
-  expandedSections,
-  toggleSection,
   children 
 }: { 
   title: string; 
   icon: React.ComponentType<{ className?: string }>; 
-  sectionKey: string;
-  expandedSections: Record<string, boolean>;
-  toggleSection: (section: string) => void;
   children: React.ReactNode 
 }) => (
   <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-    <button
-      onClick={() => toggleSection(sectionKey)}
-      className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors"
-      type="button"
-    >
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#3D4A2B] to-[#5C6B47] flex items-center justify-center">
-          <Icon className="w-5 h-5 text-white" />
-        </div>
-        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+    <div className="flex items-center gap-3 p-5 bg-gradient-to-r from-[#3D4A2B]/5 to-[#5C6B47]/5 border-b border-gray-100">
+      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#3D4A2B] to-[#5C6B47] flex items-center justify-center">
+        <Icon className="w-5 h-5 text-white" />
       </div>
-      {expandedSections[sectionKey] ? (
-        <ChevronUp className="text-gray-400" size={20} />
-      ) : (
-        <ChevronDown className="text-gray-400" size={20} />
-      )}
-    </button>
-    {expandedSections[sectionKey] && (
-      <div className="p-6 pt-0 border-t border-gray-100">
-        {children}
-      </div>
-    )}
+      <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+    </div>
+    <div className="p-6">
+      {children}
+    </div>
   </div>
 );
 
@@ -129,12 +104,10 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [expandedSections, setExpandedSections] = useState({
-    identity: true,
-    location: false,
-    emergency: false,
-    household: false
-  });
+  // All sections always expanded - no dropdowns
+  const [highlightPostalCode, setHighlightPostalCode] = useState(false);
+  
+  const postalCodeRef = useRef<HTMLInputElement>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -196,6 +169,55 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
     loadProfile();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
+
+  // Separate effect for highlighting - runs after loading completes
+  useEffect(() => {
+    console.log('🎯 Profile highlight effect running. Loading:', loading);
+    
+    if (loading) return; // Don't run while loading
+    
+    // Check if we should highlight postal code field (from URL parameter)
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const highlightParam = params.get('highlight');
+      console.log('🔍 URL highlight parameter:', highlightParam);
+      
+      if (highlightParam === 'postal_code') {
+        console.log('✅ Highlight parameter matches! Setting up focus...');
+        setHighlightPostalCode(true);
+        
+        // Use requestAnimationFrame to ensure DOM is ready
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            const element = postalCodeRef.current;
+            console.log('📍 Postal code element:', element);
+            
+            if (element) {
+              // Scroll into view
+              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              console.log('📜 Scrolling to element...');
+              
+              // Focus immediately after scroll starts
+              setTimeout(() => {
+                element.focus();
+                element.select();
+                const isFocused = document.activeElement === element;
+                console.log('🎯 Postal code field focused:', isFocused);
+                console.log('🔎 Active element:', document.activeElement);
+              }, 600);
+            } else {
+              console.error('❌ Postal code ref is null!');
+            }
+          });
+        });
+        
+        // Remove highlight after 4 seconds
+        setTimeout(() => setHighlightPostalCode(false), 4600);
+      } else {
+        console.log('ℹ️ No postal_code highlight parameter found');
+      }
+    }
+  }, [loading]); // Run when loading state changes
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -342,9 +364,7 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
     }
   };
 
-  const toggleSection = (section: string) => {
-    setExpandedSections(prev => ({ ...prev, [section]: !(prev as any)[section] }));
-  };
+  // No toggle needed - all sections always visible
 
   // Stable input change handlers
   const handleInputChange = useCallback((field: keyof ProfileData) => (
@@ -411,13 +431,10 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
         </div>
       )}
 
-      {/* Identity & Privacy Section - Always Visible */}
+      {/* Identity & Privacy Section */}
       <SectionComponent 
         title="Identitet & Integritet" 
-        icon={User} 
-        sectionKey="identity"
-        expandedSections={expandedSections}
-        toggleSection={toggleSection}
+        icon={User}
       >
         <div className="space-y-6">
           {/* Avatar Upload */}
@@ -551,10 +568,7 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
       {/* Location Section */}
       <SectionComponent 
         title="Plats & Bostadsinformation" 
-        icon={MapPin} 
-        sectionKey="location"
-        expandedSections={expandedSections}
-        toggleSection={toggleSection}
+        icon={MapPin}
       >
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -572,10 +586,15 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Postnummer</label>
               <input
+                ref={postalCodeRef}
                 type="text"
                 value={profile.postal_code}
                 onChange={handleInputChange('postal_code')}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
+                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B] transition-all duration-300 ${
+                  highlightPostalCode 
+                    ? 'border-[#3D4A2B] ring-4 ring-[#3D4A2B]/20 bg-[#5C6B47]/5' 
+                    : 'border-gray-300'
+                }`}
                 placeholder="123 45"
               />
             </div>
@@ -627,10 +646,7 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
       {/* Emergency Contact */}
       <SectionComponent 
         title="Akutkontakt" 
-        icon={AlertTriangle} 
-        sectionKey="emergency"
-        expandedSections={expandedSections}
-        toggleSection={toggleSection}
+        icon={AlertTriangle}
       >
         <div className="space-y-4">
           <div>
@@ -673,10 +689,7 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
       {/* Household */}
       <SectionComponent 
         title="Hushållsinformation" 
-        icon={Users} 
-        sectionKey="household"
-        expandedSections={expandedSections}
-        toggleSection={toggleSection}
+        icon={Users}
       >
         <div className="space-y-4">
           <div>
