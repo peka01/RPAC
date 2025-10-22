@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { Shield, CheckCircle, XCircle, Users, ArrowRight } from 'lucide-react';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
@@ -298,13 +299,13 @@ export default function InvitationPage() {
           <p className="text-xs text-gray-500 text-center mt-4">
             Du måste ha ett Beready-konto för att acceptera inbjudan.
             {' '}
-            <a href="/login" className="text-[#3D4A2B] hover:underline">
+            <Link href="/login" className="text-[#3D4A2B] hover:underline">
               Logga in
-            </a>
+            </Link>
             {' '}eller{' '}
-            <a href="/signup" className="text-[#3D4A2B] hover:underline">
+            <Link href="/signup" className="text-[#3D4A2B] hover:underline">
               skapa konto
-            </a>
+            </Link>
           </p>
         )}
       </div>

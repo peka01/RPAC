@@ -242,7 +242,7 @@ export function CommunityDiscoveryMobile({ user, userPostalCode, onJoinCommunity
 
   const isMember = (communityId: string) => userMemberships.includes(communityId);
 
-  // Early return if no postal code
+  // Early return if no postal code - MUST be before nested component definitions
   if (!userPostalCode) {
     return (
       <div className="text-center py-12 px-4">

@@ -639,14 +639,18 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
       )}
 
       {/* No Results - from filtering */}
-      {!loading && filteredCommunities.length === 0 && userPostalCode && !error && communities.length > 0 && (
+      {!loading && filteredCommunities.length === 0 && !error && communities.length > 0 && (
         <div className="text-center py-12 bg-gray-50 rounded-lg">
           <Users size={64} className="mx-auto mb-4 text-gray-400" />
           <h4 className="text-lg font-semibold text-gray-800 mb-2">
-            {t('community.no_communities_nearby').replace('{filterType}', 
-              filterType === 'nearby' ? t('community.nearby_area') : 
-              filterType === 'county' ? t('community.the_county') : 
-              t('community.the_region'))}
+            {userPostalCode ? (
+              t('community.no_communities_nearby').replace('{filterType}', 
+                filterType === 'nearby' ? t('community.nearby_area') : 
+                filterType === 'county' ? t('community.the_county') : 
+                t('community.the_region'))
+            ) : (
+              'Inga samhällen hittades'
+            )}
           </h4>
           <p className="text-gray-600 mb-4">
             {t('community.be_first_create')}
@@ -664,11 +668,11 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
       )}
 
       {/* No Communities At All - Database is empty */}
-      {!loading && communities.length === 0 && userPostalCode && !error && (
+      {!loading && communities.length === 0 && !error && (
         <div className="text-center py-12 bg-[#5C6B47]/10 rounded-lg border-2 border-dashed border-[#5C6B47]/30">
           <Users size={64} className="mx-auto mb-4 text-[#5C6B47]" />
           <h4 className="text-lg font-semibold text-gray-800 mb-2">
-            Inga samhällen finns än i ditt område
+            {userPostalCode ? 'Inga samhällen finns än i ditt område' : 'Inga samhällen finns än'}
           </h4>
           <p className="text-gray-600 mb-4">
             {t('community.be_first_create')}
@@ -701,11 +705,23 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
             </h3>
 
             <form onSubmit={handleCreateCommunity} className="space-y-4">
-              {console.log('🐛 CREATE MODAL DEBUG:', { 
-                createForm, 
-                showCreateModal,
-                hasAccessType: !!createForm.accessType 
-              })}
+              {(() => {
+                console.log('🐛 CREATE MODAL DEBUG:', { 
+                  createForm, 
+                  showCreateModal,
+                  hasAccessType: !!createForm.accessType 
+                });
+                return null;
+              })()}
+              
+              {/* Warning if no postal code */}
+              {!userPostalCode && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <p className="text-sm text-amber-800">
+                    <strong>Tips:</strong> För att andra ska kunna hitta ditt samhälle baserat på plats, lägg till ditt postnummer i dina inställningar.
+                  </p>
+                </div>
+              )}
               
               {/* Community Name */}
               <div>
@@ -749,10 +765,13 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
               )}
 
               {/* Access Type */}
-              {console.log('🎯 RENDERING ACCESS TYPE SECTION')}
-              <div style={{border: '3px solid red', padding: '10px'}}>
+              {(() => {
+                console.log('🔥🔥🔥 DESKTOP CREATE MODAL - RENDERING ACCESS TYPE', createForm);
+                return null;
+              })()}
+              <div style={{border: '10px solid red', padding: '30px', backgroundColor: 'yellow', margin: '20px 0'}}>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  {t('community.access_type') || 'Åtkomsttyp'} <span className="text-red-500">*</span>
+                  🚨 DEBUG CREATE: {t('community.access_type') || 'Åtkomsttyp'} <span className="text-red-500">*</span>
                 </label>
                 <div className="space-y-3">
                   <label className="flex items-start gap-3 p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-[#3D4A2B] transition-colors">
@@ -893,9 +912,13 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
               </div>
 
               {/* Access Type (Öppet/Stängt) */}
-              <div>
+              {(() => {
+                console.log('🔥🔥🔥 DESKTOP EDIT MODAL - RENDERING ACCESS TYPE', editForm);
+                return null;
+              })()}
+              <div style={{border: '10px solid red', padding: '30px', backgroundColor: 'yellow', margin: '20px 0'}}>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  {t('community.access_type')} <span className="text-red-500">*</span>
+                  🚨 DEBUG: {t('community.access_type')} <span className="text-red-500">*</span>
                 </label>
                 <div className="space-y-3">
                   <label className="flex items-start gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
