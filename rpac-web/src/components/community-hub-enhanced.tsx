@@ -198,12 +198,12 @@ export function CommunityHubEnhanced({ user, initialCommunityId, initialTab }: C
                 <p className="text-gray-800 mb-3">
                   {t('local_community.location_prompt_description')}
                 </p>
-                <a
+                <Link
                   href="/settings?highlight=postal_code"
                   className="inline-block px-4 py-2 bg-[#3D4A2B] text-white font-medium rounded-lg hover:bg-[#2A331E] transition-colors cursor-pointer"
                 >
                   {t('local_community.enter_postal_code')}
-                </a>
+                </Link>
               </div>
             </div>
           </div>

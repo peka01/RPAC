@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { MapPin, Users, AlertTriangle, ExternalLink, Activity, Package, Info } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { getRegionalStatistics, getCommunitiesInCounty, type RegionalStatistics, type CommunityOverview } from '@/lib/regional-service';
@@ -80,12 +81,12 @@ export function RegionalOverviewMobile({ county }: RegionalOverviewMobileProps) 
           <MapPin size={64} className="text-gray-400 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-gray-800 mb-2">{t('regional.no_county_set')}</h2>
           <p className="text-gray-600 text-sm mb-4">{t('regional.set_location_prompt')}</p>
-          <a
+          <Link
             href="/settings?highlight=postal_code"
             className="inline-block px-6 py-3 bg-[#3D4A2B] text-white font-medium rounded-lg hover:bg-[#2A331E] transition-all touch-manipulation active:scale-95 cursor-pointer"
           >
             Gå till inställningar
-          </a>
+          </Link>
         </div>
       </div>
     );

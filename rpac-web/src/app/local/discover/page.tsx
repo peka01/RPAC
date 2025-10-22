@@ -544,7 +544,7 @@ export default function DiscoverPage() {
           console.log('🔒 Closed community - creating pending request...');
           
           // Try with status first
-          let { error: requestError } = await supabase
+          const { error: requestError } = await supabase
             .from('community_memberships')
             .insert({
               community_id: communityId,

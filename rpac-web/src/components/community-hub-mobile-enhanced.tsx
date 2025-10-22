@@ -240,12 +240,12 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
         </div>
 
         {!userPostalCode && (
-          <a
+          <Link
             href="/settings?highlight=postal_code"
             className="block mt-4 bg-white/90 text-[#3D4A2B] text-center font-bold py-3 px-4 rounded-xl hover:bg-white transition-all touch-manipulation active:scale-95"
           >
             Ange ditt postnummer
-          </a>
+          </Link>
         )}
       </div>
 
