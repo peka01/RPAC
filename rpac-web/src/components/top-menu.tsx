@@ -8,7 +8,8 @@ import {
   Settings, 
   LogOut, 
   Bell,
-  ChevronDown
+  ChevronDown,
+  Shield
 } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { supabase } from '@/lib/supabase';
@@ -234,6 +235,25 @@ export function TopMenu({ user }: TopMenuProps) {
                       <Settings className="w-4 h-4" />
                       {t('navigation.settings')}
                     </button>
+                    
+                    {/* Super Admin Option */}
+                    {userProfile?.user_tier === 'super_admin' && (
+                      <>
+                        <div className="border-t my-1 border-gray-200" />
+                        <button
+                          onClick={() => {
+                            setShowUserMenu(false);
+                            router.push('/super-admin');
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2 text-purple-700 hover:bg-purple-50"
+                        >
+                          <Shield className="w-4 h-4" />
+                          Super Admin
+                        </button>
+                      </>
+                    )}
+                    
+                    <div className="border-t my-1 border-gray-200" />
                     <button
                       onClick={() => {
                         setShowUserMenu(false);

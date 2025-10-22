@@ -13,7 +13,8 @@ import {
   Menu,
   X,
   LogOut,
-  ChevronDown
+  ChevronDown,
+  Shield
 } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { useState, useEffect, useRef } from 'react';
@@ -29,6 +30,7 @@ export function MobileNavigationV2() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [userCommunities, setUserCommunities] = useState<LocalCommunity[]>([]);
   const [selectedCommunityId, setSelectedCommunityId] = useState<string | null>(null);
@@ -40,6 +42,7 @@ export function MobileNavigationV2() {
       if (session?.user) {
         setUser(session.user);
         loadUnreadCount(session.user.id);
+        loadUserProfile(session.user.id);
       }
     };
 
@@ -50,8 +53,10 @@ export function MobileNavigationV2() {
         setUser(session.user);
         loadUnreadCount(session.user.id);
         loadUserCommunities(session.user);
+        loadUserProfile(session.user.id);
       } else {
         setUser(null);
+        setUserProfile(null);
         setUnreadCount(0);
         setUserCommunities([]);
       }
@@ -178,6 +183,25 @@ export function MobileNavigationV2() {
       console.error('Error loading unread count:', error);
       // Set to 0 if there's an error
       setUnreadCount(0);
+    }
+  };
+
+  const loadUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error loading user profile:', error);
+        return;
+      }
+
+      setUserProfile(data);
+    } catch (error) {
+      console.error('Error loading user profile:', error);
     }
   };
 
@@ -326,6 +350,29 @@ export function MobileNavigationV2() {
                     </div>
                   </button>
                   
+                  {/* Super Admin Option */}
+                  {userProfile?.user_tier === 'super_admin' && (
+                    <>
+                      <div className="border-t my-2 border-gray-100" />
+                      <button
+                        onClick={() => {
+                          setShowUserMenu(false);
+                          router.push('/super-admin');
+                        }}
+                        className="w-full px-4 py-3 text-left hover:bg-purple-50 transition-colors flex items-center gap-3 touch-manipulation"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                          <Shield className="w-4 h-4 text-purple-700" />
+                        </div>
+                        <div>
+                          <div className="font-medium text-purple-900 text-sm">Super Admin</div>
+                          <div className="text-xs text-purple-600">Systemadministration</div>
+                        </div>
+                      </button>
+                    </>
+                  )}
+                  
+                  <div className="border-t my-2 border-gray-100" />
                   <button
                     onClick={() => {
                       setShowUserMenu(false);

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { supabase, communityService } from '@/lib/supabase';
 import { t } from '@/lib/locales';
-import { Search, MapPin, Users, Filter, Star, Calendar, UserPlus, Edit, Trash, Plus, Settings, X, Globe } from 'lucide-react';
+import { Search, MapPin, Users, Filter, Star, Calendar, UserPlus, Edit, Trash, Plus, Settings, X, Globe, Lock, LockOpen } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import type { LocalCommunity } from '@/lib/supabase';
 import { ResourceListView, Column } from '@/components/resource-list-view';
@@ -30,7 +30,8 @@ export default function DiscoverPage() {
   const [createForm, setCreateForm] = useState({
     name: '',
     description: '',
-    location: ''
+    location: '',
+    accessType: 'öppet' as 'öppet' | 'stängt'
   });
   const [filters, setFilters] = useState({
     membership: 'all', // 'all', 'member', 'not_member'
@@ -49,8 +50,17 @@ export default function DiscoverPage() {
       render: (community) => {
         const isMember = userMemberships.includes(community.id);
         const isAdmin = user && community.created_by === user.id;
+        const isOpen = community.access_type === 'öppet';
         return (
           <div className="flex items-center">
+            {/* Access type icon (leftmost) */}
+            <div className="flex-shrink-0 mr-3" title={isOpen ? 'Öppet samhälle' : 'Stängt samhälle'}>
+              {isOpen ? (
+                <LockOpen className="w-4 h-4 text-gray-500" />
+              ) : (
+                <Lock className="w-4 h-4 text-gray-500" />
+              )}
+            </div>
             <div className={`flex-shrink-0 h-10 w-10 rounded-lg flex items-center justify-center ${
               isMember ? 'bg-[#3D4A2B]/20' : 'bg-[#3D4A2B]/10'
             }`}>
@@ -184,16 +194,29 @@ export default function DiscoverPage() {
   const cardRenderer = (community: LocalCommunity) => {
     const isMember = userMemberships.includes(community.id);
     const isAdmin = user && community.created_by === user.id;
+    const isOpen = community.access_type === 'öppet';
     return (
       <div 
-        className={`rounded-xl shadow-lg p-4 hover:shadow-xl transition-shadow h-full flex flex-col ${
+        className={`rounded-xl shadow-lg p-4 hover:shadow-xl transition-shadow h-full flex flex-col relative ${
           isMember 
             ? 'bg-gradient-to-r from-[#3D4A2B]/5 to-[#5C6B47]/5 border-2 border-[#3D4A2B]/20' 
             : 'bg-white'
         }`}
       >
+        {/* Access type icon (top right corner) */}
+        <div 
+          className="absolute top-3 right-3" 
+          title={isOpen ? 'Öppet samhälle' : 'Stängt samhälle'}
+        >
+          {isOpen ? (
+            <LockOpen className="w-5 h-5 text-gray-500" />
+          ) : (
+            <Lock className="w-5 h-5 text-gray-500" />
+          )}
+        </div>
+
         {/* Header with icon and title */}
-        <div className="flex items-start gap-3 mb-3">
+        <div className="flex items-start gap-3 mb-3 pr-8">
           <div className={`rounded-lg p-2 flex-shrink-0 ${
             isMember 
               ? 'bg-[#3D4A2B]/20' 
@@ -240,9 +263,6 @@ export default function DiscoverPage() {
 
         {/* Status tags */}
         <div className="flex flex-wrap gap-1 mb-3">
-          <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
-            Aktivt
-          </span>
           {isMember && (
             <span className="px-2 py-1 bg-[#3D4A2B]/20 text-[#3D4A2B] text-xs font-medium rounded-full">
               Ditt samhälle
@@ -440,10 +460,11 @@ export default function DiscoverPage() {
       setCreateForm({
         name: editingCommunity.community_name || '',
         description: editingCommunity.description || '',
-        location: editingCommunity.location || ''
+        location: editingCommunity.location || '',
+        accessType: (editingCommunity.access_type as 'öppet' | 'stängt') || 'öppet' // Use existing access type or default to öppet
       });
     } else {
-      setCreateForm({ name: '', description: '', location: '' });
+      setCreateForm({ name: '', description: '', location: '', accessType: 'öppet' });
     }
   }, [editingCommunity]);
 
@@ -562,7 +583,9 @@ export default function DiscoverPage() {
         location: createForm.location || 'Sverige',
         county: createForm.location || 'Sverige',
         created_by: user.id,
-        is_public: true
+        is_public: true,
+        access_type: createForm.accessType,
+        auto_approve_members: createForm.accessType === 'öppet'
       });
 
       console.log('Community created successfully:', newCommunity);
@@ -572,7 +595,7 @@ export default function DiscoverPage() {
       await loadUserMemberships();
 
       // Reset form and close modal
-      setCreateForm({ name: '', description: '', location: '' });
+      setCreateForm({ name: '', description: '', location: '', accessType: 'öppet' });
       setShowCreateModal(false);
       
       alert('Samhället har skapats!');
@@ -599,7 +622,9 @@ export default function DiscoverPage() {
         community_name: createForm.name,
         description: createForm.description,
         location: createForm.location,
-        county: createForm.location
+        county: createForm.location,
+        access_type: createForm.accessType,
+        auto_approve_members: createForm.accessType === 'öppet'
       });
 
       console.log('Community updated successfully');
@@ -608,7 +633,7 @@ export default function DiscoverPage() {
       await loadCommunities();
 
       // Reset form and close modal
-      setCreateForm({ name: '', description: '', location: '' });
+      setCreateForm({ name: '', description: '', location: '', accessType: 'öppet' });
       setEditingCommunity(null);
       
       alert('Samhället har uppdaterats!');
@@ -718,7 +743,7 @@ export default function DiscoverPage() {
                 onClick={() => {
                   setShowCreateModal(false);
                   setEditingCommunity(null);
-                  setCreateForm({ name: '', description: '', location: '' });
+                  setCreateForm({ name: '', description: '', location: '', accessType: 'öppet' });
                 }}
                 className="text-gray-400 hover:text-gray-600"
               >
@@ -765,6 +790,54 @@ export default function DiscoverPage() {
                   placeholder="Stad, region"
                 />
               </div>
+
+              {/* Access Type */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Åtkomsttyp <span className="text-red-500">*</span>
+                </label>
+                <div className="space-y-2">
+                  <label className="flex items-start gap-3 p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-[#3D4A2B] transition-colors">
+                    <input
+                      type="radio"
+                      name="accessType"
+                      value="öppet"
+                      checked={createForm.accessType === 'öppet'}
+                      onChange={(e) => setCreateForm(prev => ({ ...prev, accessType: e.target.value as 'öppet' | 'stängt' }))}
+                      className="mt-1 w-4 h-4 text-[#3D4A2B] border-gray-300 focus:ring-[#3D4A2B]"
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900 flex items-center gap-2">
+                        <Globe size={16} className="text-green-600" />
+                        Öppet samhälle
+                      </div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        Alla kan gå med direkt utan godkännande
+                      </div>
+                    </div>
+                  </label>
+                  
+                  <label className="flex items-start gap-3 p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-[#3D4A2B] transition-colors">
+                    <input
+                      type="radio"
+                      name="accessType"
+                      value="stängt"
+                      checked={createForm.accessType === 'stängt'}
+                      onChange={(e) => setCreateForm(prev => ({ ...prev, accessType: e.target.value as 'öppet' | 'stängt' }))}
+                      className="mt-1 w-4 h-4 text-[#3D4A2B] border-gray-300 focus:ring-[#3D4A2B]"
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900 flex items-center gap-2">
+                        <Lock size={16} className="text-orange-600" />
+                        Stängt samhälle
+                      </div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        Medlemsansökningar kräver godkännande från administratör
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
             </div>
             
             <div className="flex gap-3 mt-6">
@@ -772,7 +845,7 @@ export default function DiscoverPage() {
                 onClick={() => {
                   setShowCreateModal(false);
                   setEditingCommunity(null);
-                  setCreateForm({ name: '', description: '', location: '' });
+                  setCreateForm({ name: '', description: '', location: '', accessType: 'öppet' });
                 }}
                 disabled={createLoading}
                 className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
