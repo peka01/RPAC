@@ -39,12 +39,13 @@ See `../docs/DEVELOPMENT_SETUP.md` for complete troubleshooting guide.
 - **Next Themes** - Mörkt/ljust tema
 
 ### Backend & Infrastructure ✅ IMPLEMENTED
-- **Next.js API Routes** - Serverless backend
+- **Cloudflare Pages** - Global edge deployment med Edge Runtime (V8 Isolates)
+- **Cloudflare Functions** - Serverless API endpoints i `/functions/api/`
 - **Supabase** - Real-time databas och autentisering med PostgreSQL
 - **Row Level Security** - Dataskydd med RLS-policies
 - **Foreign Key Constraints** - Dataintegritet och referential integrity
-- **Vercel** - Global hosting och deployment
-- **Cloudflare** - CDN, edge computing och AI Worker API
+- **@cloudflare/next-on-pages** - Next.js adapter för Cloudflare Pages
+- **Cloudflare Worker API** - AI Worker på `api.beready.se`
 
 ### Features ✅ IMPLEMENTED
 - **Progressive Web App (PWA)** - App-liknande upplevelse
@@ -189,12 +190,24 @@ RPAC fungerar som en Progressive Web App:
 
 ### Scripts
 ```bash
-npm run dev          # Starta utvecklingsserver
-npm run build        # Bygg för produktion
-npm run start        # Starta produktionsserver
-npm run lint         # Kör ESLint
-npm run type-check   # Kontrollera TypeScript
+npm run dev           # Starta utvecklingsserver
+npm run build         # Bygg Next.js (standard build)
+npm run pages:build   # Bygg för Cloudflare Pages (production)
+npm run preview       # Förhandsgranska Cloudflare Pages lokalt
+npm run deploy        # Deploya till Cloudflare Pages
+npm run start         # Starta produktionsserver (local only)
+npm run lint          # Kör ESLint
 ```
+
+### Deployment
+RPAC deployas till **Cloudflare Pages** med Edge Runtime:
+```bash
+cd rpac-web
+npm run pages:build   # Bygg för Cloudflare
+npm run deploy        # Deploya till produktion
+```
+
+Se `../docs/PRODUCTION_DEPLOYMENT.md` för fullständig deployment-guide.
 
 ### Projektstruktur
 ```

@@ -1,3 +1,102 @@
+### 2025-10-21 - CLOUDFLARE PAGES DEPLOYMENT FIXES 🚀 **CRITICAL PRODUCTION FIX**
+
+Fixed multiple critical deployment errors preventing successful Cloudflare Pages deployment. All builds now complete successfully.
+
+#### Issues Fixed
+
+1. **TypeScript Build Errors** ✅
+   - **File**: `community-hub-mobile-enhanced.tsx`
+     - Removed `console.log` statements from JSX (lines 377, 581)
+     - Error: "Type 'void' is not assignable to type 'ReactNode'"
+     - Root cause: console.log returns void, not valid JSX content
+   
+   - **File**: `mobile-navigation-v2.tsx`
+     - Fixed incorrect Supabase realtime channel subscription pattern
+     - Changed from: `const { data, error } = supabase.channel(...).subscribe()`
+     - Changed to: `subscription = supabase.channel(...).subscribe(callback)`
+     - Error: "Property 'data' does not exist on type 'RealtimeChannel'"
+
+2. **Vercel Configuration Conflict** ✅
+   - Deleted `rpac-web/vercel.json` - was causing conflicts
+   - Project is Cloudflare Pages-only, not Vercel
+   - Error: "Function Runtimes must have a valid version"
+
+3. **Edge Runtime Configuration** ✅
+   - Added `export const runtime = 'edge';` to ALL dynamic routes:
+     - `/[samhalle]/page.tsx` - Dynamic community homespace
+     - `/auth/callback/page.tsx` - Authentication
+     - `/individual/page.tsx` - Individual preparedness
+     - `/local/page.tsx` - Community hub
+     - `/local/discover/page.tsx` - Community discovery
+     - `/local/messages/community/page.tsx` - Community messages
+     - `/local/messages/direct/page.tsx` - Direct messages
+     - `/local/resources/help/page.tsx` - Help requests
+     - `/local/resources/owned/page.tsx` - Owned resources
+     - `/local/resources/shared/page.tsx` - Shared resources
+   - Error: "routes were not configured to run with the Edge Runtime"
+   - Required for `@cloudflare/next-on-pages` compatibility
+
+4. **Node.js Compatibility Configuration** ✅
+   - Updated `wrangler.toml` with critical settings:
+     ```toml
+     compatibility_date = "2024-10-21"
+     compatibility_flags = ["nodejs_compat"]
+     ```
+   - Error: "nodejs_compat compatibility flag not set"
+   - Error: "compatibility_flags cannot be specified without a compatibility_date"
+   - Required for Next.js Edge Runtime features on Cloudflare
+
+#### Technical Details
+
+**Deployment Platform**: Cloudflare Pages
+- Runtime: Edge Runtime (V8 Isolates)
+- Adapter: `@cloudflare/next-on-pages` v1.13.5
+- Build process: `vercel build` → Cloudflare Pages conversion
+- Functions: Cloudflare Pages Functions in `/functions/api/`
+
+**Build Commands**:
+```bash
+cd rpac-web
+npm run pages:build    # Build for Cloudflare Pages
+npm run preview        # Preview locally
+npm run deploy         # Deploy to Cloudflare Pages
+```
+
+**Edge Runtime Requirements**:
+- All dynamic routes MUST export `runtime = 'edge'`
+- Enables V8 Isolate execution on Cloudflare's edge network
+- Provides global low-latency with automatic scaling
+- Different from Node.js runtime (no filesystem, different APIs)
+
+**Compatibility Flags**:
+- `nodejs_compat` enables Node.js built-in modules (crypto, buffer, etc.)
+- Required for Supabase client and other Node.js-dependent packages
+- Must be paired with `compatibility_date` for version locking
+
+#### Documentation Updates
+
+Updated `docs/PRODUCTION_DEPLOYMENT.md` with:
+- Complete Cloudflare Pages configuration guide
+- `wrangler.toml` setup requirements
+- Edge runtime configuration for all routes
+- Troubleshooting section with 5 common deployment errors
+- Build command reference
+- Environment variable setup for Cloudflare Dashboard
+
+#### Impact
+- ✅ Production deployments now succeed on first try
+- ✅ All routes properly configured for edge runtime
+- ✅ TypeScript builds pass with zero errors
+- ✅ Proper compatibility flags ensure all features work
+- ✅ Comprehensive documentation prevents future issues
+
+#### Lessons Learned
+1. **Edge Runtime Declaration Required**: Next.js on Cloudflare requires explicit edge runtime exports
+2. **No Console.log in JSX**: TypeScript correctly catches this as invalid JSX
+3. **Supabase Realtime API Changed**: Subscription pattern differs from docs examples
+4. **wrangler.toml Critical**: Both compatibility_date and nodejs_compat flag are mandatory
+5. **Platform-Specific Config**: Vercel config causes conflicts with Cloudflare Pages build
+
 ### 2025-10-21 - COMMUNITY HOMESPACE FEATURE 🏡 **MAJOR FEATURE**
 
 Implemented a revolutionary public-facing "Homespace" for each samhälle - a customizable community website at `beready.se/[samhalle-name]` that acts as a digital community board for transparency and recruitment.
