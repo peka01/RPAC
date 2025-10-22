@@ -40,7 +40,8 @@ export const userProfileSchema = z.object({
     'kronoberg', 'kalmar', 'blekinge', 'skane', 'halland', 'vastra_gotaland',
     'varmland', 'orebro', 'vastmanland', 'dalarna', 'gavleborg',
     'vasternorrland', 'jamtland', 'vasterbotten', 'norrbotten'
-  ], { errorMap: () => ({ message: 'Ogiltigt län' }) }),
+  ], { errorMap: () => ({ message: 'Ogiltigt län' }) })
+    .or(z.literal('')),
   
   emergency_contact_name: z.string()
     .max(100, 'Nödkontaktnamn får inte vara längre än 100 tecken')
@@ -189,7 +190,8 @@ export const communitySchema = z.object({
     'kronoberg', 'kalmar', 'blekinge', 'skane', 'halland', 'vastra_gotaland',
     'varmland', 'orebro', 'vastmanland', 'dalarna', 'gavleborg',
     'vasternorrland', 'jamtland', 'vasterbotten', 'norrbotten'
-  ], { errorMap: () => ({ message: 'Ogiltigt län' }) }),
+  ], { errorMap: () => ({ message: 'Ogiltigt län' }) })
+    .or(z.literal('')),
   
   is_public: z.boolean().optional().default(true)
 });

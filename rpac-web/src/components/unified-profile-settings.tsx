@@ -17,6 +17,8 @@ import {
 import { supabase } from '@/lib/supabase';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { validateUserProfile, sanitizeHtml } from '@/lib/validation';
+import { geographicService } from '@/lib/geographic-service';
+import { t } from '@/lib/locales';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface UnifiedProfileSettingsProps {
@@ -170,51 +172,74 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
 
+  // Auto-fill county based on postal code
+  useEffect(() => {
+    if (profile.postal_code && profile.postal_code.length === 5) {
+      const derivedCountyName = geographicService.getCountyFromPostalCode(profile.postal_code);
+      
+      // Convert Swedish county name to database code format
+      const countyNameToCode: Record<string, string> = {
+        'Stockholm län': 'stockholm',
+        'Uppsala län': 'uppsala',
+        'Södermanland län': 'sodermanland',
+        'Östergötland län': 'ostergotland',
+        'Jönköping län': 'jonkoping',
+        'Kronoberg län': 'kronoberg',
+        'Kalmar län': 'kalmar',
+        'Blekinge län': 'blekinge',
+        'Skåne län': 'skane',
+        'Halland län': 'halland',
+        'Västra Götaland län': 'vastra_gotaland',
+        'Värmland län': 'varmland',
+        'Örebro län': 'orebro',
+        'Västmanland län': 'vastmanland',
+        'Dalarna län': 'dalarna',
+        'Gävleborg län': 'gavleborg',
+        'Västernorrland län': 'vasternorrland',
+        'Jämtland län': 'jamtland',
+        'Västerbotten län': 'vasterbotten',
+        'Norrbotten län': 'norrbotten'
+      };
+      
+      const countyCode = countyNameToCode[derivedCountyName];
+      if (countyCode && countyCode !== profile.county) {
+        setProfile(prev => ({ ...prev, county: countyCode }));
+      }
+    }
+  }, [profile.postal_code]); // Run when postal code changes
+
   // Separate effect for highlighting - runs after loading completes
   useEffect(() => {
-    console.log('🎯 Profile highlight effect running. Loading:', loading);
-    
     if (loading) return; // Don't run while loading
     
     // Check if we should highlight postal code field (from URL parameter)
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const highlightParam = params.get('highlight');
-      console.log('🔍 URL highlight parameter:', highlightParam);
       
       if (highlightParam === 'postal_code') {
-        console.log('✅ Highlight parameter matches! Setting up focus...');
         setHighlightPostalCode(true);
         
         // Use requestAnimationFrame to ensure DOM is ready
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
             const element = postalCodeRef.current;
-            console.log('📍 Postal code element:', element);
             
             if (element) {
               // Scroll into view
               element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              console.log('📜 Scrolling to element...');
               
-              // Focus immediately after scroll starts
+              // Focus after scroll animation completes
               setTimeout(() => {
                 element.focus();
                 element.select();
-                const isFocused = document.activeElement === element;
-                console.log('🎯 Postal code field focused:', isFocused);
-                console.log('🔎 Active element:', document.activeElement);
               }, 600);
-            } else {
-              console.error('❌ Postal code ref is null!');
             }
           });
         });
         
         // Remove highlight after 4 seconds
         setTimeout(() => setHighlightPostalCode(false), 4600);
-      } else {
-        console.log('ℹ️ No postal_code highlight parameter found');
       }
     }
   }, [loading]); // Run when loading state changes
@@ -407,6 +432,35 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
       default:
         return profile.display_name || user.email?.split('@')[0] || 'användare';
     }
+  };
+
+  const getCountyDisplayName = (countyCode: string) => {
+    if (!countyCode) return '';
+    
+    const countyMap: Record<string, string> = {
+      'stockholm': 'Stockholms län',
+      'uppsala': 'Uppsala län',
+      'sodermanland': 'Södermanlands län',
+      'ostergotland': 'Östergötlands län',
+      'jonkoping': 'Jönköpings län',
+      'kronoberg': 'Kronobergs län',
+      'kalmar': 'Kalmars län',
+      'blekinge': 'Blekinges län',
+      'skane': 'Skånes län',
+      'halland': 'Hallands län',
+      'vastra_gotaland': 'Västra Götalands län',
+      'varmland': 'Värmlands län',
+      'orebro': 'Örebro län',
+      'vastmanland': 'Västmanlands län',
+      'dalarna': 'Dalarnas län',
+      'gavleborg': 'Gävleborgs län',
+      'vasternorrland': 'Västernorrlands län',
+      'jamtland': 'Jämtlands län',
+      'vasterbotten': 'Västerbottens län',
+      'norrbotten': 'Norrbottens län'
+    };
+    
+    return countyMap[countyCode] || '';
   };
 
   if (loading) {
@@ -613,13 +667,17 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Län</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Län
+                {profile.county && <span className="text-xs text-gray-500 ml-2">(fylls i automatiskt)</span>}
+              </label>
               <input
                 type="text"
-                value={profile.county}
-                onChange={handleInputChange('county')}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
-                placeholder="Stockholms län"
+                value={getCountyDisplayName(profile.county)}
+                readOnly
+                disabled
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                placeholder="Fylls i automatiskt från postnummer"
               />
             </div>
           </div>
