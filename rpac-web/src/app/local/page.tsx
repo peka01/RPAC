@@ -135,23 +135,17 @@ export default function LocalPage() {
   console.log('📱 Local page rendering decision:', { isMobile, communityId, tab, type });
   
   return isMobile ? (
-    <>
-      {console.log('📱 Rendering CommunityHubMobileEnhanced')}
-      <CommunityHubMobileEnhanced 
-        user={user}
-        initialCommunityId={communityId}
-        initialTab={tab}
-        initialMessagingType={type}
-      />
-    </>
+    <CommunityHubMobileEnhanced 
+      user={user}
+      initialCommunityId={communityId}
+      initialTab={tab}
+      initialMessagingType={type}
+    />
   ) : (
-    <>
-      {console.log('🖥️ Rendering CommunityHubEnhanced')}
-      <CommunityHubEnhanced 
-        user={user}
-        initialCommunityId={communityId}
-        initialTab={tab}
-      />
-    </>
+    <CommunityHubEnhanced 
+      user={user}
+      initialCommunityId={communityId}
+      initialTab={tab}
+    />
   );
 }
