@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { X, AlertCircle, Check, Building2, Wrench, BookOpen, Info } from 'lucide-react';
 import type { CommunityResource } from '@/lib/community-resource-service';
+import { useSmartModalClose } from '@/hooks/use-smart-modal-close';
 
 interface CommunityResourceModalProps {
   isOpen: boolean;
@@ -51,6 +52,20 @@ export function CommunityResourceModal({
     notes: resource?.notes || ''
   });
 
+  // Track if form has been modified
+  const hasFormData = form.resource_name.trim() || 
+                     form.location.trim() || 
+                     form.usage_instructions.trim() || 
+                     form.notes.trim() ||
+                     form.quantity !== 1;
+
+  // Smart close handler - prevents accidental closure with unsaved work
+  const { handleClose, isPreventingClose } = useSmartModalClose({
+    hasUnsavedWork: hasFormData && !success,
+    modalId: 'community-resource',
+    onClose
+  });
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -75,10 +90,13 @@ export function CommunityResourceModal({
   return (
     <div 
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end md:items-center justify-center md:p-4"
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div 
-        className="bg-white rounded-t-3xl md:rounded-2xl shadow-2xl max-w-2xl w-full max-h-[95vh] md:max-h-[90vh] overflow-hidden flex flex-col animate-slide-up"
+        data-modal="community-resource"
+        className={`bg-white rounded-t-3xl md:rounded-2xl shadow-2xl max-w-2xl w-full max-h-[95vh] md:max-h-[90vh] overflow-hidden flex flex-col animate-slide-up transition-all duration-300 ${
+          hasFormData && !success ? 'border-2 border-yellow-400/50' : ''
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -87,12 +105,23 @@ export function CommunityResourceModal({
             <div>
               <h2 className="text-2xl font-bold mb-1">
                 {mode === 'add' ? 'Lägg till samhällsresurs' : 'Redigera samhällsresurs'}
+                {hasFormData && !success && (
+                  <span className="ml-2 text-yellow-300 text-sm">●</span>
+                )}
               </h2>
-              <p className="text-white/80">Gemensam utrustning och faciliteter</p>
+              <p className="text-white/80">
+                {hasFormData && !success 
+                  ? 'Fyll i alla fält för att spara' 
+                  : 'Gemensam utrustning och faciliteter'
+                }
+              </p>
             </div>
             <button
-              onClick={onClose}
-              className="p-2 hover:bg-white/20 rounded-full transition-colors"
+              onClick={handleClose}
+              className={`p-2 hover:bg-white/20 rounded-full transition-colors ${
+                hasFormData && !success ? 'bg-yellow-500/20 hover:bg-yellow-500/30' : ''
+              }`}
+              title={hasFormData && !success ? 'Fyll i formuläret för att stänga' : 'Stäng'}
             >
               <X size={24} />
             </button>

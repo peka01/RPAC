@@ -22,7 +22,7 @@ export default function RegionalPage() {
       // Get current user
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       
-      console.log('[RegionalPage] Current user:', currentUser?.id);
+      // Current user loaded
       
       if (currentUser) {
         setUser(currentUser);
@@ -34,24 +34,24 @@ export default function RegionalPage() {
           .eq('user_id', currentUser.id)
           .single();
 
-        console.log('[RegionalPage] User profile:', profile);
+        // User profile loaded
 
         if (profile?.county) {
-          console.log('[RegionalPage] Using county from profile:', profile.county);
+          // Using county from profile
           setCounty(profile.county);
         } else if (profile?.postal_code) {
           // If no county set, try to derive from postal code
           const derivedCounty = getCountyFromPostalCode(profile.postal_code);
-          console.log('[RegionalPage] Derived county from postal code', profile.postal_code, ':', derivedCounty);
+          // Derived county from postal code
           setCounty(derivedCounty);
         } else {
           // Default to Stockholm if no location data
-          console.log('[RegionalPage] No location data, defaulting to Stockholm');
+          // No location data, defaulting to Stockholm
           setCounty('Stockholm');
         }
       } else {
         // For demo/non-logged in users, default to Stockholm
-        console.log('[RegionalPage] No user, defaulting to Stockholm');
+        // No user, defaulting to Stockholm
         setCounty('Stockholm');
       }
     } catch (error) {

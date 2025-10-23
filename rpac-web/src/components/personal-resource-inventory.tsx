@@ -132,14 +132,7 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
     const msbCategoriesWithResources = new Set(msbResourcesAdded.map(r => r.category));
     const msbFulfillmentPercent = Math.round((msbCategoriesWithResources.size / msbCategories.length) * 100);
     
-    console.log('📊 MSB Fulfillment Calculation (Resource Inventory):', {
-      totalResources: resources.length,
-      msbRecommended: resources.filter(r => r.is_msb_recommended).length,
-      msbWithQuantity: msbResourcesAdded.length,
-      categoriesCovered: Array.from(msbCategoriesWithResources),
-      fulfillmentPercent: msbFulfillmentPercent,
-      resourceDetails: msbResourcesAdded.map(r => ({ name: r.name, category: r.category, quantity: r.quantity, is_msb: r.is_msb_recommended }))
-    });
+    // MSB fulfillment calculated successfully
     
     // Calculate shared resources statistics
     const sharedCount = sharedResources.length;

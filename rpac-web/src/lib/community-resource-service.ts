@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { communityActivityService } from './community-activity-service';
 
 export interface CommunityResource {
   id: string;
@@ -125,6 +126,16 @@ export const communityResourceService = {
       .single();
 
     if (error) throw error;
+    
+    // Log activity (async, don't wait for it)
+    communityActivityService.logResourceAdded({
+      communityId: params.communityId,
+      resourceName: params.resourceName,
+      resourceCategory: params.category,
+      addedBy: params.createdBy,
+      addedByName: 'Admin' // Will be replaced by trigger with actual name
+    }).catch(err => console.error('Failed to log resource activity:', err));
+    
     return data as CommunityResource;
   },
 

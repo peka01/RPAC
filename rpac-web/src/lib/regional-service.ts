@@ -39,7 +39,7 @@ export interface CommunityOverview {
  */
 export async function getRegionalStatistics(county: string): Promise<RegionalStatistics> {
   try {
-    console.log('[RegionalService] Fetching statistics for county:', county);
+    // Fetching statistics for county
     
     // First, let's check ALL communities to see what we have
     const { data: allCommunities } = await supabase
@@ -47,19 +47,13 @@ export async function getRegionalStatistics(county: string): Promise<RegionalSta
       .select('id, community_name, county, postal_code, is_public')
       .eq('is_public', true);
     
-    console.log('[RegionalService] ALL public communities in database:', allCommunities);
-    console.log('[RegionalService] Communities by county:', 
-      allCommunities?.reduce((acc: any, c: any) => {
-        const county = c.county || 'NO_COUNTY';
-        acc[county] = (acc[county] || 0) + 1;
-        return acc;
-      }, {})
-    );
+    // All public communities loaded
+    // Communities grouped by county
     
     // Get communities in the county (case-insensitive partial match)
     // This matches both "Kronoberg" and "Kronobergs län"
     const searchPattern = `%${county}%`;
-    console.log('[RegionalService] Searching with pattern:', searchPattern);
+    // Searching with pattern
     
     const { data: communities, error: commError } = await supabase
       .from('local_communities')
@@ -72,8 +66,8 @@ export async function getRegionalStatistics(county: string): Promise<RegionalSta
       throw commError;
     }
     
-    console.log('[RegionalService] Found communities for county', county, ':', communities?.length || 0);
-    console.log('[RegionalService] Community details:', communities?.map(c => ({ name: c.community_name, county: c.county })));
+    // Found communities for county
+    // Community details loaded
 
     const totalCommunities = communities?.length || 0;
     const communityIds = communities?.map(c => c.id) || [];
@@ -87,7 +81,7 @@ export async function getRegionalStatistics(county: string): Promise<RegionalSta
         .in('community_id', communityIds);
       
       totalMembers = memberCount || 0;
-      console.log('[RegionalService] Actual member count from memberships table:', totalMembers);
+      // Actual member count from memberships table
     }
 
     // Get help requests count
@@ -100,12 +94,28 @@ export async function getRegionalStatistics(county: string): Promise<RegionalSta
     // Get shared resources count
     let sharedResourcesCount = 0;
     if (communityIds.length > 0) {
-      const { count } = await supabase
-        .from('resource_sharing')
-        .select('*', { count: 'exact', head: true })
-        .in('community_id', communityIds)
-        .eq('status', 'available');
-      sharedResourcesCount = count || 0;
+      try {
+        const { count, error } = await supabase
+          .from('resource_sharing')
+          .select('*', { count: 'exact', head: true })
+          .in('community_id', communityIds)
+          .eq('status', 'available');
+        
+        if (error) {
+          // If community_id column doesn't exist, fall back to unfiltered count
+          console.warn('Community_id column not found for count, falling back to unfiltered query:', error);
+          const { count: fallbackCount } = await supabase
+            .from('resource_sharing')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'available');
+          sharedResourcesCount = fallbackCount || 0;
+        } else {
+          sharedResourcesCount = count || 0;
+        }
+      } catch (err) {
+        console.error('Error fetching shared resources count:', err);
+        sharedResourcesCount = 0;
+      }
     }
 
     // Get recent activity
@@ -165,23 +175,52 @@ async function getRecentActivity(county: string, communityIds: string[]): Promis
     // Get recent resource sharing (if we have communities)
     if (communityIds.length > 0) {
       try {
+        // First try with community_id filter
         const { data: recentShares, error: sharesError } = await supabase
           .from('resource_sharing')
           .select(`
             id,
             created_at,
             quantity,
-            resource_items (name),
-            local_communities (community_name)
+            resource_name,
+            community_id
           `)
           .in('community_id', communityIds)
           .order('created_at', { ascending: false })
           .limit(5);
 
-        if (!sharesError && recentShares) {
+        if (sharesError) {
+          // If community_id column doesn't exist, fall back to unfiltered query
+          console.warn('Community_id column not found, falling back to unfiltered query:', sharesError);
+          const { data: fallbackShares, error: fallbackError } = await supabase
+            .from('resource_sharing')
+            .select(`
+              id,
+              created_at,
+              quantity,
+              resource_name
+            `)
+            .order('created_at', { ascending: false })
+            .limit(5);
+
+          if (!fallbackError && fallbackShares) {
+            fallbackShares.forEach(share => {
+              const resourceName = share.resource_name || 'resurs';
+              activities.push({
+                id: `share-${share.id}`,
+                type: 'resource_shared',
+                timestamp: share.created_at,
+                description: `Resurs delad: ${resourceName}`,
+                communityName: 'Lokalt samhälle',
+                details: { quantity: share.quantity }
+              });
+            });
+          }
+        } else if (recentShares) {
           recentShares.forEach(share => {
-            const resourceName = (share.resource_items as any)?.name || 'resurs';
-            const communityName = (share.local_communities as any)?.community_name || 'ett samhälle';
+            const resourceName = share.resource_name || 'resurs';
+            // Use a generic community name since we don't have access to communities here
+            const communityName = 'Lokalt samhälle';
             activities.push({
               id: `share-${share.id}`,
               type: 'resource_shared',
@@ -196,10 +235,35 @@ async function getRecentActivity(county: string, communityIds: string[]): Promis
         console.error('Error fetching resource sharing:', err);
       }
 
-      // Get recent help requests
-      // NOTE: resource_requests table doesn't have community_id or resource_needed fields
-      // Skip this query to avoid 400 errors
-      // TODO: Implement proper community help requests table
+      // Get recent community activities (new communities, member joins, etc.)
+      try {
+        const { data: recentMemberships, error: membershipsError } = await supabase
+          .from('community_memberships')
+          .select(`
+            id,
+            joined_at,
+            local_communities (community_name)
+          `)
+          .in('community_id', communityIds)
+          .order('joined_at', { ascending: false })
+          .limit(3);
+
+        if (!membershipsError && recentMemberships) {
+          recentMemberships.forEach(membership => {
+            const communityName = (membership.local_communities as any)?.community_name || 'ett samhälle';
+            activities.push({
+              id: `join-${membership.id}`,
+              type: 'member_joined',
+              timestamp: membership.joined_at,
+              description: `Ny medlem gick med i ${communityName}`,
+              communityName: communityName,
+              details: {}
+            });
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching recent memberships:', err);
+      }
     }
 
     // Sort all activities by timestamp and limit to 10
@@ -307,16 +371,39 @@ export async function getCoordinationOpportunities(county: string) {
     const communityIds = communities.map(c => c.id);
 
     // Communities with surplus resources
-    const { data: surplusData } = await supabase
-      .from('resource_sharing')
-      .select(`
-        community_id,
-        local_communities (community_name),
-        resource_items (name, category)
-      `)
-      .in('community_id', communityIds)
-      .eq('status', 'available')
-      .limit(20);
+    let surplusData = null;
+    try {
+      const { data, error } = await supabase
+        .from('resource_sharing')
+        .select(`
+          community_id,
+          resource_name,
+          resource_category
+        `)
+        .in('community_id', communityIds)
+        .eq('status', 'available')
+        .limit(20);
+      
+      if (error) {
+        // If community_id column doesn't exist, fall back to unfiltered query
+        console.warn('Community_id column not found for surplus, falling back to unfiltered query:', error);
+        const { data: fallbackData } = await supabase
+          .from('resource_sharing')
+          .select(`
+            id,
+            resource_name,
+            resource_category
+          `)
+          .eq('status', 'available')
+          .limit(20);
+        surplusData = fallbackData;
+      } else {
+        surplusData = data;
+      }
+    } catch (err) {
+      console.error('Error fetching surplus resources:', err);
+      surplusData = null;
+    }
 
     // Communities with active needs
     const { data: needsData } = await supabase

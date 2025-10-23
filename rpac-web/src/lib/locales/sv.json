@@ -240,6 +240,12 @@
     "communicate": "Kommunicera",
     "communicate_description": "Meddelanden för samordning och stöd",
     "your_communities": "Dina samhällen",
+    "activity_resource_added": "Tillagd som gemensam resurs",
+    "activity_resource_shared": "Delat med samhället",
+    "activity_member_joined": "Gick med i samhället",
+    "activity_help_requested": "Begärde hjälp",
+    "activity_milestone": "Milstolpe uppnådd",
+    "activity_custom": "Aktivitet loggad",
     "members_nearby": "Medlemmar nära dig",
     "shared_resources": "Delade resurser",
     "active_requests": "Aktiva förfrågningar",
@@ -437,16 +443,26 @@
     "activate_emergency": "Aktivera nödprotokoll",
     "simple_checklist": "📋 Enkel checklista",
     "call": "Ring",
-    "video_call": "Videosamtal"
+    "video_call": "Videosamtal",
+    "cancel": "Avbryt",
+    "delete": "Ta bort",
+    "edit": "Redigera",
+    "save": "Spara",
+    "apply": "Tillämpa",
+    "close": "Stäng",
+    "open": "Öppna",
+    "login": "Logga in",
+    "logout": "Logga ut",
+    "register": "Registrera"
   },
   "settings": {
     "title": "Inställningar",
-    "subtitle": "Hantera din profil, säkerhet och preferenser",
-    "login_required": "Du måste vara inloggad för att komma åt inställningar.",
-    "allow_data_collection": "Tillåt anonymiserad datainsamling för förbättringar"
+    "subtitle": "Hantera din profil, säkerhet och inställningar",
+    "login_required": "Du måste vara inloggad för att kunna göra ändringar.",
+    "allow_data_collection": "Tillåt anonymiserad datainsamling för att göra appen bättre"
   },
   "descriptions": {
-    "strengthen_resources": "Uppdatera och förbättra vad du har hemma",
+    "strengthen_resources": "Uppdatera och förbättra dina resurser",
     "coordinate_resources": "Dela saker med dina grannar",
     "organize_preparedness": "Hjälp till att förbereda närområdet",
     "activate_support": "Få hjälp från andra"

@@ -182,15 +182,7 @@ export class WeatherService {
             const weatherSymbol = getParameter('Wsymb2');
             const forecast = this.getWeatherDescriptionFromSymbol(weatherSymbol);
             
-            console.log('🌤️ SMHI Weather Data:', {
-              temperature,
-              humidity,
-              windSpeed,
-              pressure,
-              rainfall,
-              weatherSymbol,
-              forecast
-            });
+            // Weather data processed successfully
 
             const realWeather: WeatherData = {
               temperature: temperature !== null ? temperature : this.getRandomTemperature(),

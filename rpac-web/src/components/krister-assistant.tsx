@@ -388,14 +388,22 @@ export function KRISterAssistant({ user, userProfile = {}, currentPage, currentA
       
       if (user?.id) {
         // Fetch primary cultivation plan
-        const { data: planData } = await supabase
-          .from('cultivation_plans')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('is_primary', true)
-          .single();
-        
-        cultivationPlan = planData;
+        try {
+          const { data: planData, error: planError } = await supabase
+            .from('cultivation_plans')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('is_primary', true)
+            .single();
+          
+          if (planError && planError.code !== 'PGRST116') { // PGRST116 = no rows found
+            console.warn('Error fetching cultivation plan:', planError);
+          } else {
+            cultivationPlan = planData;
+          }
+        } catch (err) {
+          console.warn('Failed to fetch cultivation plan:', err);
+        }
 
         // Fetch resources
         const { data: resourcesData } = await supabase

@@ -5,6 +5,7 @@
 
 import { supabase } from './supabase';
 import { notificationService } from './notification-service';
+import { communityActivityService } from './community-activity-service';
 
 export interface SharedResource {
   id: string;
@@ -150,7 +151,7 @@ export const resourceSharingService = {
             acc[req.shared_resource_id] = (acc[req.shared_resource_id] || 0) + 1;
             return acc;
           }, {} as Record<string, number>);
-          console.log('Pending requests count:', pendingRequestsCount);
+          console.log('Pending requests count:', Object.keys(pendingRequestsCount).length, 'resources with requests');
         }
       } catch (error) {
         console.warn('Could not fetch pending requests count:', error);
@@ -215,6 +216,17 @@ export const resourceSharingService = {
       .single();
 
     if (error) throw error;
+    
+    // Log activity (async, don't wait for it)
+    communityActivityService.logResourceShared({
+      communityId: params.communityId,
+      resourceName: 'Resurs', // Will be replaced by trigger with actual name
+      resourceCategory: 'other', // Will be replaced by trigger with actual category
+      sharedBy: params.userId,
+      sharedByName: 'Medlem', // Will be replaced by trigger with actual name
+      quantity: params.sharedQuantity
+    }).catch(err => console.error('Failed to log sharing activity:', err));
+    
     return data as SharedResource;
   },
 

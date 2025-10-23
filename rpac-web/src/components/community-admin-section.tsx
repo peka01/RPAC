@@ -129,29 +129,14 @@ export function CommunityAdminSection({
 
   const loadPendingRequests = async () => {
     try {
-      console.log('🔍 Loading pending requests for community:', communityId);
+      // Loading pending requests for community
       
-      // Try RPC function first
-      const { data: rpcData, error: rpcError } = await supabase.rpc('get_pending_membership_requests', {
-        p_community_id: communityId
-      });
-
-      if (!rpcError && rpcData) {
-        console.log('✅ Loaded pending requests via RPC:', rpcData.length);
-        setPendingRequests(rpcData);
-        setPendingCount(rpcData.length);
-        return;
-      }
-
-      // If RPC fails, fall back to direct query
-      console.log('⚠️ RPC failed, using fallback query');
-      
-      // Get pending memberships
+      // Get pending memberships - try both column names
       const { data: membershipsData, error: membershipsError } = await supabase
         .from('community_memberships')
-        .select('id, user_id, join_message, requested_at')
+        .select('id, user_id, join_message, requested_at, membership_status, status')
         .eq('community_id', communityId)
-        .eq('status', 'pending')  // ✅ Correct column name
+        .or('membership_status.eq.pending,status.eq.pending')  // Try both column names
         .order('requested_at', { ascending: true });
 
       if (membershipsError) {
@@ -162,14 +147,12 @@ export function CommunityAdminSection({
       }
 
       if (!membershipsData || membershipsData.length === 0) {
-        console.log('ℹ️ No pending requests');
         setPendingRequests([]);
         setPendingCount(0);
         return;
       }
 
       // Try to get community members with emails using RPC function
-      console.log('👥 Fetching member data for:', membershipsData.length, 'pending requests');
       
       const { data: membersWithEmails, error: membersRpcError } = await supabase
         .rpc('get_community_members_with_emails', { p_community_id: communityId });
@@ -190,12 +173,10 @@ export function CommunityAdminSection({
         if (profilesError) {
           console.error('❌ Error fetching profiles:', profilesError);
         } else {
-          console.log('✅ Fetched profiles (no emails):', profilesData?.length);
           profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
         }
       } else {
         // Success: We have profiles with emails
-        console.log('✅ Fetched members with emails:', membersWithEmails?.length);
         profilesMap = new Map(membersWithEmails?.map((m: any) => [m.user_id, m]) || []);
         emailsMap = new Map(membersWithEmails?.map((m: any) => [m.user_id, m.email]) || []);
       }
@@ -211,13 +192,10 @@ export function CommunityAdminSection({
         let displayName = 'Okänd användare';
         if (profile?.display_name && profile.display_name.trim()) {
           displayName = profile.display_name.trim();
-          console.log('✅ Using display_name:', displayName, 'for user:', m.user_id);
         } else if (userEmail) {
           displayName = userEmail.split('@')[0];
-          console.log('✅ Using email prefix:', displayName, 'for user:', m.user_id);
         } else {
           displayName = `Medlem ${index + 1}`;
-          console.log('⚠️ No name found, using fallback:', displayName, 'for user:', m.user_id);
         }
 
         return {
@@ -233,7 +211,6 @@ export function CommunityAdminSection({
         };
       });
 
-      console.log('✅ Loaded pending requests via fallback:', transformedRequests.length);
       setPendingRequests(transformedRequests);
       setPendingCount(transformedRequests.length);
     } catch (error) {
@@ -245,12 +222,12 @@ export function CommunityAdminSection({
 
   const loadMembers = async () => {
     try {
-      // First get memberships - filter by status, not membership_status
+      // First get memberships - try both column names
       const { data: membershipsData, error: membershipsError } = await supabase
         .from('community_memberships')
-        .select('id, user_id, role, joined_at, status')
+        .select('id, user_id, role, joined_at, status, membership_status')
         .eq('community_id', communityId)
-        .eq('status', 'approved')  // ✅ Correct column name
+        .or('membership_status.eq.approved,status.eq.approved')  // Try both column names
         .order('joined_at', { ascending: false });
 
       if (membershipsError) {
@@ -259,7 +236,6 @@ export function CommunityAdminSection({
       }
 
       if (!membershipsData || membershipsData.length === 0) {
-        console.log('ℹ️ No approved members found');
         setMembers([]);
         setMembersCount(0);
         return;
@@ -286,10 +262,9 @@ export function CommunityAdminSection({
         display_name: profilesMap.get(m.user_id)?.display_name || 'Okänd användare',
         role: m.role,
         joined_at: m.joined_at,
-        membership_status: m.status  // ✅ Use correct column
+        membership_status: m.membership_status || m.status  // Use whichever column exists
       }));
 
-      console.log('✅ Loaded members:', transformedMembers.length);
       setMembers(transformedMembers);
       setMembersCount(transformedMembers.length);
     } catch (error) {
@@ -341,8 +316,6 @@ export function CommunityAdminSection({
         loadPendingRequests(),
         loadMembers()
       ]);
-      
-      console.log('✅ Membership approved and lists refreshed');
     } catch (error) {
       console.error('Error approving membership:', error);
       alert(t('community_admin.pending_requests.approve_error'));
@@ -372,8 +345,6 @@ export function CommunityAdminSection({
         loadPendingRequests(),
         loadMembers()
       ]);
-      
-      console.log('✅ Membership rejected and lists refreshed');
     } catch (error) {
       console.error('Error rejecting membership:', error);
       alert(t('community_admin.pending_requests.reject_error'));
@@ -441,8 +412,6 @@ export function CommunityAdminSection({
 
       // Reload members list
       await loadMembers();
-
-      console.log('✅ Member removed and list refreshed');
     } catch (error) {
       console.error('Error removing member:', error);
       alert(t('community_admin.members.remove_error'));

@@ -127,14 +127,25 @@ export function IndividualDashboard({ user, onNavigate }: IndividualDashboardPro
       });
 
       // Load cultivation plan
-      const { data: planData } = await supabase
-        .from('cultivation_plans')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('is_primary', true)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      let planData = null;
+      try {
+        const { data: plan, error: planError } = await supabase
+          .from('cultivation_plans')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('is_primary', true)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        
+        if (planError && planError.code !== 'PGRST116') { // PGRST116 = no rows found
+          console.warn('Error fetching cultivation plan:', planError);
+        } else {
+          planData = plan;
+        }
+      } catch (err) {
+        console.warn('Failed to fetch cultivation plan:', err);
+      }
 
       if (planData) {
         const crops = planData.crops || [];

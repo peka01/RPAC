@@ -203,12 +203,24 @@ Skapa en detaljerad odlingsplan med följande struktur (svara endast med JSON):
       
       // Parse JSON response
       let jsonData;
+      
+      // Remove any markdown formatting and fix common JSON issues
+      let cleanContent = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      
+      // Fix common JSON issues from AI responses
+      cleanContent = cleanContent
+        .replace(/'/g, '"')  // Replace single quotes with double quotes
+        .replace(/(\w+):/g, '"$1":')  // Add quotes around property names
+        .replace(/:\s*"([^"]*)"([^,}\]]*)/g, ': "$1$2"')  // Ensure string values are properly quoted
+        .replace(/,(\s*[}\]])/g, '$1')  // Remove trailing commas
+        .replace(/[\x00-\x1F\x7F]/g, '');  // Remove control characters
+      
       try {
-        // Remove any markdown formatting
-        const cleanContent = response.replace(/```json\n?/g, '').replace(/```\n?/g, '');
         jsonData = JSON.parse(cleanContent);
       } catch (parseError) {
         console.error('Failed to parse AI response:', parseError);
+        console.error('Raw response:', response);
+        console.error('Cleaned content:', cleanContent);
         throw new Error('Invalid JSON response from AI');
       }
 
@@ -317,11 +329,23 @@ Svara med JSON-array med tips:
       const response = await callWorkerAPI(prompt);
       
       let tips;
+      // Clean up the response
+      let cleanContent = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      
+      // Fix common JSON issues from AI responses
+      cleanContent = cleanContent
+        .replace(/'/g, '"')  // Replace single quotes with double quotes
+        .replace(/(\w+):/g, '"$1":')  // Add quotes around property names
+        .replace(/:\s*"([^"]*)"([^,}\]]*)/g, ': "$1$2"')  // Ensure string values are properly quoted
+        .replace(/,(\s*[}\]])/g, '$1')  // Remove trailing commas
+        .replace(/[\x00-\x1F\x7F]/g, '');  // Remove control characters
+      
       try {
-        const cleanContent = response.replace(/```json\n?/g, '').replace(/```\n?/g, '');
         tips = JSON.parse(cleanContent);
       } catch (parseError) {
         console.error('Failed to parse tips response:', parseError);
+        console.error('Raw response:', response);
+        console.error('Cleaned content:', cleanContent);
         return this.getFallbackAdvice();
       }
 
@@ -617,12 +641,24 @@ Fokusera på svenska växter och odlingsförhållanden.`;
 
       // Try to parse the response into structured diagnosis
       let diagnosis;
+      
+      // Remove any markdown formatting and fix common JSON issues
+      let cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      
+      // Fix common JSON issues from AI responses
+      cleanContent = cleanContent
+        .replace(/'/g, '"')  // Replace single quotes with double quotes
+        .replace(/(\w+):/g, '"$1":')  // Add quotes around property names
+        .replace(/:\s*"([^"]*)"([^,}\]]*)/g, ': "$1$2"')  // Ensure string values are properly quoted
+        .replace(/,(\s*[}\]])/g, '$1')  // Remove trailing commas
+        .replace(/[\x00-\x1F\x7F]/g, '');  // Remove control characters
+      
       try {
-        // Remove any markdown formatting
-        const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '');
         diagnosis = JSON.parse(cleanContent);
       } catch (parseError) {
         console.error('Failed to parse AI response:', parseError);
+        console.error('Raw content:', content);
+        console.error('Cleaned content:', cleanContent);
         // Return a fallback diagnosis
         diagnosis = {
           plantName: "Okänd växt",

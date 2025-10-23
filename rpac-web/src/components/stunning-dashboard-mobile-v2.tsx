@@ -114,12 +114,23 @@ export function StunningDashboardMobileV2({ user }: { user: User | null }) {
           .eq('user_id', user.id);
 
         // Load cultivation plan data and calculate nutrition like SimpleCultivationManager
-        const { data: cultivationPlans } = await supabase
-          .from('cultivation_plans')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('is_primary', true)
-          .single();
+        let cultivationPlans = null;
+        try {
+          const { data: planData, error: planError } = await supabase
+            .from('cultivation_plans')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('is_primary', true)
+            .single();
+          
+          if (planError && planError.code !== 'PGRST116') { // PGRST116 = no rows found
+            console.warn('Error fetching cultivation plan:', planError);
+          } else {
+            cultivationPlans = planData;
+          }
+        } catch (err) {
+          console.warn('Failed to fetch cultivation plan:', err);
+        }
 
         // Load community memberships
         const { data: memberships } = await supabase

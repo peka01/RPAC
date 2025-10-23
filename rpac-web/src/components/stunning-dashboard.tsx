@@ -125,12 +125,23 @@ export function StunningDashboard({ user }: { user: User | null }) {
           .eq('user_id', user.id);
 
         // Load cultivation plan data and calculate nutrition like SimpleCultivationManager
-        const { data: cultivationPlans } = await supabase
-          .from('cultivation_plans')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('is_primary', true)
-          .single();
+        let cultivationPlans = null;
+        try {
+          const { data: planData, error: planError } = await supabase
+            .from('cultivation_plans')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('is_primary', true)
+            .single();
+          
+          if (planError && planError.code !== 'PGRST116') { // PGRST116 = no rows found
+            console.warn('Error fetching cultivation plan:', planError);
+          } else {
+            cultivationPlans = planData;
+          }
+        } catch (err) {
+          console.warn('Failed to fetch cultivation plan:', err);
+        }
 
         // Load community memberships
         const { data: memberships } = await supabase
@@ -148,14 +159,7 @@ export function StunningDashboard({ user }: { user: User | null }) {
         const msbCategoriesWithResources = new Set(msbResourcesAdded.map(r => r.category));
         const msbFulfillmentPercent = Math.round((msbCategoriesWithResources.size / msbCategories.length) * 100);
         
-        console.log('📊 MSB Fulfillment Calculation (Desktop):', {
-          totalResources: resources?.length || 0,
-          msbRecommended: resources?.filter(r => r.is_msb_recommended).length || 0,
-          msbWithQuantity: msbResourcesAdded.length,
-          categoriesCovered: Array.from(msbCategoriesWithResources),
-          fulfillmentPercent: msbFulfillmentPercent,
-          resourceDetails: msbResourcesAdded.map(r => ({ name: r.name, category: r.category, quantity: r.quantity, is_msb: r.is_msb_recommended }))
-        });
+        // MSB fulfillment calculated successfully
         
         // Calculate expiring resources (within 30 days)
         const expiringResources = resources?.filter(r => 
@@ -173,19 +177,9 @@ export function StunningDashboard({ user }: { user: User | null }) {
             // Import the nutrition calculation function
             const { calculatePlanNutrition } = await import('@/lib/cultivation-plan-service');
             const householdSize = profile?.household_size || 2; // Use actual household size, default to 2
-            console.log('🏠 Dashboard household size:', {
-              profileHouseholdSize: profile?.household_size,
-              usedHouseholdSize: householdSize,
-              cropsCount: cultivationPlans.crops.length
-            });
+            // Household size calculated for nutrition planning
             const nutrition = calculatePlanNutrition(cultivationPlans, householdSize, 30);
-            console.log('📊 Dashboard nutrition calculation:', {
-              totalKcal: nutrition.totalKcal,
-              kcalPerDay: nutrition.kcalPerDay,
-              targetKcalPerDay: nutrition.targetKcalPerDay,
-              percentOfTarget: nutrition.percentOfTarget,
-              householdSize
-            });
+            // Nutrition calculation completed
             cultivationProgress = nutrition.percentOfTarget;
           }
         }

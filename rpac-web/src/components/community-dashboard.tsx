@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { resourceSharingService } from '@/lib/resource-sharing-service';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
+import { CommunityActivityFeed } from '@/components/community-activity-feed';
 import type { User } from '@supabase/supabase-js';
 import type { LocalCommunity } from '@/lib/supabase';
 import { supabase, communityService } from '@/lib/supabase';
@@ -65,14 +66,14 @@ export function CommunityDashboard({ user, community, onNavigate }: CommunityDas
     }
     
     const adminStatus = await communityService.isUserAdmin(community.id, user.id);
-    console.log('🔐 Admin status for community:', community.id, '=', adminStatus);
+    // Admin status checked
     setIsAdmin(adminStatus);
   };
 
   const loadHomespaceData = async () => {
     if (!community?.id) return;
     
-    console.log('🏡 Loading homespace data for community:', community.id);
+    // Loading homespace data for community
     const { data } = await supabase
       .from('community_homespaces')
       .select('slug')
@@ -176,7 +177,7 @@ export function CommunityDashboard({ user, community, onNavigate }: CommunityDas
           </h3>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/25 transition-all">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -225,11 +226,12 @@ export function CommunityDashboard({ user, community, onNavigate }: CommunityDas
             <div className="text-white/80 text-xs">Senaste veckan</div>
           </div>
         </div>
+
       </div>
 
-      {/* Status Banner */}
+      {/* Status Banner with Integrated Activity Feed */}
       <div className="bg-[#556B2F]/10 border-2 border-[#556B2F]/30 rounded-xl p-6">
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-4 mb-4">
           <div className="w-12 h-12 bg-[#556B2F] rounded-xl flex items-center justify-center flex-shrink-0">
             <CheckCircle size={24} className="text-white" strokeWidth={2.5} />
           </div>
@@ -244,6 +246,14 @@ export function CommunityDashboard({ user, community, onNavigate }: CommunityDas
             </p>
           </div>
         </div>
+        
+        {/* Integrated Activity Feed */}
+        <CommunityActivityFeed 
+          communityId={community.id}
+          limit={3}
+          showHeader={false}
+          className="bg-white/50 border border-[#556B2F]/20"
+        />
       </div>
 
       {/* Quick Actions */}
@@ -342,37 +352,6 @@ export function CommunityDashboard({ user, community, onNavigate }: CommunityDas
         </div>
       )}
 
-      {/* Recent Activity Preview (Optional) */}
-      <div className="bg-white rounded-xl p-6 shadow-md">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-bold text-gray-900">Senaste aktivitet</h3>
-          <Clock size={20} className="text-gray-400" />
-        </div>
-        <div className="space-y-3">
-          {stats.totalResources > 0 ? (
-            <>
-              <div className="flex items-center gap-3 text-sm text-gray-700">
-                <div className="w-2 h-2 bg-[#556B2F] rounded-full"></div>
-                <span>{stats.totalResources} resurser delade av medlemmar</span>
-              </div>
-              {stats.helpRequests > 0 && (
-                <div className="flex items-center gap-3 text-sm text-gray-700">
-                  <div className="w-2 h-2 bg-[#B8860B] rounded-full"></div>
-                  <span>{stats.helpRequests} aktiva hjälpförfrågningar</span>
-                </div>
-              )}
-              <div className="flex items-center gap-3 text-sm text-gray-700">
-                <div className="w-2 h-2 bg-[#3D4A2B] rounded-full"></div>
-                <span>{stats.activeMembers} aktiva medlemmar</span>
-              </div>
-            </>
-          ) : (
-            <p className="text-sm text-gray-600 text-center py-4">
-              Ingen aktivitet än. Var den första att dela en resurs eller skapa en förfrågan!
-            </p>
-          )}
-        </div>
-      </div>
 
       {/* Homespace Editor Modal */}
       {showHomespaceEditor && community?.id && (

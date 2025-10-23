@@ -70,7 +70,7 @@ export function TopMenu({ user }: TopMenuProps) {
       }
 
       const count = data?.length || 0;
-      console.log('🔢 Top menu unread count updated:', count);
+      // Unread count updated
       setUnreadCount(count);
     } catch (err) {
       console.error('Error loading unread count:', err);
@@ -124,7 +124,7 @@ export function TopMenu({ user }: TopMenuProps) {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log('📡 Top menu subscribed to notifications');
+          // Successfully subscribed to notifications
         } else if (status === 'CHANNEL_ERROR') {
           console.error('❌ Failed to subscribe to notifications');
         }

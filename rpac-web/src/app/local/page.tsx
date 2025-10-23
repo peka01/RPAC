@@ -27,11 +27,7 @@ export default function LocalPage() {
       const windowWidth = window.innerWidth;
       const mediaQuery = window.matchMedia('(max-width: 767px)');
       const mobile = windowWidth < 768 || mediaQuery.matches;
-      console.log('📱 Local page mobile check:', { 
-        windowWidth, 
-        mediaQueryMatches: mediaQuery.matches, 
-        isMobile: mobile 
-      });
+      // Mobile check completed
       setIsMobile(mobile);
     };
     
@@ -41,7 +37,7 @@ export default function LocalPage() {
     // Also listen to media query changes for better dev tools support
     const mediaQuery = window.matchMedia('(max-width: 767px)');
     const handleMediaChange = () => {
-      console.log('📱 Local page media query changed:', mediaQuery.matches);
+      // Media query changed
       checkMobile();
     };
     mediaQuery.addEventListener('change', handleMediaChange);
@@ -132,7 +128,7 @@ export default function LocalPage() {
   const tab = searchParams.get('tab');
   const type = searchParams.get('type');
 
-  console.log('📱 Local page rendering decision:', { isMobile, communityId, tab, type });
+  // Rendering decision made
   
   return isMobile ? (
     <CommunityHubMobileEnhanced 

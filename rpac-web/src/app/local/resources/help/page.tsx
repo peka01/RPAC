@@ -22,6 +22,7 @@ export default function HelpRequestsPage() {
   const [communityName, setCommunityName] = useState<string>('Ditt lokala samhälle');
   const [userCommunities, setUserCommunities] = useState<LocalCommunity[]>([]);
   const [loadingCommunities, setLoadingCommunities] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -121,6 +122,25 @@ export default function HelpRequestsPage() {
       loadUserCommunities();
     }
   }, [user]);
+
+  // Check admin status when community changes
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (communityId && user && user.id !== 'demo-user') {
+        try {
+          const adminStatus = await communityService.isUserAdmin(communityId, user.id);
+          setIsAdmin(adminStatus);
+        } catch (error) {
+          console.error('Error checking admin status:', error);
+          setIsAdmin(false);
+        }
+      } else {
+        setIsAdmin(false);
+      }
+    };
+    
+    checkAdminStatus();
+  }, [communityId, user]);
 
   if (loading) {
     return (
@@ -264,6 +284,7 @@ export default function HelpRequestsPage() {
             user={user} 
             communityId={communityId} 
             communityName={communityName}
+            isAdmin={isAdmin}
             initialTab="help"
             hideTabs={true}
           />
