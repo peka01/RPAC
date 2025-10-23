@@ -151,7 +151,7 @@ export const resourceSharingService = {
             acc[req.shared_resource_id] = (acc[req.shared_resource_id] || 0) + 1;
             return acc;
           }, {} as Record<string, number>);
-          console.log('Pending requests count:', Object.keys(pendingRequestsCount).length, 'resources with requests');
+          // Pending requests count loaded
         }
       } catch (error) {
         console.warn('Could not fetch pending requests count:', error);
@@ -182,9 +182,6 @@ export const resourceSharingService = {
         // Pending requests count for resource owners
         pending_requests_count: pendingRequestsCount[item.id] || 0
       };
-    }).map(item => {
-      console.log(`Resource ${item.id} (${item.resource_name}): has_user_requested = ${item.has_user_requested}, pending_requests_count = ${item.pending_requests_count}`);
-      return item;
     });
   },
 

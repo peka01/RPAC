@@ -108,31 +108,33 @@ export function TopMenu({ user }: TopMenuProps) {
     loadUnreadCount(user.id);
 
     // Subscribe to realtime changes
-    const subscription = supabase
-      .channel('notifications-top-menu')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`
-        }, 
-        (payload) => {
-          console.log('📬 Notification change detected in top menu:', payload.eventType);
-          loadUnreadCount(user.id);
-        }
-      )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          // Successfully subscribed to notifications
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error('❌ Failed to subscribe to notifications');
-        }
-      });
+    let subscription;
+    try {
+      subscription = supabase
+        .channel('notifications-top-menu')
+        .on('postgres_changes', 
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'notifications',
+            filter: `user_id=eq.${user.id}`
+          }, 
+          (payload) => {
+            loadUnreadCount(user.id);
+          }
+        )
+        .subscribe((status) => {
+          // Silent subscription - no console logging needed
+        });
+    } catch (error) {
+      console.warn('⚠️ Could not create notification subscription:', error);
+    }
 
     // Cleanup subscription on unmount
     return () => {
-      subscription.unsubscribe();
+      if (subscription) {
+        subscription.unsubscribe();
+      }
     };
   }, [user?.id]);
 

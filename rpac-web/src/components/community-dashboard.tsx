@@ -24,7 +24,7 @@ import type { User } from '@supabase/supabase-js';
 import type { LocalCommunity } from '@/lib/supabase';
 import { supabase, communityService } from '@/lib/supabase';
 import HomespaceEditorWrapper from '@/components/homespace-editor-wrapper';
-import { CommunityAdminSection } from '@/components/community-admin-section';
+import { CommunityAdminSectionResponsive } from '@/components/community-admin-section-responsive';
 import { t } from '@/lib/locales';
 
 interface CommunityDashboardProps {
@@ -80,7 +80,6 @@ export function CommunityDashboard({ user, community, onNavigate }: CommunityDas
       .eq('community_id', community.id)
       .single();
     
-    console.log('🏡 Homespace slug:', data?.slug);
     setHomespaceSlug(data?.slug || null);
   };
 
@@ -315,7 +314,7 @@ export function CommunityDashboard({ user, community, onNavigate }: CommunityDas
 
       {/* Admin Section - Only visible to admins */}
       {isAdmin && (
-        <CommunityAdminSection
+        <CommunityAdminSectionResponsive
           user={user}
           communityId={community.id}
           communityName={community.community_name}

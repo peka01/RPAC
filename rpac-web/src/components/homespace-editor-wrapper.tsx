@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { t } from '@/lib/locales';
 import { Globe, ArrowLeft, X, Home, Users } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import HomespaceEditorLive from './homespace-editor-live';
+import HomespaceEditorResponsive from './homespace-editor-responsive';
 import { ShieldProgressSpinner } from './ShieldProgressSpinner';
 
 interface HomespaceEditorWrapperProps {
@@ -231,7 +231,11 @@ export default function HomespaceEditorWrapper({ communityId, userId, onClose }:
           )}
 
           {!loading && !error && homespaceData && (
-            <HomespaceEditorLive communityId={communityId} initialData={homespaceData} />
+            <HomespaceEditorResponsive 
+              communityId={communityId} 
+              initialData={homespaceData} 
+              onClose={onClose}
+            />
           )}
         </div>
       </div>

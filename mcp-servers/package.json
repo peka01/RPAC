@@ -1,0 +1,17 @@
+{
+  "name": "rpac-mcp-servers",
+  "version": "1.0.0",
+  "description": "MCP servers for RPAC project development",
+  "type": "module",
+  "main": "rpac-custom-server.js",
+  "scripts": {
+    "start": "node rpac-custom-server.js",
+    "install-deps": "npm install @modelcontextprotocol/sdk"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  }
+}

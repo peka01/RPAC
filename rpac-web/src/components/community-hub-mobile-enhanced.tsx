@@ -25,7 +25,7 @@ import { communityService, type LocalCommunity, supabase } from '@/lib/supabase'
 import { t } from '@/lib/locales';
 import type { User } from '@supabase/supabase-js';
 import HomespaceEditorWrapper from '@/components/homespace-editor-wrapper';
-import { CommunityAdminSection } from '@/components/community-admin-section';
+import { CommunityAdminSectionResponsive } from '@/components/community-admin-section-responsive';
 
 interface CommunityHubMobileEnhancedProps {
   user: User;
@@ -535,7 +535,7 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
           {/* Admin Section - Only for admins */}
           {isAdmin && activeCommunityId && (
             <div className="px-4 pb-6">
-              <CommunityAdminSection
+              <CommunityAdminSectionResponsive
                 user={user}
                 communityId={activeCommunityId}
                 communityName={activeCommunity.community_name}
