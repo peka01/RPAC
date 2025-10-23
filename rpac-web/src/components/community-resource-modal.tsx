@@ -53,11 +53,13 @@ export function CommunityResourceModal({
   });
 
   // Track if form has been modified
-  const hasFormData = form.resource_name.trim() || 
-                     form.location.trim() || 
-                     form.usage_instructions.trim() || 
-                     form.notes.trim() ||
-                     form.quantity !== 1;
+  const hasFormData = Boolean(
+    form.resource_name.trim() || 
+    form.location.trim() || 
+    form.usage_instructions.trim() || 
+    form.notes.trim() ||
+    form.quantity !== 1
+  );
 
   // Smart close handler - prevents accidental closure with unsaved work
   const { handleClose, isPreventingClose } = useSmartModalClose({
