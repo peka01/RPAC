@@ -19,6 +19,7 @@ import {
   Trash2,
   Save,
   X as XIcon,
+  UserX,
   ExternalLink,
   BarChart3,
   MessageCircle
@@ -954,7 +955,7 @@ export function CommunityAdminSection({
                       }}
                       className="px-4 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-semibold flex items-center gap-2"
                     >
-                      <X size={18} />
+                      <XIcon size={18} />
                       Ångra
                     </button>
                   </div>
