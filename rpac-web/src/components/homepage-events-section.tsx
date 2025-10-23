@@ -3,7 +3,7 @@
 import { t } from '@/lib/locales';
 import { Calendar, Clock, MapPin, Edit3, Plus, X, Trash2, Check } from 'lucide-react';
 import { useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase';
 
 interface CommunityEvent {
   id: string;
@@ -46,7 +46,6 @@ export default function HomepageEventsSection({
     is_recurring: false,
     show_on_homepage: true
   });
-  const supabase = createClientComponentClient();
 
   const resetForm = () => {
     setFormData({

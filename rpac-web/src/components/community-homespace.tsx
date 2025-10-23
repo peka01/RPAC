@@ -59,6 +59,8 @@ export default function CommunityHomespace({ homespace, isPreview = false }: Com
 
   // Detect preview mode from URL parameter
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const urlParams = new URLSearchParams(window.location.search);
     const previewParam = urlParams.get('preview');
     setIsPreviewMode(isPreview || previewParam === 'true');
@@ -69,7 +71,7 @@ export default function CommunityHomespace({ homespace, isPreview = false }: Com
     const loadGalleryImages = async () => {
       try {
         const { data, error } = await supabase
-          .from('community_gallery')
+          .from('community_gallery_images')
           .select('*')
           .eq('community_id', homespace.communities.id)
           .order('created_at', { ascending: false });
@@ -123,17 +125,32 @@ export default function CommunityHomespace({ homespace, isPreview = false }: Com
         .single();
 
       if (community?.created_by) {
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('full_name, email')
-          .eq('id', community.created_by)
-          .single();
+        try {
+          const { data: profile, error } = await supabase
+            .from('user_profiles')
+            .select('display_name, first_name, last_name')
+            .eq('user_id', community.created_by)
+            .single();
 
-        if (profile) {
-          setAdminContact({
-            name: profile.full_name || 'Administratör',
-            email: profile.email || ''
-          });
+          if (error) {
+            console.error('Error fetching admin profile:', error);
+            return;
+          }
+
+          if (profile) {
+            // Construct name from available fields
+            const name = profile.display_name || 
+                        (profile.first_name && profile.last_name ? `${profile.first_name} ${profile.last_name}` : null) ||
+                        profile.first_name || 
+                        'Administratör';
+            
+            setAdminContact({
+              name: name,
+              email: '' // Email is not available in user_profiles, would need to get from auth.users
+            });
+          }
+        } catch (error) {
+          console.error('Error in admin contact fetch:', error);
         }
       }
     };
@@ -143,6 +160,7 @@ export default function CommunityHomespace({ homespace, isPreview = false }: Com
 
   // Copy link to clipboard
   const copyLink = () => {
+    if (typeof window === 'undefined') return;
     const url = `${window.location.origin}/${homespace.slug}`;
     navigator.clipboard.writeText(url);
     setLinkCopied(true);
@@ -200,7 +218,7 @@ export default function CommunityHomespace({ homespace, isPreview = false }: Com
               </div>
             </div>
             <button
-              onClick={() => window.close()}
+              onClick={() => typeof window !== 'undefined' && window.close()}
               className="flex items-center gap-2 px-6 py-3 bg-white text-amber-600 hover:bg-amber-50 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg border-2 border-white"
             >
               <X size={20} />
@@ -313,7 +331,7 @@ export default function CommunityHomespace({ homespace, isPreview = false }: Com
                 {/* Primary CTA - Join (Most Important) */}
                 <button
                   className="group relative bg-white text-[#3D4A2B] px-6 py-3 rounded-xl font-bold text-base shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 hover:scale-105 active:scale-95"
-                  onClick={() => window.location.href = '/settings'}
+                  onClick={() => typeof window !== 'undefined' && (window.location.href = '/settings')}
                 >
                   <Users size={18} />
                   <span>{t('homespace.hero.apply_membership')}</span>
@@ -613,7 +631,7 @@ export default function CommunityHomespace({ homespace, isPreview = false }: Com
             <div className="mt-6 pt-6 border-t">
               <button
                 className="w-full bg-gradient-to-r from-[#5C6B47] to-[#3D4A2B] text-white px-8 py-4 rounded-xl font-bold text-lg hover:shadow-xl transition-all flex items-center justify-center gap-3"
-                onClick={() => window.location.href = '/settings'}
+                onClick={() => typeof window !== 'undefined' && (window.location.href = '/settings')}
               >
                 <Shield size={24} />
                 {t('homespace.hero.apply_membership')}

@@ -3,7 +3,7 @@
 import { t } from '@/lib/locales';
 import { Image as ImageIcon, Upload, Edit3, X, Trash2, GripVertical } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase';
 
 interface GalleryImage {
   id: string;
@@ -35,7 +35,6 @@ export default function HomepageGallerySection({
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [editingCaption, setEditingCaption] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const supabase = createClientComponentClient();
 
   const handleImageUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
