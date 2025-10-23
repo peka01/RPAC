@@ -108,7 +108,7 @@ export function TopMenu({ user }: TopMenuProps) {
     loadUnreadCount(user.id);
 
     // Subscribe to realtime changes
-    let subscription;
+    let subscription: any;
     try {
       subscription = supabase
         .channel('notifications-top-menu')
