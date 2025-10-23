@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { SideMenu } from './side-menu';
 import { SideMenuClean } from './side-menu-clean';
 import { TopMenu } from './top-menu';
 import { MobileNavigationV2 } from './mobile-navigation-v2';

@@ -29,10 +29,7 @@ import {
   ChevronDown,
   ChevronLeft
 } from 'lucide-react';
-import { resourceSharingService, type SharedResource, type HelpRequest } from '@/lib/resource-sharing-service';
-import { communityResourceService, type CommunityResource } from '@/lib/community-resource-service';
-import { communityService, type LocalCommunity } from '@/lib/supabase';
-import { supabase } from '@/lib/supabase';
+import { resourceSharingService, type SharedResource, type HelpRequest, communityResourceService, type CommunityResource, communityService, type LocalCommunity, supabase } from '@/lib/services';
 import { CommunityResourceModal } from './community-resource-modal';
 import { SharedResourceActionsModal } from './shared-resource-actions-modal';
 import type { User } from '@supabase/supabase-js';

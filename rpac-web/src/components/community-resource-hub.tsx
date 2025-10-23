@@ -34,9 +34,7 @@ import {
 } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
-import { resourceSharingService, type SharedResource, type HelpRequest } from '@/lib/resource-sharing-service';
-import { communityResourceService, type CommunityResource } from '@/lib/community-resource-service';
-import { supabase } from '@/lib/supabase';
+import { resourceSharingService, type SharedResource, type HelpRequest, communityResourceService, type CommunityResource, supabase } from '@/lib/services';
 import { SharedResourceActionsModal } from './shared-resource-actions-modal';
 import { CommunityResourceModal } from './community-resource-modal';
 import { ResourceListView } from './resource-list-view';

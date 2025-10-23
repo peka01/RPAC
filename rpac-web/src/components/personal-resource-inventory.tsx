@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, TrendingUp, Package, CheckCircle, AlertTriangle, Clock, Shield, Pencil, Trash, Share2, Users, HelpCircle, ChevronDown, ChevronUp, ChevronRight, Search, X, Eye, EyeOff, Heart, CheckCircle2, XCircle, Timer, Check, MapPin } from 'lucide-react';
+import { Plus, TrendingUp, Package, AlertTriangle, Clock, Shield, Pencil, Trash, Share2, Users, HelpCircle, ChevronDown, ChevronUp, ChevronRight, Search, X, Eye, EyeOff, CheckCircle2, XCircle, Timer, Check, MapPin } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { resourceService, Resource } from '@/lib/supabase';
 import { resourceSharingService, SharedResource } from '@/lib/resource-sharing-service';
