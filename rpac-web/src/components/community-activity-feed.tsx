@@ -184,21 +184,36 @@ export function CommunityActivityFeed({
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 text-sm">
-                        <span className="font-medium text-gray-900 truncate">
-                          {activity.resource_name && getCategoryEmoji(activity.resource_category)} {activity.resource_name || activity.title}
-                        </span>
-                        {activity.resource_category && activity.resource_category !== 'other' && (
-                          <span className="px-2 py-0.5 bg-[#556B2F]/10 rounded-full text-[#556B2F] text-xs whitespace-nowrap">
-                            {activity.resource_category}
-                          </span>
-                        )}
-                        <span className="text-gray-500 text-xs">
-                          {getActivityActionText(activity)}
-                        </span>
-                        {activity.user_name && activity.user_name !== 'Anonym användare' && (
-                          <span className="text-gray-500 text-xs">
-                            • {activity.user_name}
-                          </span>
+                        {activity.activity_type === 'member_joined' ? (
+                          // Special display for member joined activities - show member name prominently
+                          <>
+                            <span className="font-medium text-gray-900 truncate">
+                              {activity.user_name && activity.user_name !== 'Anonym användare' ? activity.user_name : 'Ny medlem'}
+                            </span>
+                            <span className="text-gray-500 text-xs">
+                              {getActivityActionText(activity)}
+                            </span>
+                          </>
+                        ) : (
+                          // Regular display for other activities
+                          <>
+                            <span className="font-medium text-gray-900 truncate">
+                              {activity.resource_name && getCategoryEmoji(activity.resource_category)} {activity.resource_name || activity.title}
+                            </span>
+                            {activity.resource_category && activity.resource_category !== 'other' && (
+                              <span className="px-2 py-0.5 bg-[#556B2F]/10 rounded-full text-[#556B2F] text-xs whitespace-nowrap">
+                                {activity.resource_category}
+                              </span>
+                            )}
+                            <span className="text-gray-500 text-xs">
+                              {getActivityActionText(activity)}
+                            </span>
+                            {activity.user_name && activity.user_name !== 'Anonym användare' && (
+                              <span className="text-gray-500 text-xs">
+                                • {activity.user_name}
+                              </span>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>

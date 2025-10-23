@@ -30,7 +30,7 @@ export const communityActivityService = {
         .from('homespace_activity_log')
         .select('*')
         .eq('community_id', communityId)
-        .order('created_at', { ascending: false })
+        .order('id', { ascending: false })
         .limit(limit);
 
       if (error) {
@@ -42,20 +42,46 @@ export const communityActivityService = {
         return [];
       }
 
-      return data.map(item => ({
-        id: item.id,
-        community_id: item.community_id,
-        activity_type: item.activity_type,
-        title: item.title,
-        description: item.description,
-        icon: item.icon,
-        user_id: item.user_id || null,
-        user_name: item.user_name || 'Anonym användare',
-        resource_name: item.resource_name || null,
-        resource_category: item.resource_category || null,
-        visible_public: item.visible_public,
-        created_at: item.created_at
-      }));
+      // Get user profiles for activities that have user_id but no user_name
+      const userIds = data
+        .filter(item => item.user_id && (!item.user_name || item.user_name === 'Anonym användare'))
+        .map(item => item.user_id);
+
+      let profiles: Array<{ user_id: string; display_name?: string }> = [];
+      if (userIds.length > 0) {
+        const { data: profileData } = await supabase
+          .from('user_profiles')
+          .select('user_id, display_name')
+          .in('user_id', userIds);
+        profiles = profileData || [];
+      }
+
+      // Create a map for quick lookup
+      const profilesMap = new Map(profiles.map(p => [p.user_id, p]));
+
+      return data.map(item => {
+        // If no user_name or it's 'Anonym användare', try to get it from profiles
+        let userName = item.user_name;
+        if ((!userName || userName === 'Anonym användare') && item.user_id) {
+          const profile = profilesMap.get(item.user_id);
+          userName = profile?.display_name || 'Ny medlem';
+        }
+
+        return {
+          id: item.id,
+          community_id: item.community_id,
+          activity_type: item.activity_type,
+          title: item.title,
+          description: item.description,
+          icon: item.icon,
+          user_id: item.user_id || null,
+          user_name: userName || 'Ny medlem',
+          resource_name: item.resource_name || null,
+          resource_category: item.resource_category || null,
+          visible_public: item.visible_public,
+          created_at: item.created_at
+        };
+      });
     } catch (error) {
       console.error('Failed to load activities:', error);
       return [];

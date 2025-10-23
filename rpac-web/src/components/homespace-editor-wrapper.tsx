@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { t } from '@/lib/locales';
-import { Globe, ArrowLeft, X } from 'lucide-react';
+import { Globe, ArrowLeft, X, Home, Users } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import HomespaceEditorLive from './homespace-editor-live';
 import { ShieldProgressSpinner } from './ShieldProgressSpinner';
@@ -88,6 +88,22 @@ export default function HomespaceEditorWrapper({ communityId, userId, onClose }:
         {/* Modal Header - Always visible */}
         <div className="sticky top-0 z-10 bg-gradient-to-r from-[#3D4A2B] to-[#2A331E] text-white shadow-lg">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+            {/* Breadcrumb Navigation */}
+            <div className="flex items-center gap-2 text-sm text-white/70 mb-3">
+              <button
+                onClick={onClose}
+                className="flex items-center gap-1 hover:text-white transition-colors"
+              >
+                <Home size={16} />
+                <span>Samhälle</span>
+              </button>
+              <span className="text-white/40">›</span>
+              <div className="flex items-center gap-1">
+                <Globe size={16} />
+                <span>Hemsida</span>
+              </div>
+            </div>
+
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
@@ -103,20 +119,43 @@ export default function HomespaceEditorWrapper({ communityId, userId, onClose }:
                 </div>
               </div>
               
-              {/* Close Button - Always accessible */}
-              <button
-                onClick={onClose}
-                className="p-2 hover:bg-white/20 rounded-lg transition-colors touch-manipulation"
-                aria-label="Stäng"
-              >
-                <X size={24} strokeWidth={2.5} />
-              </button>
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2">
+                {/* Back to Samhälle Button */}
+                <button
+                  onClick={onClose}
+                  className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-sm font-medium"
+                >
+                  <ArrowLeft size={16} />
+                  <span>Tillbaka till Samhälle</span>
+                </button>
+                
+                {/* Close Button */}
+                <button
+                  onClick={onClose}
+                  className="p-2 hover:bg-white/20 rounded-lg transition-colors touch-manipulation"
+                  aria-label="Stäng"
+                >
+                  <X size={24} strokeWidth={2.5} />
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
+        {/* Floating Back Button for Mobile */}
+        <div className="fixed bottom-6 right-6 z-20 md:hidden">
+          <button
+            onClick={onClose}
+            className="flex items-center gap-2 bg-[#3D4A2B] text-white px-4 py-3 rounded-full shadow-lg hover:bg-[#2A331E] transition-all touch-manipulation"
+          >
+            <ArrowLeft size={20} />
+            <span className="font-medium">Tillbaka</span>
+          </button>
+        </div>
+
         {/* Modal Content */}
-        <div className="min-h-[calc(100vh-80px)]">
+        <div className="min-h-[calc(100vh-80px)] pb-20 md:pb-0">
           {loading && (
             <div className="flex items-center justify-center py-20">
               <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar hemsida..." />
