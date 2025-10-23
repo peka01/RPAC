@@ -727,7 +727,6 @@ export function CommunityResourceHubMobile({
       {/* Shared Resource Actions Modal */}
       {managingResource && (
         <>
-          {console.log('Rendering SharedResourceActionsModal with resource:', managingResource)}
           <SharedResourceActionsModal
             isOpen={!!managingResource}
             resource={managingResource}
