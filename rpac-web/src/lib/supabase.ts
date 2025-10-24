@@ -356,21 +356,6 @@ export const communityService = {
     return [];
   },
 
-  async getUserRole(userId: string, communityId: string): Promise<string | null> {
-    const { data, error } = await supabase
-      .from('community_memberships')
-      .select('role')
-      .eq('user_id', userId)
-      .eq('community_id', communityId)
-      .single();
-    
-    if (error) {
-      console.error('Error fetching user role:', error);
-      return null;
-    }
-    
-    return data?.role || null;
-  },
 
   async getPendingMemberships(userId: string): Promise<string[]> {
     const { data, error } = await supabase
