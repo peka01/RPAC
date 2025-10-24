@@ -562,6 +562,8 @@
     "bulk_add_msb": "Masslägg till MSB-resurser",
     "bulk_add_msb_title": "Lägg till MSB-resurser",
     "bulk_add_msb_description": "Välj och lägg till flera MSB-rekommenderade resurser samtidigt",
+    "my_requests": "Lånade resurser",
+    "my_requests_description": "Resurser du har lånat från andra",
     "bulk_add_stats_selected": "valda",
     "bulk_add_stats_categories": "kategorier",
     "bulk_add_stats_existing": "redan tillagda",

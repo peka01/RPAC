@@ -538,8 +538,8 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
                 <Users size={20} className="text-[#3D4A2B]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Mina begäran</h3>
-                <p className="text-sm text-gray-600">Resurser du har begärt från andra</p>
+                <h3 className="text-lg font-bold text-gray-900">{t('resources.my_requests')}</h3>
+                <p className="text-sm text-gray-600">{t('resources.my_requests_description')}</p>
               </div>
             </div>
           </div>
