@@ -16,7 +16,11 @@ import {
   Trash2,
   CheckCircle,
   XCircle,
-  Building2
+  Building2,
+  Key,
+  RefreshCw,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 interface UserProfile {
@@ -29,6 +33,7 @@ interface UserProfile {
   is_license_active: boolean;
   created_at: string;
   community_count: number;
+  community_names: string | null;
 }
 
 export default function UserManagementPage() {
@@ -39,7 +44,13 @@ export default function UserManagementPage() {
   const [tierFilter, setTierFilter] = useState<string>('all');
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
   const [newTier, setNewTier] = useState<string>('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -116,6 +127,20 @@ export default function UserManagementPage() {
     setShowEditModal(true);
   }
 
+  function openPasswordModal(user: UserProfile) {
+    setSelectedUser(user);
+    setNewPassword('');
+    setConfirmPassword('');
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+    setShowPasswordModal(true);
+  }
+
+  function openResetModal(user: UserProfile) {
+    setSelectedUser(user);
+    setShowResetModal(true);
+  }
+
   async function handleUpgradeTier() {
     if (!selectedUser || !newTier) return;
 
@@ -140,6 +165,67 @@ export default function UserManagementPage() {
     } catch (error: any) {
       console.error('Error upgrading user tier:', error);
       alert(error.message || t('admin.messages.upgrade_error'));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleChangePassword() {
+    if (!selectedUser || !newPassword || !confirmPassword) return;
+
+    if (newPassword !== confirmPassword) {
+      alert(t('admin.messages.password_mismatch'));
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      alert(t('admin.messages.password_too_short'));
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) return;
+
+      // Use Supabase Admin API to update user password
+      const { error } = await supabase.auth.admin.updateUserById(selectedUser.user_id, {
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      alert(t('admin.messages.password_changed'));
+      setShowPasswordModal(false);
+      setSelectedUser(null);
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error: any) {
+      console.error('Error changing password:', error);
+      alert(error.message || t('admin.messages.password_change_error'));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleResetPassword() {
+    if (!selectedUser) return;
+
+    setSaving(true);
+    try {
+      // Send password reset email
+      const { error } = await supabase.auth.resetPasswordForEmail(selectedUser.email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`
+      });
+
+      if (error) throw error;
+
+      alert(t('admin.messages.password_reset_sent'));
+      setShowResetModal(false);
+      setSelectedUser(null);
+    } catch (error: any) {
+      console.error('Error resetting password:', error);
+      alert(error.message || t('admin.messages.password_reset_error'));
     } finally {
       setSaving(false);
     }
@@ -303,17 +389,40 @@ export default function UserManagementPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-1 text-sm text-gray-600">
                         <Building2 className="w-4 h-4" />
-                        {user.community_count}
+                        <div className="flex flex-col">
+                          <span className="font-medium">{user.community_count} samhällen</span>
+                          {user.community_names && (
+                            <span className="text-xs text-gray-500 max-w-xs truncate" title={user.community_names}>
+                              {user.community_names}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <button
-                        onClick={() => openEditModal(user)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#3D4A2B] text-white rounded-lg hover:bg-[#2A331E] transition-colors"
-                      >
-                        <Edit className="w-4 h-4" />
-                        {t('admin.actions.edit')}
-                      </button>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => openEditModal(user)}
+                          className="inline-flex items-center justify-center w-8 h-8 bg-[#3D4A2B] text-white rounded-lg hover:bg-[#2A331E] transition-colors"
+                          title={t('admin.actions.edit')}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => openPasswordModal(user)}
+                          className="inline-flex items-center justify-center w-8 h-8 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+                          title={t('admin.actions.change_password')}
+                        >
+                          <Key className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => openResetModal(user)}
+                          className="inline-flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                          title={t('admin.actions.reset_password')}
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -374,6 +483,120 @@ export default function UserManagementPage() {
                 className="flex-1 px-4 py-3 bg-[#3D4A2B] text-white rounded-lg hover:bg-[#2A331E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? t('admin.messages.loading') : t('admin.actions.save')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Password Change Modal */}
+      {showPasswordModal && selectedUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              {t('admin.password.change_title')}
+            </h2>
+
+            <div className="mb-6">
+              <p className="text-sm text-gray-600 mb-2">{t('admin.tables.email')}</p>
+              <p className="text-lg font-medium text-gray-900">{selectedUser.email}</p>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('admin.password.new_password')}
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3D4A2B] focus:border-transparent pr-10"
+                  placeholder={t('admin.password.enter_new_password')}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('admin.password.confirm_password')}
+              </label>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3D4A2B] focus:border-transparent pr-10"
+                  placeholder={t('admin.password.confirm_new_password')}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowPasswordModal(false)}
+                className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                {t('admin.actions.cancel')}
+              </button>
+              <button
+                onClick={handleChangePassword}
+                disabled={saving || !newPassword || !confirmPassword}
+                className="flex-1 px-4 py-3 bg-[#3D4A2B] text-white rounded-lg hover:bg-[#2A331E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? t('admin.messages.loading') : t('admin.actions.change_password')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Password Reset Modal */}
+      {showResetModal && selectedUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              {t('admin.password.reset_title')}
+            </h2>
+
+            <div className="mb-6">
+              <p className="text-sm text-gray-600 mb-2">{t('admin.tables.email')}</p>
+              <p className="text-lg font-medium text-gray-900">{selectedUser.email}</p>
+            </div>
+
+            <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-sm text-amber-800">
+                {t('admin.password.reset_warning')}
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowResetModal(false)}
+                className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                {t('admin.actions.cancel')}
+              </button>
+              <button
+                onClick={handleResetPassword}
+                disabled={saving}
+                className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? t('admin.messages.loading') : t('admin.actions.reset_password')}
               </button>
             </div>
           </div>

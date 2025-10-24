@@ -1738,7 +1738,9 @@
       "import": "Importera",
       "search": "Sök",
       "filter": "Filtrera",
-      "sort": "Sortera"
+      "sort": "Sortera",
+      "change_password": "Ändra lösenord",
+      "reset_password": "Återställ lösenord"
     },
     "confirmations": {
       "upgrade_user": "Är du säker på att du vill uppgradera denna användare till {{tier}}?",
@@ -1760,7 +1762,13 @@
       "upgrade_error": "Kunde inte uppgradera användare",
       "no_permission": "Du har inte behörighet att utföra denna åtgärd",
       "loading": "Laddar...",
-      "no_data": "Ingen data att visa"
+      "no_data": "Ingen data att visa",
+      "password_changed": "Lösenord ändrat",
+      "password_change_error": "Kunde inte ändra lösenord",
+      "password_reset_sent": "Lösenordsåterställning skickad",
+      "password_reset_error": "Kunde inte skicka lösenordsåterställning",
+      "password_mismatch": "Lösenorden matchar inte",
+      "password_too_short": "Lösenordet måste vara minst 6 tecken"
     },
     "tables": {
       "email": "E-post",
@@ -1785,6 +1793,15 @@
       "inactive_only": "Endast inaktiva",
       "open_only": "Endast öppna",
       "closed_only": "Endast stängda"
+    },
+    "password": {
+      "change_title": "Ändra lösenord",
+      "reset_title": "Återställ lösenord",
+      "new_password": "Nytt lösenord",
+      "confirm_password": "Bekräfta lösenord",
+      "enter_new_password": "Ange nytt lösenord",
+      "confirm_new_password": "Bekräfta nytt lösenord",
+      "reset_warning": "En återställningslänk kommer att skickas till användarens e-postadress. De kan sedan välja ett nytt lösenord."
     }
   }
 }
