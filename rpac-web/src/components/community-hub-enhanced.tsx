@@ -125,7 +125,7 @@ export function CommunityHubEnhanced({ user, initialCommunityId, initialTab }: C
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-                {activeView === 'home' ? 'Översikt' :
+                {activeView === 'home' ? 'Mitt samhälle' :
                  activeView === 'discovery' ? 'Hitta fler' :
                  activeView === 'resources' ? (
                    <>
@@ -137,7 +137,7 @@ export function CommunityHubEnhanced({ user, initialCommunityId, initialTab }: C
                  t('local_community.navigation_title')}
               </h1>
               <p className="text-[#C8D5B9]">
-                {activeView === 'home' ? 'Din lokala samhällsöversikt' :
+                {activeView === 'home' ? '' :
                  activeView === 'discovery' ? 'Upptäck nya samhällen i ditt område' :
                  activeView === 'resources' ? 'Hantera gemensamma resurser' :
                  activeView === 'messaging' ? 'Kommunikation med ditt samhälle' :
@@ -145,15 +145,6 @@ export function CommunityHubEnhanced({ user, initialCommunityId, initialTab }: C
               </p>
             </div>
             <div className="flex items-center gap-4">
-              {userPostalCode && (
-                <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <MapPin size={16} />
-                    <span>{t('profile.postal_code')}: {userPostalCode.slice(0, 3)} {userPostalCode.slice(3)}</span>
-                  </div>
-                </div>
-              )}
-              
               {/* Community Selector */}
               {userCommunities.length > 1 && (
                 <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">

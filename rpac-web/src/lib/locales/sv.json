@@ -755,7 +755,7 @@
   "community_admin": {
     "title": "Samhällsadministration",
     "subtitle": "Hantera ditt samhälles medlemmar och inställningar",
-    "section_title": "🛠️ Administratörsverktyg",
+    "section_title": "Administratörsverktyg",
     "admin_badge": "Administratör",
     "tabs": {
       "pending": "Väntande ansökningar",

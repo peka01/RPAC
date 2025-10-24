@@ -442,32 +442,17 @@ export function CommunityAdminSectionMobile({
     <div className="bg-white rounded-2xl shadow-lg border border-gray-100 mb-6">
       {/* Mobile Header */}
       <div className="px-6 py-4 border-b border-gray-100">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#3D4A2B]/10 rounded-xl flex items-center justify-center">
-              <Shield size={20} className="text-[#3D4A2B]" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-gray-900">
-                {t('community_admin.section_title')}
-              </h2>
-              <p className="text-sm text-gray-600">
-                {t('community_admin.subtitle')}
-              </p>
-            </div>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-[#3D4A2B]/10 rounded-xl flex items-center justify-center">
+            <Shield size={20} className="text-[#3D4A2B]" />
           </div>
-          <div className="flex items-center gap-2">
-            <div className="bg-[#3D4A2B] px-3 py-1 rounded-lg">
-              <span className="text-white text-xs font-semibold">
-                {t('community_admin.admin_badge')}
-              </span>
-            </div>
-            <button
-              onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              <Menu size={20} className="text-gray-600" />
-            </button>
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">
+              {t('community_admin.section_title')}
+            </h2>
+            <p className="text-sm text-gray-600">
+              {t('community_admin.subtitle')}
+            </p>
           </div>
         </div>
       </div>

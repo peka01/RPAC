@@ -442,26 +442,19 @@ export function CommunityAdminSection({
   return (
     <div className="mt-8 bg-gradient-to-br from-[#5C6B47]/10 to-[#4A5239]/5 border-2 border-[#5C6B47]/30 rounded-2xl p-6 shadow-xl">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-[#3D4A2B] rounded-xl flex items-center justify-center">
-              <Shield size={20} className="text-white" strokeWidth={2.5} />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">
-                {t('community_admin.section_title')}
-              </h2>
-              <p className="text-sm text-gray-600">
-                {t('community_admin.subtitle')}
-              </p>
-            </div>
+      <div className="mb-6">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 bg-[#3D4A2B] rounded-xl flex items-center justify-center">
+            <Shield size={20} className="text-white" strokeWidth={2.5} />
           </div>
-        </div>
-        <div className="bg-[#3D4A2B] px-4 py-2 rounded-lg">
-          <span className="text-white text-sm font-semibold">
-            {t('community_admin.admin_badge')}
-          </span>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">
+              {t('community_admin.section_title')}
+            </h2>
+            <p className="text-sm text-gray-600">
+              {t('community_admin.subtitle')}
+            </p>
+          </div>
         </div>
       </div>
 

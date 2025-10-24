@@ -1,0 +1,407 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import {
+  Users,
+  Package,
+  Heart,
+  MessageCircle,
+  TrendingUp,
+  Shield,
+  AlertCircle,
+  Calendar,
+  MapPin,
+  Activity,
+  Clock,
+  CheckCircle,
+  Globe,
+  ExternalLink,
+  ChevronDown,
+  Settings,
+  Home,
+  BarChart3,
+  Eye,
+  Trash2,
+  UserPlus
+} from 'lucide-react';
+import { resourceSharingService } from '@/lib/resource-sharing-service';
+import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
+import { CommunityActivityFeed } from '@/components/community-activity-feed';
+import type { User } from '@supabase/supabase-js';
+import type { LocalCommunity } from '@/lib/supabase';
+import { supabase, communityService } from '@/lib/supabase';
+import HomespaceEditorWrapper from '@/components/homespace-editor-wrapper';
+import { CommunityAdminSectionResponsive } from '@/components/community-admin-section-responsive';
+import { t } from '@/lib/locales';
+
+interface CommunityDashboardRefactoredProps {
+  user: User;
+  community: LocalCommunity;
+  onNavigate: (view: 'resources' | 'messaging') => void;
+}
+
+interface CommunityStats {
+  totalResources: number;
+  availableResources: number;
+  helpRequests: number;
+  activeMembers: number;
+  recentActivity: number;
+}
+
+interface RecentActivity {
+  id: string;
+  type: 'member_joined' | 'resource_shared' | 'help_request';
+  message: string;
+  timestamp: string;
+  user?: string;
+}
+
+export function CommunityDashboardRefactored({ user, community, onNavigate }: CommunityDashboardRefactoredProps) {
+  const [loading, setLoading] = useState(true);
+  const [showHomespaceEditor, setShowHomespaceEditor] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [homespaceSlug, setHomespaceSlug] = useState<string | null>(null);
+  const [stats, setStats] = useState<CommunityStats>({
+    totalResources: 0,
+    availableResources: 0,
+    helpRequests: 0,
+    activeMembers: 0,
+    recentActivity: 0
+  });
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
+
+  useEffect(() => {
+    if (community?.id) {
+      loadCommunityStats();
+      checkAdminStatus();
+      loadRecentActivity();
+    }
+  }, [community?.id]);
+
+  useEffect(() => {
+    if (community?.id && isAdmin) {
+      loadHomespaceData();
+    }
+  }, [community?.id, isAdmin]);
+
+  const checkAdminStatus = async () => {
+    if (!community?.id || !user || user.id === 'demo-user') {
+      setIsAdmin(false);
+      return;
+    }
+    
+    const adminStatus = await communityService.isUserAdmin(community.id, user.id);
+    setIsAdmin(adminStatus);
+  };
+
+  const loadHomespaceData = async () => {
+    if (!community?.id) return;
+    
+    const { data } = await supabase
+      .from('community_homespaces')
+      .select('slug')
+      .eq('community_id', community.id)
+      .single();
+    
+    setHomespaceSlug(data?.slug || null);
+  };
+
+  const loadCommunityStats = async () => {
+    if (!community?.id) return;
+    
+    try {
+      setLoading(true);
+
+      const resources = await resourceSharingService.getCommunityResources(community.id);
+      const availableResources = resources.filter(r => r.status === 'available');
+      const helpRequests = await resourceSharingService.getCommunityHelpRequests(community.id);
+
+      setStats({
+        totalResources: resources.length,
+        availableResources: availableResources.length,
+        helpRequests: helpRequests.length,
+        activeMembers: community.member_count || 0,
+        recentActivity: resources.length + helpRequests.length
+      });
+    } catch (error) {
+      console.error('Error loading community stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadRecentActivity = async () => {
+    if (!community?.id) return;
+    
+    try {
+      // Mock recent activity data - in real implementation, fetch from database
+      const mockActivity: RecentActivity[] = [
+        {
+          id: '1',
+          type: 'member_joined',
+          message: 'Ny medlem gick med i samhället',
+          timestamp: '22 tim sedan'
+        },
+        {
+          id: '2',
+          type: 'member_joined',
+          message: 'Simon Salgfors gick med i samhället',
+          timestamp: '22 tim sedan'
+        },
+        {
+          id: '3',
+          type: 'member_joined',
+          message: 'Test User gick med i samhället',
+          timestamp: '22 tim sedan'
+        }
+      ];
+      
+      setRecentActivity(mockActivity);
+    } catch (error) {
+      console.error('Error loading recent activity:', error);
+    }
+  };
+
+  if (!community) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar samhälle" />
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Main Content */}
+      <div className="lg:col-span-2 space-y-6">
+            {/* Community Overview Card */}
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+              <div className="flex items-start justify-between mb-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-[#5C6B47] rounded-xl flex items-center justify-center">
+                    <CheckCircle size={32} className="text-white" strokeWidth={2} />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">{community.community_name}</h2>
+                    <p className="text-gray-600 text-lg">
+                      {community.description || 'En grupp för alla som bor i ' + community.community_name}
+                    </p>
+                    {homespaceSlug && (
+                      <div className="mt-3">
+                        <a
+                          href={`/${homespaceSlug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-sm font-medium text-gray-700"
+                        >
+                          <Globe size={16} />
+                          <span>beready.se/{homespaceSlug}</span>
+                          <ExternalLink size={14} />
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="bg-gray-100 rounded-lg px-3 py-2">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <MapPin size={16} />
+                    <span>{community.location || community.postal_code}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+            {/* Statistics Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Users size={20} className="text-blue-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Medlemmar</h4>
+                  </div>
+                </div>
+                <div className="text-3xl font-bold text-gray-900 mb-1">{stats.activeMembers}</div>
+                <p className="text-sm text-gray-600">Aktiva medlemmar</p>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                    <Package size={20} className="text-yellow-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Resurser</h4>
+                  </div>
+                </div>
+                <div className="text-3xl font-bold text-gray-900 mb-1">{stats.availableResources}</div>
+                <p className="text-sm text-gray-600">Tillgängliga resurser</p>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
+                    <Heart size={20} className="text-pink-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Förfrågningar</h4>
+                  </div>
+                </div>
+                <div className="text-3xl font-bold text-gray-900 mb-1">{stats.helpRequests}</div>
+                <p className="text-sm text-gray-600">Aktiva förfrågningar</p>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Activity size={20} className="text-purple-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Aktivitet</h4>
+                  </div>
+                </div>
+                <div className="text-3xl font-bold text-gray-900 mb-1">{stats.recentActivity}</div>
+                <p className="text-sm text-gray-600">Senaste veckan</p>
+              </div>
+            </div>
+
+            {/* Action Cards */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <button
+                onClick={() => onNavigate('resources')}
+                className="group bg-white rounded-xl shadow-lg p-6 border border-gray-200 hover:shadow-xl transition-all hover:scale-[1.02] text-left"
+              >
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-14 h-14 bg-[#3D4A2B]/10 rounded-xl flex items-center justify-center group-hover:bg-[#3D4A2B] transition-colors">
+                    <Package size={28} className="text-[#3D4A2B] group-hover:text-white transition-colors" strokeWidth={2} />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-1">Hantera resurser</h3>
+                    <p className="text-gray-600">Dela, begär och inventera</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">
+                    {stats.availableResources} tillgängliga resurser
+                  </span>
+                  <span className="text-[#3D4A2B] font-bold group-hover:translate-x-1 transition-transform">
+                    Öppna →
+                  </span>
+                </div>
+              </button>
+
+              <Link
+                href="/local/messages/community/"
+                className="group bg-white rounded-xl shadow-lg p-6 border border-gray-200 hover:shadow-xl transition-all hover:scale-[1.02] text-left block"
+              >
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-14 h-14 bg-[#3D4A2B]/10 rounded-xl flex items-center justify-center group-hover:bg-[#3D4A2B] transition-colors">
+                    <MessageCircle size={28} className="text-[#3D4A2B] group-hover:text-white transition-colors" strokeWidth={2} />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-1">Meddelanden</h3>
+                    <p className="text-gray-600">Kommunicera med medlemmar</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">
+                    {t('messaging.community_chat_description')}
+                  </span>
+                  <span className="text-[#3D4A2B] font-bold group-hover:translate-x-1 transition-transform">
+                    Öppna →
+                  </span>
+                </div>
+              </Link>
+            </div>
+
+            {/* Admin Section - Only visible to admins */}
+            {isAdmin && (
+              <CommunityAdminSectionResponsive
+                user={user}
+                communityId={community.id}
+                communityName={community.community_name}
+                onSettingsUpdate={() => {
+                  // Reload community data if needed
+                  loadCommunityStats();
+                }}
+                onOpenHomespaceEditor={() => setShowHomespaceEditor(true)}
+              />
+            )}
+
+            {/* Help Requests Alert (if any) */}
+            {stats.helpRequests > 0 && (
+              <div className="bg-[#B8860B]/10 border-2 border-[#B8860B] rounded-xl p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-[#B8860B] rounded-xl flex items-center justify-center flex-shrink-0 animate-pulse">
+                    <Heart size={24} className="text-white" strokeWidth={2} />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">
+                      {stats.helpRequests} {stats.helpRequests === 1 ? 'person behöver' : 'personer behöver'} hjälp
+                    </h3>
+                    <p className="text-gray-700 mb-4">
+                      Medlemmar i ditt samhälle har begärt hjälp. Kan du bidra?
+                    </p>
+                    <button
+                      onClick={() => onNavigate('resources')}
+                      className="px-6 py-3 bg-[#B8860B] text-white font-bold rounded-xl hover:bg-[#9A7209] transition-colors"
+                    >
+                      Se förfrågningar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Sidebar - Activity Feed */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 sticky top-8">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Activity size={20} className="text-[#3D4A2B]" />
+                Senaste aktivitet
+              </h3>
+              
+              <div className="space-y-4">
+                {recentActivity.map((activity) => (
+                  <div key={activity.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div className="w-8 h-8 bg-[#5C6B47] rounded-full flex items-center justify-center flex-shrink-0">
+                      <Users size={16} className="text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-700">{activity.message}</p>
+                      <p className="text-xs text-gray-500 mt-1">{activity.timestamp}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+      {/* Homespace Editor Modal */}
+      {showHomespaceEditor && community?.id && (
+        <HomespaceEditorWrapper
+          communityId={community.id}
+          userId={user.id}
+          onClose={() => {
+            setShowHomespaceEditor(false);
+            if (isAdmin) {
+              loadHomespaceData();
+            }
+          }}
+        />
+      )}
+    </div>
+  );
+}

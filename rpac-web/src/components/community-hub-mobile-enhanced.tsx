@@ -227,16 +227,8 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
       <div className="bg-gradient-to-br from-[#3D4A2B] to-[#2A331E] rounded-3xl p-6 text-white shadow-xl">
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold mb-1">Lokalt Nätverk</h1>
-            <p className="text-[#C8D5B9] text-sm">
-              {userPostalCode ? `${userPostalCode.slice(0, 3)} ${userPostalCode.slice(3)}` : 'Ange din plats'}
-            </p>
+            <h1 className="text-2xl font-bold mb-1">Mitt samhälle</h1>
           </div>
-          {userPostalCode && (
-            <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
-              <MapPin size={24} />
-            </div>
-          )}
         </div>
 
         {!userPostalCode && (
