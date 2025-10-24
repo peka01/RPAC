@@ -28,14 +28,36 @@ export default function HomespaceEditorWrapper({ communityId, userId, onClose }:
       setLoading(true);
       setError(null);
 
-      // Check if user is admin
+      // Check if user is admin (creator OR community admin/moderator)
       const { data: community } = await supabase
         .from('local_communities')
         .select('created_by')
         .eq('id', communityId)
         .single();
 
-      if (!community || community.created_by !== userId) {
+      if (!community) {
+        setIsAdmin(false);
+        setError(t('community.not_admin'));
+        setLoading(false);
+        return;
+      }
+
+      // Check if user is the creator
+      const isCreator = community.created_by === userId;
+      
+      // Check if user is community admin/moderator
+      const { data: membership } = await supabase
+        .from('community_memberships')
+        .select('role, status')
+        .eq('community_id', communityId)
+        .eq('user_id', userId)
+        .single();
+
+      const isCommunityAdmin = membership && 
+        (membership.role === 'admin' || membership.role === 'moderator') &&
+        (membership.status === 'approved' || membership.status === null || membership.status === undefined);
+
+      if (!isCreator && !isCommunityAdmin) {
         setIsAdmin(false);
         setError(t('community.not_admin'));
         setLoading(false);

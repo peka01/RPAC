@@ -746,6 +746,22 @@ export default function DiscoverPage() {
           community_id: newCommunity.id
         });
         
+        // ✅ AUTO-UPGRADE CREATOR TO COMMUNITY_MANAGER TIER
+        console.log('🔧 Auto-upgrading creator to community_manager tier...');
+        try {
+          const { error: tierError } = await supabase.rpc('upgrade_community_creator', {
+            p_user_id: user.id
+          });
+          
+          if (tierError) {
+            console.warn('⚠️ Could not auto-upgrade tier (this is normal for existing community managers):', tierError.message);
+          } else {
+            console.log('✅ Creator upgraded to community_manager tier');
+          }
+        } catch (tierUpgradeError) {
+          console.warn('⚠️ Tier upgrade failed (non-critical):', tierUpgradeError);
+        }
+        
       } catch (joinError) {
         console.error('❌ FATAL: Failed to auto-join creator:', joinError);
         alert('Samhället skapades men du kunde inte läggas till som medlem. Försök gå med manuellt.');
