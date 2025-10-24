@@ -1065,11 +1065,11 @@ export default function DiscoverPage() {
                     Auto-genererat från "{createForm.name}"
                   </p>
                 )}
-          {editingCommunity && editingCommunity.id && !homespaces[editingCommunity.id]?.slug && (
-            <p className="text-xs text-gray-500 mt-1">
-              Ingen hemsida än. Lägg till en slug för att skapa en. Uppdatera och publicera den sedan från Hemsida.
-            </p>
-          )}
+                {!editingCommunity && !createForm.slug && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Ingen hemsida än. Lägg till en slug för att skapa en. Uppdatera och publicera den sedan från Hemsida.
+                  </p>
+                )}
                 {createForm.slug && createForm.slug.length < 3 && (
                   <p className="text-xs text-red-500 mt-1">
                     Slug måste vara minst 3 tecken lång
@@ -1148,11 +1148,11 @@ export default function DiscoverPage() {
                 disabled={
                   createLoading || 
                   !createForm.name.trim() || 
-                  (createForm.slug && (
+                  (createForm.slug ? (
                     createForm.slug.length < 3 || 
                     createForm.slug.startsWith('-') || 
                     createForm.slug.endsWith('-')
-                  ))
+                  ) : false)
                 }
                 className="flex-1 px-4 py-2 bg-[#3D4A2B] text-white font-medium rounded-lg hover:bg-[#2A331E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >

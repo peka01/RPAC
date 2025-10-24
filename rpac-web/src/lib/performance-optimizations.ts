@@ -42,12 +42,14 @@ export function withCache<T>(
 export async function getCachedUserProfile(userId: string) {
   return withCache(
     `user_profile_${userId}`,
-    () => supabase
-      .from('user_profiles')
-      .select('display_name, first_name, last_name, name_display_preference, household_size, postal_code')
-      .eq('user_id', userId)
-      .single()
-      .then(({ data }) => data),
+    async () => {
+      const { data } = await supabase
+        .from('user_profiles')
+        .select('display_name, first_name, last_name, name_display_preference, household_size, postal_code')
+        .eq('user_id', userId)
+        .single();
+      return data;
+    },
     CACHE_TTL.USER_PROFILE
   );
 }
@@ -58,12 +60,15 @@ export async function getCachedUserProfile(userId: string) {
 export async function getCachedResources(userId: string) {
   return withCache(
     `resources_${userId}`,
-    () => supabase
-      .from('resources')
-      .select('id, category, quantity, days_remaining, is_msb_recommended, msb_priority')
-      .eq('user_id', userId)
-      .order('is_msb_recommended', { ascending: false })
-      .order('msb_priority', { ascending: true }),
+    async () => {
+      const { data } = await supabase
+        .from('resources')
+        .select('id, category, quantity, days_remaining, is_msb_recommended, msb_priority')
+        .eq('user_id', userId)
+        .order('is_msb_recommended', { ascending: false })
+        .order('msb_priority', { ascending: true });
+      return data;
+    },
     CACHE_TTL.RESOURCES
   );
 }
@@ -74,12 +79,14 @@ export async function getCachedResources(userId: string) {
 export async function getCachedCommunityData(communityId: string) {
   return withCache(
     `community_${communityId}`,
-    () => supabase
-      .from('local_communities')
-      .select('id, community_name, description, county, location, member_count, is_public')
-      .eq('id', communityId)
-      .single()
-      .then(({ data }) => data),
+    async () => {
+      const { data } = await supabase
+        .from('local_communities')
+        .select('id, community_name, description, county, location, member_count, is_public')
+        .eq('id', communityId)
+        .single();
+      return data;
+    },
     CACHE_TTL.COMMUNITY_DATA
   );
 }
