@@ -1,21 +1,97 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // swcMinify is now default in Next.js 13+ and deprecated - removed
-  images: { unoptimized: true },
+  
+  // Performance optimizations
+  compress: true,
+  
+  // Image optimization (re-enable for better performance)
+  images: {
+    formats: ['image/webp', 'image/avif'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+  },
+  
+  // Bundle optimization
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: ['lucide-react', '@supabase/supabase-js'],
+  },
+  
+  // Webpack optimizations
+  webpack: (config, { dev, isServer }) => {
+    // Production optimizations
+    if (!dev && !isServer) {
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+          },
+          supabase: {
+            test: /[\\/]node_modules[\\/]@supabase[\\/]/,
+            name: 'supabase',
+            chunks: 'all',
+          },
+          lucide: {
+            test: /[\\/]node_modules[\\/]lucide-react[\\/]/,
+            name: 'lucide',
+            chunks: 'all',
+          },
+        },
+      };
+    }
+    
+    return config;
+  },
+  
   // Allow build to succeed with ESLint warnings (will fix gradually)
   eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
-    ignoreDuringBuilds: false, // Keep linting but don't fail on warnings
+    ignoreDuringBuilds: false,
   },
   typescript: {
-    // Keep type checking but don't fail build
     ignoreBuildErrors: false,
   },
+  
   // Hybrid rendering: Static pages + Dynamic routes for homespace
-  // This works on Cloudflare Pages with Next.js runtime
-  trailingSlash: true
+  trailingSlash: true,
+  
+  // Headers for performance
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+        ],
+      },
+      {
+        source: '/static/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

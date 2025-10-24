@@ -850,7 +850,7 @@ export default function DiscoverPage() {
           }
         } catch (slugError) {
           console.error('⚠️ Error updating homespace slug:', slugError);
-          alert(`Fel vid uppdatering av hemsida URL: ${slugError.message}`);
+          alert(`Fel vid uppdatering av hemsida URL: ${slugError instanceof Error ? slugError.message : 'Okänt fel'}`);
         }
       }
 
@@ -988,7 +988,7 @@ export default function DiscoverPage() {
                 onClick={() => {
                   setShowCreateModal(false);
                   setEditingCommunity(null);
-                  setCreateForm({ name: '', description: '', location: '', accessType: 'öppet' });
+                  setCreateForm({ name: '', description: '', location: '', accessType: 'öppet', slug: '' });
                 }}
                 className="text-gray-400 hover:text-gray-600"
               >
@@ -1003,7 +1003,7 @@ export default function DiscoverPage() {
                 </label>
                 <input
                   type="text"
-                  value={createForm.name || (editingCommunity?.community_name || '')}
+                  value={createForm.name}
                   onChange={(e) => setCreateForm(prev => ({ ...prev, name: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
                   placeholder="Samhällets namn"
@@ -1015,7 +1015,7 @@ export default function DiscoverPage() {
                   Beskrivning
                 </label>
                 <textarea
-                  value={createForm.description || (editingCommunity?.description || '')}
+                  value={createForm.description}
                   onChange={(e) => setCreateForm(prev => ({ ...prev, description: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
                   placeholder="Beskrivning av samhället"
@@ -1029,7 +1029,7 @@ export default function DiscoverPage() {
                 </label>
                 <input
                   type="text"
-                  value={createForm.location || (editingCommunity?.location || '')}
+                  value={createForm.location}
                   onChange={(e) => setCreateForm(prev => ({ ...prev, location: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
                   placeholder="Stad, region"
@@ -1047,7 +1047,7 @@ export default function DiscoverPage() {
                       const value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
                       setCreateForm(prev => ({ ...prev, slug: value }));
                     }}
-                    placeholder={editingCommunity ? (homespaces[editingCommunity.id]?.slug ? "Redigera befintlig slug" : "Lägg till slug för hemsida") : "Genereras automatiskt från namnet"}
+                    placeholder="Genereras automatiskt från namnet"
                     className={`flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
                       createForm.slug && (
                         createForm.slug.length < 3 || 
@@ -1065,7 +1065,7 @@ export default function DiscoverPage() {
                     Auto-genererat från "{createForm.name}"
                   </p>
                 )}
-          {editingCommunity && !homespaces[editingCommunity.id]?.slug && (
+          {editingCommunity && editingCommunity.id && !homespaces[editingCommunity.id]?.slug && (
             <p className="text-xs text-gray-500 mt-1">
               Ingen hemsida än. Lägg till en slug för att skapa en. Uppdatera och publicera den sedan från Hemsida.
             </p>
@@ -1136,7 +1136,7 @@ export default function DiscoverPage() {
                 onClick={() => {
                   setShowCreateModal(false);
                   setEditingCommunity(null);
-                  setCreateForm({ name: '', description: '', location: '', accessType: 'öppet' });
+                  setCreateForm({ name: '', description: '', location: '', accessType: 'öppet', slug: '' });
                 }}
                 disabled={createLoading}
                 className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
