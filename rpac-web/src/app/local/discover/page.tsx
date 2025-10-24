@@ -24,6 +24,7 @@ export default function DiscoverPage() {
   const [loadingCommunities, setLoadingCommunities] = useState(false);
   const [userMemberships, setUserMemberships] = useState<string[]>([]);
   const [pendingMemberships, setPendingMemberships] = useState<string[]>([]);
+  const [userRoles, setUserRoles] = useState<Record<string, string>>({}); // communityId -> role
   const [homespaces, setHomespaces] = useState<Record<string, { slug: string; published: boolean }>>({});
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingCommunity, setEditingCommunity] = useState<LocalCommunity | null>(null);
@@ -53,7 +54,11 @@ export default function DiscoverPage() {
       width: '40%',
       render: (community) => {
         const isMember = userMemberships.includes(community.id);
-        const isAdmin = user && community.created_by === user.id;
+        const isAdmin = user && (
+          community.created_by === user.id || 
+          userRoles[community.id] === 'admin' || 
+          userRoles[community.id] === 'moderator'
+        );
         const isOpen = community.access_type === 'öppet';
         return (
           <div className="flex items-center">
@@ -107,7 +112,11 @@ export default function DiscoverPage() {
       width: '15%',
       render: (community) => {
         const isMember = userMemberships.includes(community.id);
-        const isAdmin = user && community.created_by === user.id;
+        const isAdmin = user && (
+          community.created_by === user.id || 
+          userRoles[community.id] === 'admin' || 
+          userRoles[community.id] === 'moderator'
+        );
         return (
           <div className="flex flex-wrap gap-1">
             {isMember && (
@@ -130,7 +139,11 @@ export default function DiscoverPage() {
       width: '10%',
       render: (community) => {
         const isMember = userMemberships.includes(community.id);
-        const isAdmin = user && community.created_by === user.id;
+        const isAdmin = user && (
+          community.created_by === user.id || 
+          userRoles[community.id] === 'admin' || 
+          userRoles[community.id] === 'moderator'
+        );
         return (
           <div className="flex items-center gap-2">
             <button
@@ -195,8 +208,13 @@ export default function DiscoverPage() {
   const cardRenderer = (community: LocalCommunity) => {
     const isMember = userMemberships.includes(community.id);
     const isPending = pendingMemberships.includes(community.id);
-    const isAdmin = user && community.created_by === user.id;
+    const isAdmin = user && (
+      community.created_by === user.id || 
+      userRoles[community.id] === 'admin' || 
+      userRoles[community.id] === 'moderator'
+    );
     const isOpen = community.access_type === 'öppet';
+    
     return (
       <div 
         className={`rounded-xl shadow-lg p-4 hover:shadow-xl transition-shadow h-full flex flex-col relative ${
@@ -504,7 +522,18 @@ export default function DiscoverPage() {
       const pending = await communityService.getPendingMemberships(user.id);
       setUserMemberships(memberships);
       setPendingMemberships(pending);
-      console.log('📊 Memberships loaded:', { approved: memberships.length, pending: pending.length });
+      
+      // Load user roles for each community
+      const roles: Record<string, string> = {};
+      for (const communityId of memberships) {
+        const role = await communityService.getUserRole(user.id, communityId);
+        if (role) {
+          roles[communityId] = role;
+        }
+      }
+      setUserRoles(roles);
+      
+      console.log('📊 Memberships loaded:', { approved: memberships.length, pending: pending.length, roles });
     } catch (error) {
       console.error('Error loading user memberships:', error);
     }
@@ -785,7 +814,15 @@ export default function DiscoverPage() {
   };
 
   const handleUpdateCommunity = async () => {
-    if (!user || !editingCommunity || user.id === 'demo-user') return;
+    console.log('🚀 handleUpdateCommunity called');
+    console.log('🚀 User:', user?.id);
+    console.log('🚀 Editing community:', editingCommunity?.id);
+    console.log('🚀 Form data:', createForm);
+    
+    if (!user || !editingCommunity || user.id === 'demo-user') {
+      console.log('🚀 Early return - missing user, community, or demo user');
+      return;
+    }
     if (!createForm.name.trim()) {
       alert('Vänligen ange ett namn för samhället.');
       return;
@@ -811,6 +848,8 @@ export default function DiscoverPage() {
     setCreateLoading(true);
     try {
       console.log('Updating community:', editingCommunity.id, createForm);
+      console.log('🔍 Slug value in form:', createForm.slug);
+      console.log('🔍 Slug trimmed:', createForm.slug?.trim());
       
       await communityService.updateCommunity(editingCommunity.id, {
         community_name: createForm.name,
@@ -826,32 +865,42 @@ export default function DiscoverPage() {
       // Update homespace slug if provided
       if (createForm.slug.trim()) {
         try {
+          console.log('🔍 Checking for existing homespace for community:', editingCommunity.id);
           // First check if a homespace already exists for this community
-          const { data: existingHomespace } = await supabase
+          const { data: existingHomespace, error: checkError } = await supabase
             .from('community_homespaces')
-            .select('id')
+            .select('id, slug')
             .eq('community_id', editingCommunity.id)
             .single();
           
+          console.log('🔍 Existing homespace check result:', { existingHomespace, checkError });
+          
           let slugError;
+          const newSlug = createForm.slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
+          console.log('🔍 New slug will be:', newSlug);
+          
           if (existingHomespace) {
+            console.log('🔍 Updating existing homespace with ID:', existingHomespace.id);
             // Update existing homespace
             const { error } = await supabase
               .from('community_homespaces')
               .update({
-                slug: createForm.slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-')
+                slug: newSlug
               })
               .eq('community_id', editingCommunity.id);
             slugError = error;
+            console.log('🔍 Update result:', { error: slugError });
           } else {
+            console.log('🔍 Creating new homespace for community:', editingCommunity.id);
             // Create new homespace
             const { error } = await supabase
               .from('community_homespaces')
               .insert({
                 community_id: editingCommunity.id,
-                slug: createForm.slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-')
+                slug: newSlug
               });
             slugError = error;
+            console.log('🔍 Insert result:', { error: slugError });
           }
           
           if (slugError) {

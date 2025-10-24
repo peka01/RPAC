@@ -23,35 +23,50 @@ export function CommunityEditModal({ isOpen, onClose, community, onUpdate }: Com
     slug: ''
   });
   const [originalSlug, setOriginalSlug] = useState<string>('');
+  const [justUpdated, setJustUpdated] = useState<boolean>(false);
 
   // Initialize form when modal opens
   useEffect(() => {
-    if (isOpen && community) {
+    if (isOpen && community && !justUpdated) {
       loadCurrentSlug();
     }
-  }, [isOpen, community]);
+    // Reset the flag when modal closes
+    if (!isOpen) {
+      setJustUpdated(false);
+    }
+  }, [isOpen, community, justUpdated]);
 
   const loadCurrentSlug = async () => {
     if (!community?.id) return;
     
+    console.log('🔍 Loading current slug for community:', community.id);
     try {
-      const { data } = await supabase
+      // Add a longer delay to ensure database consistency
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Add cache-busting by using a timestamp parameter
+      const cacheBuster = Date.now();
+      const { data, error } = await supabase
         .from('community_homespaces')
         .select('slug')
         .eq('community_id', community.id)
         .single();
       
+      console.log('🔍 Current slug query result:', { data, error });
       const currentSlug = data?.slug || '';
+      console.log('🔍 Setting slug to:', currentSlug);
       setOriginalSlug(currentSlug); // Store the original slug for comparison
       
-      setEditForm({
+      const newForm = {
         name: community.community_name,
         description: community.description || '',
         isPublic: community.is_public ?? true,
         accessType: (community as any).access_type || 'öppet',
         autoApproveMembers: (community as any).auto_approve_members ?? true,
         slug: currentSlug
-      });
+      };
+      console.log('🔍 Setting edit form to:', newForm);
+      setEditForm(newForm);
     } catch (error) {
       console.error('Error loading homespace slug:', error);
       setOriginalSlug(''); // No original slug if none exists
@@ -69,6 +84,10 @@ export function CommunityEditModal({ isOpen, onClose, community, onUpdate }: Com
 
   const submitEdit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🚀 CommunityEditModal submitEdit called');
+    console.log('🚀 Community:', community?.id);
+    console.log('🚀 Form data:', editForm);
+    
     if (!community) return;
 
     setUpdating(true);
@@ -84,32 +103,64 @@ export function CommunityEditModal({ isOpen, onClose, community, onUpdate }: Com
 
       // Update homespace slug if it has changed
       if (editForm.slug.trim()) {
+        console.log('🔍 Updating homespace slug:', editForm.slug.trim());
         // First check if a homespace already exists for this community
-        const { data: existingHomespace } = await supabase
+        const { data: existingHomespace, error: checkError } = await supabase
           .from('community_homespaces')
-          .select('id')
+          .select('id, slug')
           .eq('community_id', community.id)
           .single();
         
+        console.log('🔍 Existing homespace check:', { existingHomespace, checkError });
+        
         let slugError;
+        const newSlug = editForm.slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
+        console.log('🔍 New slug will be:', newSlug);
+        
         if (existingHomespace) {
+          console.log('🔍 Updating existing homespace with ID:', existingHomespace.id);
           // Update existing homespace
           const { error } = await supabase
             .from('community_homespaces')
             .update({
-              slug: editForm.slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-')
+              slug: newSlug
             })
             .eq('community_id', community.id);
           slugError = error;
+          console.log('🔍 Update result:', { error: slugError });
+          
+          // Update the form state directly with the new slug
+          if (!slugError) {
+            console.log('🔍 Updating form state with new slug:', newSlug);
+            setEditForm(prev => ({
+              ...prev,
+              slug: newSlug
+            }));
+            setOriginalSlug(newSlug);
+            setJustUpdated(true); // Prevent database query from overwriting
+          }
         } else {
+          console.log('🔍 Creating new homespace for community:', community.id);
           // Create new homespace
           const { error } = await supabase
             .from('community_homespaces')
             .insert({
               community_id: community.id,
-              slug: editForm.slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-')
+              slug: newSlug
             });
           slugError = error;
+          console.log('🔍 Insert result:', { error: slugError });
+          
+          // Update the form state directly with the new slug
+          if (!slugError) {
+            console.log('🔍 Updating form state with new slug:', newSlug);
+            setEditForm(prev => ({
+              ...prev,
+              slug: newSlug
+            }));
+            setOriginalSlug(newSlug);
+            setJustUpdated(true); // Prevent database query from overwriting
+          }
         }
         
         if (slugError) {

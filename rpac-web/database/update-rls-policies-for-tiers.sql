@@ -61,7 +61,7 @@ DROP POLICY IF EXISTS "Community managers can create communities" ON local_commu
 CREATE POLICY "Community managers can create communities" 
   ON local_communities FOR INSERT 
   WITH CHECK (
-    auth.uid() = user_id AND
+    auth.uid() = created_by AND
     EXISTS (
       SELECT 1 FROM user_profiles 
       WHERE user_id = auth.uid() 
@@ -75,7 +75,7 @@ DROP POLICY IF EXISTS "Community creators can manage their communities" ON local
 CREATE POLICY "Community creators can manage their communities" 
   ON local_communities FOR ALL 
   USING (
-    auth.uid() = user_id OR 
+    auth.uid() = created_by OR 
     EXISTS (
       SELECT 1 FROM community_memberships 
       WHERE community_id = local_communities.id 
@@ -119,7 +119,7 @@ DROP POLICY IF EXISTS "Users can view relevant memberships" ON community_members
 CREATE POLICY "Users can view relevant memberships" 
   ON community_memberships FOR SELECT 
   USING (
-    auth.uid() = user_id OR
+    auth.uid() = created_by OR
     -- Approved members can see other approved members
     (
       membership_status = 'approved' AND
@@ -170,7 +170,7 @@ DROP POLICY IF EXISTS "Users can leave communities" ON community_memberships;
 CREATE POLICY "Users can leave communities" 
   ON community_memberships FOR DELETE 
   USING (
-    auth.uid() = user_id OR
+    auth.uid() = created_by OR
     -- Admins can remove members
     EXISTS (
       SELECT 1 FROM community_memberships cm
@@ -219,7 +219,7 @@ CREATE POLICY "Approved members can create help requests"
 CREATE POLICY "Users and admins can update help requests" 
   ON help_requests FOR UPDATE 
   USING (
-    auth.uid() = user_id OR
+    auth.uid() = created_by OR
     EXISTS (
       SELECT 1 FROM community_memberships
       WHERE community_id = help_requests.community_id

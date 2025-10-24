@@ -221,7 +221,7 @@ export const communityService = {
   async getCommunities(): Promise<LocalCommunity[]> {
     const { data, error } = await supabase
       .from('local_communities')
-      .select('*')
+      .select('id, community_name, description, location, postal_code, county, is_public, access_type, auto_approve_members, max_members, member_count, created_by, created_at, updated_at')
       .order('created_at', { ascending: false })
     
     if (error) throw error
@@ -356,6 +356,22 @@ export const communityService = {
     return [];
   },
 
+  async getUserRole(userId: string, communityId: string): Promise<string | null> {
+    const { data, error } = await supabase
+      .from('community_memberships')
+      .select('role')
+      .eq('user_id', userId)
+      .eq('community_id', communityId)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching user role:', error);
+      return null;
+    }
+    
+    return data?.role || null;
+  },
+
   async getPendingMemberships(userId: string): Promise<string[]> {
     const { data, error } = await supabase
       .from('community_memberships')
@@ -406,6 +422,18 @@ export const communityService = {
   },
 
   async isUserAdmin(communityId: string, userId: string): Promise<boolean> {
+    // First check if user is the creator
+    const { data: community, error: communityError } = await supabase
+      .from('local_communities')
+      .select('created_by')
+      .eq('id', communityId)
+      .single();
+    
+    if (!communityError && community?.created_by === userId) {
+      return true;
+    }
+    
+    // Then check membership role
     const role = await this.getUserRole(communityId, userId)
     return role === 'admin' || role === 'moderator'
   }

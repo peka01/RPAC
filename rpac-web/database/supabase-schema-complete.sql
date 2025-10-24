@@ -157,7 +157,7 @@ CREATE TABLE IF NOT EXISTS plant_diagnoses (
 -- Local communities
 CREATE TABLE IF NOT EXISTS local_communities (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_by UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   community_name VARCHAR(100) NOT NULL,
   location VARCHAR(100) NOT NULL,
   description TEXT,
@@ -359,7 +359,7 @@ CREATE POLICY "Anyone can view public communities" ON local_communities
 
 CREATE POLICY "Community admins can manage communities" ON local_communities
   FOR ALL USING (
-    auth.uid() = user_id OR 
+    auth.uid() = created_by OR 
     EXISTS (
       SELECT 1 FROM community_memberships 
       WHERE community_id = local_communities.id 

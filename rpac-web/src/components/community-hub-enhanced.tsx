@@ -408,11 +408,13 @@ export function CommunityHubEnhanced({ user, initialCommunityId, initialTab, ini
           isOpen={showEditModal}
           onClose={() => setShowEditModal(false)}
           community={userCommunities.find(c => c.id === activeCommunityId)!}
-          onUpdate={(updatedCommunity) => {
+          onUpdate={async (updatedCommunity) => {
             // Update the community in the list
             setUserCommunities(prev => 
               prev.map(c => c.id === updatedCommunity.id ? updatedCommunity : c)
             );
+            // Reload homespace data to show updated slug
+            await loadHomespaceData();
           }}
         />
       )}
