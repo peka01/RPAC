@@ -127,6 +127,7 @@ export default function LocalPage() {
   const communityId = searchParams.get('community');
   const tab = searchParams.get('tab');
   const type = searchParams.get('type');
+  const resourceTab = searchParams.get('resourceTab');
 
   // Rendering decision made
   
@@ -136,12 +137,14 @@ export default function LocalPage() {
       initialCommunityId={communityId}
       initialTab={tab}
       initialMessagingType={type}
+      initialResourceTab={resourceTab}
     />
   ) : (
     <CommunityHubEnhanced 
       user={user}
       initialCommunityId={communityId}
       initialTab={tab}
+      initialResourceTab={resourceTab}
     />
   );
 }

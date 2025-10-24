@@ -183,42 +183,6 @@ export function CommunityDashboardRefactored({ user, community, onNavigate }: Co
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* Main Content */}
       <div className="lg:col-span-2 space-y-6">
-            {/* Community Overview Card */}
-            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-              <div className="flex items-start justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-[#5C6B47] rounded-xl flex items-center justify-center">
-                    <CheckCircle size={32} className="text-white" strokeWidth={2} />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">{community.community_name}</h2>
-                    <p className="text-gray-600 text-lg">
-                      {community.description || 'En grupp för alla som bor i ' + community.community_name}
-                    </p>
-                    {homespaceSlug && (
-                      <div className="mt-3">
-                        <a
-                          href={`/${homespaceSlug}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-sm font-medium text-gray-700"
-                        >
-                          <Globe size={16} />
-                          <span>beready.se/{homespaceSlug}</span>
-                          <ExternalLink size={14} />
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="bg-gray-100 rounded-lg px-3 py-2">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <MapPin size={16} />
-                    <span>{community.location || community.postal_code}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
 
 
             {/* Statistics Cards */}

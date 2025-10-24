@@ -183,38 +183,6 @@ export function CommunityDashboardRefactoredMobile({ user, community, onNavigate
 
   return (
     <div className="px-4 py-6 space-y-6">
-        {/* Community Overview Card */}
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-          <div className="flex items-start gap-4 mb-4">
-            <div className="w-12 h-12 bg-[#5C6B47] rounded-xl flex items-center justify-center flex-shrink-0">
-              <CheckCircle size={24} className="text-white" strokeWidth={2} />
-            </div>
-            <div className="flex-1">
-              <h2 className="text-xl font-bold text-gray-900 mb-2">{community.community_name}</h2>
-              <p className="text-gray-600 text-sm mb-3">
-                {community.description || 'En grupp för alla som bor i ' + community.community_name}
-              </p>
-              {homespaceSlug && (
-                <a
-                  href={`/${homespaceSlug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-xs font-medium text-gray-700"
-                >
-                  <Globe size={14} />
-                  <span>beready.se/{homespaceSlug}</span>
-                  <ExternalLink size={12} />
-                </a>
-              )}
-            </div>
-            <div className="bg-gray-100 rounded-lg px-2 py-1">
-              <div className="flex items-center gap-1 text-xs text-gray-600">
-                <MapPin size={12} />
-                <span>{community.location || community.postal_code}</span>
-              </div>
-            </div>
-          </div>
-        </div>
 
 
         {/* Statistics Cards - Mobile Grid */}

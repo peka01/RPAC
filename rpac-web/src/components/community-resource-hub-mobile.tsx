@@ -13,6 +13,7 @@ import {
   CheckCircle,
   Loader,
   Edit2,
+  ChevronLeft,
   Trash2,
   User as UserIcon,
   Building2,
@@ -26,8 +27,7 @@ import {
   Zap,
   Share2,
   Check,
-  ChevronDown,
-  ChevronLeft
+  ChevronDown
 } from 'lucide-react';
 import { resourceSharingService, type SharedResource, type HelpRequest, communityResourceService, type CommunityResource, communityService, type LocalCommunity, supabase } from '@/lib/services';
 import { CommunityResourceModal } from './community-resource-modal';
@@ -41,6 +41,7 @@ interface CommunityResourceHubMobileProps {
   isAdmin?: boolean;
   onSendMessage?: (content: string) => void;
   initialTab?: string | null;
+  onNavigate?: (view: 'home' | 'discovery' | 'resources' | 'messaging') => void;
 }
 
 type ViewTier = 'shared' | 'owned' | 'help';
@@ -71,7 +72,8 @@ export function CommunityResourceHubMobile({
   communityName,
   isAdmin = false,
   onSendMessage,
-  initialTab
+  initialTab,
+  onNavigate
 }: CommunityResourceHubMobileProps) {
   console.log('CommunityResourceHubMobile component mounted with:', { communityId, communityName, initialTab });
   const [activeTab, setActiveTab] = useState<ViewTier>('shared');
@@ -507,6 +509,17 @@ export function CommunityResourceHubMobile({
       {/* Header */}
       <div className="bg-gradient-to-br from-[#3D4A2B] to-[#2A331E] text-white px-4 pt-6 pb-8 shadow-lg">
         <div className="mb-6">
+          {/* Back Button */}
+          {onNavigate && (
+            <button
+              onClick={() => onNavigate('home')}
+              className="flex items-center gap-2 text-white/80 hover:text-white mb-4 transition-colors"
+            >
+              <ChevronLeft size={20} />
+              <span className="text-sm font-medium">Tillbaka till samhälle</span>
+            </button>
+          )}
+          
           <h1 className="text-2xl font-bold mb-1">Samhällsresurser</h1>
           <p className="text-[#C8D5B9] text-sm flex items-center gap-1">
             <Building2 size={14} />

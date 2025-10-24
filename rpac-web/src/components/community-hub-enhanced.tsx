@@ -9,15 +9,19 @@ import {
   MapPin,
   Package,
   Shield,
-  Building2
+  Building2,
+  Globe,
+  ExternalLink,
+  Edit
 } from 'lucide-react';
 import { CommunityDiscovery } from './community-discovery';
 import { MessagingSystemV2 } from './messaging-system-v2';
 import { CommunityDashboard } from './community-dashboard';
 import { CommunityResourceHub } from './community-resource-hub';
+import { CommunityEditModal } from './community-edit-modal';
 import { useUserProfile } from '@/lib/useUserProfile';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
-import { communityService, type LocalCommunity } from '@/lib/supabase';
+import { communityService, type LocalCommunity, supabase } from '@/lib/supabase';
 import { t } from '@/lib/locales';
 import type { User } from '@supabase/supabase-js';
 
@@ -25,14 +29,17 @@ interface CommunityHubEnhancedProps {
   user: User;
   initialCommunityId?: string | null;
   initialTab?: string | null;
+  initialResourceTab?: string | null;
 }
 
-export function CommunityHubEnhanced({ user, initialCommunityId, initialTab }: CommunityHubEnhancedProps) {
+export function CommunityHubEnhanced({ user, initialCommunityId, initialTab, initialResourceTab }: CommunityHubEnhancedProps) {
   const [activeView, setActiveView] = useState<'home' | 'discovery' | 'resources' | 'messaging'>('home');
   const [activeCommunityId, setActiveCommunityId] = useState<string | undefined>();
   const [userCommunities, setUserCommunities] = useState<LocalCommunity[]>([]);
   const [loadingCommunities, setLoadingCommunities] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [homespaceSlug, setHomespaceSlug] = useState<string | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
   const { profile, loading } = useUserProfile(user);
   const userPostalCode = profile?.postal_code;
 
@@ -80,6 +87,8 @@ export function CommunityHubEnhanced({ user, initialCommunityId, initialTab }: C
       setActiveView('resources');
     } else if (initialTab === 'messages') {
       setActiveView('messaging');
+    } else if (initialTab === 'home') {
+      setActiveView('home');
     }
   }, [initialCommunityId, initialTab]);
 
@@ -101,6 +110,30 @@ export function CommunityHubEnhanced({ user, initialCommunityId, initialTab }: C
     
     checkAdminStatus();
   }, [activeCommunityId, user]);
+
+  // Load homespace data when active community changes
+  useEffect(() => {
+    if (activeCommunityId) {
+      loadHomespaceData();
+    }
+  }, [activeCommunityId]);
+
+  const loadHomespaceData = async () => {
+    if (!activeCommunityId) return;
+    
+    try {
+      const { data } = await supabase
+        .from('community_homespaces')
+        .select('slug')
+        .eq('community_id', activeCommunityId)
+        .single();
+      
+      setHomespaceSlug(data?.slug || null);
+    } catch (error) {
+      console.error('Error loading homespace data:', error);
+      setHomespaceSlug(null);
+    }
+  };
 
   const handleJoinCommunity = (communityId: string) => {
     setActiveCommunityId(communityId);
@@ -125,7 +158,12 @@ export function CommunityHubEnhanced({ user, initialCommunityId, initialTab }: C
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-                {activeView === 'home' ? 'Mitt samhälle' :
+                {activeView === 'home' ? (
+                  <>
+                    <Building2 size={32} />
+                    {userCommunities.find(c => c.id === activeCommunityId)?.community_name || 'Mitt samhälle'}
+                  </>
+                ) :
                  activeView === 'discovery' ? 'Hitta fler' :
                  activeView === 'resources' ? (
                    <>
@@ -136,15 +174,65 @@ export function CommunityHubEnhanced({ user, initialCommunityId, initialTab }: C
                  activeView === 'messaging' ? 'Meddelanden' :
                  t('local_community.navigation_title')}
               </h1>
-              <p className="text-[#C8D5B9]">
-                {activeView === 'home' ? '' :
+              <p className="text-[#C8D5B9] mb-3">
+                {activeView === 'home' ? (
+                  userCommunities.find(c => c.id === activeCommunityId)?.description || 'Din lokala samhällsöversikt'
+                ) :
                  activeView === 'discovery' ? 'Upptäck nya samhällen i ditt område' :
-                 activeView === 'resources' ? 'Hantera gemensamma resurser' :
+                 activeView === 'resources' ? (
+                   <span className="text-lg font-semibold">Resurser</span>
+                 ) :
                  activeView === 'messaging' ? 'Kommunikation med ditt samhälle' :
                  t('local_community.navigation_description')}
               </p>
+              
+              {/* Community Tags - Only show on home view */}
+              {activeView === 'home' && activeCommunityId && (() => {
+                const activeCommunity = userCommunities.find(c => c.id === activeCommunityId);
+                if (!activeCommunity) return null;
+                
+                
+                return (
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {/* Location Tag - Show county name */}
+                    <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1.5">
+                      <MapPin size={14} className="text-white/80" />
+                      <span className="text-sm font-medium text-white/90">
+                        {activeCommunity.county ? activeCommunity.county.charAt(0).toUpperCase() + activeCommunity.county.slice(1).replace('_', ' ') : activeCommunity.location}
+                      </span>
+                    </div>
+                    
+                    
+                    {/* External URL */}
+                    {homespaceSlug && (
+                      <a 
+                        href={`/${homespaceSlug}`}
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1.5 hover:bg-white/30 transition-colors"
+                      >
+                        <Globe size={14} className="text-white/80" />
+                        <span className="text-sm font-medium text-white/90">beready.se/{homespaceSlug}</span>
+                        <ExternalLink size={12} className="text-white/80" />
+                      </a>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
             <div className="flex items-center gap-4">
+              {/* Edit Community Button - Only for admins */}
+              {isAdmin && activeCommunityId && (
+                <button
+                  onClick={() => setShowEditModal(true)}
+                  className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2 hover:bg-white/30 transition-colors"
+                  title="Redigera samhälle"
+                >
+                  <Edit size={16} className="text-white/90" />
+                  <span className="text-sm font-medium text-white/90">Redigera</span>
+                </button>
+              )}
+
               {/* Community Selector */}
               {userCommunities.length > 1 && (
                 <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
@@ -231,7 +319,8 @@ export function CommunityHubEnhanced({ user, initialCommunityId, initialTab }: C
                     communityId={activeCommunityId}
                     communityName={userCommunities.find(c => c.id === activeCommunityId)?.community_name || 'Laddar samhälle...'}
                     isAdmin={isAdmin}
-                    initialTab={initialTab}
+                    initialTab={initialResourceTab}
+                    onNavigate={setActiveView}
                   />
                 </>
               ) : loadingCommunities ? (
@@ -312,6 +401,21 @@ export function CommunityHubEnhanced({ user, initialCommunityId, initialTab }: C
           </div>
         )}
       </div>
+
+      {/* Edit Community Modal */}
+      {showEditModal && activeCommunityId && (
+        <CommunityEditModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          community={userCommunities.find(c => c.id === activeCommunityId)!}
+          onUpdate={(updatedCommunity) => {
+            // Update the community in the list
+            setUserCommunities(prev => 
+              prev.map(c => c.id === updatedCommunity.id ? updatedCommunity : c)
+            );
+          }}
+        />
+      )}
     </div>
   );
 }

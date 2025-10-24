@@ -52,6 +52,22 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
   const router = useRouter();
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
 
+  // Auto-expand sections when their children are active
+  useEffect(() => {
+    const newExpandedSections = new Set<string>();
+    
+    navigation.forEach(section => {
+      if (section.children) {
+        const hasActiveChild = section.children.some(child => isActive(child.href));
+        if (hasActiveChild) {
+          newExpandedSections.add(section.name);
+        }
+      }
+    });
+    
+    setExpandedSections(newExpandedSections);
+  }, [pathname, searchParams]);
+
   const navigation: NavigationItem[] = [
     { 
       name: t('navigation.overview'), 
@@ -75,10 +91,10 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
       icon: Users,
       description: t('navigation.descriptions.community_resources'),
       children: [
-        { name: 'Mitt samhälle', href: '/local', icon: Home },
-        { name: 'Gemensamma resurser', href: '/local/resources/owned', icon: Building2 },
-        { name: 'Delade resurser', href: '/local/resources/shared', icon: Share2 },
-        { name: 'Hjälpförfrågningar', href: '/local/resources/help', icon: AlertCircle },
+        { name: 'Mitt samhälle', href: '/local?tab=home', icon: Home },
+        { name: 'Delade resurser', href: '/local?tab=resources&resourceTab=shared', icon: Share2 },
+        { name: 'Gemensamma resurser', href: '/local?tab=resources&resourceTab=owned', icon: Building2 },
+        { name: 'Hjälpförfrågningar', href: '/local?tab=resources&resourceTab=help', icon: AlertCircle },
         { name: 'Hitta samhällen', href: '/local/discover', icon: Search, isSecondary: true }
       ]
     },
@@ -117,11 +133,31 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
       return pathname === '/' || pathname === '/dashboard';
     }
     if (href.includes('?')) {
-      const currentFullUrl = pathname + (searchParams.toString() ? '?' + searchParams.toString() : '');
-      return currentFullUrl === href;
+      // Parse the href to get path and search params
+      const [hrefPath, hrefSearch] = href.split('?');
+      const hrefParams = new URLSearchParams(hrefSearch);
+      
+      // Normalize paths by removing trailing slashes for comparison
+      const normalizedPathname = pathname.replace(/\/$/, '') || '/';
+      const normalizedHrefPath = hrefPath.replace(/\/$/, '') || '/';
+      
+      // Check if we're on the same path
+      if (normalizedPathname !== normalizedHrefPath) {
+        return false;
+      }
+      
+      // Check if all href parameters match current search params
+      for (const [key, value] of hrefParams.entries()) {
+        const currentValue = searchParams.get(key);
+        if (currentValue !== value) {
+          return false;
+        }
+      }
+      
+      return true;
     }
-    const currentFullUrl = pathname + (searchParams.toString() ? '?' + searchParams.toString() : '');
-    return currentFullUrl === href;
+    // For paths without query parameters, check if current path starts with the href
+    return pathname?.startsWith(href);
   };
 
   const handleSignOut = async () => {

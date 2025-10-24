@@ -21,6 +21,7 @@ import { geographicService } from '@/lib/geographic-service';
 import { supabase, communityService, type LocalCommunity } from '@/lib/supabase';
 import { t } from '@/lib/locales';
 import type { User } from '@supabase/supabase-js';
+import { CommunityEditModal } from './community-edit-modal';
 
 interface CommunityDiscoveryProps {
   user?: User;
@@ -57,14 +58,8 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
     name: '',
     description: '',
     isPublic: true,
-    accessType: 'öppet' as 'öppet' | 'stängt'
-  });
-  const [editForm, setEditForm] = useState({
-    name: '',
-    description: '',
-    isPublic: true,
     accessType: 'öppet' as 'öppet' | 'stängt',
-    autoApproveMembers: true
+    slug: ''
   });
 
   useEffect(() => {
@@ -289,6 +284,23 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
         created_by: user.id
       });
 
+      // Create homespace slug if provided
+      if (createForm.slug.trim()) {
+        try {
+          await supabase
+            .from('community_homespaces')
+            .insert({
+              community_id: newCommunity.id,
+              slug: createForm.slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-'),
+              created_at: new Date().toISOString()
+            });
+          console.log('✅ Homespace slug created:', createForm.slug);
+        } catch (slugError) {
+          console.error('⚠️ Error creating homespace slug:', slugError);
+          // Don't throw error, just log it as slug creation is not critical
+        }
+      }
+
       // Automatically join the community you just created (as admin)
       console.log('🔧 Starting auto-join process for community:', newCommunity.id, 'user:', user.id);
       try {
@@ -351,7 +363,7 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
       }
 
       // Reset form and close modal
-      setCreateForm({ name: '', description: '', isPublic: true, accessType: 'öppet' });
+      setCreateForm({ name: '', description: '', isPublic: true, accessType: 'öppet', slug: '' });
       setShowCreateModal(false);
       
       // Refresh memberships and communities list
@@ -474,15 +486,10 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
   };
 
   const handleEditCommunity = (community: CommunityWithDistance) => {
+    console.log('🔍 Edit button clicked for community:', community.community_name);
     setSelectedCommunity(community);
-    setEditForm({
-      name: community.community_name,
-      description: community.description || '',
-      isPublic: community.is_public ?? true,
-      accessType: (community as any).access_type || 'öppet',
-      autoApproveMembers: (community as any).auto_approve_members ?? true
-    });
     setShowEditModal(true);
+    console.log('🔍 showEditModal set to true');
   };
 
   const handleDeleteCommunity = (community: CommunityWithDistance) => {
@@ -511,39 +518,6 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
     }
   };
 
-  const submitEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedCommunity) return;
-
-    if (!editForm.name.trim()) {
-      setError('Samhällets namn krävs');
-      return;
-    }
-
-    setUpdating(true);
-    setError(null);
-
-    try {
-      await communityService.updateCommunity(selectedCommunity.id, {
-        community_name: editForm.name.trim(),
-        description: editForm.description.trim(),
-        is_public: editForm.isPublic,
-        access_type: editForm.accessType,
-        auto_approve_members: editForm.autoApproveMembers
-      });
-
-      setShowEditModal(false);
-      setSelectedCommunity(null);
-      
-      // Refresh communities list
-      await handleSearch();
-    } catch (err) {
-      console.error('Error updating community:', err);
-      setError(err instanceof Error ? err.message : 'Ett fel uppstod vid uppdatering av samhälle');
-    } finally {
-      setUpdating(false);
-    }
-  };
 
   // Show message if no postal code in profile
   if (!userPostalCode) {
@@ -913,6 +887,21 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
                 />
               </div>
 
+              {/* Homespace Slug */}
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500">beready.se/</span>
+                  <input
+                    type="text"
+                    value={createForm.slug}
+                    onChange={(e) => setCreateForm({ ...createForm, slug: e.target.value })}
+                    placeholder="t.ex. nykulla-beredskap"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
+                    maxLength={50}
+                  />
+                </div>
+              </div>
+
               {/* Location Info */}
               {userPostalCode && (
                 <div className="bg-[#5C6B47]/10 rounded-lg p-3">
@@ -1025,174 +1014,21 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
 
       {/* Edit Community Modal */}
       {showEditModal && selectedCommunity && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-lg w-full p-6 relative">
-            <button
-              onClick={() => setShowEditModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-            >
-              <X size={24} />
-            </button>
-
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">
-              {t('community.edit_community_title')}
-            </h3>
-
-            <form onSubmit={submitEdit} className="space-y-4">
-              {/* Community Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('community.community_name')} <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={editForm.name}
-                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  placeholder={t('community.community_name_placeholder')}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
-                  maxLength={100}
-                  required
-                />
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('community.community_description')}
-                </label>
-                <textarea
-                  value={editForm.description}
-                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                  placeholder={t('community.community_description_placeholder')}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B] resize-none"
-                  rows={4}
-                  maxLength={500}
-                />
-              </div>
-
-              {/* Access Type (Öppet/Stängt) */}
-              {(() => {
-                console.log('🔥🔥🔥 DESKTOP EDIT MODAL - RENDERING ACCESS TYPE', editForm);
-                return null;
-              })()}
-              <div style={{border: '10px solid red', padding: '30px', backgroundColor: 'yellow', margin: '20px 0'}}>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  🚨 DEBUG: {t('community.access_type')} <span className="text-red-500">*</span>
-                </label>
-                <div className="space-y-3">
-                  <label className="flex items-start gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                    style={{
-                      borderColor: editForm.accessType === 'öppet' ? '#3D4A2B' : '#D1D5DB',
-                      backgroundColor: editForm.accessType === 'öppet' ? '#F0F4F0' : 'white'
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="editAccessType"
-                      value="öppet"
-                      checked={editForm.accessType === 'öppet'}
-                      onChange={(e) => setEditForm({ 
-                        ...editForm, 
-                        accessType: 'öppet',
-                        autoApproveMembers: true 
-                      })}
-                      className="mt-1 w-4 h-4 text-[#3D4A2B] border-gray-300 focus:ring-[#3D4A2B]"
-                    />
-                    <div className="flex-1">
-                      <div className="font-semibold text-gray-900">
-                        🌍 {t('community.open_community')}
-                      </div>
-                      <div className="text-sm text-gray-600 mt-1">
-                        {t('community.open_community_description')}
-                      </div>
-                    </div>
-                  </label>
-
-                  <label className="flex items-start gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                    style={{
-                      borderColor: editForm.accessType === 'stängt' ? '#3D4A2B' : '#D1D5DB',
-                      backgroundColor: editForm.accessType === 'stängt' ? '#F0F4F0' : 'white'
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="editAccessType"
-                      value="stängt"
-                      checked={editForm.accessType === 'stängt'}
-                      onChange={(e) => setEditForm({ ...editForm, accessType: 'stängt' })}
-                      className="mt-1 w-4 h-4 text-[#3D4A2B] border-gray-300 focus:ring-[#3D4A2B]"
-                    />
-                    <div className="flex-1">
-                      <div className="font-semibold text-gray-900">
-                        🔒 {t('community.closed_community')}
-                      </div>
-                      <div className="text-sm text-gray-600 mt-1">
-                        {t('community.closed_community_description')}
-                      </div>
-                      {editForm.accessType === 'stängt' && (
-                        <label className="flex items-center gap-2 mt-3 p-2 bg-blue-50 rounded">
-                          <input
-                            type="checkbox"
-                            checked={editForm.autoApproveMembers}
-                            onChange={(e) => setEditForm({ ...editForm, autoApproveMembers: e.target.checked })}
-                            className="w-4 h-4 text-[#3D4A2B] border-gray-300 rounded focus:ring-[#3D4A2B]"
-                          />
-                          <span className="text-sm text-gray-700">
-                            {t('community.auto_approve')}
-                          </span>
-                        </label>
-                      )}
-                    </div>
-                  </label>
-                </div>
-              </div>
-
-              {/* Public Toggle */}
-              <div className="flex items-start gap-3">
-                <input
-                  type="checkbox"
-                  id="editIsPublic"
-                  checked={editForm.isPublic}
-                  onChange={(e) => setEditForm({ ...editForm, isPublic: e.target.checked })}
-                  className="mt-1 w-4 h-4 text-[#3D4A2B] border-gray-300 rounded focus:ring-[#3D4A2B]"
-                />
-                <label htmlFor="editIsPublic" className="flex-1">
-                  <div className="font-medium text-gray-900">{t('community.make_public')}</div>
-                  <div className="text-sm text-gray-600">{t('community.public_community_help')}</div>
-                </label>
-              </div>
-
-              {/* Buttons */}
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowEditModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                  disabled={updating}
-                >
-                  {t('community.cancel')}
-                </button>
-                <button
-                  type="submit"
-                  disabled={updating || !editForm.name.trim()}
-                  className="flex-1 px-4 py-2 bg-[#B8860B] text-white rounded-lg hover:bg-[#8B6508] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                >
-                  {updating ? (
-                    <>
-                      <Loader className="animate-spin" size={20} />
-                      {t('community.updating')}
-                    </>
-                  ) : (
-                    <>
-                      <Edit size={20} />
-                      {t('community.update')}
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <>
+          {console.log('🔍 Rendering CommunityEditModal with community:', selectedCommunity.community_name)}
+          <CommunityEditModal
+            isOpen={showEditModal}
+            onClose={() => setShowEditModal(false)}
+            community={selectedCommunity}
+            onUpdate={(updatedCommunity) => {
+              // Update the community in the list
+              setFilteredCommunities(prev => 
+                prev.map(c => c.id === updatedCommunity.id ? updatedCommunity : c)
+              );
+              setSelectedCommunity(updatedCommunity);
+            }}
+          />
+        </>
       )}
 
       {/* Delete Community Modal */}

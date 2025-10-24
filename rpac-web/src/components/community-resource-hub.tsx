@@ -18,6 +18,7 @@ import {
   Building2,
   Users,
   Search,
+  ChevronLeft,
   Filter,
   Calendar,
   ShieldAlert,
@@ -48,6 +49,7 @@ interface CommunityResourceHubProps {
   onSendMessage?: (content: string) => void;
   initialTab?: string | null;
   hideTabs?: boolean; // New prop to hide the resource tabs
+  onNavigate?: (view: 'home' | 'discovery' | 'resources' | 'messaging') => void;
 }
 
 type ViewTier = 'shared' | 'owned' | 'help';
@@ -70,7 +72,8 @@ export function CommunityResourceHub({
   isAdmin = false,
   onSendMessage,
   initialTab,
-  hideTabs = false
+  hideTabs = false,
+  onNavigate
 }: CommunityResourceHubProps) {
   const [activeTab, setActiveTab] = useState<ViewTier>('shared');
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
@@ -632,25 +635,16 @@ export function CommunityResourceHub({
 
   return (
     <div className="space-y-6">
-      {/* Enhanced Hero Section with Better Resource Overview - Only show if tabs are not hidden */}
-      {!hideTabs && (
-        <div className="bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-2xl p-8 shadow-2xl">
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">📦 Resurser</h1>
-              <p className="text-white/80 text-lg">{actualCommunityName}</p>
-              <div className="flex items-center gap-4 mt-3">
-                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1.5">
-                  <Users size={16} />
-                  <span className="text-sm font-semibold">{stats.contributors} bidragare</span>
-                </div>
-                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1.5">
-                  <CheckCircle size={16} />
-                  <span className="text-sm font-semibold">{stats.availableShared} tillgängliga</span>
-                </div>
-              </div>
-            </div>
-          </div>
+      {/* Back Button */}
+      {onNavigate && (
+        <div className="flex items-center gap-3 mb-4">
+          <button
+            onClick={() => onNavigate('home')}
+            className="flex items-center gap-2 px-4 py-2 text-[#3D4A2B] hover:bg-[#3D4A2B]/10 rounded-lg transition-colors font-medium"
+          >
+            <ChevronLeft size={20} />
+            Tillbaka till samhälle
+          </button>
         </div>
       )}
 

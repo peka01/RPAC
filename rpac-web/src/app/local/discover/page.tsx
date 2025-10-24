@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
+import { CommunityEditModal } from '@/components/community-edit-modal';
 import { supabase, communityService } from '@/lib/supabase';
 import { t } from '@/lib/locales';
 import { Search, MapPin, Users, Filter, Star, Calendar, UserPlus, Edit, Trash, Plus, Settings, X, Globe, Lock, LockOpen } from 'lucide-react';
@@ -32,8 +33,10 @@ export default function DiscoverPage() {
     name: '',
     description: '',
     location: '',
-    accessType: 'öppet' as 'öppet' | 'stängt'
+    accessType: 'öppet' as 'öppet' | 'stängt',
+    slug: ''
   });
+  const [originalSlug, setOriginalSlug] = useState<string>('');
   const [filters, setFilters] = useState({
     membership: 'all', // 'all', 'member', 'not_member'
     location: '',
@@ -456,12 +459,27 @@ export default function DiscoverPage() {
         name: editingCommunity.community_name || '',
         description: editingCommunity.description || '',
         location: editingCommunity.location || '',
-        accessType: (editingCommunity.access_type as 'öppet' | 'stängt') || 'öppet' // Use existing access type or default to öppet
+        accessType: (editingCommunity.access_type as 'öppet' | 'stängt') || 'öppet', // Use existing access type or default to öppet
+        slug: homespaces[editingCommunity.id]?.slug || '' // Only show slug if it actually exists
       });
     } else {
-      setCreateForm({ name: '', description: '', location: '', accessType: 'öppet' });
+      setCreateForm({ name: '', description: '', location: '', accessType: 'öppet', slug: '' });
     }
-  }, [editingCommunity]);
+  }, [editingCommunity, homespaces]);
+
+  // Auto-generate slug from community name when creating (not editing)
+  useEffect(() => {
+    if (!editingCommunity && createForm.name && createForm.slug === '') {
+      const autoSlug = createForm.name
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '') // Remove special characters except spaces and hyphens
+        .replace(/\s+/g, '-') // Replace spaces with hyphens
+        .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+        .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+      
+      setCreateForm(prev => ({ ...prev, slug: autoSlug }));
+    }
+  }, [createForm.name, editingCommunity, createForm.slug]);
 
   const loadCommunities = async () => {
     setLoadingCommunities(true);
@@ -636,6 +654,23 @@ export default function DiscoverPage() {
       return;
     }
 
+    // Validate slug if provided
+    if (createForm.slug.trim()) {
+      const slugRegex = /^[a-z0-9-]+$/;
+      if (!slugRegex.test(createForm.slug.trim())) {
+        alert('Slug får endast innehålla små bokstäver, siffror och bindestreck');
+        return;
+      }
+      if (createForm.slug.trim().length < 3) {
+        alert('Slug måste vara minst 3 tecken lång');
+        return;
+      }
+      if (createForm.slug.trim().startsWith('-') || createForm.slug.trim().endsWith('-')) {
+        alert('Slug får inte börja eller sluta med bindestreck');
+        return;
+      }
+    }
+
     setCreateLoading(true);
     try {
       console.log('Creating community with data:', createForm);
@@ -652,6 +687,23 @@ export default function DiscoverPage() {
       });
 
       console.log('Community created successfully:', newCommunity);
+
+      // Create homespace slug if provided
+      if (createForm.slug.trim()) {
+        try {
+          await supabase
+            .from('community_homespaces')
+            .insert({
+              community_id: newCommunity.id,
+              slug: createForm.slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-'),
+              created_at: new Date().toISOString()
+            });
+          console.log('✅ Homespace slug created:', createForm.slug);
+        } catch (slugError) {
+          console.error('⚠️ Error creating homespace slug:', slugError);
+          // Don't throw error, just log it as slug creation is not critical
+        }
+      }
 
       // ✅ AUTO-JOIN CREATOR AS ADMIN
       console.log('🔧 Auto-joining creator as admin...');
@@ -704,7 +756,7 @@ export default function DiscoverPage() {
       await loadUserMemberships();
 
       // Reset form and close modal
-      setCreateForm({ name: '', description: '', location: '', accessType: 'öppet' });
+      setCreateForm({ name: '', description: '', location: '', accessType: 'öppet', slug: '' });
       setShowCreateModal(false);
       
       alert('Samhället har skapats och du är nu admin!');
@@ -723,6 +775,23 @@ export default function DiscoverPage() {
       return;
     }
 
+    // Validate slug if provided
+    if (createForm.slug.trim()) {
+      const slugRegex = /^[a-z0-9-]+$/;
+      if (!slugRegex.test(createForm.slug.trim())) {
+        alert('Slug får endast innehålla små bokstäver, siffror och bindestreck');
+        return;
+      }
+      if (createForm.slug.trim().length < 3) {
+        alert('Slug måste vara minst 3 tecken lång');
+        return;
+      }
+      if (createForm.slug.trim().startsWith('-') || createForm.slug.trim().endsWith('-')) {
+        alert('Slug får inte börja eller sluta med bindestreck');
+        return;
+      }
+    }
+
     setCreateLoading(true);
     try {
       console.log('Updating community:', editingCommunity.id, createForm);
@@ -738,11 +807,58 @@ export default function DiscoverPage() {
 
       console.log('Community updated successfully');
 
+      // Update homespace slug if provided
+      if (createForm.slug.trim()) {
+        try {
+          // First check if a homespace already exists for this community
+          const { data: existingHomespace } = await supabase
+            .from('community_homespaces')
+            .select('id')
+            .eq('community_id', editingCommunity.id)
+            .single();
+          
+          let slugError;
+          if (existingHomespace) {
+            // Update existing homespace
+            const { error } = await supabase
+              .from('community_homespaces')
+              .update({
+                slug: createForm.slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-')
+              })
+              .eq('community_id', editingCommunity.id);
+            slugError = error;
+          } else {
+            // Create new homespace
+            const { error } = await supabase
+              .from('community_homespaces')
+              .insert({
+                community_id: editingCommunity.id,
+                slug: createForm.slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-')
+              });
+            slugError = error;
+          }
+          
+          if (slugError) {
+            console.error('⚠️ Error updating homespace slug:', slugError);
+            if (slugError.code === '23505') {
+              alert('Denna URL är redan upptagen av ett annat samhälle. Välj en annan URL.');
+            } else {
+              alert(`Fel vid uppdatering av hemsida URL: ${slugError.message}`);
+            }
+          } else {
+            console.log('✅ Homespace slug updated:', createForm.slug);
+          }
+        } catch (slugError) {
+          console.error('⚠️ Error updating homespace slug:', slugError);
+          alert(`Fel vid uppdatering av hemsida URL: ${slugError.message}`);
+        }
+      }
+
       // Refresh communities list
       await loadCommunities();
 
       // Reset form and close modal
-      setCreateForm({ name: '', description: '', location: '', accessType: 'öppet' });
+      setCreateForm({ name: '', description: '', location: '', accessType: 'öppet', slug: '' });
       setEditingCommunity(null);
       
       alert('Samhället har uppdaterats!');
@@ -840,13 +956,33 @@ export default function DiscoverPage() {
         </div>
       </div>
 
-      {/* Create/Edit Community Modal */}
-      {(showCreateModal || editingCommunity) && (
+      {/* Community Edit Modal */}
+      {editingCommunity && (
+        <CommunityEditModal
+          isOpen={!!editingCommunity}
+          onClose={() => {
+            setEditingCommunity(null);
+            setCreateForm({ name: '', description: '', location: '', accessType: 'öppet', slug: '' });
+          }}
+          community={editingCommunity}
+          onUpdate={(updatedCommunity) => {
+            // Update the community in the list
+            setCommunities(prev => 
+              prev.map(c => c.id === updatedCommunity.id ? updatedCommunity : c)
+            );
+            setEditingCommunity(null);
+            setCreateForm({ name: '', description: '', location: '', accessType: 'öppet', slug: '' });
+          }}
+        />
+      )}
+
+      {/* Create Community Modal */}
+      {showCreateModal && !editingCommunity && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-gray-900">
-                {editingCommunity ? 'Redigera samhälle' : 'Skapa nytt samhälle'}
+                Skapa nytt samhälle
               </h3>
               <button
                 onClick={() => {
@@ -898,6 +1034,52 @@ export default function DiscoverPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
                   placeholder="Stad, region"
                 />
+              </div>
+
+              {/* Homespace Slug */}
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500">beready.se/</span>
+                  <input
+                    type="text"
+                    value={createForm.slug || ''}
+                    onChange={(e) => {
+                      const value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                      setCreateForm(prev => ({ ...prev, slug: value }));
+                    }}
+                    placeholder={editingCommunity ? (homespaces[editingCommunity.id]?.slug ? "Redigera befintlig slug" : "Lägg till slug för hemsida") : "Genereras automatiskt från namnet"}
+                    className={`flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
+                      createForm.slug && (
+                        createForm.slug.length < 3 || 
+                        createForm.slug.startsWith('-') || 
+                        createForm.slug.endsWith('-')
+                      ) 
+                        ? 'border-red-300 focus:ring-red-500' 
+                        : 'border-gray-300 focus:ring-[#3D4A2B]'
+                    }`}
+                    maxLength={50}
+                  />
+                </div>
+                {!editingCommunity && createForm.slug && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Auto-genererat från "{createForm.name}"
+                  </p>
+                )}
+          {editingCommunity && !homespaces[editingCommunity.id]?.slug && (
+            <p className="text-xs text-gray-500 mt-1">
+              Ingen hemsida än. Lägg till en slug för att skapa en. Uppdatera och publicera den sedan från Hemsida.
+            </p>
+          )}
+                {createForm.slug && createForm.slug.length < 3 && (
+                  <p className="text-xs text-red-500 mt-1">
+                    Slug måste vara minst 3 tecken lång
+                  </p>
+                )}
+                {createForm.slug && (createForm.slug.startsWith('-') || createForm.slug.endsWith('-')) && (
+                  <p className="text-xs text-red-500 mt-1">
+                    Slug får inte börja eller sluta med bindestreck
+                  </p>
+                )}
               </div>
 
               {/* Access Type */}
@@ -962,17 +1144,25 @@ export default function DiscoverPage() {
                 Avbryt
               </button>
               <button
-                onClick={editingCommunity ? handleUpdateCommunity : handleCreateCommunity}
-                disabled={createLoading || !createForm.name.trim()}
+                onClick={handleCreateCommunity}
+                disabled={
+                  createLoading || 
+                  !createForm.name.trim() || 
+                  (createForm.slug && (
+                    createForm.slug.length < 3 || 
+                    createForm.slug.startsWith('-') || 
+                    createForm.slug.endsWith('-')
+                  ))
+                }
                 className="flex-1 px-4 py-2 bg-[#3D4A2B] text-white font-medium rounded-lg hover:bg-[#2A331E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {createLoading ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    {editingCommunity ? 'Uppdaterar...' : 'Skapar...'}
+                    Skapar...
                   </>
                 ) : (
-                  editingCommunity ? 'Uppdatera' : 'Skapa'
+                  'Skapa'
                 )}
               </button>
             </div>
