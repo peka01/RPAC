@@ -345,25 +345,25 @@ export default function UserManagementPage() {
         {/* Users Table */}
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full table-fixed">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="w-1/4 px-4 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     {t('admin.tables.email')}
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="w-1/6 px-4 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     {t('admin.tables.name')}
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="w-1/6 px-4 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     {t('admin.tables.tier')}
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="w-1/6 px-4 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     {t('admin.tables.license')}
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="w-1/6 px-4 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     {t('admin.tables.community')}
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="w-1/6 px-4 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     {t('admin.tables.actions')}
                   </th>
                 </tr>
@@ -371,53 +371,59 @@ export default function UserManagementPage() {
               <tbody className="divide-y divide-gray-200">
                 {filteredUsers.map((user) => (
                   <tr key={user.user_id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{user.email}</div>
+                    <td className="px-4 py-4">
+                      <div className="text-sm font-medium text-gray-900 truncate" title={user.email}>
+                        {user.email}
+                      </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{user.display_name || '-'}</div>
+                    <td className="px-4 py-4">
+                      <div className="text-sm text-gray-900 truncate" title={user.display_name || '-'}>
+                        {user.display_name || '-'}
+                      </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4">
                       {getTierBadge(user.user_tier)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4">
                       <div className="flex flex-col gap-1">
-                        <span className="text-xs text-gray-600">{user.license_type}</span>
+                        <span className="text-xs text-gray-600 truncate" title={user.license_type}>
+                          {user.license_type}
+                        </span>
                         {getLicenseStatus(user)}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4">
                       <div className="flex items-center gap-1 text-sm text-gray-600">
-                        <Building2 className="w-4 h-4" />
-                        <div className="flex flex-col">
+                        <Building2 className="w-4 h-4 flex-shrink-0" />
+                        <div className="flex flex-col min-w-0">
                           <span className="font-medium">{user.community_count} samhällen</span>
                           {user.community_names && (
-                            <span className="text-xs text-gray-500 max-w-xs truncate" title={user.community_names}>
+                            <span className="text-xs text-gray-500 truncate" title={user.community_names}>
                               {user.community_names}
                             </span>
                           )}
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-4 py-4 text-sm">
                       <div className="flex gap-1">
                         <button
                           onClick={() => openEditModal(user)}
-                          className="inline-flex items-center justify-center w-8 h-8 bg-[#3D4A2B] text-white rounded-lg hover:bg-[#2A331E] transition-colors"
+                          className="inline-flex items-center justify-center w-8 h-8 bg-[#3D4A2B] text-white rounded-lg hover:bg-[#2A331E] transition-colors flex-shrink-0"
                           title={t('admin.actions.edit')}
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => openPasswordModal(user)}
-                          className="inline-flex items-center justify-center w-8 h-8 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+                          className="inline-flex items-center justify-center w-8 h-8 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors flex-shrink-0"
                           title={t('admin.actions.change_password')}
                         >
                           <Key className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => openResetModal(user)}
-                          className="inline-flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                          className="inline-flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex-shrink-0"
                           title={t('admin.actions.reset_password')}
                         >
                           <RefreshCw className="w-4 h-4" />
