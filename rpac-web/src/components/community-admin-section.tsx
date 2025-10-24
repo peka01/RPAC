@@ -479,22 +479,6 @@ export function CommunityAdminSection({
           </div>
         </button>
 
-        <button
-          onClick={() => setActiveTab('settings')}
-          className={`flex-1 min-w-[120px] px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
-            activeTab === 'settings'
-              ? 'bg-[#3D4A2B] text-white shadow-md'
-              : 'text-gray-600 hover:bg-gray-100'
-          }`}
-        >
-          <div className="flex items-center justify-center gap-2">
-            <Settings size={18} />
-            <span className="whitespace-nowrap">{t('community_admin.tabs.settings')}</span>
-            {hasChanges && (
-              <span className="w-2 h-2 bg-[#B8860B] rounded-full animate-pulse"></span>
-            )}
-          </div>
-        </button>
 
         <button
           onClick={() => setActiveTab('homepage')}
@@ -754,8 +738,8 @@ export function CommunityAdminSection({
               </div>
             )}
 
-            {/* Settings Tab */}
-            {activeTab === 'settings' && (
+            {/* Settings Tab - Removed - functionality moved to header edit button */}
+            {false && activeTab === 'settings' && (
               <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-bold text-gray-900 mb-1">

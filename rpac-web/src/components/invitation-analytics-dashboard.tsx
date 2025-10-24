@@ -161,7 +161,7 @@ export default function InvitationAnalyticsDashboard({
       {/* Header */}
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          📊 Inbjudningsanalys
+          📊 Inbjudningar
         </h2>
         <p className="text-gray-600">
           {communityName} · Prestanda och statistik

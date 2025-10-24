@@ -481,23 +481,6 @@ export function CommunityAdminSectionMobile({
               )}
             </button>
 
-            <button
-              onClick={() => {
-                setActiveTab('settings');
-                setShowMobileMenu(false);
-              }}
-              className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold text-sm transition-all ${
-                activeTab === 'settings'
-                  ? 'bg-[#3D4A2B] text-white shadow-md'
-                  : 'bg-white text-gray-600 border border-gray-200'
-              }`}
-            >
-              <Settings size={18} />
-              <span>{t('community_admin.tabs.settings')}</span>
-              {hasChanges && (
-                <span className="w-2 h-2 bg-[#B8860B] rounded-full animate-pulse"></span>
-              )}
-            </button>
 
             <button
               onClick={() => {
@@ -728,7 +711,8 @@ export function CommunityAdminSectionMobile({
             )}
 
             {/* Settings Tab - Mobile Optimized */}
-            {activeTab === 'settings' && (
+            {/* Settings Tab - Removed - functionality moved to header edit button */}
+            {false && activeTab === 'settings' && (
               <div className="space-y-6">
                 <div className="space-y-4">
                   <div>
