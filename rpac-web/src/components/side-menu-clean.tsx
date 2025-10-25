@@ -171,7 +171,7 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
       {/* Header */}
       <div className="flex items-center justify-center p-4 border-b border-gray-200">
         <img 
-          src="/beready-logo2.png" 
+          src="/logga-beready.png" 
           alt="BE READY" 
           className="h-8 w-auto"
         />

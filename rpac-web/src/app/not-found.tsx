@@ -20,7 +20,7 @@ export default function NotFound() {
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <img 
-            src="/beready-logo2.png" 
+            src="/logga-beready.png" 
             alt="BE READY" 
             className="h-16 w-auto"
           />

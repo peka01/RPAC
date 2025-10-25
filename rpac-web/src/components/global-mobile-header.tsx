@@ -113,7 +113,7 @@ export function GlobalMobileHeader({ user }: GlobalMobileHeaderProps) {
         {/* Logo */}
         <div className="flex items-center">
           <img 
-            src="/beready-logo2.png" 
+            src="/logga-beready.png" 
             alt="BE READY" 
             className="h-8 w-auto"
           />

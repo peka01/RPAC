@@ -269,7 +269,7 @@ export default function LoginPage() {
         <div className="text-center">
           <div className="flex justify-center mb-8">
             <img 
-              src="/beready-logo2.png" 
+              src="/logga-beready.png" 
               alt="BE READY" 
               className="h-20 w-auto"
             />

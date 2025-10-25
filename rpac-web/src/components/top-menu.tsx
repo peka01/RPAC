@@ -181,7 +181,7 @@ export function TopMenu({ user }: TopMenuProps) {
               className="cursor-pointer hover:opacity-80 transition-opacity"
             >
               <img 
-                src="/beready-logo2.png" 
+                src="/logga-beready.png" 
                 alt="BE READY" 
                 className="h-16 w-auto"
               />

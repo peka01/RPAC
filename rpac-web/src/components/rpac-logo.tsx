@@ -15,7 +15,7 @@ export function RPACLogo({ className = '', size = 'md' }: RPACLogoProps) {
 
   return (
     <img 
-      src="/beready-logo2.png" 
+      src="/logga-beready.png" 
       alt="BE READY" 
       className={`${sizeClasses[size]} ${className}`}
     />

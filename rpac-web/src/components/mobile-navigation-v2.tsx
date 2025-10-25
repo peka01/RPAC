@@ -286,7 +286,7 @@ export function MobileNavigationV2() {
           <div className="flex items-center">
             <Link href="/dashboard" className="flex items-center">
               <img 
-                src="/beready-logo2.png" 
+                src="/logga-beready.png" 
                 alt="BE READY" 
                 className="h-8 w-auto"
               />
@@ -411,7 +411,7 @@ export function MobileNavigationV2() {
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
                     <img 
-                      src="/beready-logo2.png" 
+                      src="/logga-beready.png" 
                       alt="BE READY" 
                       className="h-8 w-auto"
                     />

@@ -32,7 +32,7 @@ export function PerformanceIntegrationExample() {
       {/* Example of optimized image usage */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <OptimizedImage
-          src="/beready-logo.png"
+          src="/logga-beready.png"
           alt="Beready Logo"
           width={400}
           height={200}
@@ -41,7 +41,7 @@ export function PerformanceIntegrationExample() {
         />
         
         <LazyImage
-          src="/beready-shield.png"
+          src="/logga-beready.png"
           alt="Beready Shield"
           width={400}
           height={200}

@@ -12,8 +12,12 @@ const STATIC_ASSETS = [
   '/settings',
   '/manifest.json',
   '/favicon.ico',
-  '/beready-logo.png',
-  '/beready-shield.png'
+  '/favicon-16x16.png',
+  '/favicon-32x32.png',
+  '/android-chrome-192x192.png',
+  '/android-chrome-512x512.png',
+  '/apple-touch-icon.png',
+  '/logga-beready.png'
 ];
 
 // Install event - cache static assets
