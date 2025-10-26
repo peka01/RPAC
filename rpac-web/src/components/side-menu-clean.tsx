@@ -178,7 +178,7 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
       </div>
 
       {/* Navigation - Clean list style */}
-      <nav className="flex-1 pt-6 pb-5 overflow-y-auto overflow-x-hidden px-4">
+      <nav className="flex-1 pt-[48px] pb-5 overflow-y-auto overflow-x-hidden px-4">
         <div className="space-y-1">
           {navigation.map((section) => {
             const isExpanded = expandedSections.has(section.name);

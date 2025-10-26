@@ -250,16 +250,8 @@ export function StunningDashboard({ user }: { user: User | null }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#2A331E]/5 via-[#3D4A2B]/3 to-[#4A5239]/8">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#3D4A2B]/5 via-[#5C6B47]/5 to-[#707C5F]/5"></div>
-        <div className="absolute inset-0 opacity-40">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#3D4A2B]/5 to-transparent"></div>
-        </div>
-        
-        <div className="relative max-w-7xl mx-auto px-6 py-12">
+    <div className="bg-gradient-to-br from-[#2A331E]/5 via-[#3D4A2B]/3 to-[#4A5239]/8">
+      <div className="max-w-7xl mx-auto px-6 pt-6 pb-12">
 
           {/* Welcome Header */}
           <div className="text-center mb-12">
@@ -734,7 +726,6 @@ export function StunningDashboard({ user }: { user: User | null }) {
             </button>
           </div>
 
-        </div>
       </div>
     </div>
   );

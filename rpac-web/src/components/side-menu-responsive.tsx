@@ -104,7 +104,7 @@ export function SideMenuResponsive({ children, hideMobileNav = false }: SideMenu
       {/* Content with appropriate padding */}
       <main className={`
         transition-all duration-300 ease-in-out
-        ${!isMobile ? 'ml-80 pt-16' : 'ml-0 pt-20'}
+        ${!isMobile ? 'ml-80 pt-[48px]' : 'ml-0 pt-20'}
         ${isMobile && !hideMobileNav ? 'pb-20' : 'pb-0'}
         min-h-screen
       `}>
