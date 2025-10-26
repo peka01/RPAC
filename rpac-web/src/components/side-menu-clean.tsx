@@ -106,7 +106,7 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
     },
     { 
       name: 'Meddelanden', 
-      href: '/local/messages/community', 
+      href: '/local/messages', 
       icon: MessageCircle,
       description: 'Kommunikation och meddelanden',
       children: [
@@ -130,7 +130,10 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
 
   const isActive = (href: string) => {
     if (href === '/dashboard') {
-      return pathname === '/' || pathname === '/dashboard';
+      // Normalize paths by removing trailing slashes for comparison
+      const normalizedPathname = pathname.replace(/\/$/, '') || '/';
+      const normalizedHref = href.replace(/\/$/, '') || '/';
+      return normalizedPathname === '/' || normalizedPathname === normalizedHref;
     }
     if (href.includes('?')) {
       // Parse the href to get path and search params
@@ -156,8 +159,32 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
       
       return true;
     }
-    // For paths without query parameters, check if current path starts with the href
-    return pathname?.startsWith(href);
+    
+    // Normalize paths by removing trailing slashes for comparison
+    const normalizedPathname = pathname.replace(/\/$/, '') || '/';
+    const normalizedHref = href.replace(/\/$/, '') || '/';
+    
+    // If the href is exactly the same, it's active
+    if (normalizedPathname === normalizedHref) {
+      return true;
+    }
+    
+    // For parent items, check if we're in a sub-path
+    // But only if there's no more specific match available
+    if (normalizedPathname.startsWith(normalizedHref + '/')) {
+      // Check if there's a more specific parent that also matches
+      // This prevents broad matches like /local from matching /local/messages/...
+      const moreSpecificParents = navigation.filter(item => 
+        item.href !== href && 
+        normalizedPathname.startsWith(item.href.replace(/\/$/, '') + '/') &&
+        item.href.length > href.length
+      );
+      
+      // Only return true if there's no more specific parent
+      return moreSpecificParents.length === 0;
+    }
+    
+    return false;
   };
 
   const handleSignOut = async () => {
@@ -178,7 +205,10 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
       </div>
 
       {/* Navigation - Clean list style */}
-      <nav className="flex-1 pt-[48px] pb-5 overflow-y-auto overflow-x-hidden px-4">
+      <nav className="flex-1 pt-[48px] pb-5 overflow-y-auto overflow-x-hidden px-4" style={{
+        scrollbarWidth: 'thin',
+        scrollbarColor: '#3D4A2B #f3f4f6'
+      }}>
         <div className="space-y-1">
           {navigation.map((section) => {
             const isExpanded = expandedSections.has(section.name);
