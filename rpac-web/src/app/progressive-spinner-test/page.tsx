@@ -94,7 +94,6 @@ export default function ProgressiveSpinnerTestPage() {
           <div className="mt-12 flex justify-center">
             <div className="bg-white rounded-lg p-8 shadow-xl">
               <ShieldProgressSpinner
-                variant="bounce"
                 size="xl"
                 color="olive"
                 message="Progressive Animation Test"

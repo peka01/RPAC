@@ -156,7 +156,7 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-[#5C6B47]/10 to-[#707C5F]/10">
-        <ShieldProgressSpinner variant="bounce" size="xl" color="olive" message="Laddar" />
+        <ShieldProgressSpinner size="xl" color="olive" message="Laddar" />
       </div>
     );
   }
@@ -643,7 +643,7 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
               </>
             ) : loadingCommunities ? (
             <div className="flex items-center justify-center min-h-screen px-4">
-              <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar samhälle" />
+              <ShieldProgressSpinner size="lg" color="olive" message="Laddar samhälle" />
             </div>
           ) : (
             <div className="flex items-center justify-center min-h-screen px-4">

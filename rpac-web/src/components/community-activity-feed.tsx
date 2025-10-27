@@ -128,7 +128,7 @@ export function CommunityActivityFeed({
     return (
       <div className={`bg-white rounded-xl p-6 shadow-md ${className}`}>
         <div className="flex items-center justify-center py-8">
-          <ShieldProgressSpinner variant="bounce" size="md" color="olive" message="Laddar aktiviteter" />
+          <ShieldProgressSpinner size="md" color="olive" message="Laddar aktiviteter" />
         </div>
       </div>
     );

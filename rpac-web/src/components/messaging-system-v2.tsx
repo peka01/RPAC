@@ -323,7 +323,7 @@ export function MessagingSystemV2({ user, communityId, initialTab = 'community',
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar" />
+        <ShieldProgressSpinner size="lg" color="olive" message="Laddar" />
       </div>
     );
   }

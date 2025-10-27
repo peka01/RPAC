@@ -466,7 +466,7 @@ export function CommunityResourceHub({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message={t('loading.loading')} />
+        <ShieldProgressSpinner size="lg" color="olive" message={t('loading.loading')} />
       </div>
     );
   }

@@ -12,19 +12,17 @@ export default function ShieldPreviewPage() {
         
         <div className="mb-8">
           <ShieldProgressSpinner
-            variant="original"
             size="xl"
             color="olive"
-            message="Original Shield with Bounce"
+            message="Shield Spinner"
           />
         </div>
         
         <div className="mb-8">
           <ShieldProgressSpinner
-            variant="bounce"
             size="xl"
-            color="olive"
-            message="Bounce Variant"
+            color="gold"
+            message="Gold Variant"
           />
         </div>
         

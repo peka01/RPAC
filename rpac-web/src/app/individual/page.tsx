@@ -77,7 +77,7 @@ function IndividualPageContent() {
   if (loading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
-        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message={t('individual.loading_profile')} />
+        <ShieldProgressSpinner size="lg" color="olive" message={t('individual.loading_profile')} />
       </div>
     );
   }

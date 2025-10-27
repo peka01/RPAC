@@ -97,7 +97,7 @@ export default function LocalPage() {
   if (!isClient || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <ShieldProgressSpinner variant="bounce" size="xl" color="olive" message="Laddar" />
+        <ShieldProgressSpinner size="xl" color="olive" message="Laddar" />
       </div>
     );
   }

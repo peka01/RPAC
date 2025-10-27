@@ -180,7 +180,7 @@ export default function HomespaceEditorWrapper({ communityId, userId, onClose }:
         <div className="min-h-[calc(100vh-80px)] pb-20 md:pb-0">
           {loading && (
             <div className="flex items-center justify-center py-20">
-              <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar hemsida..." />
+              <ShieldProgressSpinner size="lg" color="olive" message="Laddar hemsida..." />
             </div>
           )}
 

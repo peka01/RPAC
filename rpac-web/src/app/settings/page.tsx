@@ -179,7 +179,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-        <ShieldProgressSpinner variant="bounce" size="xl" color="olive" message="Laddar" />
+        <ShieldProgressSpinner size="xl" color="olive" message="Laddar" />
       </div>
     );
   }

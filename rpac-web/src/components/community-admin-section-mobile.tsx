@@ -519,7 +519,7 @@ export function CommunityAdminSectionMobile({
       <div className="p-6">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar" />
+            <ShieldProgressSpinner size="lg" color="olive" message="Laddar" />
           </div>
         ) : (
           <>
@@ -598,7 +598,7 @@ export function CommunityAdminSectionMobile({
                                 className="flex-1 flex items-center justify-center gap-2 bg-[#3D4A2B] text-white px-4 py-3 rounded-lg font-semibold text-sm transition-all active:scale-98 touch-manipulation disabled:opacity-50"
                               >
                                 {actionLoading === request.membership_id ? (
-                                  <ShieldProgressSpinner variant="rotate" size="sm" color="olive" />
+                                  <ShieldProgressSpinner size="sm" color="olive" />
                                 ) : (
                                   <>
                                     <CheckCircle size={16} />
@@ -612,7 +612,7 @@ export function CommunityAdminSectionMobile({
                                 className="flex-1 flex items-center justify-center gap-2 bg-red-100 text-red-700 px-4 py-3 rounded-lg font-semibold text-sm transition-all active:scale-98 touch-manipulation disabled:opacity-50"
                               >
                                 {actionLoading === request.membership_id ? (
-                                  <ShieldProgressSpinner variant="rotate" size="sm" color="green" />
+                                  <ShieldProgressSpinner size="sm" color="green" />
                                 ) : (
                                   <>
                                     <XIcon size={16} />
@@ -694,7 +694,7 @@ export function CommunityAdminSectionMobile({
                                   title="Ta bort medlem"
                                 >
                                   {actionLoading === member.membership_id ? (
-                                    <ShieldProgressSpinner variant="bounce" size="sm" />
+                                    <ShieldProgressSpinner size="sm" />
                                   ) : (
                                     <Trash2 size={18} />
                                   )}
@@ -807,7 +807,7 @@ export function CommunityAdminSectionMobile({
                       className="flex-1 flex items-center justify-center gap-2 bg-[#3D4A2B] text-white px-6 py-4 rounded-xl font-semibold transition-all active:scale-98 touch-manipulation disabled:opacity-50"
                     >
                       {actionLoading === 'save' ? (
-                        <ShieldProgressSpinner variant="rotate" size="sm" color="olive" />
+                        <ShieldProgressSpinner size="sm" color="olive" />
                       ) : (
                         <>
                           <Save size={18} />
@@ -891,7 +891,7 @@ export function CommunityAdminSectionMobile({
                 className="flex-1 flex items-center justify-center gap-2 bg-red-600 text-white px-4 py-3 rounded-xl font-semibold transition-all active:scale-98 touch-manipulation disabled:opacity-50"
               >
                 {actionLoading === memberToRemove.membership_id ? (
-                  <ShieldProgressSpinner variant="rotate" size="sm" color="olive" />
+                  <ShieldProgressSpinner size="sm" color="olive" />
                 ) : (
                   <>
                     <Trash2 size={16} />

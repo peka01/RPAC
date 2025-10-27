@@ -82,7 +82,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar" />
+        <ShieldProgressSpinner size="lg" color="olive" message="Laddar" />
       </div>
     );
   }

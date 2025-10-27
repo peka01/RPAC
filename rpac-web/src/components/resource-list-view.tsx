@@ -135,7 +135,7 @@ export function ResourceListView<T>({
   if (loading) {
     return (
       <div className={`text-center py-12 ${className}`}>
-        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message={loadingMessage} />
+        <ShieldProgressSpinner size="lg" color="olive" message={loadingMessage} />
       </div>
     );
   }

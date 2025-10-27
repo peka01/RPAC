@@ -21,7 +21,6 @@ export const GlobalLoadingSpinner: React.FC<GlobalLoadingSpinnerProps> = ({
       <div className="bg-white rounded-lg p-8 shadow-xl max-w-sm mx-4">
         <div className="text-center">
           <ShieldProgressSpinner
-            variant="bounce"
             size="xl"
             color="olive"
             message={message}

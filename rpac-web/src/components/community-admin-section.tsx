@@ -514,7 +514,7 @@ export function CommunityAdminSection({
       <div className="bg-white rounded-xl p-6 min-h-[400px]">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar" />
+            <ShieldProgressSpinner size="lg" color="olive" message="Laddar" />
           </div>
         ) : (
           <>
@@ -635,7 +635,7 @@ export function CommunityAdminSection({
                                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                                 >
                                   {actionLoading === request.membership_id ? (
-                                    <ShieldProgressSpinner variant="bounce" size="sm" />
+                                    <ShieldProgressSpinner size="sm" />
                                   ) : (
                                     <CheckCircle size={16} />
                                   )}
@@ -647,7 +647,7 @@ export function CommunityAdminSection({
                                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-red-100 hover:text-red-700 transition-colors font-semibold text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                                 >
                                   {actionLoading === request.membership_id ? (
-                                    <ShieldProgressSpinner variant="bounce" size="sm" color="olive" />
+                                    <ShieldProgressSpinner size="sm" color="olive" />
                                   ) : (
                                     <UserX size={16} />
                                   )}
@@ -721,7 +721,7 @@ export function CommunityAdminSection({
                                     title="Ta bort medlem"
                                   >
                                     {actionLoading === member.membership_id ? (
-                                      <ShieldProgressSpinner variant="bounce" size="sm" />
+                                      <ShieldProgressSpinner size="sm" />
                                     ) : (
                                       <Trash2 size={16} />
                                     )}
@@ -887,7 +887,7 @@ export function CommunityAdminSection({
                       className="px-6 py-2.5 bg-[#3D4A2B] text-white rounded-lg hover:bg-[#2A331E] transition-colors font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {actionLoading === 'save' ? (
-                        <ShieldProgressSpinner variant="bounce" size="sm" />
+                        <ShieldProgressSpinner size="sm" />
                       ) : (
                         <Save size={18} />
                       )}
@@ -984,7 +984,7 @@ export function CommunityAdminSection({
                 title="Ta bort medlem"
               >
                 {actionLoading === memberToRemove.membership_id ? (
-                  <ShieldProgressSpinner variant="bounce" size="sm" />
+                  <ShieldProgressSpinner size="sm" />
                 ) : (
                   <Trash2 size={20} />
                 )}

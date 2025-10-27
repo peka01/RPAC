@@ -218,7 +218,7 @@ export function IndividualDashboard({ user, onNavigate }: IndividualDashboardPro
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar" />
+        <ShieldProgressSpinner size="lg" color="olive" message="Laddar" />
       </div>
     );
   }

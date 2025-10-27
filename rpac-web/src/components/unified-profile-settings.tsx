@@ -466,7 +466,7 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <ShieldProgressSpinner variant="bounce" size="md" color="olive" message="Laddar" />
+        <ShieldProgressSpinner size="md" color="olive" message="Laddar" />
       </div>
     );
   }

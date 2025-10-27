@@ -55,7 +55,7 @@ export default function AuthCallbackPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#5C6B47]/10 to-[#707C5F]/10">
         <div className="text-center">
-          <ShieldProgressSpinner variant="bounce" size="xl" color="olive" message="Verifierar autentisering" />
+          <ShieldProgressSpinner size="xl" color="olive" message="Verifierar autentisering" />
         </div>
       </div>
     );

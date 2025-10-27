@@ -139,7 +139,7 @@ export default function InvitationPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#5C6B47] to-[#3D4A2B] flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
-          <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar inbjudan..." />
+          <ShieldProgressSpinner size="lg" color="olive" message="Laddar inbjudan..." />
         </div>
       </div>
     );
@@ -272,7 +272,7 @@ export default function InvitationPage() {
           >
             {processing ? (
               <>
-                <ShieldProgressSpinner variant="bounce" size="sm" />
+                <ShieldProgressSpinner size="sm" />
                 Ansluter...
               </>
             ) : user ? (

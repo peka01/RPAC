@@ -166,7 +166,7 @@ export function CommunityDashboardRefactored({ user, community, onNavigate }: Co
   if (!community) {
     return (
       <div className="flex items-center justify-center p-12">
-        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar samhälle" />
+        <ShieldProgressSpinner size="lg" color="olive" message="Laddar samhälle" />
       </div>
     );
   }
@@ -174,7 +174,7 @@ export function CommunityDashboardRefactored({ user, community, onNavigate }: Co
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <ShieldProgressSpinner variant="bounce" size="lg" color="olive" message="Laddar" />
+        <ShieldProgressSpinner size="lg" color="olive" message="Laddar" />
       </div>
     );
   }
