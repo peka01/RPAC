@@ -1,5 +1,5 @@
 {
-  "name": "BeReady - du är aldrig ensam!"",
+  "name": "BeReady - du är aldrig ensam!",
   "short_name": "BeReady",
   "icons": [
     {
@@ -15,7 +15,7 @@
       "purpose": "maskable"
     }
   ],
-  "theme_color": "#ffffff",
+  "theme_color": "#33452c",
   "background_color": "#ffffff",
   "display": "standalone"
 }

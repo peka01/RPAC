@@ -1,7 +1,7 @@
 // Service Worker for RPAC Performance Optimization
-const CACHE_NAME = 'rpac-v2';
-const STATIC_CACHE = 'rpac-static-v2';
-const DYNAMIC_CACHE = 'rpac-dynamic-v2';
+const CACHE_NAME = 'rpac-v3';
+const STATIC_CACHE = 'rpac-static-v3';
+const DYNAMIC_CACHE = 'rpac-dynamic-v3';
 
 // Assets to cache immediately
 const STATIC_ASSETS = [

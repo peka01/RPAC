@@ -7,6 +7,7 @@
   "background_color": "#ffffff",
   "theme_color": "#3D4A2B",
   "orientation": "portrait-primary",
+  "version": "3.0.0",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
@@ -49,5 +50,5 @@
   "lang": "sv",
   "dir": "ltr",
   "scope": "/",
-  "id": "beready-app"
+  "id": "beready-app-v3"
 }
