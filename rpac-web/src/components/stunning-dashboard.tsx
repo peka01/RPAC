@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { t } from '@/lib/locales';
 import { useWeather } from '@/contexts/WeatherContext';
+import { ShieldProgressSpinner } from './ShieldProgressSpinner';
 import { 
   Shield, 
   Users, 
