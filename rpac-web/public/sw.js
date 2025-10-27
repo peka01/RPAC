@@ -1,7 +1,7 @@
 // Service Worker for RPAC Performance Optimization
-const CACHE_NAME = 'rpac-v1';
-const STATIC_CACHE = 'rpac-static-v1';
-const DYNAMIC_CACHE = 'rpac-dynamic-v1';
+const CACHE_NAME = 'rpac-v2';
+const STATIC_CACHE = 'rpac-static-v2';
+const DYNAMIC_CACHE = 'rpac-dynamic-v2';
 
 // Assets to cache immediately
 const STATIC_ASSETS = [
@@ -12,11 +12,16 @@ const STATIC_ASSETS = [
   '/settings',
   '/manifest.json',
   '/favicon.ico',
+  '/favicon.svg',
   '/favicon-16x16.png',
   '/favicon-32x32.png',
+  '/favicon-96x96.png',
+  '/favicon-tp-bg.png',
   '/android-chrome-192x192.png',
   '/android-chrome-512x512.png',
   '/apple-touch-icon.png',
+  '/web-app-manifest-192x192.png',
+  '/web-app-manifest-512x512.png',
   '/logga-beready.png'
 ];
 
