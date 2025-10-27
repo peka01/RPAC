@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { ShieldProgressSpinner } from './ShieldProgressSpinner';
 import {
   TrendingUp,
   Users,
@@ -151,7 +152,7 @@ export default function InvitationAnalyticsDashboard({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3D4A2B]"></div>
+        <ShieldProgressSpinner size="lg" color="olive" message="Laddar statistik" />
       </div>
     );
   }

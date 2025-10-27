@@ -240,11 +240,7 @@ export function StunningDashboard({ user }: { user: User | null }) {
   if (loading) {
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="relative">
-          <div className="w-16 h-16 border-4 border-[#3D4A2B]/20 border-t-[#3D4A2B] rounded-full animate-spin"></div>
-          <Shield className="w-8 h-8 text-[#3D4A2B] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
-        </div>
-        <p className="mt-4 text-[#3D4A2B] font-medium">Laddar ditt hem</p>
+        <ShieldProgressSpinner size="xl" color="olive" message="Laddar ditt hem" />
       </div>
     );
   }

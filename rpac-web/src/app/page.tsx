@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { t } from '@/lib/locales';
 import { User, LogIn, UserPlus, X, AlertTriangle, Shield } from 'lucide-react';
+import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 export default function LoginPage() {
@@ -441,7 +442,7 @@ export default function LoginPage() {
           >
             {loading ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <ShieldProgressSpinner size="sm" color="gold" />
                 <span>{isSignUp ? t('auth.creating_account') : t('auth.signing_in')}</span>
               </>
             ) : (

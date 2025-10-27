@@ -72,7 +72,7 @@ export default function AuthCallbackPage() {
           <p className="text-gray-600 mb-6">
             Du omdirigeras till din dashboard...
           </p>
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3D4A2B] mx-auto"></div>
+          <ShieldProgressSpinner size="md" color="olive" />
         </div>
       </div>
     );
