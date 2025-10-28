@@ -175,30 +175,46 @@ export function WeatherBar({ className = '' }: WeatherBarProps) {
       {/* SMHI Official Warnings - Show these first */}
       {officialWarnings && officialWarnings.length > 0 && (
         <div className="divide-y divide-[#3D4A2B]/20">
-          {officialWarnings.map((warning, index) => (
-            <div 
-              key={index}
-              className="bg-gradient-to-r from-[#3D4A2B]/15 to-[#5C6B47]/20 px-4 py-2"
-            >
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 text-[#3D4A2B] flex-shrink-0 mt-1" />
-                <div>
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <div className="text-sm font-semibold text-[#3D4A2B]">
-                      {warning.type.name}
+          {officialWarnings.map((warning, index) => {
+            // Handle both old and new API structures
+            const warningName = warning.event?.sv || warning.type?.name || 'Varning';
+            const warningDescription = warning.warningAreas?.[0]?.eventDescription?.sv || warning.description || '';
+            const warningLevel = warning.warningAreas?.[0]?.warningLevel?.sv || '';
+            const startTime = warning.warningAreas?.[0]?.approximateStart || warning.startTime;
+            const endTime = warning.warningAreas?.[0]?.approximateEnd || warning.endTime;
+            
+            return (
+              <div 
+                key={index}
+                className="bg-gradient-to-r from-[#3D4A2B]/15 to-[#5C6B47]/20 px-4 py-2"
+              >
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-[#3D4A2B] flex-shrink-0 mt-1" />
+                  <div>
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <div className="text-sm font-semibold text-[#3D4A2B]">
+                        {warningName}
+                      </div>
+                      {warningLevel && (
+                        <span className="text-xs px-2 py-1 bg-[#3D4A2B]/20 text-[#3D4A2B] rounded">
+                          {warningLevel}
+                        </span>
+                      )}
                     </div>
-                    <WarningSeverityBadge severity={warning.severity} />
-                  </div>
-                  <p className="text-xs text-[#3D4A2B]/80">
-                    {warning.description}
-                  </p>
-                  <div className="text-xs text-[#3D4A2B]/60 mt-1">
-                    Gäller {new Date(warning.startTime).toLocaleDateString('sv-SE')} - {new Date(warning.endTime).toLocaleDateString('sv-SE')}
+                    <p className="text-xs text-[#3D4A2B]/80">
+                      {warningDescription}
+                    </p>
+                    {startTime && (
+                      <div className="text-xs text-[#3D4A2B]/60 mt-1">
+                        Gäller {new Date(startTime).toLocaleDateString('sv-SE')}
+                        {endTime && ` - ${new Date(endTime).toLocaleDateString('sv-SE')}`}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

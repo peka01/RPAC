@@ -14,7 +14,7 @@ import {
 
 export class WeatherService {
   private static readonly SMHI_API_BASE = 'https://opendata-download-metfcst.smhi.se/api';
-  private static readonly SMHI_WARNINGS_API = 'https://opendata-download-warnings.smhi.se/api/version/2';
+  private static readonly SMHI_WARNINGS_API = 'https://opendata-download-warnings.smhi.se/ibww/api/version/1';
   private static readonly CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
   private static readonly WARNING_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes (more frequent for warnings)
   private static weatherCache: { data: WeatherData; timestamp: number } | null = null;
@@ -31,9 +31,8 @@ export class WeatherService {
       if (this.warningCache && 
           Date.now() - this.warningCache.timestamp < this.WARNING_CACHE_DURATION) {
         const warnings = this.warningCache.data.warnings;
-        return county 
-          ? warnings.filter(w => w.area.name.toLowerCase() === county.toLowerCase())
-          : warnings;
+        // The API route now handles county filtering, so we can return all warnings
+        return warnings;
       }
 
       // Use internal API route to bypass CORS restrictions
