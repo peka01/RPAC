@@ -10,44 +10,7 @@ import {
  * Weather Service for Swedish Weather Data
  * Integrates with SMHI API for weather information
  */
-  temperature: number;
-  humidity: number;
-  rainfall: string;
-  forecast: string;
-  windSpeed: number;
-  windDirection: string;
-  pressure: number;
-  uvIndex: number;
-  sunrise: string;
-  sunset: string;
-  lastUpdated: string;
-  
-  // Location info for display
-  _postalCode?: string;
-  _city?: string;
-  _county?: string;
-}
 
-export interface WeatherForecast {
-  date: string;
-  temperature: {
-    min: number;
-    max: number;
-  };
-  weather: string;
-  rainfall: number;
-  windSpeed: number;
-  minTempTime?: string;
-  maxTempTime?: string;
-}
-
-export interface HourlyForecast {
-  time: string;
-  temperature: number;
-  rainfall: number;
-  weather: string;
-  windSpeed: number;
-}
 
 export class WeatherService {
   private static readonly SMHI_API_BASE = 'https://opendata-download-metfcst.smhi.se/api';
@@ -73,8 +36,13 @@ export class WeatherService {
           : warnings;
       }
 
-      // Fetch new warnings
-      const response = await fetch(`${this.SMHI_WARNINGS_API}/alerts/active.json`);
+      // Use internal API route to bypass CORS restrictions
+      const url = new URL('/api/weather/warnings', window.location.origin);
+      if (county) {
+        url.searchParams.set('county', county);
+      }
+
+      const response = await fetch(url.toString());
       
       if (!response.ok) {
         console.error('Failed to fetch SMHI warnings:', response.statusText);
@@ -89,11 +57,7 @@ export class WeatherService {
         timestamp: Date.now()
       };
 
-      // Filter by county if provided
-      const warnings = warningData.warnings;
-      return county 
-        ? warnings.filter(w => w.area.name.toLowerCase() === county.toLowerCase())
-        : warnings;
+      return warningData.warnings;
 
     } catch (error) {
       console.error('Error fetching SMHI warnings:', error);
@@ -347,11 +311,13 @@ export class WeatherService {
         return this.weatherCache.data;
       }
 
-      // Try to get real weather data from SMHI API
+      // Try to get real weather data from SMHI API via internal proxy
       try {
-        const smhiResponse = await fetch(
-          `https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/${lon}/lat/${lat}/data.json`
-        );
+        const url = new URL('/api/weather/current', window.location.origin);
+        url.searchParams.set('lat', lat.toString());
+        url.searchParams.set('lon', lon.toString());
+
+        const smhiResponse = await fetch(url.toString());
         
         if (smhiResponse.ok) {
           const smhiData = await smhiResponse.json();
@@ -465,11 +431,13 @@ export class WeatherService {
     
     const { lat, lon } = coords;
     try {
-      // Try to get real forecast data from SMHI API
+      // Try to get real forecast data from SMHI API via internal proxy
       try {
-        const smhiResponse = await fetch(
-          `https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/${lon}/lat/${lat}/data.json`
-        );
+        const url = new URL('/api/weather/forecast', window.location.origin);
+        url.searchParams.set('lat', lat.toString());
+        url.searchParams.set('lon', lon.toString());
+
+        const smhiResponse = await fetch(url.toString());
         
         if (smhiResponse.ok) {
           const smhiData = await smhiResponse.json();
@@ -618,9 +586,11 @@ export class WeatherService {
     const { lat, lon } = coords;
     
     try {
-      const smhiResponse = await fetch(
-        `https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/${lon}/lat/${lat}/data.json`
-      );
+      const url = new URL('/api/weather/forecast', window.location.origin);
+      url.searchParams.set('lat', lat.toString());
+      url.searchParams.set('lon', lon.toString());
+
+      const smhiResponse = await fetch(url.toString());
       
       if (smhiResponse.ok) {
         const smhiData = await smhiResponse.json();

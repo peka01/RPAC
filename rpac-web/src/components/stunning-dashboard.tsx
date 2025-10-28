@@ -35,6 +35,8 @@ interface DashboardMetrics {
   expiringResources: number;
   unreadMessages: number;
   communityNames: string[];
+  availableResources: number;
+  totalResources: number;
 }
 
 interface StunningDashboardProps {
@@ -54,7 +56,9 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
     cropCount: 0,
     expiringResources: 0,
     unreadMessages: 0,
-    communityNames: []
+    communityNames: [],
+    availableResources: 0,
+    totalResources: 0
   });
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -215,6 +219,29 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
           r.quantity > 0 && r.days_remaining < 30 && r.days_remaining < 99999
         ).length;
         
+        // Calculate available resources from community resources (same logic as community page)
+        let availableResources = 0;
+        if (memberships && memberships.length > 0) {
+          try {
+            // Import resource sharing service
+            const { resourceSharingService } = await import('@/lib/resource-sharing-service');
+            
+            // Get resources from all user's communities
+            const communityResources = await Promise.all(
+              memberships.map(membership => 
+                resourceSharingService.getCommunityResources(membership.community_id)
+              )
+            );
+            
+            // Flatten and count available resources (status === 'available')
+            const allCommunityResources = communityResources.flat();
+            availableResources = allCommunityResources.filter(r => r.status === 'available').length;
+          } catch (error) {
+            console.warn('Could not load community resources:', error);
+            availableResources = 0;
+          }
+        }
+        
         // Calculate cultivation progress using dynamic calculation (same as individual dashboard)
         let cultivationProgress = 0;
         
@@ -253,7 +280,7 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
           const { data: messagesData } = await supabase
           .from('messages')
           .select('id')
-            .eq('recipient_id', user.id)
+            .eq('receiver_id', user.id)
           .eq('is_read', false);
           messages = messagesData || [];
         } catch (error) {
@@ -268,6 +295,8 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
           planName: planName,
           cropCount,
           expiringResources,
+          availableResources,
+          totalResources: resources.length,
            unreadMessages: messages?.length || 0,
           communityNames
         });
@@ -280,6 +309,8 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
           planName: null,
           cropCount: 0,
           expiringResources: 0,
+          availableResources: 0,
+          totalResources: 0,
           unreadMessages: 0,
           communityNames: []
         });
@@ -362,7 +393,9 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
                <div className="mb-4">
                  <p className="text-sm text-gray-600 mb-3 leading-relaxed">
                    {metrics.planName 
-                     ? `${metrics.cropCount} grödor i planen`
+                     ? metrics.cropCount === 1 
+                       ? '1 gröda i planen'
+                       : `${metrics.cropCount} grödor i planen`
                      : 'Börja planera din odling'}
                  </p>
                  
@@ -415,9 +448,9 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
             {/* Content */}
                <div className="mb-4">
                  <p className="text-sm text-gray-600 mb-3 leading-relaxed">
-                {metrics.expiringResources > 0 
-                  ? `${metrics.expiringResources} resurser går ut snart`
-                  : 'Alla resurser är aktuella'}
+                {metrics.totalResources === 1 
+                  ? '1 resurs tillagd'
+                  : `${metrics.totalResources} resurser tillagda`}
               </p>
               
               {/* Progress bar */}
@@ -458,8 +491,8 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
                     {metrics.communityConnections === 0 
                       ? 'Gå med i ett samhälle'
                       : metrics.communityConnections === 1 
-                        ? `Medlem i ${metrics.communityNames[0]}`
-                        : 'Medlem i samhällen'}
+                        ? `Medlem i 1 samhälle`
+                        : `Medlem i ${metrics.communityConnections} samhällen`}
                   </p>
                   </div>
                 </div>
@@ -474,7 +507,9 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
                 <p className="text-sm text-gray-600 mb-3 leading-relaxed">
                 {metrics.communityConnections === 0 
                   ? 'Anslut dig till lokala samhällen för bättre beredskap'
-                  : `${metrics.unreadMessages} nya meddelanden`}
+                  : metrics.availableResources === 1 
+                    ? '1 gemensam resurs'
+                    : `${metrics.availableResources} gemensamma resurser`}
               </p>
               
               {/* Progress bar */}

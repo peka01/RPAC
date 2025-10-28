@@ -88,12 +88,12 @@ export function GlobalMessagingButton({ user }: GlobalMessagingButtonProps) {
       {/* Messaging Button */}
       <button
         onClick={handleMessagingClick}
-        className="relative w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-all touch-manipulation active:scale-95"
+        className="relative w-12 h-12 bg-white/60 hover:bg-white/80 rounded-lg flex items-center justify-center transition-all duration-200 shadow-sm border border-gray-200/30"
         aria-label="Meddelanden"
       >
-        <MessageCircle className="w-5 h-5 text-gray-600" />
+        <MessageCircle className="w-6 h-6 text-gray-600" />
         {unreadCount > 0 && (
-          <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-bounce">
+          <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
             {unreadCount > 9 ? '9+' : unreadCount}
           </div>
         )}

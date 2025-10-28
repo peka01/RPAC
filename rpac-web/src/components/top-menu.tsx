@@ -14,6 +14,7 @@ import {
 import { t } from '@/lib/locales';
 import { supabase } from '@/lib/supabase';
 import { NotificationCenterResponsive } from './notification-center-responsive';
+import { GlobalMessagingButton } from './global-messaging-button';
 
 interface TopMenuProps {
   user: any;
@@ -188,8 +189,13 @@ export function TopMenu({ user }: TopMenuProps) {
             </Link>
           </div>
 
-          {/* Right side - User menu and notifications */}
+          {/* Right side - User menu, messaging and notifications */}
           <div className="flex items-center gap-3">
+          {/* Messaging Button */}
+          {user && (
+            <GlobalMessagingButton user={user} />
+          )}
+
           {/* Notifications */}
           {user && (
             <button
