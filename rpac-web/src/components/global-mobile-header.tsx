@@ -167,7 +167,7 @@ export function GlobalMobileHeader({ user }: GlobalMobileHeaderProps) {
                     <div className="font-semibold text-gray-900">{t('messaging.direct_messages')}</div>
                     <div className="text-sm text-gray-600">
                       {t('messaging.direct_messages_description')} {selectedCommunityId ? 
-                        userCommunities.find(c => c.id === selectedCommunityId)?.name || 'samhället' : 
+                        userCommunities.find(c => c.id === selectedCommunityId)?.community_name || 'samhället' : 
                         'samhället'
                       }
                     </div>

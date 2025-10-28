@@ -127,7 +127,7 @@ export function GlobalMessagingButton({ user }: GlobalMessagingButtonProps) {
               <div className="font-medium text-gray-900 text-sm">{t('messaging.direct_messages')}</div>
               <div className="text-xs text-gray-500">
                 {t('messaging.direct_messages_description')} {selectedCommunityId ? 
-                  userCommunities.find(c => c.id === selectedCommunityId)?.name || 'samhället' : 
+                  userCommunities.find(c => c.id === selectedCommunityId)?.community_name || 'samhället' : 
                   'samhället'
                 }
               </div>
