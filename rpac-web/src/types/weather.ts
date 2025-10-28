@@ -75,20 +75,34 @@ export interface SMHIWarningType {
 }
 
 export interface SMHIWarning {
-  id: string;
-  type: SMHIWarningType;
-  severity: SMHIWarningSeverity;
-  area: SMHIWarningArea;
-  startTime: string;
-  endTime: string;
-  issuedTime: string;
-  updatedTime: string;
-  description: string;
-  recommendation: string;
-  sourceInfo: {
-    source: 'smhi.se';
-    link: string;
+  id: number;
+  normalProbability: boolean;
+  event: {
+    sv: string;
+    en: string;
+    code: string;
+    mhoClassification: {
+      sv: string;
+      en: string;
+      code: string;
+    };
   };
+  descriptions: any[];
+  warningAreas: Array<{
+    id: number;
+    approximateStart: string;
+    approximateEnd?: string;
+    published: string;
+    normalProbability: boolean;
+    pushNotice: boolean;
+    areaName: string | { sv: string };
+    warningLevel: string | { sv: string; en: string; code: string };
+    eventDescription: string | { sv: string; en: string; code: string };
+    affectedAreas: string;
+    descriptions: string;
+    area: any;
+    created: string;
+  }>;
 }
 
 export interface SMHIWarningResponse {

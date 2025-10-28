@@ -176,12 +176,18 @@ export function WeatherBar({ className = '' }: WeatherBarProps) {
       {officialWarnings && officialWarnings.length > 0 && (
         <div className="divide-y divide-[#3D4A2B]/20">
           {officialWarnings.map((warning, index) => {
-            // Handle both old and new API structures
-            const warningName = warning.event?.sv || warning.type?.name || 'Varning';
-            const warningDescription = warning.warningAreas?.[0]?.eventDescription?.sv || warning.description || '';
-            const warningLevel = warning.warningAreas?.[0]?.warningLevel?.sv || '';
-            const startTime = warning.warningAreas?.[0]?.approximateStart || warning.startTime;
-            const endTime = warning.warningAreas?.[0]?.approximateEnd || warning.endTime;
+            // Handle new API structure
+            const warningName = warning.event?.sv || 'Varning';
+            const warningDescription = warning.warningAreas?.[0]?.eventDescription ? 
+              (typeof warning.warningAreas[0].eventDescription === 'string' 
+                ? warning.warningAreas[0].eventDescription 
+                : warning.warningAreas[0].eventDescription.sv) : '';
+            const warningLevel = warning.warningAreas?.[0]?.warningLevel ? 
+              (typeof warning.warningAreas[0].warningLevel === 'string' 
+                ? warning.warningAreas[0].warningLevel 
+                : warning.warningAreas[0].warningLevel.sv) : '';
+            const startTime = warning.warningAreas?.[0]?.approximateStart;
+            const endTime = warning.warningAreas?.[0]?.approximateEnd;
             
             return (
               <div 
