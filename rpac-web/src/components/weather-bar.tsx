@@ -15,6 +15,7 @@ import {
   Droplets,
   Eye
 } from 'lucide-react';
+import { WarningSeverityBadge } from '@/components/ui/warning-severity-badge';
 import { useWeather } from '@/contexts/WeatherContext';
 
 interface WeatherBarProps {
@@ -22,7 +23,7 @@ interface WeatherBarProps {
 }
 
 export function WeatherBar({ className = '' }: WeatherBarProps) {
-  const { weather, forecast, extremeWeatherWarnings, loading } = useWeather();
+  const { weather, forecast, extremeWeatherWarnings, officialWarnings, loading } = useWeather();
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -171,13 +172,43 @@ export function WeatherBar({ className = '' }: WeatherBarProps) {
 
   return (
     <div className={`bg-gradient-to-r from-[#3D4A2B]/10 to-[#5C6B47]/10 border border-[#3D4A2B]/20 rounded-lg overflow-hidden transition-all duration-300 ${className}`}>
-      {/* Weather Warnings - Show prominently if any */}
+      {/* SMHI Official Warnings - Show these first */}
+      {officialWarnings && officialWarnings.length > 0 && (
+        <div className="divide-y divide-[#3D4A2B]/20">
+          {officialWarnings.map((warning, index) => (
+            <div 
+              key={index}
+              className="bg-gradient-to-r from-[#3D4A2B]/15 to-[#5C6B47]/20 px-4 py-2"
+            >
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-[#3D4A2B] flex-shrink-0 mt-1" />
+                <div>
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <div className="text-sm font-semibold text-[#3D4A2B]">
+                      {warning.type.name}
+                    </div>
+                    <WarningSeverityBadge severity={warning.severity} />
+                  </div>
+                  <p className="text-xs text-[#3D4A2B]/80">
+                    {warning.description}
+                  </p>
+                  <div className="text-xs text-[#3D4A2B]/60 mt-1">
+                    Gäller {new Date(warning.startTime).toLocaleDateString('sv-SE')} - {new Date(warning.endTime).toLocaleDateString('sv-SE')}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Local Weather Warnings - Show after SMHI warnings */}
       {extremeWeatherWarnings && extremeWeatherWarnings.length > 0 && (
-        <div className="bg-gradient-to-r from-red-500/20 to-orange-500/20 border-b border-red-500/30 px-4 py-2">
+        <div className="bg-gradient-to-r from-[#3D4A2B]/15 to-[#5C6B47]/20 border-b border-[#3D4A2B]/30 px-4 py-2">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0" />
-            <div className="text-sm font-semibold text-red-800">
-              Vädervarning: {extremeWeatherWarnings.join(', ')}
+            <AlertTriangle className="w-4 h-4 text-[#3D4A2B] flex-shrink-0" />
+            <div className="text-sm font-semibold text-[#3D4A2B]">
+              Lokala varningar: {extremeWeatherWarnings.join(', ')}
             </div>
           </div>
         </div>

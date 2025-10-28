@@ -1,0 +1,66 @@
+import {
+  WeatherData,
+  WeatherForecast,
+  HourlyForecast,
+  SMHIWarning,
+  SMHIWarningResponse
+} from '@/types/weather';
+
+/**
+ * Weather Service for Swedish Weather Data
+ * Integrates with SMHI API for weather information
+ */
+export class WeatherService {
+  private static readonly SMHI_API_BASE = 'https://opendata-download-metfcst.smhi.se/api';
+  private static readonly SMHI_WARNINGS_API = 'https://opendata-download-warnings.smhi.se/api/version/2';
+  private static readonly CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
+  private static readonly WARNING_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes (more frequent for warnings)
+  private static weatherCache: { data: WeatherData; timestamp: number } | null = null;
+  private static warningCache: { data: SMHIWarningResponse; timestamp: number } | null = null;
+
+  /**
+   * Get official warnings from SMHI's warning system
+   * @param county Optional county name to filter warnings
+   * @returns Array of official SMHI warnings
+   */
+  static async getOfficialSMHIWarnings(county?: string): Promise<SMHIWarning[]> {
+    try {
+      // Check cache first
+      if (this.warningCache && 
+          Date.now() - this.warningCache.timestamp < this.WARNING_CACHE_DURATION) {
+        const warnings = this.warningCache.data.warnings;
+        return county 
+          ? warnings.filter(w => w.area.name.toLowerCase() === county.toLowerCase())
+          : warnings;
+      }
+
+      // Fetch new warnings
+      const response = await fetch(`${this.SMHI_WARNINGS_API}/alerts/active.json`);
+      
+      if (!response.ok) {
+        console.error('Failed to fetch SMHI warnings:', response.statusText);
+        return [];
+      }
+
+      const warningData: SMHIWarningResponse = await response.json();
+
+      // Cache the result
+      this.warningCache = {
+        data: warningData,
+        timestamp: Date.now()
+      };
+
+      // Filter by county if provided
+      const warnings = warningData.warnings;
+      return county 
+        ? warnings.filter(w => w.area.name.toLowerCase() === county.toLowerCase())
+        : warnings;
+
+    } catch (error) {
+      console.error('Error fetching SMHI warnings:', error);
+      return [];
+    }
+  }
+
+  // ... rest of the existing WeatherService implementation
+}
