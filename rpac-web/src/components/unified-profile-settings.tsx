@@ -9,10 +9,8 @@ import {
   CheckCircle,
   Upload,
   X,
-  Shield,
   MapPin,
-  Users,
-  AlertTriangle
+  Users
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
@@ -43,12 +41,6 @@ interface ProfileData {
   postal_code: string;
   city: string;
   county: string;
-  location_privacy: string;
-  
-  // Emergency
-  emergency_contact_name: string;
-  emergency_contact_phone: string;
-  emergency_contact_relation: string;
   
   // Household
   household_size: number;
@@ -92,10 +84,6 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
     postal_code: '',
     city: '',
     county: '',
-    location_privacy: 'county_only',
-    emergency_contact_name: '',
-    emergency_contact_phone: '',
-    emergency_contact_relation: '',
     household_size: 1,
     has_pets: false,
     pet_types: ''
@@ -141,10 +129,6 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
           postal_code: data.postal_code || '',
           city: data.city || '',
           county: data.county || '',
-          location_privacy: localLocationPrivacy || 'county_only',
-          emergency_contact_name: data.emergency_contact_name || '',
-          emergency_contact_phone: data.emergency_contact_phone || '',
-          emergency_contact_relation: data.emergency_contact_relation || '',
           household_size: data.household_size || 1,
           has_pets: data.has_pets || false,
           pet_types: data.pet_types || ''
@@ -316,9 +300,6 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
         postal_code: profile.postal_code || '',
         city: profile.city || '',
         county: profile.county ? profile.county.toLowerCase() : '', // Normalize to lowercase before validation
-        emergency_contact_name: profile.emergency_contact_name || '',
-        emergency_contact_phone: profile.emergency_contact_phone || '',
-        emergency_contact_relation: profile.emergency_contact_relation || '',
         household_size: profile.household_size || 1,
         has_pets: profile.has_pets || false,
         pet_types: profile.pet_types || ''
@@ -330,8 +311,6 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
         ...validatedData,
         display_name: sanitizeHtml(validatedData.display_name),
         address: validatedData.address ? sanitizeHtml(validatedData.address) : '',
-        emergency_contact_name: validatedData.emergency_contact_name ? sanitizeHtml(validatedData.emergency_contact_name) : '',
-        emergency_contact_relation: validatedData.emergency_contact_relation ? sanitizeHtml(validatedData.emergency_contact_relation) : '',
         pet_types: validatedData.pet_types ? sanitizeHtml(validatedData.pet_types) : ''
       };
 
@@ -369,11 +348,6 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
       }
 
       if (error) throw error;
-
-      // Save location privacy to localStorage
-      if (profile.location_privacy) {
-        localStorage.setItem(`user_${user.id}_location_privacy`, profile.location_privacy);
-      }
 
       setMessage({ type: 'success', text: 'Profil sparad!' });
       setAvatarFile(null);
@@ -485,9 +459,9 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
         </div>
       )}
 
-      {/* Identity & Privacy Section */}
+      {/* Profile Section */}
       <SectionComponent 
-        title="Identitet & Integritet" 
+        title="Profil" 
         icon={User}
       >
         <div className="space-y-6">
@@ -519,7 +493,7 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
 
             <div className="flex-1 space-y-3">
               <p className="text-sm text-gray-600">
-                Välj en profilbild som representerar dig. Max 2MB (JPG, PNG, GIF).
+                Välj en profilbild. Max 2MB (JPG, PNG, GIF).
               </p>
               <div className="flex flex-wrap gap-2">
                 <button
@@ -616,177 +590,122 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
               />
             </div>
           </div>
-        </div>
-      </SectionComponent>
 
-      {/* Location Section */}
-      <SectionComponent 
-        title="Plats & Bostadsinformation" 
-        icon={MapPin}
-      >
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Adress</label>
-              <input
-                type="text"
-                value={profile.address}
-                onChange={handleInputChange('address')}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
-                placeholder="Gatuadress"
-              />
-            </div>
+          {/* Location Information */}
+          <div className="pt-4 border-t border-gray-200">
+            <h4 className="text-md font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <MapPin className="w-4 h-4" />
+              Platsinformation
+            </h4>
+            
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Adress</label>
+                  <input
+                    type="text"
+                    value={profile.address}
+                    onChange={handleInputChange('address')}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
+                    placeholder="Gatuadress"
+                  />
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Postnummer</label>
-              <input
-                ref={postalCodeRef}
-                type="text"
-                value={profile.postal_code}
-                onChange={handleInputChange('postal_code')}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B] transition-all duration-300 ${
-                  highlightPostalCode 
-                    ? 'border-[#3D4A2B] ring-4 ring-[#3D4A2B]/20 bg-[#5C6B47]/5' 
-                    : 'border-gray-300'
-                }`}
-                placeholder="123 45"
-              />
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Postnummer</label>
+                  <input
+                    ref={postalCodeRef}
+                    type="text"
+                    value={profile.postal_code}
+                    onChange={handleInputChange('postal_code')}
+                    className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B] transition-all duration-300 ${
+                      highlightPostalCode 
+                        ? 'border-[#3D4A2B] ring-4 ring-[#3D4A2B]/20 bg-[#5C6B47]/5' 
+                        : 'border-gray-300'
+                    }`}
+                    placeholder="123 45"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Stad</label>
+                  <input
+                    type="text"
+                    value={profile.city}
+                    onChange={handleInputChange('city')}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
+                    placeholder="Stockholm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Län
+                    {profile.county && <span className="text-xs text-gray-500 ml-2">(fylls i automatiskt)</span>}
+                  </label>
+                  <input
+                    type="text"
+                    value={getCountyDisplayName(profile.county)}
+                    readOnly
+                    disabled
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                    placeholder="Fylls i automatiskt från postnummer"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Stad</label>
-              <input
-                type="text"
-                value={profile.city}
-                onChange={handleInputChange('city')}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
-                placeholder="Stockholm"
-              />
-            </div>
+          {/* Household Information */}
+          <div className="pt-4 border-t border-gray-200">
+            <h4 className="text-md font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Hushållsinformation
+            </h4>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Antal personer i hushållet</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={profile.household_size}
+                  onChange={handleNumberChange('household_size')}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Län
-                {profile.county && <span className="text-xs text-gray-500 ml-2">(fylls i automatiskt)</span>}
-              </label>
-              <input
-                type="text"
-                value={getCountyDisplayName(profile.county)}
-                readOnly
-                disabled
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
-                placeholder="Fylls i automatiskt från postnummer"
-              />
-            </div>
-          </div>
+              <div className="space-y-3">
+                <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={profile.has_pets}
+                    onChange={handleCheckboxChange('has_pets')}
+                    className="w-5 h-5 text-[#3D4A2B] rounded focus:ring-[#3D4A2B]"
+                  />
+                  <span className="text-sm font-medium text-gray-900">Husdjur</span>
+                </label>
+              </div>
 
-          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Shield size={16} className="inline mr-2" />
-              Platsintegritet
-            </label>
-            <select
-              value={profile.location_privacy}
-              onChange={handleInputChange('location_privacy')}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
-            >
-              <option value="exact">Exakt adress (max öppenhet)</option>
-              <option value="city_only">Endast stad</option>
-              <option value="county_only">Endast län (rekommenderat)</option>
-              <option value="hidden">Dölj plats helt</option>
-            </select>
-          </div>
-        </div>
-      </SectionComponent>
-
-      {/* Emergency Contact */}
-      <SectionComponent 
-        title="Akutkontakt" 
-        icon={AlertTriangle}
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Kontaktperson</label>
-            <input
-              type="text"
-              value={profile.emergency_contact_name}
-              onChange={handleInputChange('emergency_contact_name')}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
-              placeholder="Namn på närstående"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Telefonnummer</label>
-              <input
-                type="tel"
-                value={profile.emergency_contact_phone}
-                onChange={handleInputChange('emergency_contact_phone')}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
-                placeholder="+46 70 123 45 67"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Relation</label>
-              <input
-                type="text"
-                value={profile.emergency_contact_relation}
-                onChange={handleInputChange('emergency_contact_relation')}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
-                placeholder="t.ex. make/maka, barn, förälder"
-              />
+              {profile.has_pets && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Typ av husdjur</label>
+                  <input
+                    type="text"
+                    value={profile.pet_types}
+                    onChange={handleInputChange('pet_types')}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
+                    placeholder="t.ex. hund, katt, kanin..."
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
       </SectionComponent>
 
-      {/* Household */}
-      <SectionComponent 
-        title="Hushållsinformation" 
-        icon={Users}
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Antal personer i hushållet</label>
-            <input
-              type="number"
-              min="1"
-              value={profile.household_size}
-              onChange={handleNumberChange('household_size')}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
-            />
-          </div>
-
-          <div className="space-y-3">
-            <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={profile.has_pets}
-                onChange={handleCheckboxChange('has_pets')}
-                className="w-5 h-5 text-[#3D4A2B] rounded focus:ring-[#3D4A2B]"
-              />
-              <span className="text-sm font-medium text-gray-900">Husdjur</span>
-            </label>
-          </div>
-
-          {profile.has_pets && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Typ av husdjur</label>
-              <input
-                type="text"
-                value={profile.pet_types}
-                onChange={handleInputChange('pet_types')}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
-                placeholder="t.ex. hund, katt, kanin..."
-              />
-            </div>
-          )}
-        </div>
-      </SectionComponent>
 
       {/* Save Button - Sticky */}
       <div className="sticky bottom-6 z-10">
