@@ -344,7 +344,6 @@ export const cultivationPlanService = {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching plans:', error);
       return [];
     }
 
@@ -375,7 +374,6 @@ export const cultivationPlanService = {
       .single();
 
     if (error) {
-      console.error('Error creating plan:', error);
       return null;
     }
 
@@ -405,7 +403,6 @@ export const cultivationPlanService = {
       .eq('id', planId);
 
     if (error) {
-      console.error('Error updating plan:', error);
       return false;
     }
 
@@ -419,7 +416,6 @@ export const cultivationPlanService = {
       .eq('id', planId);
 
     if (error) {
-      console.error('Error deleting plan:', error);
       return false;
     }
 
@@ -440,7 +436,6 @@ export const cultivationPlanService = {
       .eq('id', planId);
 
     if (error) {
-      console.error('Error setting primary plan:', error);
       return false;
     }
 

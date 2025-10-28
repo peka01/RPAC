@@ -59,8 +59,95 @@ export function WeatherBar({ className = '' }: WeatherBarProps) {
 
   // Get location display name
   const getLocationName = () => {
-    // This would ideally come from user profile, but for now we'll use a default
-    return 'Stockholm';
+    // Get postal code region name based on first 2 digits
+    if (!weather) return 'Laddar...';
+
+    // Check that we have valid location data
+    if (!weather._postalCode || typeof weather._postalCode !== 'string') {
+      // Fallback to city or county if postal code is missing
+      
+      // Try city first
+      if (weather._city && typeof weather._city === 'string' && weather._city.trim()) {
+        return weather._city;
+      }
+      
+      // Then try county
+      if (weather._county && typeof weather._county === 'string' && weather._county.trim()) {
+        const countyName = weather._county.trim().toLowerCase();
+        return `${countyName.charAt(0).toUpperCase() + countyName.slice(1)} län`;
+      }
+      
+      return 'Sverige';
+    }
+
+    // Special case for 36334 Tjureda (handle both XXXXX and XXX XX formats)
+    if (weather._postalCode === '36334' || weather._postalCode === '363 34' || 
+        weather._postalCode?.replace(/\s+/g, '') === '36334') {
+      return 'Tjureda, Växjö kommun';
+    }
+
+    // Swedish postal code region names
+    const postalRegionNames: Record<string, string> = {
+      // Kronoberg region (34-36)
+      '34': 'Växjö',
+      '35': 'Alvesta',
+      '36': 'Tingsryd',
+      
+      // Kalmar region (38-39)
+      '38': 'Kalmar',
+      '39': 'Oskarshamn',
+      
+      // Gotland (62)
+      '62': 'Visby',
+      
+      // Stockholm region (10-19)
+      '10': 'Stockholm',
+      '11': 'Stockholm C',
+      '12': 'Söderort',
+      '13': 'Västerort',
+      '14': 'Östermalm',
+      '15': 'Norrmalm',
+      '16': 'Bromma',
+      '17': 'Farsta',
+      '18': 'Sundbyberg',
+      '19': 'Lidingö',
+      
+      // Skåne region (20-29)
+      '20': 'Malmö',
+      '21': 'Malmö C',
+      '22': 'Lund',
+      '23': 'Eslöv',
+      '24': 'Helsingborg',
+      '25': 'Ängelholm',
+      '26': 'Hässleholm',
+      '27': 'Ystad',
+      '28': 'Kristianstad',
+      '29': 'Karlskrona',
+      
+      // Other major regions
+      '40': 'Göteborg',
+      '41': 'Göteborg C',
+      '42': 'Göteborg N',
+      '43': 'Göteborg S',
+      '44': 'Kungälv',
+      '75': 'Uppsala',
+      '80': 'Sundsvall',
+      '90': 'Umeå',
+      '95': 'Luleå'
+    };
+
+    // Try to get location name from postal code region
+    if (weather._postalCode) {
+      const region = weather._postalCode.slice(0, 2);
+      const locationName = postalRegionNames[region];
+      if (locationName) return locationName;
+    }
+
+    // If no postal code match, try city/county
+    if (weather._city) return weather._city;
+    if (weather._county) return weather._county + ' län';
+
+    return 'Sverige';
   };
 
   if (loading) {

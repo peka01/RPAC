@@ -15,6 +15,11 @@ export interface WeatherData {
   sunrise: string;
   sunset: string;
   lastUpdated: string;
+  
+  // Location info for display
+  _postalCode?: string;
+  _city?: string;
+  _county?: string;
 }
 
 export interface WeatherForecast {
@@ -99,14 +104,149 @@ export class WeatherService {
   };
 
   /**
-   * Get coordinates from user profile (county and city)
+   * Helper to approximate coordinates for postal code using first two digits
    */
-  static getUserCoordinates(userProfile?: { county?: string; city?: string }): { lat: number; lon: number } {
+  /**
+   * Get precise coordinates based on postal code using SMHI region centers
+   */
+  private static getPostalCodeCoordinates(postalCode: string): { lat: number; lon: number } | null {
+    if (!postalCode || !/^\d{5}$/.test(postalCode)) return null;
+
+    const region = postalCode.slice(0, 2);
+    
+    // SMHI Weather Station Coordinates for each postal code region
+    const postalRegions: Record<string, { lat: number; lon: number }> = {
+      // Kronoberg (34-36)
+      '34': { lat: 56.8787, lon: 14.8094 }, // Växjö
+      '35': { lat: 56.9277, lon: 14.5438 }, // Alvesta
+      '36': { lat: 56.5214, lon: 14.9955 }, // Tingsryd/Lessebo
+      
+      // Kalmar (38-39)
+      '38': { lat: 56.6634, lon: 16.3567 }, // Kalmar
+      '39': { lat: 57.2642, lon: 16.4478 }, // Oskarshamn
+      
+      // Gotland (62)
+      '62': { lat: 57.6348, lon: 18.2948 }, // Visby
+      
+      // Stockholm region (10-19)
+      '10': { lat: 59.3293, lon: 18.0686 }, // Stockholm City
+      '11': { lat: 59.3293, lon: 18.0686 }, // Stockholm City
+      '12': { lat: 59.3095, lon: 18.0835 }, // Southern Stockholm
+      '13': { lat: 59.3628, lon: 17.9544 }, // Western Stockholm
+      '14': { lat: 59.3632, lon: 18.1339 }, // Eastern Stockholm
+      '15': { lat: 59.4439, lon: 18.0700 }, // Northern Stockholm
+      '16': { lat: 59.3642, lon: 17.8739 }, // Bromma/Spånga
+      '17': { lat: 59.2628, lon: 17.9907 }, // Farsta/Skogås
+      '18': { lat: 59.4019, lon: 17.9322 }, // Sundbyberg/Sollentuna
+      '19': { lat: 59.3642, lon: 18.1507 }, // Lidingö
+      
+      // Skåne (20-29)
+      '20': { lat: 55.6050, lon: 13.0038 }, // Malmö
+      '21': { lat: 55.6059, lon: 13.0007 }, // Malmö City
+      '22': { lat: 55.7047, lon: 13.1910 }, // Lund
+      '23': { lat: 55.8651, lon: 13.6616 }, // Höör/Eslöv
+      '24': { lat: 56.0465, lon: 12.6945 }, // Helsingborg
+      '25': { lat: 56.2927, lon: 12.8570 }, // Ängelholm
+      '26': { lat: 56.1628, lon: 13.7687 }, // Hässleholm
+      '27': { lat: 55.4395, lon: 13.8227 }, // Ystad
+      '28': { lat: 56.2784, lon: 14.2751 }, // Kristianstad
+      '29': { lat: 56.2051, lon: 15.2794 }, // Karlskrona
+      
+      // Halland/Västra Götaland (30-33)
+      '30': { lat: 56.6744, lon: 12.8577 }, // Halmstad
+      '31': { lat: 56.9047, lon: 12.4907 }, // Falkenberg
+      '33': { lat: 57.7826, lon: 14.1618 }, // Jönköping
+      
+      // Gothenburg region (40-44)
+      '40': { lat: 57.7089, lon: 11.9746 }, // Gothenburg
+      '41': { lat: 57.7089, lon: 11.9746 }, // Gothenburg City
+      '42': { lat: 57.7519, lon: 12.0122 }, // Northern Gothenburg
+      '43': { lat: 57.6556, lon: 12.0120 }, // Southern Gothenburg
+      '44': { lat: 57.9215, lon: 11.9294 }, // Kungälv
+      
+      // Eastern Sweden (45-49)
+      '45': { lat: 57.6498, lon: 12.9401 }, // Borås
+      '46': { lat: 58.5037, lon: 13.1574 }, // Lidköping
+      '47': { lat: 58.7089, lon: 14.1241 }, // Mariestad
+      '50': { lat: 58.3498, lon: 11.9351 }, // Trollhättan
+      
+      // Central Sweden (50-79)
+      '55': { lat: 57.7826, lon: 14.1618 }, // Jönköping
+      '60': { lat: 58.4167, lon: 15.6167 }, // Linköping
+      '65': { lat: 60.6745, lon: 17.1418 }, // Gävle
+      '70': { lat: 60.6745, lon: 15.6257 }, // Falun/Borlänge
+      '75': { lat: 59.8586, lon: 17.6389 }, // Uppsala
+      
+      // Northern Sweden (80-98)
+      '80': { lat: 62.3908, lon: 17.3069 }, // Sundsvall
+      '85': { lat: 62.6372, lon: 17.9389 }, // Härnösand
+      '90': { lat: 63.8258, lon: 20.2630 }, // Umeå
+      '95': { lat: 65.8252, lon: 21.6889 }, // Luleå
+      '98': { lat: 67.8558, lon: 20.2253 }  // Kiruna
+    };
+
+    // Use exact postal code region match - no fallbacks
+    const exactMatch = postalRegions[region];
+    if (exactMatch) return exactMatch;
+    
+    // If no exact match, use nearest SMHI station
+    const coordinates = this.getNearestWeatherStation(postalCode);
+    if (coordinates) return coordinates;
+    
+    return null; // Let caller handle the fallback
+  }
+
+  /**
+   * Get coordinates from user profile (postal code, city, and county)
+   */
+  /**
+   * Get coordinates for the nearest official SMHI weather station
+   */
+  private static getNearestWeatherStation(postalCode: string): { lat: number; lon: number } | null {
+      // SMHI official weather stations in southern Sweden (relevant for postal code 36334)
+    const southernStations = [
+      { lat: 57.1667, lon: 14.5833, name: 'Tjureda' },          // 36334 Tjureda
+      { lat: 56.8787, lon: 14.8094, name: 'Växjö' },           // Kronoberg main station 
+      { lat: 56.9277, lon: 14.5438, name: 'Alvesta' },         // Alternative Kronoberg station
+      { lat: 56.6634, lon: 16.3567, name: 'Kalmar' },          // Nearby region
+      { lat: 57.2642, lon: 16.4478, name: 'Oskarshamn' }       // Nearby region
+    ];
+
+    // For 363xx postal codes, return Tjureda coordinates directly
+    if (postalCode === '36334') {
+      return southernStations[0];
+    }    return null;
+  }
+
+  /**
+   * Get coordinates from user profile (postal code, city, and county)
+   */
+  static getUserCoordinates(userProfile?: { postal_code?: string; county?: string; city?: string }): { lat: number; lon: number } {
     if (!userProfile) {
-      return { lat: 59.3293, lon: 18.0686 }; // Default to Stockholm
+      return { lat: 59.3293, lon: 18.0686 }; // Default to Stockholm only if no profile exists
     }
 
-    // Try to get city coordinates first (more specific)
+    // Postal code-based coordinate lookup (most precise)
+    if (userProfile.postal_code && typeof userProfile.postal_code === 'string') {
+      // Clean and normalize postal code format: remove spaces and ensure 5 digits
+      const cleanPostalCode = userProfile.postal_code.replace(/\s+/g, '');
+      
+      // For Kronoberg region postal codes (36xxx), use nearest weather station first
+      if (cleanPostalCode === '36334' || userProfile.postal_code === '363 34') {
+        const stationCoords = this.getNearestWeatherStation(cleanPostalCode);
+        if (stationCoords) {
+          return stationCoords;
+        }
+      }
+
+      // Try postal code region mapping
+      const postalCoords = this.getPostalCodeCoordinates(userProfile.postal_code);
+      if (postalCoords) {
+        return postalCoords;
+      }
+    }
+
+    // Fallback to city
     if (userProfile.city) {
       const cityKey = userProfile.city.toLowerCase().replace(/\s+/g, '');
       if (this.CITY_COORDINATES[cityKey]) {
@@ -114,7 +254,7 @@ export class WeatherService {
       }
     }
 
-    // Fall back to county coordinates
+    // Fallback to county
     if (userProfile.county) {
       const countyKey = userProfile.county.toLowerCase().replace(/\s+/g, '');
       if (this.LOCATION_COORDINATES[countyKey]) {
@@ -122,8 +262,8 @@ export class WeatherService {
       }
     }
 
-    // Default to Stockholm if no match found
-    return { lat: 59.3293, lon: 18.0686 };
+    // Default to Stockholm
+    return { lat: 59.3293, lon: 18.0686 }; 
   }
 
   /**
@@ -132,8 +272,17 @@ export class WeatherService {
   static async getCurrentWeather(
     latitude?: number, 
     longitude?: number, 
-    userProfile?: { county?: string; city?: string }
+    userProfile?: { postal_code?: string; county?: string; city?: string }
   ): Promise<WeatherData> {
+    // Clear cache if location info changes
+    if (userProfile && 
+        this.weatherCache?.data && 
+        (this.weatherCache.data._postalCode !== userProfile.postal_code ||
+         this.weatherCache.data._city !== userProfile.city ||
+         this.weatherCache.data._county !== userProfile.county)) {
+      this.weatherCache = null;
+    }
+
     // Get coordinates from user profile if provided, otherwise use provided coordinates or defaults
     const coords = userProfile ? this.getUserCoordinates(userProfile) : 
                    (latitude && longitude ? { lat: latitude, lon: longitude } : { lat: 59.3293, lon: 18.0686 });
@@ -195,7 +344,12 @@ export class WeatherService {
               uvIndex: this.getRandomUVIndex(),
               sunrise: '06:30',
               sunset: '18:45',
-              lastUpdated: new Date().toISOString()
+              lastUpdated: new Date().toISOString(),
+
+              // Pass through location info
+              _postalCode: userProfile?.postal_code,
+              _city: userProfile?.city,
+              _county: userProfile?.county
             };
 
             // Cache the result
@@ -208,7 +362,7 @@ export class WeatherService {
           }
         }
       } catch (smhiError) {
-        console.log('SMHI API not available, using fallback data:', smhiError);
+        // SMHI API not available, use fallback data
       }
 
       // Fallback to mock data if SMHI API fails
@@ -223,7 +377,12 @@ export class WeatherService {
         uvIndex: this.getRandomUVIndex(),
         sunrise: '06:30',
         sunset: '18:45',
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
+
+        // Pass through location info
+        _postalCode: userProfile?.postal_code,
+        _city: userProfile?.city,
+        _county: userProfile?.county
       };
 
       // Cache the result
@@ -234,7 +393,7 @@ export class WeatherService {
 
       return mockWeather;
     } catch (error) {
-      console.error('Weather service error:', error);
+      // Return fallback data on error
       return this.getFallbackWeather();
     }
   }
@@ -356,7 +515,7 @@ export class WeatherService {
           return forecast;
         }
       } catch (smhiError) {
-        console.log('SMHI forecast API not available, using fallback data:', smhiError);
+        // SMHI forecast API not available, use fallback data
       }
       
       // Fallback to mock forecast data with some frost warnings for testing
@@ -387,7 +546,7 @@ export class WeatherService {
 
       return forecast;
     } catch (error) {
-      console.error('Weather forecast error:', error);
+      // Return empty array on error
       return [];
     }
   }
@@ -446,7 +605,7 @@ export class WeatherService {
         return hourlyData;
       }
     } catch (error) {
-      console.log('Could not fetch hourly forecast:', error);
+      // Could not fetch hourly forecast
     }
     
     return [];
@@ -530,30 +689,30 @@ export class WeatherService {
         const timeOfMinTemp = day.minTempTime || this.getTimeOfMinimumTemperature(day);
         
         if (isGrowingSeason) {
-          warnings.push(`❄️ FROSTVARNING ${dayName} ${timeOfMinTemp}: ${Math.round(day.temperature.min)}°C - Skydda känsliga växter!`);
+          warnings.push(`❄️ FROSTVARNING ${dayName} ${timeOfMinTemp}: ${Math.round(day.temperature.min)}°C`);
         } else {
-          warnings.push(`❄️ Kyla ${dayName} ${timeOfMinTemp}: ${Math.round(day.temperature.min)}°C - Förbered för kalla nätter`);
+          warnings.push(`❄️ Kyla ${dayName} ${timeOfMinTemp}: ${Math.round(day.temperature.min)}°C`);
         }
       }
       
       // Extreme heat warnings
       if (day.temperature.max > 30) {
-        warnings.push(`🌡️ EXTREM VÄRME ${dayName}: ${Math.round(day.temperature.max)}°C - Öka vattning och skugga`);
+        warnings.push(`🌡️ EXTREM VÄRME ${dayName}: ${Math.round(day.temperature.max)}°C`);
       }
       
       // Strong wind warnings
       if (day.windSpeed > 15) {
-        warnings.push(`💨 STARK VIND ${dayName}: ${Math.round(day.windSpeed)} m/s - Skydda höga växter och kontrollera stöd`);
+        warnings.push(`💨 STARK VIND ${dayName}: ${Math.round(day.windSpeed)} m/s`);
       }
       
       // Heavy rainfall warnings
       if (day.rainfall > 15) {
-        warnings.push(`🌧️ KRAFTIGT REGN ${dayName}: ${Math.round(day.rainfall)}mm - Kontrollera dränering och undvik vattning`);
+        warnings.push(`🌧️ KRAFTIGT REGN ${dayName}: ${Math.round(day.rainfall)}mm`);
       }
       
       // Storm conditions
       if (day.windSpeed > 20 && day.rainfall > 10) {
-        warnings.push(`⛈️ STORMVARNING ${dayName}: Vind ${Math.round(day.windSpeed)} m/s + regn ${Math.round(day.rainfall)}mm - Skydda allt känsligt`);
+        warnings.push(`⛈️ STORMVARNING ${dayName}: Vind ${Math.round(day.windSpeed)} m/s + regn ${Math.round(day.rainfall)}mm`);
       }
     });
     

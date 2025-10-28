@@ -12,16 +12,9 @@ interface User {
   };
 }
 
-interface UserProfile {
-  climateZone?: string;
-  householdSize?: number;
-  hasChildren?: boolean;
-  county?: string;
-  city?: string;
-  experienceLevel?: string;
-  gardenSize?: string;
-  crisisMode?: boolean;
-  location?: string;
+import { UserProfile as DatabaseUserProfile } from '@/lib/useUserProfile';
+
+interface UserProfile extends DatabaseUserProfile {
   weather?: {
     temperature?: number;
     humidity?: number;

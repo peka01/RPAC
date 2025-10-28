@@ -347,7 +347,7 @@ export function KRISterAssistantMobile({ user, userProfile = {}, currentPage, cu
           currentPage,
           cultivationPlan: cultivationPlan || undefined,
           resources: resources || undefined,
-          upcomingTasks: undefined // Could fetch from cultivation_calendar if implemented
+          upcomingTasks: undefined
         }
       });
 

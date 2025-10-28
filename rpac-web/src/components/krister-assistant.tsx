@@ -32,12 +32,10 @@ interface User {
   };
 }
 
-interface UserProfile {
+import type { UserProfile as DBUserProfile } from '@/lib/useUserProfile';
+
+interface UserProfile extends DBUserProfile {
   climateZone?: string;
-  householdSize?: number;
-  hasChildren?: boolean;
-  county?: string;
-  city?: string;
   experienceLevel?: string;
   gardenSize?: string;
   crisisMode?: boolean;
@@ -56,7 +54,7 @@ interface UserProfile {
       severity?: 'low' | 'moderate' | 'severe' | 'extreme';
     }>;
   };
-  [key: string]: unknown;
+  [key: string]: any;
 }
 
 interface KRISterAssistantProps {
@@ -86,7 +84,15 @@ interface DailyTip {
   timeframe?: string;
 }
 
-export function KRISterAssistant({ user, userProfile = {}, currentPage, currentAction }: KRISterAssistantProps) {
+export function KRISterAssistant({ user, userProfile, currentPage, currentAction }: KRISterAssistantProps) {
+  // Ensure we have a valid profile
+  userProfile = userProfile || {
+    id: '',
+    user_id: user?.id || '',
+    created_at: new Date(),
+    updated_at: new Date(),
+    county: 'stockholm'
+  };
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -293,8 +299,9 @@ export function KRISterAssistant({ user, userProfile = {}, currentPage, currentA
     try {
       setIsLoading(true);
       
-      // Load weather data
+      // Load weather data with postal code for better accuracy
       const weather = await WeatherService.getCurrentWeather(undefined, undefined, {
+        postal_code: userProfile?.postal_code,
         county: userProfile?.county,
         city: userProfile?.city
       });
@@ -428,6 +435,7 @@ export function KRISterAssistant({ user, userProfile = {}, currentPage, currentA
           hasChildren: typeof userProfile?.has_children === 'boolean' ? userProfile.has_children : false,
           county: userProfile?.county || 'Okänd',
           city: userProfile?.city || '',
+          postal_code: userProfile?.postal_code || '',
           weather: weather ? {
             temperature: weather.temperature,
             humidity: weather.humidity,
@@ -445,7 +453,7 @@ export function KRISterAssistant({ user, userProfile = {}, currentPage, currentA
           currentPage,
           cultivationPlan: cultivationPlan || undefined,
           resources: resources || undefined,
-          upcomingTasks: undefined // Could fetch from cultivation_calendar if implemented
+          upcomingTasks: undefined
         }
       });
 

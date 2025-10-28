@@ -37,11 +37,15 @@ export function WeatherProvider({ children, user }: WeatherProviderProps) {
     try {
       setLoading(true);
       
-      // Get location info from user profile
+      // Get location info from user profile (postal code first for better accuracy)
       const userProfile = profile ? {
-        county: profile.county,
+        postal_code: profile.postal_code?.trim(),
+        county: profile.county?.toLowerCase(),
         city: profile.city
       } : undefined;
+
+      // Get coordinates for weather data
+      const coords = WeatherService.getUserCoordinates(userProfile);
 
       // Fetch current weather, forecast, and hourly data
       const [weatherData, forecastData, hourlyData] = await Promise.all([

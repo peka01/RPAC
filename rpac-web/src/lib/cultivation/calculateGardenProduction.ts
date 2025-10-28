@@ -19,18 +19,10 @@ export const calculateGardenProduction = (
   let totalCost = 0;
   let totalSpaceUsed = 0;
   
-  console.log('🔍 Calculating garden production:', {
-    selectedCrops,
-    gardenSize,
-    intensity,
-    intensityMultiplier,
-    volumes,
-    gardenPlanCrops: gardenPlan?.crops?.length || 0
-  });
+
   
   // Safety check for undefined or null selectedCrops
   if (!selectedCrops || !Array.isArray(selectedCrops)) {
-    console.warn('⚠️ selectedCrops is undefined or not an array, returning zero production');
     return {
       calories: 0,
       cost: 0,
@@ -46,13 +38,7 @@ export const calculateGardenProduction = (
       const crop = gardenPlan.crops.find((c: any) => c.name === cropName);
       
       if (crop) {
-        console.log(`🌱 Processing crop: ${cropName}`, {
-          plantCount,
-          cropCalories: crop.calories,
-          cropYield: crop.yield,
-          cropSpaceRequired: crop.spaceRequired,
-          intensityMultiplier
-        });
+
         
         // FIXED: Calculate calories per plant correctly
         // Use the crop's calories as total calories for the yield, then calculate per plant
@@ -60,11 +46,7 @@ export const calculateGardenProduction = (
         const caloriesFromCrop = caloriesPerPlant * plantCount * intensityMultiplier;
         totalCalories += caloriesFromCrop;
         
-        console.log(`📊 ${cropName} calories:`, {
-          caloriesPerPlant: Math.round(caloriesPerPlant),
-          caloriesFromCrop: Math.round(caloriesFromCrop),
-          totalCalories: Math.round(totalCalories)
-        });
+
         
         // Estimate cost per plant (rough estimate based on crop type)
         const costPerPlant = getCropPrice(cropName);
@@ -76,16 +58,8 @@ export const calculateGardenProduction = (
         const spaceUsed = spacePerPlant * plantCount;
         totalSpaceUsed += spaceUsed;
         
-        console.log(`📏 ${cropName} space:`, {
-          spacePerPlant,
-          spaceUsed: Math.round(spaceUsed * 10) / 10,
-          totalSpaceUsed: Math.round(totalSpaceUsed * 10) / 10
-        });
-      } else {
-        console.warn(`⚠️ Crop not found in garden plan: ${cropName}`);
+
       }
-    } else {
-      console.log(`⏭️ Skipping ${cropName}: plantCount=${plantCount}, gardenPlanCrops=${gardenPlan?.crops?.length || 0}`);
     }
   });
 
@@ -95,7 +69,7 @@ export const calculateGardenProduction = (
     spaceUsed: Math.round(totalSpaceUsed * 10) / 10
   };
   
-  console.log('✅ Final garden production result:', result);
+
   
   return result;
 };

@@ -386,7 +386,10 @@ export function StunningDashboardMobileV2({ user }: { user: User | null }) {
             Min odling
           </h3>
           <button 
-            onClick={() => router.push('/individual?section=cultivation')}
+            onClick={() => router.push(metrics.planName 
+              ? '/individual?section=cultivation&plan=current' 
+              : '/individual?section=cultivation'
+            )}
             className="w-full bg-white border-2 border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-[#3D4A2B]/30 transition-all duration-200 touch-manipulation active:scale-[0.99]"
           >
             <div className="flex items-center justify-between mb-4">

@@ -131,9 +131,8 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
           resources = [];
         }
 
-        // Load cultivation data - try multiple sources like other components
+        // Load cultivation data from main table
         let plan = null;
-        let cultivationCalendar = [];
         
         // Try cultivation_plans first (same as individual-dashboard)
         try {
@@ -147,54 +146,24 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
             .maybeSingle();
           
           if (planError && planError.code !== 'PGRST116') {
-            console.warn('Cultivation plan not available:', planError.message);
           } else {
             plan = planData;
-            console.log('Found cultivation plan:', plan);
-            console.log('Plan name:', plan?.name, plan?.plan_name, plan?.title);
-            console.log('Plan crops:', plan?.crops);
-            console.log('Plan progress_data:', plan?.progress_data);
-            console.log('Plan progress:', plan?.progress);
-            console.log('Plan completion_percentage:', plan?.completion_percentage);
-            console.log('Plan self_sufficiency_percent:', plan?.self_sufficiency_percent);
-            console.log('All plan keys:', Object.keys(plan));
           }
         } catch (error) {
           console.warn('Cultivation plans table may not exist:', error);
         }
         
-        // Try crisis cultivation plans as fallback
+        // Load cultivation data from main cultivation_plans table only
         if (!plan) {
           try {
-            const { data: planData, error: planError } = await supabase
-              .from('crisis_cultivation_plans')
+            const { data: planData } = await supabase
+              .from('cultivation_plans')
               .select('*')
-              .eq('user_id', user.id)
-              .order('created_at', { ascending: false })
-              .limit(1)
-              .maybeSingle();
-            
-            if (planError && planError.code !== 'PGRST116') {
-              console.warn('Crisis cultivation plan not available:', planError.message);
-          } else {
-              plan = planData;
-              console.log('Found crisis cultivation plan:', plan);
-            }
+              .eq('user_id', user.id);
+            plan = planData?.[0] || null;
           } catch (error) {
-            console.warn('Crisis cultivation plan table may not exist:', error);
+            console.warn('Error fetching cultivation plans:', error);
           }
-        }
-        
-        // Also try cultivation calendar as final fallback
-        try {
-          const { data: calendarData } = await supabase
-            .from('cultivation_calendar')
-            .select('*')
-            .eq('user_id', user.id);
-          cultivationCalendar = calendarData || [];
-          console.log('Found cultivation calendar entries:', cultivationCalendar.length);
-        } catch (error) {
-          console.warn('Cultivation calendar table may not exist:', error);
         }
 
         // Load community memberships with names - use correct column name
@@ -221,33 +190,16 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
           if (plan.crops && Array.isArray(plan.crops)) {
             cropCount = plan.crops.length;
             planName = plan.name || plan.plan_name || plan.title;
-            console.log('Using crops array, count:', cropCount, 'name:', planName);
-          }
-          // Handle crisis_cultivation_plans structure (has selected_crops array)
-          else if (plan.selected_crops && Array.isArray(plan.selected_crops)) {
-            cropCount = plan.selected_crops.length;
-            planName = plan.plan_name;
-            console.log('Using selected_crops array, count:', cropCount, 'name:', planName);
+
           }
           // Handle single crop name
           else if (plan.crop_name) {
             cropCount = 1;
             planName = plan.name || plan.plan_name;
-            console.log('Using single crop_name, count:', cropCount, 'name:', planName);
-          }
-          else {
-            console.log('Plan found but no recognizable crop structure:', Object.keys(plan));
           }
         }
         
-        // Fallback to cultivation calendar if no plan
-        if (cropCount === 0 && cultivationCalendar.length > 0) {
-          cropCount = cultivationCalendar.length;
-          planName = 'Kalender';
-          console.log('Using cultivation calendar fallback, count:', cropCount);
-        }
-        
-        console.log('Final cropCount:', cropCount, 'planName:', planName);
+
         const communityNames = memberships?.map(m => m.local_communities?.[0]?.community_name).filter(Boolean) || [];
         
         // Calculate MSB fulfillment using the same logic as other components
@@ -256,8 +208,7 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
         const msbCategoriesWithResources = new Set(msbResourcesAdded.map(r => r.category));
         const msbFulfillmentPercent = Math.round((msbCategoriesWithResources.size / msbCategories.length) * 100);
         
-        // MSB fulfillment calculated successfully
-        console.log('MSB fulfillment:', msbFulfillmentPercent);
+
         
         // Calculate expiring resources using the same logic as other components
         const expiringResources = resources.filter(r => 
@@ -285,29 +236,16 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
           
           const nutrition = calculatePlanNutrition(cultivationPlanForCalc, householdSize, targetDays);
           cultivationProgress = nutrition.percentOfTarget;
-          console.log('Cultivation progress calculated dynamically:', cultivationProgress + '% (household needs coverage)');
-          console.log('Nutrition details:', {
-            totalKcal: nutrition.totalKcal,
-            kcalPerDay: nutrition.kcalPerDay,
-            householdSize,
-            targetDays
-          });
+
         } else if (plan) {
           // Fallback to stored value if no crops array
           cultivationProgress = plan.self_sufficiency_percent || 0;
-          console.log('Cultivation progress from stored self_sufficiency_percent:', cultivationProgress + '%');
-        } else if (cultivationCalendar.length > 0) {
-          // Use cultivation calendar as fallback
-          const completedTasks = cultivationCalendar.filter(task => task.is_completed).length;
-          cultivationProgress = Math.round((completedTasks / cultivationCalendar.length) * 100);
-          console.log('Cultivation progress from calendar:', cultivationProgress + '%');
         } else {
           // No cultivation data available
           cultivationProgress = 0;
-          console.log('No cultivation data available, progress: 0%');
         }
         
-        console.log('Final cultivation progress:', cultivationProgress + '%');
+
 
         // Load unread messages - make it optional to avoid errors
         let messages = [];
@@ -444,10 +382,13 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
                
                {/* Action button - Enhanced styling */}
                <button 
-              onClick={() => router.push('/individual')}
+              onClick={() => router.push(metrics.planName 
+                  ? '/individual?section=cultivation&plan=current' 
+                  : '/individual?section=cultivation'
+              )}
                  className="w-full py-2.5 px-4 rounded-lg bg-[#3D4A2B]/5 hover:bg-[#3D4A2B]/10 border border-[#3D4A2B]/20 hover:border-[#3D4A2B]/40 text-sm text-[#3D4A2B] hover:text-[#2A331E] font-semibold flex items-center justify-center gap-2 transition-all duration-200"
                >
-              <span>{metrics.planName ? 'Hantera plan' : 'Skapa plan'}</span>
+              <span>{metrics.planName ? 'Hantera aktuell plan' : 'Skapa plan'}</span>
                  <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                </button>
              </div>

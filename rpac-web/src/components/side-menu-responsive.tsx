@@ -115,10 +115,10 @@ export function SideMenuResponsive({ children, hideMobileNav = false }: SideMenu
       {isMobile && !hideMobileNav && <MobileNavigationV2 />}
 
       {/* KRISter AI Assistant - Available everywhere when user is logged in */}
-      {mounted && user && (
+      {mounted && user && userProfile && (
         <KRISterAssistantResponsive
           user={user}
-          userProfile={userProfile as any || undefined}
+          userProfile={{ ...userProfile, weather: {} }}
           currentPage={getCurrentPage()}
           currentAction={pathname || ''}
         />

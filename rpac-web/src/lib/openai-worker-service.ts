@@ -330,15 +330,15 @@ Svara med JSON-array med tips:
       
       let tips;
       // Clean up the response
-      let cleanContent = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      let cleanContent = response;
       
-      // Fix common JSON issues from AI responses
-      cleanContent = cleanContent
-        .replace(/'/g, '"')  // Replace single quotes with double quotes
-        .replace(/(\w+):/g, '"$1":')  // Add quotes around property names
-        .replace(/:\s*"([^"]*)"([^,}\]]*)/g, ': "$1$2"')  // Ensure string values are properly quoted
-        .replace(/,(\s*[}\]])/g, '$1')  // Remove trailing commas
-        .replace(/[\x00-\x1F\x7F]/g, '');  // Remove control characters
+      // If response is wrapped in markdown code block, remove it
+      if (cleanContent.includes('```')) {
+        cleanContent = cleanContent
+          .replace(/^[\s\S]*?```(?:json)?\n/, '')  // Remove everything before opening ```
+          .replace(/\n```[\s\S]*$/, '')            // Remove everything after closing ```
+          .trim();
+      }
       
       try {
         tips = JSON.parse(cleanContent);
