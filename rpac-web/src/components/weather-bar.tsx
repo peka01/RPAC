@@ -206,10 +206,53 @@ export function WeatherBar({ className = '' }: WeatherBarProps) {
                     </p>
                     {startTime && (
                       <div className="text-xs text-[#3D4A2B]/60 mt-1">
-                        Gäller {new Date(startTime).toLocaleDateString('sv-SE')}
-                        {endTime && ` - ${new Date(endTime).toLocaleDateString('sv-SE')}`}
+                        {(() => {
+                          const startDate = new Date(startTime);
+                          const endDate = endTime ? new Date(endTime) : null;
+                          
+                          // Format start date
+                          const startDay = startDate.getDate();
+                          const startMonth = startDate.toLocaleDateString('sv-SE', { month: 'long' });
+                          const startTimeStr = startDate.toLocaleTimeString('sv-SE', { 
+                            hour: '2-digit', 
+                            minute: '2-digit',
+                            hour12: false 
+                          });
+                          
+                          if (endDate) {
+                            // Has end time - show range
+                            const endDay = endDate.getDate();
+                            const endMonth = endDate.toLocaleDateString('sv-SE', { month: 'long' });
+                            const endTimeStr = endDate.toLocaleTimeString('sv-SE', { 
+                              hour: '2-digit', 
+                              minute: '2-digit',
+                              hour12: false 
+                            });
+                            
+                            if (startMonth === endMonth && startDay === endDay) {
+                              // Same day
+                              return `Gäller ${startDay} ${startMonth} kl. ${startTimeStr} - ${endTimeStr}`;
+                            } else {
+                              // Different days
+                              return `Gäller ${startDay} ${startMonth} kl. ${startTimeStr} - ${endDay} ${endMonth} kl. ${endTimeStr}`;
+                            }
+                          } else {
+                            // No end time - ongoing warning
+                            return `Gäller ${startDay} ${startMonth} kl. ${startTimeStr} och tills vidare`;
+                          }
+                        })()}
                       </div>
                     )}
+                    <div className="text-xs text-[#3D4A2B]/50 mt-1">
+                      <a 
+                        href="https://www.smhi.se/vader/prognoser-och-varningar/varningar-och-meddelanden/varningar"
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="hover:text-[#3D4A2B]/70 underline"
+                      >
+                        Se alla varningar på SMHI.se →
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>

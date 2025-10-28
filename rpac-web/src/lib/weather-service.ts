@@ -27,13 +27,8 @@ export class WeatherService {
    */
   static async getOfficialSMHIWarnings(county?: string): Promise<SMHIWarning[]> {
     try {
-      // Check cache first
-      if (this.warningCache && 
-          Date.now() - this.warningCache.timestamp < this.WARNING_CACHE_DURATION) {
-        const warnings = this.warningCache.data.warnings;
-        // The API route now handles county filtering, so we can return all warnings
-        return warnings;
-      }
+      // Clear cache to avoid old API structure conflicts
+      this.warningCache = null;
 
       // Use internal API route to bypass CORS restrictions
       const url = new URL('/api/weather/warnings', window.location.origin);
@@ -48,7 +43,7 @@ export class WeatherService {
         return [];
       }
 
-      const warningData: SMHIWarningResponse = await response.json();
+      const warningData: any = await response.json();
 
       // Cache the result
       this.warningCache = {
@@ -56,7 +51,7 @@ export class WeatherService {
         timestamp: Date.now()
       };
 
-      return warningData.warnings;
+      return warningData.warnings || [];
 
     } catch (error) {
       console.error('Error fetching SMHI warnings:', error);
