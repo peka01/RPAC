@@ -11,7 +11,7 @@ import {
   MessageCircle,
   ChevronRight,
   ChevronDown,
-  LogOut,
+  ChevronLeft,
   Search,
   Building2,
   Share2,
@@ -23,6 +23,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
+import { useSidebar } from '@/contexts/SidebarContext';
 
 interface SideMenuProps {
   user: SupabaseUser | null;
@@ -51,6 +52,9 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
   const searchParams = useSearchParams();
   const router = useRouter();
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const [activeFlyout, setActiveFlyout] = useState<string | null>(null);
+  const [flyoutPosition, setFlyoutPosition] = useState<{ top: number; left: number } | null>(null);
+  const { isCollapsed, setIsCollapsed } = useSidebar();
 
   // Auto-expand sections when their children are active
   useEffect(() => {
@@ -128,6 +132,38 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
     });
   };
 
+  const toggleCollapse = () => {
+    setIsCollapsed(!isCollapsed);
+    setActiveFlyout(null); // Close any open flyouts when toggling
+    setFlyoutPosition(null); // Clear flyout position
+  };
+
+  const handleFlyoutClick = (sectionName: string, event: React.MouseEvent) => {
+    if (isCollapsed) {
+      const rect = event.currentTarget.getBoundingClientRect();
+      setFlyoutPosition({
+        top: rect.top,
+        left: rect.right + 8 // 8px gap from the icon
+      });
+      setActiveFlyout(activeFlyout === sectionName ? null : sectionName);
+    } else {
+      toggleSection(sectionName);
+    }
+  };
+
+  // Close flyout when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (activeFlyout && !(event.target as Element).closest('.sidebar-container')) {
+        setActiveFlyout(null);
+        setFlyoutPosition(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [activeFlyout]);
+
   const isActive = (href: string) => {
     if (href === '/dashboard') {
       // Normalize paths by removing trailing slashes for comparison
@@ -187,25 +223,26 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
     return false;
   };
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/');
-  };
-
   return (
-    <div className="fixed top-0 left-0 h-full w-80 z-40 bg-white border-r border-gray-200 shadow-lg flex flex-col">
+    <div className={`fixed top-0 left-0 h-full z-40 bg-white border-r border-gray-200 shadow-lg flex flex-col transition-all duration-300 ease-in-out sidebar-container ${
+      isCollapsed ? 'w-24' : 'w-80'
+    }`}>
       
       {/* Header */}
-      <div className="flex items-center justify-center p-4 border-b border-gray-200">
-        <img 
-          src="/logga-beready.png" 
-          alt="BE READY" 
-          className="h-8 w-auto"
-        />
+      <div className="flex items-center justify-center p-4 border-b border-gray-200 transition-all duration-300 h-16">
+        {!isCollapsed && (
+          <img 
+            src="/logga-beready.png" 
+            alt="BE READY" 
+            className="h-8 w-auto"
+          />
+        )}
       </div>
 
       {/* Navigation - Clean list style */}
-      <nav className="flex-1 pt-[48px] pb-5 overflow-y-auto overflow-x-hidden px-4" style={{
+      <nav className={`flex-1 pt-[48px] pb-5 overflow-y-auto overflow-x-hidden transition-all duration-300 ${
+        isCollapsed ? 'px-2' : 'px-4'
+      }`} style={{
         scrollbarWidth: 'thin',
         scrollbarColor: '#3D4A2B #f3f4f6'
       }}>
@@ -231,10 +268,13 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
                       onClick={(e) => {
                         if (hasChildren) {
                           e.preventDefault();
-                          toggleSection(section.name);
+                          handleFlyoutClick(section.name, e);
                         }
                       }}
-                      className="flex items-center gap-3 flex-1 px-3 py-3 touch-manipulation"
+                      className={`flex items-center gap-3 flex-1 px-3 py-3 touch-manipulation ${
+                        isCollapsed ? 'justify-center' : ''
+                      }`}
+                      title={isCollapsed ? section.name : undefined}
                     >
                       {/* Icon - Simple circular background */}
                       <div className={`
@@ -248,21 +288,23 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
                         <section.icon className="w-5 h-5" strokeWidth={2} />
                       </div>
                       
-                      <div className="flex-1 min-w-0">
-                        <div className={`
-                          font-semibold text-base leading-tight
-                          ${isSectionActive ? 'text-[#2A331E]' : 'text-gray-900'}
-                        `}>
-                          {section.name}
+                      {!isCollapsed && (
+                        <div className="flex-1 min-w-0">
+                          <div className={`
+                            font-semibold text-base leading-tight
+                            ${isSectionActive ? 'text-[#2A331E]' : 'text-gray-900'}
+                          `}>
+                            {section.name}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-0.5 leading-tight">
+                            {section.description}
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-500 mt-0.5 leading-tight">
-                          {section.description}
-                        </div>
-                      </div>
+                      )}
                     </Link>
                     
                     {/* Expand/Collapse indicator */}
-                    {hasChildren && (
+                    {hasChildren && !isCollapsed && (
                       <button
                         onClick={() => toggleSection(section.name)}
                         className="mr-2 p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
@@ -278,7 +320,7 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
                 </div>
                 
                 {/* Children - Clean indented list with tree lines */}
-                {hasChildren && (
+                {hasChildren && !isCollapsed && (
                   <div 
                     className={`
                       overflow-hidden transition-all duration-300 ease-in-out
@@ -352,25 +394,50 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
                     </div>
                   </div>
                 )}
+
+                {/* Flyout Menu for Collapsed State */}
+                {hasChildren && isCollapsed && activeFlyout === section.name && flyoutPosition && (
+                  <div 
+                    className="fixed z-50 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 w-56 py-2 animate-in slide-in-from-left-2 duration-150"
+                    style={{
+                      top: `${flyoutPosition.top}px`,
+                      left: `${flyoutPosition.left}px`
+                    }}
+                  >
+                    {section.children!.map((child) => {
+                      const isChildActive = isActive(child.href);
+                      return (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          className={`flex items-center gap-3 px-4 py-2 hover:bg-gray-50 transition-colors ${
+                            isChildActive ? 'bg-[#5C6B47]/10 text-[#5C6B47]' : 'text-gray-700'
+                          }`}
+                          onClick={() => setActiveFlyout(null)}
+                        >
+                          <child.icon className="w-4 h-4 flex-shrink-0" strokeWidth={2} />
+                          <span className="text-sm font-medium">{child.name}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
       </nav>
 
-      {/* Footer with user info */}
-      <div className="border-t border-gray-200 p-4">
+      {/* Collapse Toggle Button */}
+      <div className="border-t border-gray-200 p-2">
         <button
-          onClick={handleSignOut}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 hover:text-gray-900 touch-manipulation"
+          onClick={toggleCollapse}
+          className="w-full flex items-center justify-center p-2 hover:bg-gray-50 rounded-lg transition-colors opacity-40 hover:opacity-100"
+          title={isCollapsed ? t('navigation.expand_sidebar') : t('navigation.collapse_sidebar')}
         >
-          <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-            <LogOut className="w-5 h-5 text-gray-600" strokeWidth={2} />
-          </div>
-          <div className="flex-1 text-left">
-            <div className="font-medium text-sm">Logga ut</div>
-            <div className="text-xs text-gray-500">{user?.email?.split('@')[0]}</div>
-          </div>
+          <ChevronLeft className={`w-4 h-4 text-gray-600 transition-transform duration-300 ${
+            isCollapsed ? 'rotate-180' : ''
+          }`} strokeWidth={2.5} />
         </button>
       </div>
     </div>

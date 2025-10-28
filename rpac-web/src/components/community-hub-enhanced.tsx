@@ -40,6 +40,7 @@ export function CommunityHubEnhanced({ user, initialCommunityId, initialTab, ini
   const [isAdmin, setIsAdmin] = useState(false);
   const [homespaceSlug, setHomespaceSlug] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [adminName, setAdminName] = useState<string | null>(null);
   const { profile, loading } = useUserProfile(user);
   const userPostalCode = profile?.postal_code;
 
@@ -107,8 +108,61 @@ export function CommunityHubEnhanced({ user, initialCommunityId, initialTab, ini
         setIsAdmin(false);
       }
     };
-    
+
     checkAdminStatus();
+  }, [activeCommunityId, user]);
+
+  // Fetch administrator name when active community changes
+  useEffect(() => {
+    const fetchAdminName = async () => {
+      if (activeCommunityId && user && user.id !== 'demo-user') {
+        try {
+          // Get the admin user for this community - use .limit(1) instead of .single()
+          const { data: adminMemberships, error: membershipError } = await supabase
+            .from('community_memberships')
+            .select('user_id')
+            .eq('community_id', activeCommunityId)
+            .eq('role', 'admin')
+            .limit(1);
+
+          if (membershipError) {
+            console.error('Error fetching admin membership:', membershipError);
+            setAdminName(null);
+            return;
+          }
+
+          if (!adminMemberships || adminMemberships.length === 0) {
+            console.log('No admin found for community:', activeCommunityId);
+            setAdminName(null);
+            return;
+          }
+
+          const adminMembership = adminMemberships[0];
+
+          // Get the admin's display name
+          const { data: adminProfile, error: profileError } = await supabase
+            .from('user_profiles')
+            .select('display_name')
+            .eq('user_id', adminMembership.user_id)
+            .single();
+
+          if (profileError || !adminProfile) {
+            console.error('Error fetching admin profile:', profileError);
+            setAdminName(null);
+            return;
+          }
+
+          setAdminName(adminProfile.display_name);
+        } catch (error) {
+          console.error('Error fetching admin name:', error);
+          setAdminName(null);
+        }
+      } else {
+        setAdminName(null);
+      }
+    };
+
+    fetchAdminName();
   }, [activeCommunityId, user]);
 
   // Load homespace data when active community changes
@@ -176,7 +230,14 @@ export function CommunityHubEnhanced({ user, initialCommunityId, initialTab, ini
               </h1>
               <p className="text-[#C8D5B9] mb-3">
                 {activeView === 'home' ? (
-                  userCommunities.find(c => c.id === activeCommunityId)?.description || 'Din lokala samhällsöversikt'
+                  <>
+                    {userCommunities.find(c => c.id === activeCommunityId)?.description || 'Din lokala samhällsöversikt'}
+                    {adminName && (
+                      <span className="block text-sm mt-1">
+                        Administratör: {adminName}
+                      </span>
+                    )}
+                  </>
                 ) :
                  activeView === 'discovery' ? 'Upptäck nya samhällen i ditt område' :
                  activeView === 'resources' ? (

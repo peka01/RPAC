@@ -170,19 +170,30 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
           }
         }
 
-        // Load community memberships with names - use correct column name
+        // Load community memberships
         const { data: memberships, error: membershipError } = await supabase
           .from('community_memberships')
-          .select(`
-            community_id,
-            local_communities!inner (
-              community_name
-            )
-          `)
+          .select('community_id')
           .eq('user_id', user.id);
 
         if (membershipError) {
           console.error('Error fetching community memberships:', membershipError);
+        }
+
+        // Load community names separately
+        let communityNames: string[] = [];
+        if (memberships && memberships.length > 0) {
+          const communityIds = memberships.map(m => m.community_id);
+          const { data: communities, error: communitiesError } = await supabase
+            .from('local_communities')
+            .select('id, community_name')
+            .in('id', communityIds);
+          
+          if (communitiesError) {
+            console.error('Error fetching community names:', communitiesError);
+          } else {
+            communityNames = communities?.map(c => c.community_name).filter(Boolean) || [];
+          }
         }
 
         // Calculate metrics
@@ -202,9 +213,6 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
             planName = plan.name || plan.plan_name;
           }
         }
-        
-
-        const communityNames = memberships?.map(m => m.local_communities?.[0]?.community_name).filter(Boolean) || [];
         
         // Calculate MSB fulfillment using the same logic as other components
         const msbCategories = ['food', 'water', 'medicine', 'energy', 'tools', 'other'];
@@ -491,7 +499,7 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
                     {metrics.communityConnections === 0 
                       ? 'Gå med i ett samhälle'
                       : metrics.communityConnections === 1 
-                        ? `Medlem i 1 samhälle`
+                        ? `Medlem i ${metrics.communityNames[0] || 'samhälle'}`
                         : `Medlem i ${metrics.communityConnections} samhällen`}
                   </p>
                   </div>

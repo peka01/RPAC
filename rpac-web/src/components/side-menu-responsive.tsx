@@ -10,6 +10,7 @@ import { useUserProfile } from '@/lib/useUserProfile';
 import { useMobileDetection } from '@/hooks/useMobileDetection';
 import { supabase } from '@/lib/supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
+import { useSidebar } from '@/contexts/SidebarContext';
 
 interface SideMenuResponsiveProps {
   children: React.ReactNode;
@@ -24,6 +25,7 @@ export function SideMenuResponsive({ children, hideMobileNav = false }: SideMenu
   const [isCrisisMode] = useState(false);
   const [communityPulse, setCommunityPulse] = useState(true);
   const pathname = usePathname();
+  const { isCollapsed } = useSidebar();
 
   const { profile: userProfile } = useUserProfile(user);
 
@@ -104,7 +106,7 @@ export function SideMenuResponsive({ children, hideMobileNav = false }: SideMenu
       {/* Content with appropriate padding */}
       <main className={`
         transition-all duration-300 ease-in-out
-        ${!isMobile ? 'ml-80 pt-[48px]' : 'ml-0 pt-20'}
+        ${!isMobile ? (isCollapsed ? 'ml-24 pt-[48px]' : 'ml-80 pt-[48px]') : 'ml-0 pt-20'}
         ${isMobile && !hideMobileNav ? 'pb-20' : 'pb-0'}
         min-h-screen
       `}>

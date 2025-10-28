@@ -47,6 +47,7 @@ interface DashboardMetrics {
   expiringResources: number;
   availableResources: number;
   totalResources: number;
+  communityNames: string[];
 }
 
 
@@ -65,7 +66,8 @@ export function StunningDashboardMobileV2({ user }: { user: User | null }) {
     msbFulfillmentPercent: 0,
     expiringResources: 0,
     availableResources: 0,
-    totalResources: 0
+    totalResources: 0,
+    communityNames: []
   });
   const { weather, forecast, extremeWeatherWarnings, officialWarnings, loading: weatherLoading } = useWeather();
   const [loading, setLoading] = useState(true);
@@ -150,6 +152,22 @@ export function StunningDashboardMobileV2({ user }: { user: User | null }) {
           .select('community_id, role')
           .eq('user_id', user.id);
 
+        // Load community names separately
+        let communityNames: string[] = [];
+        if (memberships && memberships.length > 0) {
+          const communityIds = memberships.map(m => m.community_id);
+          const { data: communities, error: communitiesError } = await supabase
+            .from('local_communities')
+            .select('id, community_name')
+            .in('id', communityIds);
+          
+          if (communitiesError) {
+            console.error('Error fetching community names:', communitiesError);
+          } else {
+            communityNames = communities?.map(c => c.community_name).filter(Boolean) || [];
+          }
+        }
+
         // Check for admin status
         const adminMemberships = memberships?.filter(m => m.role === 'admin') || [];
         setIsAdmin(adminMemberships.length > 0);
@@ -220,7 +238,8 @@ export function StunningDashboardMobileV2({ user }: { user: User | null }) {
            msbFulfillmentPercent,
            expiringResources,
            availableResources: 0, // TODO: Calculate from community resources
-           totalResources: resourceCount
+           totalResources: resourceCount,
+           communityNames
          });
          
         setLoading(false);
@@ -405,7 +424,7 @@ export function StunningDashboardMobileV2({ user }: { user: User | null }) {
                     {metrics.communityConnections === 0 
                       ? 'Gå med i ett samhälle'
                       : metrics.communityConnections === 1 
-                        ? `Medlem i 1 samhälle`
+                        ? `Medlem i ${metrics.communityNames[0] || 'samhälle'}`
                         : `Medlem i ${metrics.communityConnections} samhällen`}
                   </p>
                 </div>

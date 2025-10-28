@@ -7,6 +7,8 @@
     "regional": "Regionalt",
     "settings": "Inställningar",
     "sign_out": "Logga ut",
+    "expand_sidebar": "Expandera sidofält",
+    "collapse_sidebar": "Minimera sidofält",
     "descriptions": {
       "operational_status": "Status",
       "individual_preparedness": "Mitt hem och mina resurser",

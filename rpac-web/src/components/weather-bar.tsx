@@ -347,10 +347,23 @@ export function WeatherBar({ className = '' }: WeatherBarProps) {
                     (typeof warning.warningAreas[0].eventDescription === 'string' 
                       ? warning.warningAreas[0].eventDescription 
                       : warning.warningAreas[0].eventDescription.sv) : '';
+                  const detailedDescription = warning.warningAreas?.[0]?.descriptions ? 
+                    (typeof warning.warningAreas[0].descriptions === 'string' 
+                      ? warning.warningAreas[0].descriptions 
+                      : '') : '';
+                  const affectedAreas = warning.warningAreas?.[0]?.affectedAreas ? 
+                    (typeof warning.warningAreas[0].affectedAreas === 'string' 
+                      ? warning.warningAreas[0].affectedAreas 
+                      : '') : '';
                   const warningLevel = warning.warningAreas?.[0]?.warningLevel ? 
                     (typeof warning.warningAreas[0].warningLevel === 'string' 
                       ? warning.warningAreas[0].warningLevel 
                       : warning.warningAreas[0].warningLevel.sv) : '';
+                  const areaName = warning.warningAreas?.[0]?.areaName ? 
+                    (typeof warning.warningAreas[0].areaName === 'string' 
+                      ? warning.warningAreas[0].areaName 
+                      : warning.warningAreas[0].areaName.sv) : '';
+                  
                   const startTime = warning.warningAreas?.[0]?.approximateStart;
                   const endTime = warning.warningAreas?.[0]?.approximateEnd;
                   const isExpiringSoon = isWarningExpiringSoon(warning);
@@ -362,11 +375,11 @@ export function WeatherBar({ className = '' }: WeatherBarProps) {
                       <div className="flex-1 min-w-0 pr-8">
                         <div className="flex items-center gap-2 mb-0.5">
                           <div className={`text-sm font-semibold ${isExpiringSoon ? 'text-orange-600' : 'text-[#3D4A2B]'}`}>
-                            {warningName}
+                            {String(warningName)}
                           </div>
                           {warningLevel && (
                             <span className={`text-xs px-2 py-1 rounded ${isExpiringSoon ? 'bg-orange-100 text-orange-700' : 'bg-[#3D4A2B]/20 text-[#3D4A2B]'}`}>
-                              {warningLevel}
+                              {String(warningLevel)}
                             </span>
                           )}
                           {isExpiringSoon && (
@@ -380,9 +393,21 @@ export function WeatherBar({ className = '' }: WeatherBarProps) {
                             </span>
                           )}
                         </div>
+                        {areaName && (
+                          <div className={`text-xs font-medium mb-1 ${isExpiringSoon ? 'text-orange-600/90' : 'text-[#3D4A2B]/70'}`}>
+                            {String(areaName)}
+                          </div>
+                        )}
                         <p className={`text-xs ${isExpiringSoon ? 'text-orange-600/80' : 'text-[#3D4A2B]/80'}`}>
-                          {warningDescription}
+                          {String(warningDescription)}
                         </p>
+                        {(detailedDescription || affectedAreas) && (
+                          <div className={`mt-2 p-2 rounded border-l-4 ${isExpiringSoon ? 'bg-orange-50 border-orange-400' : 'bg-red-50 border-red-400'}`}>
+                            <p className={`text-xs font-medium ${isExpiringSoon ? 'text-orange-800' : 'text-red-800'}`}>
+                              {String(detailedDescription || affectedAreas)}
+                            </p>
+                          </div>
+                        )}
                         {startTime && (
                           <div className={`text-xs mt-1 ${isExpiringSoon ? 'text-orange-600/60' : 'text-[#3D4A2B]/60'}`}>
                             {(() => {
@@ -591,7 +616,10 @@ export function WeatherBar({ className = '' }: WeatherBarProps) {
       </div>
 
       {/* Expanded Details */}
-      {isExpanded && (
+      <div className={`
+        overflow-hidden transition-all duration-300 ease-in-out
+        ${isExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}
+      `}>
         <div className="border-t border-[#3D4A2B]/20 bg-white/50">
           <div className="p-4 space-y-4">
             {/* Current Conditions Grid */}
@@ -674,7 +702,7 @@ export function WeatherBar({ className = '' }: WeatherBarProps) {
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

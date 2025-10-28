@@ -6,7 +6,7 @@ export const userProfileSchema = z.object({
     .min(1, 'Namn är obligatoriskt')
     .max(100, 'Namn får inte vara längre än 100 tecken')
     .trim()
-    .regex(/^[a-zA-ZåäöÅÄÖ\s\-']+$/, 'Namn får endast innehålla bokstäver, mellanslag, bindestreck och apostrofer'),
+    .regex(/^[a-zA-ZåäöÅÄÖ0-9\s\-'.,()]+$/, 'Namn får endast innehålla bokstäver, siffror, mellanslag och vanliga skiljetecken'),
   
   email: z.string()
     .email('Ogiltig e-postadress')

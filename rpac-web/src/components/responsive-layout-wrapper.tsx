@@ -5,6 +5,7 @@ import { SideMenuResponsive } from './side-menu-responsive';
 import { KRISterAssistantResponsive } from './krister-assistant-responsive';
 import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { SidebarProvider } from '@/contexts/SidebarContext';
 
 interface ResponsiveLayoutWrapperProps {
   children: React.ReactNode;
@@ -38,9 +39,11 @@ export function ResponsiveLayoutWrapper({ children, hideMobileNav = false }: Res
   
   // Otherwise, render with the normal menu system
   return (
-    <SideMenuResponsive hideMobileNav={hideMobileNav}>
-      {children}
-    </SideMenuResponsive>
+    <SidebarProvider>
+      <SideMenuResponsive hideMobileNav={hideMobileNav}>
+        {children}
+      </SideMenuResponsive>
+    </SidebarProvider>
   );
 }
 
