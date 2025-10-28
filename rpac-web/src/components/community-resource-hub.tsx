@@ -393,7 +393,7 @@ export function CommunityResourceHub({
         sharedResourceId: resource.id,
         requesterId: user.id,
         requestedQuantity: resource.shared_quantity,
-        message: 'Jag skulle vilja begära denna resurs'
+        message: t('community_resources.owned.request_resource_message')
       });
       console.log('Request created, updating UI locally...');
       

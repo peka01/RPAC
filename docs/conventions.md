@@ -313,6 +313,78 @@ return (
 - **CLEAN UP JSON** - Remove unused strings when refactoring or changing features
 - **ZERO TOLERANCE** - Any hardcoded Swedish text is a critical bug that must be fixed immediately
 
+### 🚨 CRITICAL: Preventing Translation Key Conflicts
+**EXTREMELY ANNOYING PROBLEM**: When translations show raw keys like `dashboard.hide_warning` instead of actual text.
+
+#### **Root Cause: Duplicate Keys**
+JSON objects cannot have duplicate keys. If the same key exists in multiple sections, the last one overwrites all previous ones.
+
+#### **How to Prevent This Problem:**
+
+1. **ALWAYS CHECK FOR EXISTING KEYS BEFORE ADDING NEW ONES**
+   ```bash
+   # Search for existing keys before adding new ones
+   grep -n "your_new_key" rpac-web/src/lib/locales/sv.json
+   ```
+
+2. **USE DESCRIPTIVE, UNIQUE KEY NAMES**
+   ```json
+   // ❌ BAD - Too generic, likely to conflict
+   "hide": "Dölj"
+   "show": "Visa"
+   
+   // ✅ GOOD - Specific and descriptive
+   "hide_warning": "Dölj varning"
+   "show_hidden_warnings": "Visa dolda varningar"
+   ```
+
+3. **ORGANIZE KEYS BY FUNCTIONALITY, NOT GENERICITY**
+   ```json
+   // ❌ BAD - Generic keys in multiple sections
+   "dashboard": { "login": "Logga in" }
+   "buttons": { "login": "Logga in" }  // CONFLICT!
+   
+   // ✅ GOOD - Specific keys in appropriate sections
+   "dashboard": { "login_button": "Logga in" }
+   "buttons": { "login_action": "Logga in" }
+   ```
+
+4. **VERIFY NO DUPLICATES AFTER ADDING KEYS**
+   ```bash
+   # Check for duplicate keys in the entire file
+   grep -o '"[^"]*":' rpac-web/src/lib/locales/sv.json | sort | uniq -d
+   ```
+
+5. **TEST TRANSLATIONS IMMEDIATELY**
+   - Always test that `t('your.key')` returns the actual text, not the key
+   - If you see raw keys like `dashboard.hide_warning`, there's a conflict
+
+#### **How to Fix Existing Conflicts:**
+
+1. **Find the duplicate keys:**
+   ```bash
+   grep -n "conflicting_key" rpac-web/src/lib/locales/sv.json
+   ```
+
+2. **Remove duplicates from inappropriate sections:**
+   - Keep the key in the most logical section
+   - Remove from other sections
+   - Update any code using the wrong section
+
+3. **Rename keys if both are needed:**
+   ```json
+   // Instead of duplicate "login" keys
+   "dashboard": { "login_button": "Logga in" }
+   "buttons": { "login_action": "Logga in" }
+   ```
+
+#### **Common Conflict Patterns to Avoid:**
+- Generic words: `save`, `cancel`, `delete`, `edit`, `login`, `logout`
+- Action words: `show`, `hide`, `open`, `close`
+- Status words: `loading`, `error`, `success`
+
+**SOLUTION**: Always use descriptive, context-specific keys like `save_profile`, `cancel_edit`, `delete_resource`, etc.
+
 ### Swedish Language Requirements
 - **Primary language**: Swedish for all user-facing content
 - **Fallback**: English only for external connectors or technical fallbacks

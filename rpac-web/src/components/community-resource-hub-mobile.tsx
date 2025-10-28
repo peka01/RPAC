@@ -33,6 +33,7 @@ import { resourceSharingService, type SharedResource, type HelpRequest, communit
 import { CommunityResourceModal } from './community-resource-modal';
 import { SharedResourceActionsModal } from './shared-resource-actions-modal';
 import type { User } from '@supabase/supabase-js';
+import { t } from '@/lib/locales';
 
 interface CommunityResourceHubMobileProps {
   user: User;
@@ -310,7 +311,7 @@ export function CommunityResourceHubMobile({
         sharedResourceId: resource.id,
         requesterId: user.id,
         requestedQuantity: resource.shared_quantity,
-        message: 'Jag skulle vilja begära denna resurs'
+        message: t('community_resources.owned.request_resource_message')
       });
       console.log('Request created, updating UI locally...');
       

@@ -366,7 +366,7 @@ export function PersonalResourceInventory({ userId }: PersonalResourceInventoryP
           
           {/* Tooltip */}
           <div className="absolute left-0 bottom-full mb-2 w-80 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 z-10">
-            {t('dashboard.msb_tooltip')}
+            {t('individual.msb_tooltip')}
           </div>
         </div>
 

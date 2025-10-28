@@ -117,7 +117,7 @@ export function ResourceCardWithActions({
                     MSB
                     {/* Tooltip */}
                     <div className="absolute left-0 top-full mt-1 w-64 p-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 z-20 pointer-events-none">
-                      {t('dashboard.msb_tooltip')}
+                      {t('individual.msb_tooltip')}
                     </div>
                   </div>
                 )}

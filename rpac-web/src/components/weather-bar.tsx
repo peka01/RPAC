@@ -16,10 +16,14 @@ import {
   Eye,
   ChevronLeft,
   ChevronRight,
-  ExternalLink
+  ExternalLink,
+  X,
+  EyeOff,
+  RotateCcw
 } from 'lucide-react';
 import { WarningSeverityBadge } from '@/components/ui/warning-severity-badge';
 import { useWeather } from '@/contexts/WeatherContext';
+import { t } from '@/lib/locales';
 
 interface WeatherBarProps {
   className?: string;
@@ -30,6 +34,9 @@ export function WeatherBar({ className = '' }: WeatherBarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [currentWarningIndex, setCurrentWarningIndex] = useState(0);
+  const [hiddenWarnings, setHiddenWarnings] = useState<Set<number>>(new Set());
+  const [showHiddenWarnings, setShowHiddenWarnings] = useState(false);
+  const [warningDismissals, setWarningDismissals] = useState<Map<number, number>>(new Map());
 
   // Update time every minute
   useEffect(() => {
@@ -38,6 +45,38 @@ export function WeatherBar({ className = '' }: WeatherBarProps) {
     }, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  // Load warning dismissals from localStorage
+  useEffect(() => {
+    const savedDismissals = localStorage.getItem('rpac-warning-dismissals');
+    if (savedDismissals) {
+      try {
+        const dismissals = JSON.parse(savedDismissals);
+        const dismissalMap = new Map(Object.entries(dismissals).map(([id, timestamp]) => [Number(id), Number(timestamp)]));
+        setWarningDismissals(dismissalMap);
+        
+        // Auto-hide warnings dismissed more than 24 hours ago
+        const now = Date.now();
+        const hiddenSet = new Set<number>();
+        dismissalMap.forEach((timestamp, warningId) => {
+          if (now - timestamp < 24 * 60 * 60 * 1000) { // 24 hours
+            hiddenSet.add(warningId);
+          }
+        });
+        setHiddenWarnings(hiddenSet);
+      } catch (error) {
+        console.error('Failed to load warning dismissals:', error);
+      }
+    }
+  }, []);
+
+  // Save warning dismissals to localStorage
+  useEffect(() => {
+    if (warningDismissals.size > 0) {
+      const dismissalsObj = Object.fromEntries(warningDismissals);
+      localStorage.setItem('rpac-warning-dismissals', JSON.stringify(dismissalsObj));
+    }
+  }, [warningDismissals]);
 
   // Reset warning index when warnings change
   useEffect(() => {
@@ -70,6 +109,71 @@ export function WeatherBar({ className = '' }: WeatherBarProps) {
         return Math.max(0, Math.min(newIndex, officialWarnings.length - 1));
       });
     }
+  };
+
+  // Warning management functions
+  const hideWarning = (warningId: number) => {
+    const now = Date.now();
+    setHiddenWarnings(prev => new Set([...prev, warningId]));
+    setWarningDismissals(prev => new Map([...prev, [warningId, now]]));
+    
+    // Adjust current index if we're hiding the current warning
+    if (officialWarnings && officialWarnings[currentWarningIndex]?.id === warningId) {
+      const visibleWarnings = getVisibleWarnings();
+      if (visibleWarnings.length > 0) {
+        const nextIndex = Math.min(currentWarningIndex, visibleWarnings.length - 1);
+        setCurrentWarningIndex(nextIndex);
+      }
+    }
+  };
+
+  const restoreWarning = (warningId: number) => {
+    setHiddenWarnings(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(warningId);
+      return newSet;
+    });
+    setWarningDismissals(prev => {
+      const newMap = new Map(prev);
+      newMap.delete(warningId);
+      return newMap;
+    });
+  };
+
+  const dismissAllWarnings = () => {
+    if (officialWarnings) {
+      const now = Date.now();
+      const allIds = officialWarnings.map(w => w.id);
+      setHiddenWarnings(new Set(allIds));
+      setCurrentWarningIndex(0);
+      
+      // Add all warnings to dismissals
+      const newDismissals = new Map(warningDismissals);
+      allIds.forEach(id => newDismissals.set(id, now));
+      setWarningDismissals(newDismissals);
+    }
+  };
+
+  const isNewWarning = (warningId: number) => {
+    return !warningDismissals.has(warningId);
+  };
+
+  const getVisibleWarnings = () => {
+    if (!officialWarnings) return [];
+    return officialWarnings.filter(warning => !hiddenWarnings.has(warning.id));
+  };
+
+  const getHiddenWarnings = () => {
+    if (!officialWarnings) return [];
+    return officialWarnings.filter(warning => hiddenWarnings.has(warning.id));
+  };
+
+  const isWarningExpiringSoon = (warning: any) => {
+    if (!warning.warningAreas?.[0]?.approximateEnd) return false;
+    const endTime = new Date(warning.warningAreas[0].approximateEnd);
+    const now = new Date();
+    const hoursUntilExpiry = (endTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+    return hoursUntilExpiry <= 6; // Expiring within 6 hours
   };
 
   // Generate SMHI warning link
@@ -214,141 +318,226 @@ export function WeatherBar({ className = '' }: WeatherBarProps) {
 
   return (
     <div className={`bg-gradient-to-r from-[#3D4A2B]/10 to-[#5C6B47]/10 border border-[#3D4A2B]/20 rounded-lg overflow-hidden transition-all duration-300 ${className}`}>
-      {/* SMHI Official Warnings - Carousel */}
-      {officialWarnings && officialWarnings.length > 0 && (
-        <div className="bg-gradient-to-r from-[#3D4A2B]/15 to-[#5C6B47]/20 px-4 py-2">
-          {(() => {
-            const warning = officialWarnings[currentWarningIndex];
-            
-            // Safety check - ensure warning exists and is valid
-            if (!warning) {
-              return (
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-[#3D4A2B] flex-shrink-0" />
-                  <div className="text-sm text-[#3D4A2B]/80">
-                    Ingen varning tillgänglig
-                  </div>
-                </div>
-              );
-            }
-            
-            const warningName = warning.event?.sv || 'Varning';
-            const warningDescription = warning.warningAreas?.[0]?.eventDescription ? 
-              (typeof warning.warningAreas[0].eventDescription === 'string' 
-                ? warning.warningAreas[0].eventDescription 
-                : warning.warningAreas[0].eventDescription.sv) : '';
-            const warningLevel = warning.warningAreas?.[0]?.warningLevel ? 
-              (typeof warning.warningAreas[0].warningLevel === 'string' 
-                ? warning.warningAreas[0].warningLevel 
-                : warning.warningAreas[0].warningLevel.sv) : '';
-            const startTime = warning.warningAreas?.[0]?.approximateStart;
-            const endTime = warning.warningAreas?.[0]?.approximateEnd;
-            
-            return (
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 text-[#3D4A2B] flex-shrink-0 mt-1" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <div className="text-sm font-semibold text-[#3D4A2B]">
-                      {warningName}
-                    </div>
-                    {warningLevel && (
-                      <span className="text-xs px-2 py-1 bg-[#3D4A2B]/20 text-[#3D4A2B] rounded">
-                        {warningLevel}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-[#3D4A2B]/80">
-                    {warningDescription}
-                  </p>
-                  {startTime && (
-                    <div className="text-xs text-[#3D4A2B]/60 mt-1">
-                      {(() => {
-                        const startDate = new Date(startTime);
-                        const endDate = endTime ? new Date(endTime) : null;
-                        
-                        // Format start date
-                        const startDay = startDate.getDate();
-                        const startMonth = startDate.toLocaleDateString('sv-SE', { month: 'long' });
-                        const startTimeStr = startDate.toLocaleTimeString('sv-SE', { 
-                          hour: '2-digit', 
-                          minute: '2-digit',
-                          hour12: false 
-                        });
-                        
-                        if (endDate) {
-                          // Has end time - show range
-                          const endDay = endDate.getDate();
-                          const endMonth = endDate.toLocaleDateString('sv-SE', { month: 'long' });
-                          const endTimeStr = endDate.toLocaleTimeString('sv-SE', { 
-                            hour: '2-digit', 
-                            minute: '2-digit',
-                            hour12: false 
-                          });
+      {/* SMHI Official Warnings - Smart Management */}
+      {officialWarnings && officialWarnings.length > 0 && (() => {
+        const visibleWarnings = getVisibleWarnings();
+        const hiddenWarningsList = getHiddenWarnings();
+        
+        return (
+          <>
+            {/* Visible Warnings */}
+            {visibleWarnings.length > 0 && (
+              <div className="bg-gradient-to-r from-[#3D4A2B]/15 to-[#5C6B47]/20 px-4 py-2">
+                {(() => {
+                  const warning = visibleWarnings[currentWarningIndex];
+                  
+                  if (!warning) {
+                    return (
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-[#3D4A2B] flex-shrink-0" />
+                        <div className="text-sm text-[#3D4A2B]/80">
+                          {t('dashboard.no_warnings')}
+                        </div>
+                      </div>
+                    );
+                  }
+                  
+                  const warningName = warning.event?.sv || 'Varning';
+                  const warningDescription = warning.warningAreas?.[0]?.eventDescription ? 
+                    (typeof warning.warningAreas[0].eventDescription === 'string' 
+                      ? warning.warningAreas[0].eventDescription 
+                      : warning.warningAreas[0].eventDescription.sv) : '';
+                  const warningLevel = warning.warningAreas?.[0]?.warningLevel ? 
+                    (typeof warning.warningAreas[0].warningLevel === 'string' 
+                      ? warning.warningAreas[0].warningLevel 
+                      : warning.warningAreas[0].warningLevel.sv) : '';
+                  const startTime = warning.warningAreas?.[0]?.approximateStart;
+                  const endTime = warning.warningAreas?.[0]?.approximateEnd;
+                  const isExpiringSoon = isWarningExpiringSoon(warning);
+                  const isNew = isNewWarning(warning.id);
+                  
+                  return (
+                    <div className="flex items-start gap-2 relative">
+                      <AlertTriangle className={`w-4 h-4 flex-shrink-0 mt-1 ${isExpiringSoon ? 'text-orange-600' : 'text-[#3D4A2B]'}`} />
+                      <div className="flex-1 min-w-0 pr-8">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <div className={`text-sm font-semibold ${isExpiringSoon ? 'text-orange-600' : 'text-[#3D4A2B]'}`}>
+                            {warningName}
+                          </div>
+                          {warningLevel && (
+                            <span className={`text-xs px-2 py-1 rounded ${isExpiringSoon ? 'bg-orange-100 text-orange-700' : 'bg-[#3D4A2B]/20 text-[#3D4A2B]'}`}>
+                              {warningLevel}
+                            </span>
+                          )}
+                          {isExpiringSoon && (
+                            <span className="text-xs px-2 py-1 bg-orange-100 text-orange-700 rounded">
+                              {t('dashboard.warning_expires_soon')}
+                            </span>
+                          )}
+                          {isNew && (
+                            <span className="text-xs px-2 py-1 bg-[#5C6B47]/20 text-[#3D4A2B] rounded font-semibold">
+                              NY
+                            </span>
+                          )}
+                        </div>
+                        <p className={`text-xs ${isExpiringSoon ? 'text-orange-600/80' : 'text-[#3D4A2B]/80'}`}>
+                          {warningDescription}
+                        </p>
+                        {startTime && (
+                          <div className={`text-xs mt-1 ${isExpiringSoon ? 'text-orange-600/60' : 'text-[#3D4A2B]/60'}`}>
+                            {(() => {
+                              const startDate = new Date(startTime);
+                              const endDate = endTime ? new Date(endTime) : null;
+                              
+                              const startDay = startDate.getDate();
+                              const startMonth = startDate.toLocaleDateString('sv-SE', { month: 'long' });
+                              const startTimeStr = startDate.toLocaleTimeString('sv-SE', { 
+                                hour: '2-digit', 
+                                minute: '2-digit',
+                                hour12: false 
+                              });
+                              
+                              if (endDate) {
+                                const endDay = endDate.getDate();
+                                const endMonth = endDate.toLocaleDateString('sv-SE', { month: 'long' });
+                                const endTimeStr = endDate.toLocaleTimeString('sv-SE', { 
+                                  hour: '2-digit', 
+                                  minute: '2-digit',
+                                  hour12: false 
+                                });
+                                
+                                if (startMonth === endMonth && startDay === endDay) {
+                                  return `Gäller ${startDay} ${startMonth} kl. ${startTimeStr} - ${endTimeStr}`;
+                                } else {
+                                  return `Gäller ${startDay} ${startMonth} kl. ${startTimeStr} - ${endDay} ${endMonth} kl. ${endTimeStr}`;
+                                }
+                              } else {
+                                return `Gäller ${startDay} ${startMonth} kl. ${startTimeStr} och tills vidare`;
+                              }
+                            })()}
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between mt-1">
+                          <div className="text-xs text-[#3D4A2B]/50">
+                            <a 
+                              href={getSMHIWarningLink(warning.id)}
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="hover:text-[#3D4A2B]/70 underline inline-flex items-center gap-1"
+                              title={warning.id >= 8000 ? t('dashboard.test_warning_link') : t('dashboard.view_warning_smhi')}
+                            >
+                              Se varning på SMHI.se
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Close Button - Top Right */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          hideWarning(warning.id);
+                        }}
+                        className="absolute top-0 right-0 p-1 hover:bg-[#3D4A2B]/20 rounded transition-colors"
+                        title={t('dashboard.hide_warning')}
+                      >
+                        <X className="w-3 h-3 text-[#3D4A2B]/60" />
+                      </button>
+                      
+                      {/* Navigation Controls */}
+                      {visibleWarnings.length > 1 && (
+                        <div className="flex items-center gap-1 ml-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCurrentWarningIndex(prev => prev === 0 ? visibleWarnings.length - 1 : prev - 1);
+                            }}
+                            className="p-1 hover:bg-[#3D4A2B]/20 rounded transition-colors"
+                            title={t('dashboard.previous_warning')}
+                          >
+                            <ChevronLeft className="w-4 h-4 text-[#3D4A2B]" />
+                          </button>
                           
-                          if (startMonth === endMonth && startDay === endDay) {
-                            // Same day
-                            return `Gäller ${startDay} ${startMonth} kl. ${startTimeStr} - ${endTimeStr}`;
-                          } else {
-                            // Different days
-                            return `Gäller ${startDay} ${startMonth} kl. ${startTimeStr} - ${endDay} ${endMonth} kl. ${endTimeStr}`;
-                          }
-                        } else {
-                          // No end time - ongoing warning
-                          return `Gäller ${startDay} ${startMonth} kl. ${startTimeStr} och tills vidare`;
-                        }
-                      })()}
+                          <span className="text-xs text-[#3D4A2B]/70 px-2">
+                            {currentWarningIndex + 1}/{visibleWarnings.length}
+                          </span>
+                          
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCurrentWarningIndex(prev => prev === visibleWarnings.length - 1 ? 0 : prev + 1);
+                            }}
+                            className="p-1 hover:bg-[#3D4A2B]/20 rounded transition-colors"
+                            title={t('dashboard.next_warning')}
+                          >
+                            <ChevronRight className="w-4 h-4 text-[#3D4A2B]" />
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  )}
-                  <div className="text-xs text-[#3D4A2B]/50 mt-1">
-                    <a 
-                      href={getSMHIWarningLink(warning.id)}
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="hover:text-[#3D4A2B]/70 underline inline-flex items-center gap-1"
-                      title={warning.id >= 8000 ? "Testvarning - länken kanske inte fungerar" : "Se varning på SMHI.se"}
+                  );
+                })()}
+              </div>
+            )}
+            
+            {/* Hidden Warnings Summary */}
+            {hiddenWarningsList.length > 0 && (
+              <div className="bg-gradient-to-r from-[#4A5239]/10 to-[#707C5F]/15 px-4 py-2 border-b border-[#3D4A2B]/20">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <EyeOff className="w-4 h-4 text-[#707C5F]" />
+                    <span className="text-sm text-[#707C5F]">
+                      {hiddenWarningsList.length} {hiddenWarningsList.length === 1 ? t('dashboard.warnings_hidden_singular') : t('dashboard.warnings_hidden_plural')}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowHiddenWarnings(!showHiddenWarnings)}
+                      className="text-xs text-[#707C5F] hover:text-[#3D4A2B] underline"
                     >
-                      Se varning på SMHI.se
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
+                      {showHiddenWarnings ? 'Dölj' : (hiddenWarningsList.length === 1 ? t('dashboard.show_hidden_warnings_singular') : t('dashboard.show_hidden_warnings_plural'))}
+                    </button>
+                    {hiddenWarningsList.length > 1 && (
+                      <button
+                        onClick={() => {
+                          hiddenWarningsList.forEach(warning => restoreWarning(warning.id));
+                        }}
+                        className="text-xs text-[#707C5F] hover:text-[#3D4A2B] underline"
+                      >
+                        Återställ alla
+                      </button>
+                    )}
                   </div>
                 </div>
                 
-                {/* Navigation Controls */}
-                {officialWarnings.length > 1 && (
-                  <div className="flex items-center gap-1 ml-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        goToPreviousWarning();
-                      }}
-                      className="p-1 hover:bg-[#3D4A2B]/20 rounded transition-colors"
-                      title="Föregående varning"
-                    >
-                      <ChevronLeft className="w-4 h-4 text-[#3D4A2B]" />
-                    </button>
-                    
-                    <span className="text-xs text-[#3D4A2B]/70 px-2">
-                      {currentWarningIndex + 1}/{officialWarnings.length}
-                    </span>
-                    
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        goToNextWarning();
-                      }}
-                      className="p-1 hover:bg-[#3D4A2B]/20 rounded transition-colors"
-                      title="Nästa varning"
-                    >
-                      <ChevronRight className="w-4 h-4 text-[#3D4A2B]" />
-                    </button>
+                {/* Hidden Warnings List */}
+                {showHiddenWarnings && (
+                  <div className="mt-2 space-y-2">
+                    {hiddenWarningsList.map((warning) => (
+                      <div key={warning.id} className="flex items-center justify-between bg-white/50 rounded p-2">
+                        <div className="flex items-center gap-2">
+                          <AlertTriangle className="w-3 h-3 text-[#707C5F]" />
+                          <span className="text-xs text-[#707C5F]">
+                            {warning.event?.sv || 'Varning'}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => restoreWarning(warning.id)}
+                          className="p-1 hover:bg-[#3D4A2B]/20 rounded transition-colors"
+                          title={t('dashboard.restore_warning')}
+                        >
+                          <RotateCcw className="w-3 h-3 text-[#707C5F]" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
-            );
-          })()}
-        </div>
-      )}
+            )}
+          </>
+        );
+      })()}
 
       {/* Local Weather Warnings - Show after SMHI warnings */}
       {extremeWeatherWarnings && extremeWeatherWarnings.length > 0 && (
