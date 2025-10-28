@@ -355,6 +355,11 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
             </h1>
           </div>
 
+          {/* Weather Bar */}
+          <div className="mb-6">
+            <WeatherBar />
+          </div>
+
           {/* Key Metrics Grid - Enhanced with Section Header */}
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">
@@ -362,11 +367,6 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
               Översikt
             </h2>
           </div>
-          
-        {/* Weather Bar */}
-        <div className="mb-6">
-          <WeatherBar />
-        </div>
 
         {/* Score Cards Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { t } from '@/lib/locales';
 import { useWeather } from '@/contexts/WeatherContext';
+import { WeatherBar } from '@/components/weather-bar';
 import { 
   Shield, 
   Users, 
@@ -21,7 +22,12 @@ import {
   ArrowRight,
   ChevronRight,
   Activity,
-  Menu
+  Menu,
+  Package,
+  Settings,
+  UserCheck,
+  BarChart3,
+  Edit
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
@@ -39,6 +45,8 @@ interface DashboardMetrics {
   cropCount: number;
   msbFulfillmentPercent: number;
   expiringResources: number;
+  availableResources: number;
+  totalResources: number;
 }
 
 
@@ -55,12 +63,16 @@ export function StunningDashboardMobileV2({ user }: { user: User | null }) {
     planName: '',
     cropCount: 0,
     msbFulfillmentPercent: 0,
-    expiringResources: 0
+    expiringResources: 0,
+    availableResources: 0,
+    totalResources: 0
   });
-  const { weather, forecast, loading: weatherLoading } = useWeather();
+  const { weather, forecast, extremeWeatherWarnings, officialWarnings, loading: weatherLoading } = useWeather();
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminCommunities, setAdminCommunities] = useState<any[]>([]);
   const router = useRouter();
 
   // Get user display name based on profile preference
@@ -135,8 +147,22 @@ export function StunningDashboardMobileV2({ user }: { user: User | null }) {
         // Load community memberships
         const { data: memberships } = await supabase
           .from('community_memberships')
-          .select('community_id')
+          .select('community_id, role')
           .eq('user_id', user.id);
+
+        // Check for admin status
+        const adminMemberships = memberships?.filter(m => m.role === 'admin') || [];
+        setIsAdmin(adminMemberships.length > 0);
+        
+        if (adminMemberships.length > 0) {
+          // Load admin community details
+          const communityIds = adminMemberships.map(m => m.community_id);
+          const { data: communities } = await supabase
+            .from('local_communities')
+            .select('id, community_name')
+            .in('id', communityIds);
+          setAdminCommunities(communities || []);
+        }
 
         // Calculate metrics
         const resourceCount = resources?.length || 0;
@@ -192,7 +218,9 @@ export function StunningDashboardMobileV2({ user }: { user: User | null }) {
            planName,
            cropCount,
            msbFulfillmentPercent,
-           expiringResources
+           expiringResources,
+           availableResources: 0, // TODO: Calculate from community resources
+           totalResources: resourceCount
          });
          
         setLoading(false);
@@ -235,46 +263,191 @@ export function StunningDashboardMobileV2({ user }: { user: User | null }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-32">
-      <div className="px-6 py-8">
-        
-        {/* Header - Cleaner, no boxes */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 leading-tight">{greeting}</h1>
-              <p className="text-gray-600 text-base mt-1">
-                {getUserDisplayName()}
-              </p>
+    <div className="min-h-screen bg-gradient-to-br from-[#2A331E]/5 via-[#3D4A2B]/3 to-[#4A5239]/8 pb-32">
+      <div className="px-4 py-6">
+        {/* Welcome Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            {greeting}, {getUserDisplayName()}!
+          </h1>
+          <p className="text-sm text-gray-600">
+            {new Date().toLocaleDateString('sv-SE', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}
+          </p>
+        </div>
+
+        {/* Weather Bar - Full featured with warnings */}
+        <div className="mb-6">
+          <WeatherBar />
+        </div>
+
+        {/* Overview Section Header */}
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+            <Activity className="w-5 h-5 text-[#3D4A2B]" />
+            Översikt
+          </h2>
+        </div>
+
+        {/* Score Cards - Mobile optimized */}
+        <div className="space-y-4 mb-8">
+          {/* Min odling - Cultivation Progress */}
+          <div className="bg-white rounded-2xl p-5 shadow-lg border border-gray-100">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#5C6B47] to-[#707C5F] flex items-center justify-center flex-shrink-0">
+                  <Leaf className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-gray-900 text-sm leading-tight mb-0.5 truncate">{metrics.planName || 'Min odling'}</h3>
+                  <p className="text-xs text-gray-500 font-medium truncate">Självförsörjning</p>
+                </div>
+              </div>
+              <div className="text-right flex-shrink-0 ml-4">
+                <div className="text-2xl font-bold text-gray-900 mb-0.5">{metrics.cultivationProgress}%</div>
+                <div className="text-xs text-gray-500 uppercase tracking-wider font-semibold whitespace-nowrap">Behov</div>
+              </div>
             </div>
+            
+            <div className="mb-4">
+              <p className="text-xs text-gray-600 mb-3 leading-relaxed">
+                {metrics.planName 
+                  ? metrics.cropCount === 1 
+                    ? '1 gröda i planen'
+                    : `${metrics.cropCount} grödor i planen`
+                  : 'Börja planera din odling'}
+              </p>
+              
+              <div className="relative">
+                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-[#5C6B47] to-[#707C5F] rounded-full transition-all duration-1000 ease-out relative overflow-hidden"
+                    style={{ width: `${Math.min(100, metrics.cultivationProgress)}%` }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             <button 
-              onClick={() => router.push('/settings')}
-              className="w-11 h-11 rounded-full bg-[#3D4A2B]/10 flex items-center justify-center hover:bg-[#3D4A2B]/20 transition-colors touch-manipulation active:scale-95"
+              onClick={() => router.push(metrics.planName 
+                  ? '/individual?section=cultivation&plan=current' 
+                  : '/individual?section=cultivation'
+              )}
+              className="w-full py-2 px-4 rounded-lg bg-[#3D4A2B]/5 hover:bg-[#3D4A2B]/10 border border-[#3D4A2B]/20 hover:border-[#3D4A2B]/40 text-xs text-[#3D4A2B] hover:text-[#2A331E] font-semibold flex items-center justify-center gap-2 transition-all duration-200"
             >
-              <Menu className="w-5 h-5 text-[#3D4A2B]" />
+              <span>{metrics.planName ? 'Hantera aktuell plan' : 'Skapa plan'}</span>
+              <ChevronRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
             </button>
           </div>
-          
-          {/* Quick Stats - Inline, not boxed */}
-          <div className="flex items-center gap-6 mt-5 text-sm">
-            <div>
-              <span className="font-bold text-gray-900 text-lg">{metrics.msbFulfillmentPercent}%</span>
-              <span className="text-gray-500 ml-1.5">MSB</span>
+
+          {/* Mina resurser */}
+          <div className="bg-white rounded-2xl p-5 shadow-lg border border-gray-100">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4A5239] to-[#707C5F] flex items-center justify-center flex-shrink-0">
+                  <Package className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-gray-900 text-sm leading-tight mb-0.5 truncate">Mina resurser</h3>
+                  <p className="text-xs text-gray-500 font-medium truncate">MSB rekommendationer</p>
+                </div>
+              </div>
+              <div className="text-right flex-shrink-0 ml-4">
+                <div className="text-2xl font-bold text-gray-900 mb-0.5">{metrics.msbFulfillmentPercent}%</div>
+                <div className="text-xs text-gray-500 uppercase tracking-wider font-semibold whitespace-nowrap">Uppfylld</div>
+              </div>
             </div>
-            <div className="w-px h-4 bg-gray-300" />
-            <div>
-              <span className="font-bold text-gray-900 text-lg">{metrics.cultivationProgress}%</span>
-              <span className="text-gray-500 ml-1.5">Odling</span>
+            
+            <div className="mb-4">
+              <p className="text-xs text-gray-600 mb-3 leading-relaxed">
+                {metrics.totalResources === 1 
+                  ? '1 resurs tillagd'
+                  : `${metrics.totalResources} resurser tillagda`}
+              </p>
+              
+              <div className="relative">
+                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-[#4A5239] to-[#707C5F] rounded-full transition-all duration-1000 ease-out relative overflow-hidden"
+                    style={{ width: `${Math.min(100, metrics.msbFulfillmentPercent)}%` }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="w-px h-4 bg-gray-300" />
-            <div>
-              <span className="font-bold text-gray-900 text-lg">{metrics.communityConnections}</span>
-              <span className="text-gray-500 ml-1.5">Nätverk</span>
+            
+            <button 
+              onClick={() => router.push('/individual')}
+              className="w-full py-2 px-4 rounded-lg bg-[#3D4A2B]/5 hover:bg-[#3D4A2B]/10 border border-[#3D4A2B]/20 hover:border-[#3D4A2B]/40 text-xs text-[#3D4A2B] hover:text-[#2A331E] font-semibold flex items-center justify-center gap-2 transition-all duration-200"
+            >
+              <span>Hantera resurser</span>
+              <ChevronRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
+            </button>
+          </div>
+
+          {/* Community Connections */}
+          <div className="bg-white rounded-2xl p-5 shadow-lg border border-gray-100">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#707C5F] to-[#4A5239] flex items-center justify-center flex-shrink-0">
+                  <Users className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-gray-900 text-sm leading-tight mb-0.5 truncate">Lokalt nätverk</h3>
+                  <p className="text-xs text-gray-500 font-medium truncate">
+                    {metrics.communityConnections === 0 
+                      ? 'Gå med i ett samhälle'
+                      : metrics.communityConnections === 1 
+                        ? `Medlem i 1 samhälle`
+                        : `Medlem i ${metrics.communityConnections} samhällen`}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right flex-shrink-0 ml-4">
+                <div className="text-2xl font-bold text-gray-900 mb-0.5">{metrics.communityConnections}</div>
+                <div className="text-xs text-gray-500 uppercase tracking-wider font-semibold whitespace-nowrap">Samhällen</div>
+              </div>
             </div>
+            
+            <div className="mb-4">
+              <p className="text-xs text-gray-600 mb-3 leading-relaxed">
+                {metrics.communityConnections === 0 
+                  ? 'Anslut dig till lokala samhällen för bättre beredskap'
+                  : metrics.availableResources === 1 
+                    ? '1 gemensam resurs'
+                    : `${metrics.availableResources} gemensamma resurser`}
+              </p>
+              
+              <div className="relative">
+                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-[#707C5F] to-[#4A5239] rounded-full transition-all duration-1000 ease-out relative overflow-hidden"
+                    style={{ width: `${Math.min(100, (metrics.communityConnections / 3) * 100)}%` }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <button 
+              onClick={() => router.push('/local')}
+              className="w-full py-2 px-4 rounded-lg bg-[#4A5239]/5 hover:bg-[#4A5239]/10 border border-[#4A5239]/20 hover:border-[#4A5239]/40 text-xs text-[#4A5239] hover:text-[#2A331E] font-semibold flex items-center justify-center gap-2 transition-all duration-200"
+            >
+              <span>{metrics.communityConnections > 0 ? 'Gå till samhälle' : 'Hitta samhällen'}</span>
+              <ChevronRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
+            </button>
           </div>
         </div>
 
-        {/* Main Navigation - List style instead of heavy cards */}
+        {/* Main Navigation - Moved to end */}
         <div className="mb-8">
           <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-1">
             Navigation
@@ -378,158 +551,72 @@ export function StunningDashboardMobileV2({ user }: { user: User | null }) {
               </div>
             </button>
           </div>
-        </div>
+                </div>
 
-        {/* My Cultivation - Clean list item */}
-        <div className="mb-8">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-1">
-            Min odling
-          </h3>
-          <button 
-            onClick={() => router.push(metrics.planName 
-              ? '/individual?section=cultivation&plan=current' 
-              : '/individual?section=cultivation'
-            )}
-            className="w-full bg-white border-2 border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-[#3D4A2B]/30 transition-all duration-200 touch-manipulation active:scale-[0.99]"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-4">
-                <div className="w-11 h-11 rounded-xl bg-[#3D4A2B]/10 flex items-center justify-center">
-                  <Leaf className="w-5 h-5 text-[#3D4A2B]" />
-                </div>
-                <div className="text-left">
-                  <h4 className="font-bold text-gray-900">
-                    {metrics.planName || 'Min odling'}
-                  </h4>
-                  <p className="text-gray-600 text-xs mt-0.5">
-                    {metrics.cropCount > 0 ? `${metrics.cropCount} grödor planterade` : 'Starta din odling'}
-                  </p>
-                </div>
-              </div>
-              <ArrowRight className="w-5 h-5 text-gray-400" />
-            </div>
-            {/* Progress bar */}
-            <div className="bg-gray-100 rounded-full h-2 overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-[#3D4A2B] to-[#5C6B47] transition-all duration-500"
-                style={{ width: `${Math.min(100, metrics.cultivationProgress)}%` }}
-              />
-            </div>
-            <div className="flex items-center justify-between mt-2">
-              <span className="text-xs text-gray-500">Självförsörjning</span>
-              <span className="text-xs font-semibold text-gray-900">{metrics.cultivationProgress}%</span>
-            </div>
-          </button>
-        </div>
+                {/* Admin Section - Only show if user is admin */}
+                {isAdmin && adminCommunities.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-1">
+                      Administratörsverktyg
+                    </h3>
+                    <div className="space-y-2">
+                      {adminCommunities.map((community) => (
+                        <div key={community.id} className="bg-gradient-to-r from-[#B8860B]/10 to-[#B8860B]/5 rounded-2xl p-5 border border-[#B8860B]/20">
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-[#B8860B]/20 flex items-center justify-center">
+                                <Shield className="w-5 h-5 text-[#B8860B]" />
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-gray-900 text-sm">{community.community_name}</h4>
+                                <p className="text-xs text-[#B8860B] font-medium">Administratör</p>
+                              </div>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-[#B8860B]" />
+                          </div>
+                          
+                          <div className="grid grid-cols-3 gap-2">
+                            {/* Manage Users */}
+                            <button 
+                              onClick={() => router.push(`/local?community=${community.id}&tab=members`)}
+                              className="flex flex-col items-center gap-2 p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-all active:scale-95 touch-manipulation"
+                            >
+                              <div className="w-8 h-8 rounded-lg bg-[#3D4A2B]/10 flex items-center justify-center">
+                                <Users className="w-4 h-4 text-[#3D4A2B]" />
+                              </div>
+                              <span className="text-xs font-semibold text-gray-700 text-center">Medlemmar</span>
+                            </button>
 
-        {/* Resources Overview */}
-        <div className="mb-8">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-1">
-            Översikt resurser
-          </h3>
-          <div className="bg-white border-2 border-gray-200 rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-4">
-                <div className="w-11 h-11 rounded-xl bg-[#3D4A2B]/10 flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-[#3D4A2B]" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-900">Mina resurser</h4>
-                  <p className="text-gray-600 text-xs mt-0.5">{metrics.resourceCount} st registrerade</p>
-                </div>
-              </div>
-              <button 
-                onClick={() => router.push('/individual?section=resources')}
-                className="text-[#3D4A2B] font-medium text-sm hover:underline"
-              >
-                Visa
-              </button>
-            </div>
-            {metrics.expiringResources > 0 && (
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0" />
-                <p className="text-sm text-amber-900">
-                  <span className="font-semibold">{metrics.expiringResources}</span> resurser utgår snart
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
+                            {/* Homepage Editor */}
+                            <button 
+                              onClick={() => router.push(`/local?community=${community.id}&tab=homepage`)}
+                              className="flex flex-col items-center gap-2 p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-all active:scale-95 touch-manipulation"
+                            >
+                              <div className="w-8 h-8 rounded-lg bg-[#5C6B47]/10 flex items-center justify-center">
+                                <Edit className="w-4 h-4 text-[#5C6B47]" />
+                              </div>
+                              <span className="text-xs font-semibold text-gray-700 text-center">Hemsida</span>
+                            </button>
 
-        {/* Weather - Compact inline */}
-        <div className="mb-8">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-1">
-            Väder
-          </h3>
-          <div className="bg-gradient-to-br from-[#3D4A2B]/5 to-[#5C6B47]/10 border-2 border-[#3D4A2B]/20 rounded-2xl p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <Sun className="w-6 h-6 text-[#3D4A2B]" />
-                <div>
-                  <h4 className="font-semibold text-gray-900">
-                    {weatherLoading ? '--°C' : weather ? `${Math.round(weather.temperature)}°C` : '--°C'}
-                  </h4>
-                  <p className="text-xs text-gray-600 mt-0.5">
-                    {weatherLoading ? 'Laddar...' : weather ? weather.forecast : 'Ej tillgängligt'}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center justify-around text-center border-t border-[#3D4A2B]/10 pt-4">
-              <div>
-                <Droplets className="w-4 h-4 text-[#3D4A2B] mx-auto mb-1" />
-                <div className="text-sm font-medium text-gray-900">
-                  {weatherLoading ? '--' : weather ? `${weather.humidity}%` : '--%'}
-                </div>
-              </div>
-              <div className="w-px h-8 bg-[#3D4A2B]/10" />
-              <div>
-                <Wind className="w-4 h-4 text-[#3D4A2B] mx-auto mb-1" />
-                <div className="text-sm font-medium text-gray-900">
-                  {weatherLoading ? '--' : weather ? `${weather.windSpeed} m/s` : '-- m/s'}
-                </div>
-              </div>
-              <div className="w-px h-8 bg-[#3D4A2B]/10" />
-              <div>
-                <Thermometer className="w-4 h-4 text-[#3D4A2B] mx-auto mb-1" />
-                <div className="text-sm font-medium text-gray-900">Mild</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Actions - Minimal, list-based */}
-        {metrics.nextActions.length > 0 && (
-          <div className="mb-8">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-1 flex items-center">
-              <Zap className="w-4 h-4 mr-2" />
-              Rekommenderade åtgärder
-            </h3>
-            <div className="space-y-2">
-              {metrics.nextActions.map((action, index) => (
-                <button
-                  key={index}
-                  onClick={() => {
-                    if (action.includes('resurser')) router.push('/individual?section=resources');
-                    else if (action.includes('odling')) router.push('/individual?section=cultivation');
-                    else if (action.includes('samhälle')) router.push('/local');
-                  }}
-                  className="w-full bg-white border border-gray-200 rounded-xl p-4 hover:border-[#3D4A2B]/30 hover:bg-[#3D4A2B]/5 transition-all duration-200 text-left touch-manipulation active:scale-[0.99]"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="font-medium text-gray-900 text-sm">
-                      {action}
+                            {/* Invites & Analytics */}
+                            <button 
+                              onClick={() => router.push(`/local?community=${community.id}&tab=analytics`)}
+                              className="flex flex-col items-center gap-2 p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-all active:scale-95 touch-manipulation"
+                            >
+                              <div className="w-8 h-8 rounded-lg bg-[#707C5F]/10 flex items-center justify-center">
+                                <BarChart3 className="w-4 h-4 text-[#707C5F]" />
+                              </div>
+                              <span className="text-xs font-semibold text-gray-700 text-center">Inbjudningar</span>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <ChevronRight className="w-4 h-4 text-gray-400" />
                   </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+                )}
 
-      </div>
-    </div>
-  );
-}
+              </div>
+            </div>
+          );
+        }
 

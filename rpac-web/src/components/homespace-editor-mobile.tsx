@@ -638,13 +638,101 @@ export default function HomespaceEditorMobile({ communityId, initialData, onClos
             </div>
           </div>
         ) : (
-          // Preview mode - simplified mobile preview
+          // Preview mode - actual homepage preview
           <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-            <div className="p-6">
-              <h3 className="text-lg font-bold text-[#3D4A2B] mb-4">Förhandsvisning</h3>
-              <p className="text-gray-600">
-                Förhandsvisning kommer att visas här när den är implementerad.
-              </p>
+            {/* Homepage Preview Header */}
+            <div className={`relative overflow-hidden ${
+              homespace.banner_type === 'gradient' 
+                ? `bg-gradient-to-r ${homespace.banner_pattern === 'olive-gradient' ? 'from-[#3D4A2B] to-[#5C6B47]' : 'from-[#5C6B47] to-[#707C5F]'}`
+                : 'bg-gray-100'
+            }`}>
+              {homespace.custom_banner_url && (
+                <img 
+                  src={homespace.custom_banner_url} 
+                  alt="Banner" 
+                  className="w-full h-32 object-cover"
+                />
+              )}
+              <div className="p-6 text-white">
+                <div className="flex items-center gap-3 mb-3">
+                  {homespace.logo_url && (
+                    <img 
+                      src={homespace.logo_url} 
+                      alt="Logo" 
+                      className="w-12 h-12 rounded-lg object-cover bg-white/20"
+                    />
+                  )}
+                  <div>
+                    <h1 className="text-xl font-bold">{homespace.communities?.community_name || 'Samhälle'}</h1>
+                    <p className="text-white/80 text-sm">Lokalt samhälle</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Preview Content */}
+            <div className="p-6 space-y-6">
+              {/* Current Info Section */}
+              {homespace.show_current_info_public && homespace.current_info && (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                  <h3 className="font-semibold text-blue-900 mb-2">Aktuell information</h3>
+                  <div className="prose prose-sm max-w-none text-blue-800">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {homespace.current_info}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+              )}
+
+              {/* About Section */}
+              {homespace.about_text && (
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3">Om vårt samhälle</h3>
+                  <div className="prose prose-sm max-w-none text-gray-700">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {homespace.about_text}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+              )}
+
+              {/* Membership Criteria */}
+              {homespace.membership_criteria && (
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3">Medlemskriterier</h3>
+                  <div className="prose prose-sm max-w-none text-gray-700">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {homespace.membership_criteria}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+              )}
+
+              {/* Contact Section */}
+              {homespace.show_contact_section && (
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <h3 className="font-semibold text-gray-900 mb-3">Kontakt</h3>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    {homespace.contact_email && (
+                      <p>📧 {homespace.contact_email}</p>
+                    )}
+                    {homespace.contact_phone && (
+                      <p>📞 {homespace.contact_phone}</p>
+                    )}
+                    {homespace.contact_address && (
+                      <p>📍 {homespace.contact_address}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Preview Footer */}
+              <div className="text-center text-sm text-gray-500 pt-4 border-t border-gray-200">
+                <p>Förhandsvisning av hemsidan</p>
+                <p className="text-xs mt-1">
+                  {homespace.published ? 'Publicerad' : 'Utkast'}
+                </p>
+              </div>
             </div>
           </div>
         )}

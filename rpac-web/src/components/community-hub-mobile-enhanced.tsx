@@ -18,7 +18,8 @@ import {
   Share2,
   Globe,
   ExternalLink,
-  Edit
+  Edit,
+  Activity
 } from 'lucide-react';
 import { CommunityDiscoveryMobile } from './community-discovery-mobile';
 import { MessagingSystemV2 } from './messaging-system-v2';
@@ -522,6 +523,81 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
             <p className="text-gray-600 text-sm leading-relaxed">
               {activeCommunity.description || 'Ett lokalt samhälle för att dela resurser och stötta varandra i beredskapsfrågor.'}
             </p>
+          </div>
+
+          {/* Enhanced Activity Feed - Prominent Mobile Section */}
+          <div className="bg-gradient-to-br from-[#3D4A2B]/5 to-[#5C6B47]/10 rounded-2xl p-6 border border-[#3D4A2B]/20 shadow-lg mb-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-[#3D4A2B] rounded-xl flex items-center justify-center">
+                  <Bell size={20} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">Senaste aktivitet</h3>
+                  <p className="text-sm text-[#3D4A2B] font-medium">Vad händer i samhället</p>
+                </div>
+              </div>
+              <button className="px-3 py-1.5 bg-[#3D4A2B]/10 text-[#3D4A2B] text-xs font-semibold rounded-lg hover:bg-[#3D4A2B]/20 transition-colors">
+                Visa alla
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              {/* Mock recent activity data - in real implementation, fetch from database */}
+              {(() => {
+                const mockActivity = [
+                  {
+                    id: '1',
+                    type: 'member_joined',
+                    message: 'Ny medlem gick med i samhället',
+                    timestamp: '22 tim sedan'
+                  },
+                  {
+                    id: '2',
+                    type: 'member_joined',
+                    message: 'Simon Salgfors gick med i samhället',
+                    timestamp: '22 tim sedan'
+                  },
+                  {
+                    id: '3',
+                    type: 'resource_shared',
+                    message: 'Delade resurs: Batterier',
+                    timestamp: '1 dag sedan'
+                  }
+                ];
+
+                return mockActivity.length > 0 ? (
+                  mockActivity.slice(0, 3).map((activity, index) => (
+                    <div key={activity.id} className="flex items-start gap-3 p-4 bg-white/80 rounded-xl border border-white/50 hover:bg-white transition-colors">
+                      <div className="w-8 h-8 bg-[#5C6B47] rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <Users size={14} className="text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-800">{activity.message}</p>
+                        <p className="text-xs text-[#3D4A2B]/70 mt-1 font-medium">{activity.timestamp}</p>
+                      </div>
+                      {index === 0 && (
+                        <div className="w-2 h-2 bg-[#3D4A2B] rounded-full animate-pulse"></div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 bg-[#3D4A2B]/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                      <Bell size={24} className="text-[#3D4A2B]" />
+                    </div>
+                    <p className="text-gray-600 text-sm">Ingen aktivitet ännu</p>
+                    <p className="text-gray-500 text-xs mt-1">Aktiviteter visas här när medlemmar delar resurser</p>
+                  </div>
+                );
+              })()}
+            </div>
+            
+            <div className="mt-4 pt-4 border-t border-[#3D4A2B]/20">
+              <button className="w-full py-2 px-4 bg-white/50 text-[#3D4A2B] text-sm font-semibold rounded-lg hover:bg-white/80 transition-colors">
+                Visa alla aktiviteter
+              </button>
+            </div>
           </div>
 
           {/* Quick Actions */}

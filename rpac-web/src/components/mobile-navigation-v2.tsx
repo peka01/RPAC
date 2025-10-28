@@ -192,7 +192,7 @@ export function MobileNavigationV2() {
         .from('user_profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle(); // Use maybeSingle() instead of single() to handle 0 rows gracefully
 
       if (error) {
         console.error('Error loading user profile:', error);

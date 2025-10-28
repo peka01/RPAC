@@ -150,27 +150,27 @@ export default function DirectMessagesPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           {/* Page Header */}
-          <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-            <div className="flex items-center justify-between mb-6">
+          <div className="bg-white rounded-xl shadow-lg p-4 md:p-8 mb-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
               <div className="flex items-center gap-4">
                 <div className="bg-[#3D4A2B]/10 rounded-xl p-3">
                   <MessageCircle className="w-8 h-8 text-[#3D4A2B]" />
                 </div>
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">Direktmeddelanden</h1>
-                  <p className="text-gray-600">Privata meddelanden med andra medlemmar</p>
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-2 truncate">Direktmeddelanden</h1>
+                  <p className="text-gray-600 text-sm md:text-base">Privata meddelanden med andra medlemmar</p>
                 </div>
               </div>
               
-              {/* Community Selector */}
+              {/* Community Selector - Mobile Responsive */}
               {userCommunities.length > 1 && (
-                <div className="bg-gradient-to-r from-[#3D4A2B]/10 to-[#5C6B47]/10 border-2 border-[#3D4A2B]/30 rounded-xl px-6 py-4 shadow-lg">
-                  <div className="flex items-center gap-4">
+                <div className="bg-gradient-to-r from-[#3D4A2B]/10 to-[#5C6B47]/10 border-2 border-[#3D4A2B]/30 rounded-xl px-4 py-3 md:px-6 md:py-4 shadow-lg w-full md:w-auto">
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
                     <div className="flex items-center gap-2 text-sm">
                       <div className="bg-[#3D4A2B] rounded-full p-2">
                         <Users size={16} className="text-white" />
                       </div>
-                      <span className="font-bold text-[#3D4A2B] text-base">Aktivt samhälle:</span>
+                      <span className="font-bold text-[#3D4A2B] text-sm md:text-base">Aktivt samhälle:</span>
                     </div>
                     <select
                       value={communityId || ''}
@@ -183,7 +183,7 @@ export default function DirectMessagesPage() {
                           localStorage.setItem('selectedCommunityId', selectedCommunity.id);
                         }
                       }}
-                      className="px-4 py-3 bg-white border-2 border-[#3D4A2B]/40 rounded-lg focus:outline-none focus:ring-4 focus:ring-[#3D4A2B]/20 text-gray-900 font-bold text-base cursor-pointer hover:border-[#3D4A2B] hover:shadow-md transition-all min-w-[220px] shadow-sm"
+                      className="w-full md:w-auto px-3 py-2 md:px-4 md:py-3 bg-white border-2 border-[#3D4A2B]/40 rounded-lg focus:outline-none focus:ring-4 focus:ring-[#3D4A2B]/20 text-gray-900 font-bold text-sm md:text-base cursor-pointer hover:border-[#3D4A2B] hover:shadow-md transition-all shadow-sm"
                     >
                       {userCommunities.map((community) => (
                         <option key={community.id} value={community.id} className="font-bold">

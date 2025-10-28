@@ -240,6 +240,59 @@ export function CommunityDashboardRefactoredMobile({ user, community, onNavigate
           </div>
         </div>
 
+        {/* Enhanced Activity Feed - Prominent Mobile Section */}
+        <div className="bg-gradient-to-br from-[#3D4A2B]/5 to-[#5C6B47]/10 rounded-2xl p-6 border border-[#3D4A2B]/20 shadow-lg">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[#3D4A2B] rounded-xl flex items-center justify-center">
+                <Activity size={20} className="text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Senaste aktivitet</h3>
+                <p className="text-sm text-[#3D4A2B] font-medium">Vad händer i samhället</p>
+              </div>
+            </div>
+            <button className="px-3 py-1.5 bg-[#3D4A2B]/10 text-[#3D4A2B] text-xs font-semibold rounded-lg hover:bg-[#3D4A2B]/20 transition-colors">
+              Visa alla
+            </button>
+          </div>
+          
+          <div className="space-y-3">
+            {recentActivity.length > 0 ? (
+              recentActivity.slice(0, 3).map((activity, index) => (
+                <div key={activity.id} className="flex items-start gap-3 p-4 bg-white/80 rounded-xl border border-white/50 hover:bg-white transition-colors">
+                  <div className="w-8 h-8 bg-[#5C6B47] rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <Users size={14} className="text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-800">{activity.message}</p>
+                    <p className="text-xs text-[#3D4A2B]/70 mt-1 font-medium">{activity.timestamp}</p>
+                  </div>
+                  {index === 0 && (
+                    <div className="w-2 h-2 bg-[#3D4A2B] rounded-full animate-pulse"></div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-[#3D4A2B]/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <Activity size={24} className="text-[#3D4A2B]" />
+                </div>
+                <p className="text-gray-600 text-sm">Ingen aktivitet ännu</p>
+                <p className="text-gray-500 text-xs mt-1">Aktiviteter visas här när medlemmar delar resurser</p>
+              </div>
+            )}
+          </div>
+          
+          {recentActivity.length > 3 && (
+            <div className="mt-4 pt-4 border-t border-[#3D4A2B]/20">
+              <button className="w-full py-2 px-4 bg-white/50 text-[#3D4A2B] text-sm font-semibold rounded-lg hover:bg-white/80 transition-colors">
+                Visa {recentActivity.length - 3} fler aktiviteter
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Action Cards - Mobile Stack */}
         <div className="space-y-4">
           <button
@@ -320,27 +373,6 @@ export function CommunityDashboardRefactoredMobile({ user, community, onNavigate
           </div>
         )}
 
-        {/* Activity Feed - Mobile Bottom Section */}
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-          <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Activity size={18} className="text-[#3D4A2B]" />
-            Senaste aktivitet
-          </h3>
-          
-          <div className="space-y-3">
-            {recentActivity.map((activity) => (
-              <div key={activity.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                <div className="w-6 h-6 bg-[#5C6B47] rounded-full flex items-center justify-center flex-shrink-0">
-                  <Users size={12} className="text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-700">{activity.message}</p>
-                  <p className="text-xs text-gray-500 mt-1">{activity.timestamp}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
       {/* Homespace Editor Modal */}
       {showHomespaceEditor && community?.id && (

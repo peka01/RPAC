@@ -86,7 +86,7 @@ export function CommunityAdminSectionMobile({
   const [memberFilter, setMemberFilter] = useState<'all' | 'pending' | 'approved'>('all');
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState<CommunityMember | null>(null);
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(true);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['pending']));
   
   // Pending requests state
@@ -441,41 +441,49 @@ export function CommunityAdminSectionMobile({
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-100 mb-6">
       {/* Mobile Header */}
-      <div className="px-6 py-4 border-b border-gray-100">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#3D4A2B]/10 rounded-xl flex items-center justify-center">
-            <Shield size={20} className="text-[#3D4A2B]" />
+      <div className="px-4 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="w-8 h-8 bg-[#3D4A2B]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Shield size={16} className="text-[#3D4A2B]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-base font-bold text-gray-900 truncate">
+                {t('community_admin.section_title')}
+              </h2>
+              <p className="text-xs text-gray-600 truncate">
+                {t('community_admin.subtitle')}
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-lg font-bold text-gray-900">
-              {t('community_admin.section_title')}
-            </h2>
-            <p className="text-sm text-gray-600">
-              {t('community_admin.subtitle')}
-            </p>
-          </div>
+          <button
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+            className="p-2 rounded-lg bg-[#3D4A2B]/10 hover:bg-[#3D4A2B]/20 transition-colors touch-manipulation flex-shrink-0 ml-2"
+          >
+            <Menu size={18} className="text-[#3D4A2B]" />
+          </button>
         </div>
       </div>
 
       {/* Mobile Tab Navigation */}
       {showMobileMenu && (
-        <div className="px-6 py-4 border-b border-gray-100 bg-gray-50">
-          <div className="grid grid-cols-2 gap-3">
+        <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+          <div className="grid grid-cols-3 gap-2">
             <button
               onClick={() => {
                 setActiveTab('members');
                 setShowMobileMenu(false);
               }}
-              className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold text-sm transition-all ${
+              className={`flex flex-col items-center gap-1 px-2 py-2 rounded-lg font-semibold text-xs transition-all ${
                 activeTab === 'members'
                   ? 'bg-[#3D4A2B] text-white shadow-md'
                   : 'bg-white text-gray-600 border border-gray-200'
               }`}
             >
-              <Users size={18} />
-              <span>{t('community_admin.tabs.members')}</span>
+              <Users size={16} />
+              <span className="text-center">{t('community_admin.tabs.members')}</span>
               {pendingCount > 0 && (
-                <span className="w-5 h-5 bg-[#B8860B] text-white text-xs font-bold rounded-full flex items-center justify-center">
+                <span className="w-4 h-4 bg-[#B8860B] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                   {pendingCount}
                 </span>
               )}
@@ -487,14 +495,14 @@ export function CommunityAdminSectionMobile({
                 setActiveTab('homepage');
                 setShowMobileMenu(false);
               }}
-              className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold text-sm transition-all ${
+              className={`flex flex-col items-center gap-1 px-2 py-2 rounded-lg font-semibold text-xs transition-all ${
                 activeTab === 'homepage'
                   ? 'bg-[#3D4A2B] text-white shadow-md'
                   : 'bg-white text-gray-600 border border-gray-200'
               }`}
             >
-              <Globe size={18} />
-              <span>{t('community_admin.tabs.homepage')}</span>
+              <Globe size={16} />
+              <span className="text-center">{t('community_admin.tabs.homepage')}</span>
             </button>
 
             <button
@@ -502,21 +510,21 @@ export function CommunityAdminSectionMobile({
                 setActiveTab('analytics');
                 setShowMobileMenu(false);
               }}
-              className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold text-sm transition-all ${
+              className={`flex flex-col items-center gap-1 px-2 py-2 rounded-lg font-semibold text-xs transition-all ${
                 activeTab === 'analytics'
                   ? 'bg-[#3D4A2B] text-white shadow-md'
                   : 'bg-white text-gray-600 border border-gray-200'
               }`}
             >
-              <BarChart3 size={18} />
-              <span>{t('community_admin.tabs.analytics')}</span>
+              <BarChart3 size={16} />
+              <span className="text-center">{t('community_admin.tabs.analytics')}</span>
             </button>
           </div>
         </div>
       )}
 
       {/* Content */}
-      <div className="p-6">
+      <div className="p-4">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <ShieldProgressSpinner size="lg" color="olive" message="Laddar" />
@@ -657,46 +665,45 @@ export function CommunityAdminSectionMobile({
                   {expandedSections.has('members') && (
                     <div className="mt-4 space-y-3">
                       {members.map((member) => (
-                        <div key={member.membership_id} className="bg-white rounded-lg p-4 border border-gray-200">
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h4 className="font-semibold text-gray-900">
-                                  {member.display_name}
-                                </h4>
-                                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getRoleColor(member.role)}`}>
-                                  {getRoleText(member.role)}
-                                </span>
-                              </div>
-                              <p className="text-sm text-gray-600 mb-2">
-                                {member.email}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {t('community_admin.joined')}: {formatDate(member.joined_at)}
-                              </p>
+                        <div key={member.membership_id} className="bg-white rounded-lg p-3 border border-gray-200">
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-semibold text-gray-900 flex-1 truncate">
+                                {member.display_name}
+                              </h4>
+                              <span className={`px-2 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${getRoleColor(member.role)}`}>
+                                {getRoleText(member.role)}
+                              </span>
                             </div>
+                            
+                            <div className="text-xs text-gray-500">
+                              {t('community_admin.joined')}: {formatDate(member.joined_at)}
+                            </div>
+                            
                             {member.user_id !== user.id && (
-                              <div className="flex items-center gap-2">
+                              <div className="flex gap-2">
                                 {/* Message button */}
                                 <a
                                   href={`/local/messages/direct/?userId=${member.user_id}`}
-                                  className="w-10 h-10 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center justify-center active:scale-98 touch-manipulation"
-                                  title="Skicka meddelande"
+                                  className="flex-1 flex items-center justify-center gap-2 bg-blue-50 text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-100 transition-colors active:scale-98 touch-manipulation"
                                 >
-                                  <MessageCircle size={18} />
+                                  <MessageCircle size={14} />
+                                  <span className="text-xs font-medium">Meddelande</span>
                                 </a>
 
                                 {/* Remove member button */}
                                 <button
                                   onClick={() => confirmRemoveMember(member)}
                                   disabled={actionLoading === member.membership_id}
-                                  className="w-10 h-10 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center active:scale-98 touch-manipulation"
-                                  title="Ta bort medlem"
+                                  className="flex-1 flex items-center justify-center gap-2 bg-red-50 text-red-700 px-3 py-2 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-98 touch-manipulation"
                                 >
                                   {actionLoading === member.membership_id ? (
                                     <ShieldProgressSpinner size="sm" />
                                   ) : (
-                                    <Trash2 size={18} />
+                                    <>
+                                      <Trash2 size={14} />
+                                      <span className="text-xs font-medium">Ta bort</span>
+                                    </>
                                   )}
                                 </button>
                               </div>

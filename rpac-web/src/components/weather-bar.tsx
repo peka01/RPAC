@@ -13,7 +13,10 @@ import {
   Thermometer,
   Wind,
   Droplets,
-  Eye
+  Eye,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink
 } from 'lucide-react';
 import { WarningSeverityBadge } from '@/components/ui/warning-severity-badge';
 import { useWeather } from '@/contexts/WeatherContext';
@@ -26,6 +29,7 @@ export function WeatherBar({ className = '' }: WeatherBarProps) {
   const { weather, forecast, extremeWeatherWarnings, officialWarnings, loading } = useWeather();
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [currentWarningIndex, setCurrentWarningIndex] = useState(0);
 
   // Update time every minute
   useEffect(() => {
@@ -34,6 +38,44 @@ export function WeatherBar({ className = '' }: WeatherBarProps) {
     }, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  // Reset warning index when warnings change
+  useEffect(() => {
+    setCurrentWarningIndex(0);
+  }, [officialWarnings]);
+
+  // Ensure currentWarningIndex is always within bounds
+  useEffect(() => {
+    if (officialWarnings && officialWarnings.length > 0) {
+      setCurrentWarningIndex(prev => 
+        Math.max(0, Math.min(prev, officialWarnings.length - 1))
+      );
+    }
+  }, [officialWarnings, currentWarningIndex]);
+
+  // Navigation functions for warning carousel
+  const goToPreviousWarning = () => {
+    if (officialWarnings && officialWarnings.length > 0) {
+      setCurrentWarningIndex((prev) => {
+        const newIndex = prev === 0 ? officialWarnings.length - 1 : prev - 1;
+        return Math.max(0, Math.min(newIndex, officialWarnings.length - 1));
+      });
+    }
+  };
+
+  const goToNextWarning = () => {
+    if (officialWarnings && officialWarnings.length > 0) {
+      setCurrentWarningIndex((prev) => {
+        const newIndex = prev === officialWarnings.length - 1 ? 0 : prev + 1;
+        return Math.max(0, Math.min(newIndex, officialWarnings.length - 1));
+      });
+    }
+  };
+
+  // Generate SMHI warning link
+  const getSMHIWarningLink = (warningId: number) => {
+    return `https://www.smhi.se/vader/prognoser-och-varningar/varningar-och-meddelanden/varningar?warningId=${warningId}`;
+  };
 
   // Get appropriate weather icon
   const getWeatherIcon = (forecastText: string) => {
@@ -172,11 +214,24 @@ export function WeatherBar({ className = '' }: WeatherBarProps) {
 
   return (
     <div className={`bg-gradient-to-r from-[#3D4A2B]/10 to-[#5C6B47]/10 border border-[#3D4A2B]/20 rounded-lg overflow-hidden transition-all duration-300 ${className}`}>
-      {/* SMHI Official Warnings - Show these first */}
+      {/* SMHI Official Warnings - Carousel */}
       {officialWarnings && officialWarnings.length > 0 && (
-        <div className="divide-y divide-[#3D4A2B]/20">
-          {officialWarnings.map((warning, index) => {
-            // Handle new API structure
+        <div className="bg-gradient-to-r from-[#3D4A2B]/15 to-[#5C6B47]/20 px-4 py-2">
+          {(() => {
+            const warning = officialWarnings[currentWarningIndex];
+            
+            // Safety check - ensure warning exists and is valid
+            if (!warning) {
+              return (
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-[#3D4A2B] flex-shrink-0" />
+                  <div className="text-sm text-[#3D4A2B]/80">
+                    Ingen varning tillgänglig
+                  </div>
+                </div>
+              );
+            }
+            
             const warningName = warning.event?.sv || 'Varning';
             const warningDescription = warning.warningAreas?.[0]?.eventDescription ? 
               (typeof warning.warningAreas[0].eventDescription === 'string' 
@@ -190,80 +245,108 @@ export function WeatherBar({ className = '' }: WeatherBarProps) {
             const endTime = warning.warningAreas?.[0]?.approximateEnd;
             
             return (
-              <div 
-                key={index}
-                className="bg-gradient-to-r from-[#3D4A2B]/15 to-[#5C6B47]/20 px-4 py-2"
-              >
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 text-[#3D4A2B] flex-shrink-0 mt-1" />
-                  <div>
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <div className="text-sm font-semibold text-[#3D4A2B]">
-                        {warningName}
-                      </div>
-                      {warningLevel && (
-                        <span className="text-xs px-2 py-1 bg-[#3D4A2B]/20 text-[#3D4A2B] rounded">
-                          {warningLevel}
-                        </span>
-                      )}
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-[#3D4A2B] flex-shrink-0 mt-1" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <div className="text-sm font-semibold text-[#3D4A2B]">
+                      {warningName}
                     </div>
-                    <p className="text-xs text-[#3D4A2B]/80">
-                      {warningDescription}
-                    </p>
-                    {startTime && (
-                      <div className="text-xs text-[#3D4A2B]/60 mt-1">
-                        {(() => {
-                          const startDate = new Date(startTime);
-                          const endDate = endTime ? new Date(endTime) : null;
-                          
-                          // Format start date
-                          const startDay = startDate.getDate();
-                          const startMonth = startDate.toLocaleDateString('sv-SE', { month: 'long' });
-                          const startTimeStr = startDate.toLocaleTimeString('sv-SE', { 
+                    {warningLevel && (
+                      <span className="text-xs px-2 py-1 bg-[#3D4A2B]/20 text-[#3D4A2B] rounded">
+                        {warningLevel}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-[#3D4A2B]/80">
+                    {warningDescription}
+                  </p>
+                  {startTime && (
+                    <div className="text-xs text-[#3D4A2B]/60 mt-1">
+                      {(() => {
+                        const startDate = new Date(startTime);
+                        const endDate = endTime ? new Date(endTime) : null;
+                        
+                        // Format start date
+                        const startDay = startDate.getDate();
+                        const startMonth = startDate.toLocaleDateString('sv-SE', { month: 'long' });
+                        const startTimeStr = startDate.toLocaleTimeString('sv-SE', { 
+                          hour: '2-digit', 
+                          minute: '2-digit',
+                          hour12: false 
+                        });
+                        
+                        if (endDate) {
+                          // Has end time - show range
+                          const endDay = endDate.getDate();
+                          const endMonth = endDate.toLocaleDateString('sv-SE', { month: 'long' });
+                          const endTimeStr = endDate.toLocaleTimeString('sv-SE', { 
                             hour: '2-digit', 
                             minute: '2-digit',
                             hour12: false 
                           });
                           
-                          if (endDate) {
-                            // Has end time - show range
-                            const endDay = endDate.getDate();
-                            const endMonth = endDate.toLocaleDateString('sv-SE', { month: 'long' });
-                            const endTimeStr = endDate.toLocaleTimeString('sv-SE', { 
-                              hour: '2-digit', 
-                              minute: '2-digit',
-                              hour12: false 
-                            });
-                            
-                            if (startMonth === endMonth && startDay === endDay) {
-                              // Same day
-                              return `Gäller ${startDay} ${startMonth} kl. ${startTimeStr} - ${endTimeStr}`;
-                            } else {
-                              // Different days
-                              return `Gäller ${startDay} ${startMonth} kl. ${startTimeStr} - ${endDay} ${endMonth} kl. ${endTimeStr}`;
-                            }
+                          if (startMonth === endMonth && startDay === endDay) {
+                            // Same day
+                            return `Gäller ${startDay} ${startMonth} kl. ${startTimeStr} - ${endTimeStr}`;
                           } else {
-                            // No end time - ongoing warning
-                            return `Gäller ${startDay} ${startMonth} kl. ${startTimeStr} och tills vidare`;
+                            // Different days
+                            return `Gäller ${startDay} ${startMonth} kl. ${startTimeStr} - ${endDay} ${endMonth} kl. ${endTimeStr}`;
                           }
-                        })()}
-                      </div>
-                    )}
-                    <div className="text-xs text-[#3D4A2B]/50 mt-1">
-                      <a 
-                        href="https://www.smhi.se/vader/prognoser-och-varningar/varningar-och-meddelanden/varningar"
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="hover:text-[#3D4A2B]/70 underline"
-                      >
-                        Se alla varningar på SMHI.se →
-                      </a>
+                        } else {
+                          // No end time - ongoing warning
+                          return `Gäller ${startDay} ${startMonth} kl. ${startTimeStr} och tills vidare`;
+                        }
+                      })()}
                     </div>
+                  )}
+                  <div className="text-xs text-[#3D4A2B]/50 mt-1">
+                    <a 
+                      href={getSMHIWarningLink(warning.id)}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="hover:text-[#3D4A2B]/70 underline inline-flex items-center gap-1"
+                      title={warning.id >= 8000 ? "Testvarning - länken kanske inte fungerar" : "Se varning på SMHI.se"}
+                    >
+                      Se varning på SMHI.se
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
                   </div>
                 </div>
+                
+                {/* Navigation Controls */}
+                {officialWarnings.length > 1 && (
+                  <div className="flex items-center gap-1 ml-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        goToPreviousWarning();
+                      }}
+                      className="p-1 hover:bg-[#3D4A2B]/20 rounded transition-colors"
+                      title="Föregående varning"
+                    >
+                      <ChevronLeft className="w-4 h-4 text-[#3D4A2B]" />
+                    </button>
+                    
+                    <span className="text-xs text-[#3D4A2B]/70 px-2">
+                      {currentWarningIndex + 1}/{officialWarnings.length}
+                    </span>
+                    
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        goToNextWarning();
+                      }}
+                      className="p-1 hover:bg-[#3D4A2B]/20 rounded transition-colors"
+                      title="Nästa varning"
+                    >
+                      <ChevronRight className="w-4 h-4 text-[#3D4A2B]" />
+                    </button>
+                  </div>
+                )}
               </div>
             );
-          })}
+          })()}
         </div>
       )}
 
