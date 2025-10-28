@@ -396,14 +396,19 @@ export const communityService = {
       .select('role')
       .eq('community_id', communityId)
       .eq('user_id', userId)
-      .single()
+      .maybeSingle()
     
     if (error) {
       console.error('Error getting user role:', error)
       return null
     }
     
-    return data?.role || 'member'
+    // If no membership found, return null
+    if (!data) {
+      return null
+    }
+    
+    return data.role || 'member'
   },
 
   async isUserAdmin(communityId: string, userId: string): Promise<boolean> {

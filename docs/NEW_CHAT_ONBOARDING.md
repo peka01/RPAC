@@ -32,7 +32,7 @@ When starting a new chat, **ALWAYS** read these files in this order:
 ## 🎯 Quick Start Summary
 
 ### Project Identity
-- **Name:** RPAC - Resilience & Preparedness AI Companion
+- **Name:** BeReady - Resilience & Preparedness AI Companion
 - **Language:** Swedish-first (all UI text in `rpac-web/src/lib/locales/sv.json`)
 - **Tech Stack:** Next.js 14, React, TypeScript, Tailwind CSS, Supabase
 - **Focus:** Offline-first crisis preparedness for Swedish users
@@ -277,7 +277,7 @@ You're onboarded when you can answer:
 
 ---
 
-**Remember:** RPAC = Professional capability (military visual design) + Human warmth (everyday Swedish text)
+**Remember:** BeReady = Professional capability (military visual design) + Human warmth (everyday Swedish text)
 
 **Last Updated:** October 9, 2025
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { StunningDashboard } from './stunning-dashboard';
+import StunningDashboard from './stunning-dashboard';
 import { StunningDashboardMobileV2 } from './stunning-dashboard-mobile-v2';
 import type { User } from '@supabase/supabase-js';
 

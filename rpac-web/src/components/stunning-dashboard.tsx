@@ -4,104 +4,108 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { t } from '@/lib/locales';
 import { useWeather } from '@/contexts/WeatherContext';
-import { ShieldProgressSpinner } from './ShieldProgressSpinner';
+import { WeatherBar } from '@/components/weather-bar';
+import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { 
-  Shield, 
-  Users, 
+  Activity, 
   Leaf, 
-  Heart,
-  TrendingUp,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  Target,
-  Zap,
-  Globe,
-  MessageCircle,
-  Radio,
-  Sun,
+  Package, 
+  Users, 
+  Sun, 
+  CloudRain, 
   Cloud,
-  CloudRain,
   Snowflake,
-  Droplets,
-  Wind,
-  Thermometer,
-  Calendar,
-  BarChart3,
+  Shield, 
+  MapPin, 
+  Globe, 
   ArrowRight,
   ChevronRight,
-  Star,
-  Award,
-  Activity,
-  Sparkles
+  Zap
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { calculatePlanNutrition } from '@/lib/cultivation-plan-service';
 import type { User } from '@supabase/supabase-js';
 
 interface DashboardMetrics {
-  communityConnections: number;
   cultivationProgress: number;
-  householdNeedsCoverage: number;
-  resourceCount: number;
-  unreadMessages: number;
-  weatherStatus: string;
-  nextActions: string[];
-  recentActivity: any[];
-  planName: string;
-  cropCount: number;
   msbFulfillmentPercent: number;
+  communityConnections: number;
+  planName: string | null;
+  cropCount: number;
   expiringResources: number;
+  unreadMessages: number;
+  communityNames: string[];
 }
 
+interface StunningDashboardProps {
+  user: User | null;
+}
 
-export function StunningDashboard({ user }: { user: User | null }) {
-  const [metrics, setMetrics] = useState<DashboardMetrics>({
-    communityConnections: 0,
-    cultivationProgress: 0,
-    householdNeedsCoverage: 0,
-    resourceCount: 0,
-    unreadMessages: 0,
-    weatherStatus: 'optimal',
-    nextActions: [],
-    recentActivity: [],
-    planName: '',
-    cropCount: 0,
-    msbFulfillmentPercent: 0,
-    expiringResources: 0
-  });
-  const { weather, forecast, loading: weatherLoading } = useWeather();
-  const [loading, setLoading] = useState(true);
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [userProfile, setUserProfile] = useState<any>(null);
+export default function StunningDashboard({ user }: StunningDashboardProps) {
   const router = useRouter();
+  const { weather, forecast, loading: weatherLoading } = useWeather();
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [metrics, setMetrics] = useState<DashboardMetrics>({
+    cultivationProgress: 0,
+    msbFulfillmentPercent: 0,
+    communityConnections: 0,
+    planName: null,
+    cropCount: 0,
+    expiringResources: 0,
+    unreadMessages: 0,
+    communityNames: []
+  });
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Load user profile data
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      if (!user) return;
+      
+      try {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (profile) {
+          setUserProfile(profile);
+        }
+      } catch (error) {
+        console.error('Error loading user profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserProfile();
+  }, [user]);
 
   // Get user display name based on profile preference
   const getUserDisplayName = () => {
     if (!user) return t('dashboard.default_user');
     if (!userProfile) return user.email?.split('@')[0] || t('dashboard.default_user');
     
-    const preference = userProfile.name_display_preference || 'display_name';
-    
-    switch (preference) {
-      case 'display_name':
-        return userProfile.display_name || user.email?.split('@')[0] || t('dashboard.default_user');
-      case 'first_last':
+    if (userProfile.name_preference === 'full_name') {
         if (userProfile.first_name && userProfile.last_name) {
           return `${userProfile.first_name} ${userProfile.last_name}`;
         }
         return userProfile.display_name || user.email?.split('@')[0] || t('dashboard.default_user');
-      case 'initials':
+    } else if (userProfile.name_preference === 'initials') {
         if (userProfile.first_name && userProfile.last_name) {
           return `${userProfile.first_name[0]}${userProfile.last_name[0]}`.toUpperCase();
-        }
-        if (userProfile.display_name) {
+      } else if (userProfile.display_name) {
           return userProfile.display_name.substring(0, 2).toUpperCase();
         }
         return user.email?.split('@')[0] || t('dashboard.default_user');
-      default:
+    } else {
         return userProfile.display_name || user.email?.split('@')[0] || t('dashboard.default_user');
     }
   };
+
+  const userName = getUserDisplayName();
 
   // Load dashboard data
   useEffect(() => {
@@ -112,121 +116,249 @@ export function StunningDashboard({ user }: { user: User | null }) {
         // Load user profile data
         const { data: profile } = await supabase
           .from('user_profiles')
-          .select('display_name, first_name, last_name, name_display_preference, household_size')
+          .select('*')
           .eq('user_id', user.id)
           .single();
         
-        if (profile) {
-          setUserProfile(profile);
+        // Load user resources using the same service as other components
+        let resources: any[] = [];
+        try {
+          // Import and use the same resourceService as other components
+          const { resourceService } = await import('@/lib/supabase');
+          resources = await resourceService.getResources(user.id);
+        } catch (error) {
+          console.warn('Could not load resources:', error);
+          resources = [];
         }
-        // Load user resources
-        const { data: resources } = await supabase
-          .from('resources')
-          .select('*')
-          .eq('user_id', user.id);
 
-        // Load cultivation plan data and calculate nutrition like SimpleCultivationManager
-        let cultivationPlans = null;
+        // Load cultivation data - try multiple sources like other components
+        let plan = null;
+        let cultivationCalendar = [];
+        
+        // Try cultivation_plans first (same as individual-dashboard)
         try {
           const { data: planData, error: planError } = await supabase
             .from('cultivation_plans')
             .select('*')
             .eq('user_id', user.id)
             .eq('is_primary', true)
-            .single();
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
           
-          if (planError && planError.code !== 'PGRST116') { // PGRST116 = no rows found
-            console.warn('Error fetching cultivation plan:', planError);
+          if (planError && planError.code !== 'PGRST116') {
+            console.warn('Cultivation plan not available:', planError.message);
           } else {
-            cultivationPlans = planData;
+            plan = planData;
+            console.log('Found cultivation plan:', plan);
+            console.log('Plan name:', plan?.name, plan?.plan_name, plan?.title);
+            console.log('Plan crops:', plan?.crops);
+            console.log('Plan progress_data:', plan?.progress_data);
+            console.log('Plan progress:', plan?.progress);
+            console.log('Plan completion_percentage:', plan?.completion_percentage);
+            console.log('Plan self_sufficiency_percent:', plan?.self_sufficiency_percent);
+            console.log('All plan keys:', Object.keys(plan));
           }
-        } catch (err) {
-          console.warn('Failed to fetch cultivation plan:', err);
+        } catch (error) {
+          console.warn('Cultivation plans table may not exist:', error);
+        }
+        
+        // Try crisis cultivation plans as fallback
+        if (!plan) {
+          try {
+            const { data: planData, error: planError } = await supabase
+              .from('crisis_cultivation_plans')
+              .select('*')
+              .eq('user_id', user.id)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            
+            if (planError && planError.code !== 'PGRST116') {
+              console.warn('Crisis cultivation plan not available:', planError.message);
+          } else {
+              plan = planData;
+              console.log('Found crisis cultivation plan:', plan);
+            }
+          } catch (error) {
+            console.warn('Crisis cultivation plan table may not exist:', error);
+          }
+        }
+        
+        // Also try cultivation calendar as final fallback
+        try {
+          const { data: calendarData } = await supabase
+            .from('cultivation_calendar')
+            .select('*')
+            .eq('user_id', user.id);
+          cultivationCalendar = calendarData || [];
+          console.log('Found cultivation calendar entries:', cultivationCalendar.length);
+        } catch (error) {
+          console.warn('Cultivation calendar table may not exist:', error);
         }
 
-        // Load community memberships
-        const { data: memberships } = await supabase
+        // Load community memberships with names - use correct column name
+        const { data: memberships, error: membershipError } = await supabase
           .from('community_memberships')
-          .select('community_id')
+          .select(`
+            community_id,
+            local_communities!inner (
+              community_name
+            )
+          `)
           .eq('user_id', user.id);
 
+        if (membershipError) {
+          console.error('Error fetching community memberships:', membershipError);
+        }
+
         // Calculate metrics
-        const resourceCount = resources?.length || 0;
-        const communityConnections = memberships?.length || 0;
+        let cropCount = 0;
+        let planName = null;
         
-        // Calculate MSB fulfillment percentage
+        if (plan) {
+          // Handle cultivation_plans structure (has crops array)
+          if (plan.crops && Array.isArray(plan.crops)) {
+            cropCount = plan.crops.length;
+            planName = plan.name || plan.plan_name || plan.title;
+            console.log('Using crops array, count:', cropCount, 'name:', planName);
+          }
+          // Handle crisis_cultivation_plans structure (has selected_crops array)
+          else if (plan.selected_crops && Array.isArray(plan.selected_crops)) {
+            cropCount = plan.selected_crops.length;
+            planName = plan.plan_name;
+            console.log('Using selected_crops array, count:', cropCount, 'name:', planName);
+          }
+          // Handle single crop name
+          else if (plan.crop_name) {
+            cropCount = 1;
+            planName = plan.name || plan.plan_name;
+            console.log('Using single crop_name, count:', cropCount, 'name:', planName);
+          }
+          else {
+            console.log('Plan found but no recognizable crop structure:', Object.keys(plan));
+          }
+        }
+        
+        // Fallback to cultivation calendar if no plan
+        if (cropCount === 0 && cultivationCalendar.length > 0) {
+          cropCount = cultivationCalendar.length;
+          planName = 'Kalender';
+          console.log('Using cultivation calendar fallback, count:', cropCount);
+        }
+        
+        console.log('Final cropCount:', cropCount, 'planName:', planName);
+        const communityNames = memberships?.map(m => m.local_communities?.[0]?.community_name).filter(Boolean) || [];
+        
+        // Calculate MSB fulfillment using the same logic as other components
         const msbCategories = ['food', 'water', 'medicine', 'energy', 'tools', 'other'];
-        const msbResourcesAdded = resources?.filter(r => r.is_msb_recommended && r.quantity > 0) || [];
+        const msbResourcesAdded = resources.filter(r => r.is_msb_recommended && r.quantity > 0);
         const msbCategoriesWithResources = new Set(msbResourcesAdded.map(r => r.category));
         const msbFulfillmentPercent = Math.round((msbCategoriesWithResources.size / msbCategories.length) * 100);
         
         // MSB fulfillment calculated successfully
+        console.log('MSB fulfillment:', msbFulfillmentPercent);
         
-        // Calculate expiring resources (within 30 days)
-        const expiringResources = resources?.filter(r => 
+        // Calculate expiring resources using the same logic as other components
+        const expiringResources = resources.filter(r => 
           r.quantity > 0 && r.days_remaining < 30 && r.days_remaining < 99999
-        ).length || 0;
+        ).length;
         
-        // Calculate cultivation progress using the same logic as SimpleCultivationManager
+        // Calculate cultivation progress using dynamic calculation (same as individual dashboard)
         let cultivationProgress = 0;
-        let planName = '';
-        let cropCount = 0;
-        if (cultivationPlans) {
-          planName = cultivationPlans.title || 'Min odling';
-          cropCount = cultivationPlans.crops?.length || 0;
-          if (cultivationPlans.crops && cultivationPlans.crops.length > 0) {
-            // Import the nutrition calculation function
-            const { calculatePlanNutrition } = await import('@/lib/cultivation-plan-service');
-            const householdSize = profile?.household_size || 2; // Use actual household size, default to 2
-            // Household size calculated for nutrition planning
-            const nutrition = calculatePlanNutrition(cultivationPlans, householdSize, 30);
-            // Nutrition calculation completed
-            cultivationProgress = nutrition.percentOfTarget;
-          }
+        
+        if (plan && plan.crops && Array.isArray(plan.crops)) {
+          // Use the same calculation as individual dashboard
+          const householdSize = profile?.family_size || 2;
+          const targetDays = 30;
+          
+          const cultivationPlanForCalc = {
+            id: plan.id,
+            user_id: plan.user_id,
+            plan_name: plan.title || plan.name || plan.plan_name,
+            description: plan.description || '',
+            crops: plan.crops,
+            is_primary: plan.is_primary,
+            created_at: plan.created_at,
+            updated_at: plan.updated_at
+          };
+          
+          const nutrition = calculatePlanNutrition(cultivationPlanForCalc, householdSize, targetDays);
+          cultivationProgress = nutrition.percentOfTarget;
+          console.log('Cultivation progress calculated dynamically:', cultivationProgress + '% (household needs coverage)');
+          console.log('Nutrition details:', {
+            totalKcal: nutrition.totalKcal,
+            kcalPerDay: nutrition.kcalPerDay,
+            householdSize,
+            targetDays
+          });
+        } else if (plan) {
+          // Fallback to stored value if no crops array
+          cultivationProgress = plan.self_sufficiency_percent || 0;
+          console.log('Cultivation progress from stored self_sufficiency_percent:', cultivationProgress + '%');
+        } else if (cultivationCalendar.length > 0) {
+          // Use cultivation calendar as fallback
+          const completedTasks = cultivationCalendar.filter(task => task.is_completed).length;
+          cultivationProgress = Math.round((completedTasks / cultivationCalendar.length) * 100);
+          console.log('Cultivation progress from calendar:', cultivationProgress + '%');
+        } else {
+          // No cultivation data available
+          cultivationProgress = 0;
+          console.log('No cultivation data available, progress: 0%');
         }
+        
+        console.log('Final cultivation progress:', cultivationProgress + '%');
 
-        // Load unread messages
-        const { data: messages } = await supabase
+        // Load unread messages - make it optional to avoid errors
+        let messages = [];
+        try {
+          const { data: messagesData } = await supabase
           .from('messages')
           .select('id')
-          .eq('receiver_id', user.id)
+            .eq('recipient_id', user.id)
           .eq('is_read', false);
+          messages = messagesData || [];
+        } catch (error) {
+          console.warn('Messages table may not exist:', error);
+          messages = [];
+        }
 
          setMetrics({
-           communityConnections,
            cultivationProgress,
-           householdNeedsCoverage: 0, // Not used anymore
-           resourceCount,
+          msbFulfillmentPercent,
+          communityConnections: memberships?.length || 0,
+          planName: planName,
+          cropCount,
+          expiringResources,
            unreadMessages: messages?.length || 0,
-           weatherStatus: 'optimal',
-           nextActions: [
-             resourceCount < 10 ? 'Lägg till fler resurser' : 'Uppdatera resurser',
-             cultivationProgress < 30 ? 'Planera din odling' : 'Skörda grödor',
-             communityConnections === 0 ? 'Gå med i samhälle' : 'Dela resurser'
-           ],
-           recentActivity: [],
-           planName,
-           cropCount,
-           msbFulfillmentPercent,
-           expiringResources
-         });
-
-        setLoading(false);
+          communityNames
+        });
       } catch (error) {
         console.error('Error loading dashboard data:', error);
-        setLoading(false);
+        setMetrics({
+          cultivationProgress: 0,
+          msbFulfillmentPercent: 0,
+          communityConnections: 0,
+          planName: null,
+          cropCount: 0,
+          expiringResources: 0,
+          unreadMessages: 0,
+          communityNames: []
+        });
       }
     };
 
     loadDashboardData();
+  }, [user]);
 
     // Update time every minute
+  useEffect(() => {
     const timeInterval = setInterval(() => {
       setCurrentTime(new Date());
     }, 60000);
 
     return () => clearInterval(timeInterval);
-  }, [user]);
+  }, []);
 
   const getTimeOfDayGreeting = () => {
     const hour = currentTime.getHours();
@@ -235,8 +367,6 @@ export function StunningDashboard({ user }: { user: User | null }) {
     if (hour < 18) return t('dashboard.good_day');
     return t('dashboard.good_evening');
   };
-
-  const userName = getUserDisplayName();
 
   if (loading) {
     return (
@@ -249,7 +379,6 @@ export function StunningDashboard({ user }: { user: User | null }) {
   return (
     <div className="bg-gradient-to-br from-[#2A331E]/5 via-[#3D4A2B]/3 to-[#4A5239]/8">
       <div className="max-w-7xl mx-auto px-6 pt-6 pb-12">
-
           {/* Welcome Header */}
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">
@@ -265,7 +394,13 @@ export function StunningDashboard({ user }: { user: User | null }) {
             </h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
+        {/* Weather Bar */}
+        <div className="mb-6">
+          <WeatherBar />
+        </div>
+
+        {/* Score Cards Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
              {/* Min odling - Cultivation Progress */}
              <div className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#3D4A2B]/30 hover:-translate-y-1">
                {/* Header - Improved spacing and alignment */}
@@ -294,85 +429,73 @@ export function StunningDashboard({ user }: { user: User | null }) {
                  </p>
                  
                  {/* Enhanced progress bar with gradient */}
-                 <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                   <div
-                     className="h-2 rounded-full transition-all duration-700 ease-out relative overflow-hidden"
-                     style={{ 
-                       background: metrics.cultivationProgress >= 80 
-                         ? 'linear-gradient(90deg, #10B981 0%, #059669 100%)' 
-                         : metrics.cultivationProgress >= 60 
-                         ? 'linear-gradient(90deg, #3D4A2B 0%, #5C6B47 100%)' 
-                         : metrics.cultivationProgress >= 40 
-                         ? 'linear-gradient(90deg, #F59E0B 0%, #D97706 100%)' 
-                         : 'linear-gradient(90deg, #EF4444 0%, #DC2626 100%)',
-                       width: `${Math.min(100, metrics.cultivationProgress)}%`
-                     }}
-                   >
+              <div className="relative">
+                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-[#5C6B47] to-[#707C5F] rounded-full transition-all duration-1000 ease-out relative overflow-hidden"
+                    style={{ width: `${Math.min(100, metrics.cultivationProgress)}%` }}
+                  >
+                    {/* Shimmer effect */}
                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+                  </div>
                    </div>
                  </div>
                </div>
                
                {/* Action button - Enhanced styling */}
                <button 
-                 onClick={() => router.push('/individual?section=cultivation')}
+              onClick={() => router.push('/individual')}
                  className="w-full py-2.5 px-4 rounded-lg bg-[#3D4A2B]/5 hover:bg-[#3D4A2B]/10 border border-[#3D4A2B]/20 hover:border-[#3D4A2B]/40 text-sm text-[#3D4A2B] hover:text-[#2A331E] font-semibold flex items-center justify-center gap-2 transition-all duration-200"
                >
-                 <span>Hantera odling</span>
+              <span>{metrics.planName ? 'Hantera plan' : 'Skapa plan'}</span>
                  <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                </button>
              </div>
 
              {/* Mina resurser */}
              <div className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#3D4A2B]/30 hover:-translate-y-1">
+            {/* Header */}
                <div className="flex items-start justify-between mb-4">
                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#3D4A2B] to-[#5C6B47] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
-                     <Shield className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#4A5239] to-[#707C5F] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
+                  <Package className="w-6 h-6 text-white" />
                    </div>
                    <div className="flex-1 min-w-0">
                      <h3 className="font-bold text-gray-900 text-base leading-tight mb-0.5 truncate">Mina resurser</h3>
-                     <p className="text-xs text-gray-500 font-medium truncate">MSB-beredskap</p>
+                  <p className="text-xs text-gray-500 font-medium truncate">MSB rekommendationer</p>
                    </div>
                  </div>
                  <div className="text-right flex-shrink-0 ml-4">
                    <div className="text-3xl font-bold text-gray-900 mb-0.5">{metrics.msbFulfillmentPercent}%</div>
-                   <div className="text-xs text-gray-500 uppercase tracking-wider font-semibold whitespace-nowrap">MSB</div>
+                <div className="text-xs text-gray-500 uppercase tracking-wider font-semibold whitespace-nowrap">Uppfylld</div>
                  </div>
                </div>
                
+            {/* Content */}
                <div className="mb-4">
                  <p className="text-sm text-gray-600 mb-3 leading-relaxed">
-                   {metrics.resourceCount} resurser tillagda
-                   {metrics.expiringResources > 0 && (
-                     <span className="inline-flex items-center ml-2 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-medium whitespace-nowrap">
-                       <AlertTriangle className="w-3 h-3 mr-1 flex-shrink-0" />
-                       {metrics.expiringResources} förfaller
-                     </span>
-                   )}
-                 </p>
-                 
-                 <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                   <div
-                     className="h-2 rounded-full transition-all duration-700 ease-out relative overflow-hidden"
-                     style={{ 
-                       background: metrics.msbFulfillmentPercent >= 80 
-                         ? 'linear-gradient(90deg, #10B981 0%, #059669 100%)' 
-                         : metrics.msbFulfillmentPercent >= 60 
-                         ? 'linear-gradient(90deg, #3D4A2B 0%, #5C6B47 100%)' 
-                         : metrics.msbFulfillmentPercent >= 40 
-                         ? 'linear-gradient(90deg, #F59E0B 0%, #D97706 100%)' 
-                         : 'linear-gradient(90deg, #EF4444 0%, #DC2626 100%)',
-                       width: `${Math.min(100, metrics.msbFulfillmentPercent)}%`
-                     }}
-                   >
+                {metrics.expiringResources > 0 
+                  ? `${metrics.expiringResources} resurser går ut snart`
+                  : 'Alla resurser är aktuella'}
+              </p>
+              
+              {/* Progress bar */}
+              <div className="relative">
+                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-[#4A5239] to-[#707C5F] rounded-full transition-all duration-1000 ease-out relative overflow-hidden"
+                    style={{ width: `${Math.min(100, metrics.msbFulfillmentPercent)}%` }}
+                  >
+                    {/* Shimmer effect */}
                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+                  </div>
                    </div>
                  </div>
                </div>
                
+            {/* Action button */}
                <button 
-                 onClick={() => router.push('/individual?section=resources')}
+              onClick={() => router.push('/individual')}
                  className="w-full py-2.5 px-4 rounded-lg bg-[#3D4A2B]/5 hover:bg-[#3D4A2B]/10 border border-[#3D4A2B]/20 hover:border-[#3D4A2B]/40 text-sm text-[#3D4A2B] hover:text-[#2A331E] font-semibold flex items-center justify-center gap-2 transition-all duration-200"
                >
                  <span>Hantera resurser</span>
@@ -382,278 +505,59 @@ export function StunningDashboard({ user }: { user: User | null }) {
 
             {/* Community Connections */}
             <div className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#3D4A2B]/30 hover:-translate-y-1">
+            {/* Header */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#4A5239] to-[#707C5F] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#707C5F] to-[#4A5239] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
                     <Users className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-bold text-gray-900 text-base leading-tight mb-0.5 truncate">Lokalt nätverk</h3>
-                    <p className="text-xs text-gray-500 font-medium truncate">Samhällsanslutning</p>
+                  <p className="text-xs text-gray-500 font-medium truncate">
+                    {metrics.communityConnections === 0 
+                      ? 'Gå med i ett samhälle'
+                      : metrics.communityConnections === 1 
+                        ? `Medlem i ${metrics.communityNames[0]}`
+                        : 'Medlem i samhällen'}
+                  </p>
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0 ml-4">
                   <div className="text-3xl font-bold text-gray-900 mb-0.5">{metrics.communityConnections}</div>
-                  <div className="text-xs text-gray-500 font-semibold whitespace-nowrap">
-                    {metrics.communityConnections === 1 ? 'samhälle' : 'samhällen'}
-                  </div>
+                <div className="text-xs text-gray-500 uppercase tracking-wider font-semibold whitespace-nowrap">Samhällen</div>
                 </div>
               </div>
               
+            {/* Content */}
               <div className="mb-4">
                 <p className="text-sm text-gray-600 mb-3 leading-relaxed">
-                  {metrics.communityConnections > 0 
-                    ? 'Ansluten till lokala samhällen' 
-                    : 'Gå med i ditt närområde'}
-                </p>
-                
-                <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                  <div
-                    className="h-2 rounded-full transition-all duration-700 ease-out relative overflow-hidden bg-gradient-to-r from-[#4A5239] to-[#707C5F]"
-                    style={{ 
-                      width: metrics.communityConnections > 0 ? '100%' : '0%'
-                    }}
+                {metrics.communityConnections === 0 
+                  ? 'Anslut dig till lokala samhällen för bättre beredskap'
+                  : `${metrics.unreadMessages} nya meddelanden`}
+              </p>
+              
+              {/* Progress bar */}
+              <div className="relative">
+                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-[#707C5F] to-[#4A5239] rounded-full transition-all duration-1000 ease-out relative overflow-hidden"
+                    style={{ width: `${Math.min(100, (metrics.communityConnections / 3) * 100)}%` }}
                   >
+                    {/* Shimmer effect */}
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+                  </div>
                   </div>
                 </div>
               </div>
               
+            {/* Action button */}
               <button 
                 onClick={() => router.push('/local')}
                 className="w-full py-2.5 px-4 rounded-lg bg-[#4A5239]/5 hover:bg-[#4A5239]/10 border border-[#4A5239]/20 hover:border-[#4A5239]/40 text-sm text-[#4A5239] hover:text-[#2A331E] font-semibold flex items-center justify-center gap-2 transition-all duration-200"
               >
-                <span>{metrics.communityConnections > 0 ? 'Hantera nätverk' : 'Hitta samhällen'}</span>
+              <span>{metrics.communityConnections > 0 ? 'Gå till samhälle' : 'Hitta samhällen'}</span>
                 <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </button>
-            </div>
-
-            {/* Meddelanden */}
-            <div className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#3D4A2B]/30 hover:-translate-y-1 relative overflow-hidden">
-              {/* Notification pulse animation in background */}
-              {metrics.unreadMessages > 0 && (
-                <div className="absolute top-0 right-0 w-20 h-20 bg-red-400/10 rounded-full -translate-y-10 translate-x-10 animate-pulse-slow" />
-              )}
-              
-              <div className="relative z-10">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="relative flex-shrink-0">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#4A5239] to-[#707C5F] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md">
-                        <MessageCircle className="w-6 h-6 text-white" />
-                      </div>
-                      {metrics.unreadMessages > 0 && (
-                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center animate-bounce shadow-lg">
-                          <span className="text-white text-xs font-bold">{metrics.unreadMessages}</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-gray-900 text-base leading-tight mb-0.5 truncate">Meddelanden</h3>
-                      <p className="text-xs text-gray-500 font-medium truncate">Kommunikation</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mb-4">
-                  <p className="text-sm text-gray-600 mb-3 leading-relaxed">
-                    {metrics.unreadMessages > 0 
-                      ? `${metrics.unreadMessages} olästa` 
-                      : 'Alla lästa'}
-                  </p>
-                  
-                  {/* Split button navigation */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <button 
-                      onClick={() => router.push('/local/messages/community')}
-                      className="relative overflow-hidden p-3 rounded-lg bg-gradient-to-br from-[#3D4A2B]/5 to-[#3D4A2B]/10 hover:from-[#3D4A2B]/10 hover:to-[#3D4A2B]/20 border border-[#3D4A2B]/20 hover:border-[#3D4A2B]/40 transition-all duration-200 hover:shadow-md"
-                    >
-                      <div className="flex items-center justify-center gap-1.5 relative z-10">
-                        <Users className="w-4 h-4 text-[#3D4A2B] flex-shrink-0" />
-                        <span className="text-sm font-semibold text-gray-900 truncate">Samhälle</span>
-                      </div>
-                      {metrics.unreadMessages > 0 && (
-                        <div className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                      )}
-                    </button>
-                    
-                    <button 
-                      onClick={() => router.push('/local/messages/direct')}
-                      className="relative overflow-hidden p-3 rounded-lg bg-gradient-to-br from-[#4A5239]/5 to-[#4A5239]/10 hover:from-[#4A5239]/10 hover:to-[#4A5239]/20 border border-[#4A5239]/20 hover:border-[#4A5239]/40 transition-all duration-200 hover:shadow-md"
-                    >
-                      <div className="flex items-center justify-center gap-1.5 relative z-10">
-                        <MessageCircle className="w-4 h-4 text-[#4A5239] flex-shrink-0" />
-                        <span className="text-sm font-semibold text-gray-900 truncate">Direkt</span>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Weather & Quick Actions */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
-            {/* Weather Card */}
-            <div className="bg-gradient-to-br from-[#3D4A2B]/5 to-[#5C6B47]/10 rounded-2xl p-6 border border-[#3D4A2B]/20">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#3D4A2B] flex items-center justify-center">
-                    {(() => {
-                      if (weatherLoading || !weather) {
-                        return <Sun className="w-5 h-5 text-white" />;
-                      }
-                      
-                      // Get appropriate weather icon based on current conditions
-                      const getCurrentWeatherIcon = (forecast: string) => {
-                        const forecastLower = forecast.toLowerCase();
-                        if (forecastLower.includes('sol') || forecastLower.includes('klar') || forecastLower.includes('sunny')) {
-                          return <Sun className="w-5 h-5 text-white" />;
-                        } else if (forecastLower.includes('regn') || forecastLower.includes('rain')) {
-                          return <CloudRain className="w-5 h-5 text-white" />;
-                        } else if (forecastLower.includes('snö') || forecastLower.includes('snow')) {
-                          return <Snowflake className="w-5 h-5 text-white" />;
-                        } else if (forecastLower.includes('moln') || forecastLower.includes('cloud')) {
-                          return <Cloud className="w-5 h-5 text-white" />;
-                        }
-                        return <Sun className="w-5 h-5 text-white" />; // Default fallback
-                      };
-                      
-                      return getCurrentWeatherIcon(weather.forecast);
-                    })()}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Väder</h3>
-                    <p className="text-sm text-gray-600">
-                      {weatherLoading ? 'Laddar...' : weather ? weather.forecast : 'Ej tillgängligt'}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-gray-900">
-                    {weatherLoading ? '--' : weather ? `${Math.round(weather.temperature)}°C` : '--°C'}
-                  </div>
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <Droplets className="w-5 h-5 text-[#3D4A2B] mx-auto mb-1" />
-                  <div className="text-sm font-medium text-gray-900">
-                    {weatherLoading ? '--' : weather ? `${weather.humidity}%` : '--%'}
-                  </div>
-                  <div className="text-xs text-gray-500">Luftfuktighet</div>
-                </div>
-                <div>
-                  <Wind className="w-5 h-5 text-[#3D4A2B] mx-auto mb-1" />
-                  <div className="text-sm font-medium text-gray-900">
-                    {weatherLoading ? '--' : weather ? `${weather.windSpeed} m/s` : '-- m/s'}
-                  </div>
-                  <div className="text-xs text-gray-500">Vind</div>
-                </div>
-                <div>
-                  <Thermometer className="w-5 h-5 text-[#3D4A2B] mx-auto mb-1" />
-                  <div className="text-sm font-medium text-gray-900">Mild</div>
-                  <div className="text-xs text-gray-500">Temperatur</div>
-                </div>
-              </div>
-              
-              {/* 5-Day Forecast */}
-              {forecast && forecast.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-[#3D4A2B]/20">
-                  <h4 className="text-sm font-semibold text-gray-900 mb-3">5-dagars prognos</h4>
-                  <div className="space-y-2">
-                    {forecast.slice(0, 5).map((day, index) => {
-                      const date = new Date(day.date);
-                      const dayName = date.toLocaleDateString('sv-SE', { weekday: 'short' });
-                      const isToday = index === 0;
-                      
-                      // Get appropriate weather icon based on forecast
-                      const getWeatherIcon = (weather: string) => {
-                        const weatherLower = weather.toLowerCase();
-                        if (weatherLower.includes('sol') || weatherLower.includes('klar') || weatherLower.includes('sunny')) {
-                          return Sun;
-                        } else if (weatherLower.includes('regn') || weatherLower.includes('rain')) {
-                          return CloudRain;
-                        } else if (weatherLower.includes('snö') || weatherLower.includes('snow')) {
-                          return Snowflake;
-                        } else if (weatherLower.includes('moln') || weatherLower.includes('cloud')) {
-                          return Cloud;
-                        }
-                        return Sun; // Default fallback
-                      };
-                      
-                      const WeatherIcon = getWeatherIcon(day.weather);
-                      
-                      return (
-                        <div key={index} className="flex items-center justify-between py-1">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 text-xs font-medium text-gray-600">
-                              {isToday ? 'Idag' : dayName}
-                            </div>
-                            <div className="w-6 h-6 flex items-center justify-center">
-                              <WeatherIcon className="w-4 h-4 text-[#3D4A2B]" />
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {day.weather}
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <div className="text-xs text-gray-500">
-                              {Math.round(day.temperature.min)}°
-                            </div>
-                            <div className="w-8 h-1 bg-gray-200 rounded-full">
-                              <div 
-                                className="h-1 bg-[#3D4A2B] rounded-full"
-                                style={{ 
-                                  width: `${Math.min(100, Math.max(20, ((day.temperature.max - day.temperature.min) / 20) * 100))}%` 
-                                }}
-                              />
-                            </div>
-                            <div className="text-xs font-medium text-gray-900">
-                              {Math.round(day.temperature.max)}°
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Quick Actions */}
-            <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-              <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
-                <Zap className="w-5 h-5 text-[#3D4A2B] mr-2" />
-                Snabba åtgärder
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {metrics.nextActions.map((action, index) => (
-                  <button
-                    key={index}
-                    onClick={() => {
-                      if (action.includes('resurser')) router.push('/individual?section=resources');
-                      else if (action.includes('odling')) router.push('/individual?section=cultivation');
-                      else if (action.includes('samhälle')) router.push('/local');
-                    }}
-                    className="group p-4 rounded-xl border border-gray-200 hover:border-[#3D4A2B]/30 hover:bg-[#3D4A2B]/5 transition-all duration-200 text-left"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium text-gray-900 group-hover:text-[#3D4A2B]">
-                          {action}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {index === 0 ? 'Förbättra din beredskap' : 
-                           index === 1 ? 'Planera för framtiden' : 
-                           'Bygg lokalt nätverk'}
-                        </div>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#3D4A2B] group-hover:translate-x-1 transition-all" />
-                    </div>
-                  </button>
-                ))}
-              </div>
             </div>
           </div>
 
@@ -682,21 +586,21 @@ export function StunningDashboard({ user }: { user: User | null }) {
 
             {/* Lokalt */}
             <button 
-              onClick={() => router.push('/local')}
+            onClick={() => router.push('/local/discover')}
               className="group bg-gradient-to-br from-[#4A5239] to-[#707C5F] rounded-2xl p-8 text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
             >
               <div className="flex items-center justify-between mb-6">
                 <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <Users className="w-8 h-8" />
+                <MapPin className="w-8 h-8" />
                 </div>
                 <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
               </div>
               <h3 className="text-2xl font-bold mb-3">Lokalt</h3>
               <p className="text-white/90 mb-6 leading-relaxed">
-                Anslut till ditt närområde. Dela resurser, kommunicera och bygg ett starkt lokalt nätverk.
+              Upptäck lokala samhällen, dela resurser och koordinera med grannar för bättre beredskap.
               </p>
               <div className="flex items-center text-sm font-medium">
-                <span>Upptäck samhällen</span>
+              <span>Utforska</span>
                 <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </div>
             </button>
@@ -722,7 +626,6 @@ export function StunningDashboard({ user }: { user: User | null }) {
               </div>
             </button>
           </div>
-
       </div>
     </div>
   );
