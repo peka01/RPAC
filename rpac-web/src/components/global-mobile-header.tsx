@@ -5,6 +5,7 @@ import { MessageCircle, Bell, User, Users, ChevronDown, ArrowLeft, X } from 'luc
 import { GlobalMessagingButton } from './global-messaging-button';
 import { NotificationCenterMobile } from './notification-center-mobile';
 import { communityService, type LocalCommunity } from '@/lib/supabase';
+import { t } from '@/lib/locales';
 import { supabase } from '@/lib/supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -163,8 +164,13 @@ export function GlobalMobileHeader({ user }: GlobalMobileHeaderProps) {
                     <User className="w-5 h-5 text-[#3D4A2B]" />
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900">Privata meddelanden</div>
-                    <div className="text-sm text-gray-600">Direktmeddelanden</div>
+                    <div className="font-semibold text-gray-900">{t('messaging.direct_messages')}</div>
+                    <div className="text-sm text-gray-600">
+                      {t('messaging.direct_messages_description')} {selectedCommunityId ? 
+                        userCommunities.find(c => c.id === selectedCommunityId)?.name || 'samhället' : 
+                        'samhället'
+                      }
+                    </div>
                   </div>
                 </button>
 

@@ -158,7 +158,7 @@ export default function DirectMessagesPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-2 truncate">Direktmeddelanden</h1>
-                  <p className="text-gray-600 text-sm md:text-base">Privata meddelanden med andra medlemmar</p>
+                  <p className="text-gray-600 text-sm md:text-base">{t('messaging.direct_messages_description')} {communityName}</p>
                 </div>
               </div>
               

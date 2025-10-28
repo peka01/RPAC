@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { MessageCircle, Users, User } from 'lucide-react';
 import { communityService, type LocalCommunity } from '@/lib/supabase';
+import { t } from '@/lib/locales';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface GlobalMessagingButtonProps {
@@ -123,8 +124,13 @@ export function GlobalMessagingButton({ user }: GlobalMessagingButtonProps) {
               <User className="w-4 h-4 text-[#5C6B47]" />
             </div>
             <div>
-              <div className="font-medium text-gray-900 text-sm">Privata meddelanden</div>
-              <div className="text-xs text-gray-500">Direktmeddelanden med medlemmar</div>
+              <div className="font-medium text-gray-900 text-sm">{t('messaging.direct_messages')}</div>
+              <div className="text-xs text-gray-500">
+                {t('messaging.direct_messages_description')} {selectedCommunityId ? 
+                  userCommunities.find(c => c.id === selectedCommunityId)?.name || 'samhället' : 
+                  'samhället'
+                }
+              </div>
             </div>
           </button>
         </div>
