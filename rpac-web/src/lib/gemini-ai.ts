@@ -2,7 +2,6 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { config } from './config';
 
 // Initialize Gemini AI
-console.log('API Key type check:', config.gemini.apiKey?.startsWith('AIza') ? 'Google AI Studio' : 'Unknown type');
 const genAI = new GoogleGenerativeAI(config.gemini.apiKey);
 
 // Get the generative model - try exact model from docs

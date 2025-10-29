@@ -41,8 +41,39 @@ export function CommunityHubEnhanced({ user, initialCommunityId, initialTab, ini
   const [homespaceSlug, setHomespaceSlug] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [adminName, setAdminName] = useState<string | null>(null);
+  const [totalSharedResources, setTotalSharedResources] = useState(0);
+  const [totalHelpRequests, setTotalHelpRequests] = useState(0);
   const { profile, loading } = useUserProfile(user);
   const userPostalCode = profile?.postal_code;
+
+  // Load community stats for footer
+  const loadCommunityStats = async () => {
+    if (!user || user.id === 'demo-user' || userCommunities.length === 0) return;
+    
+    try {
+      // Import the service dynamically to avoid circular dependencies
+      const { resourceSharingService } = await import('@/lib/resource-sharing-service');
+      
+      let totalResources = 0;
+      let totalRequests = 0;
+      
+      // Load stats for all user communities
+      for (const community of userCommunities) {
+        const [resources, requests] = await Promise.all([
+          resourceSharingService.getCommunityResources(community.id),
+          resourceSharingService.getCommunityHelpRequests(community.id)
+        ]);
+        
+        totalResources += resources.length;
+        totalRequests += requests.filter(r => r.status === 'open' || r.status === 'in_progress').length;
+      }
+      
+      setTotalSharedResources(totalResources);
+      setTotalHelpRequests(totalRequests);
+    } catch (error) {
+      console.error('Error loading community stats:', error);
+    }
+  };
 
   // Define loadUserCommunities before it's used
   const loadUserCommunities = async () => {
@@ -78,6 +109,13 @@ export function CommunityHubEnhanced({ user, initialCommunityId, initialTab, ini
       loadUserCommunities();
     }
   }, [user]);
+
+  // Load stats when communities change
+  useEffect(() => {
+    if (userCommunities.length > 0) {
+      loadCommunityStats();
+    }
+  }, [userCommunities]);
 
   // Handle initial URL parameters
   useEffect(() => {
@@ -451,11 +489,11 @@ export function CommunityHubEnhanced({ user, initialCommunityId, initialTab, ini
                 <div className="text-sm text-[#C8D5B9]">{t('local_community.members_nearby')}</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold mb-1">-</div>
+                <div className="text-3xl font-bold mb-1">{totalSharedResources}</div>
                 <div className="text-sm text-[#C8D5B9]">{t('local_community.shared_resources')}</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold mb-1">-</div>
+                <div className="text-3xl font-bold mb-1">{totalHelpRequests}</div>
                 <div className="text-sm text-[#C8D5B9]">{t('local_community.active_requests')}</div>
               </div>
             </div>

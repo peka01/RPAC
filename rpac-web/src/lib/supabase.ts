@@ -74,10 +74,10 @@ export interface HelpRequest {
   user_id: string
   title: string
   description: string
-  category: 'food' | 'water' | 'medicine' | 'energy' | 'tools' | 'other'
   urgency: 'low' | 'medium' | 'high' | 'critical'
   location?: string
   status: 'open' | 'in_progress' | 'resolved' | 'closed'
+  image_url?: string
   created_at: string
   updated_at: string
 }

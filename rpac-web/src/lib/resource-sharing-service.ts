@@ -60,9 +60,9 @@ export interface HelpRequest {
   community_id: string;
   title: string;
   description: string;
-  category: 'food' | 'water' | 'medicine' | 'energy' | 'tools' | 'shelter' | 'transport' | 'skills' | 'other';
   urgency: 'low' | 'medium' | 'high' | 'critical';
   location?: string;
+  image_url?: string;
   status: 'open' | 'in_progress' | 'resolved' | 'closed';
   priority: number;
   created_at: string;
@@ -70,6 +70,7 @@ export interface HelpRequest {
   // Joined data
   requester_name?: string;
   response_count?: number;
+  responses?: HelpResponse[];
 }
 
 export interface HelpResponse {
@@ -118,7 +119,6 @@ export const resourceSharingService = {
     let userRequests: string[] = [];
     if (currentUserId && data && data.length > 0) {
       const resourceIds = data.map(item => item.id);
-      console.log('Checking requests for user:', currentUserId, 'resources:', resourceIds);
       const { data: requestData, error: requestError } = await supabase
         .from('resource_requests')
         .select('shared_resource_id')
@@ -128,8 +128,6 @@ export const resourceSharingService = {
       
       if (requestError) {
         console.error('Error fetching user requests:', requestError);
-      } else {
-        console.log('Found user requests:', requestData);
       }
       
       userRequests = (requestData || []).map(req => req.shared_resource_id);
@@ -380,9 +378,9 @@ export const resourceSharingService = {
     communityId: string;
     title: string;
     description: string;
-    category: HelpRequest['category'];
     urgency: HelpRequest['urgency'];
     location?: string;
+    imageUrl?: string;
   }): Promise<HelpRequest> {
     // Calculate priority based on urgency
     const priorityMap = { low: 1, medium: 2, high: 3, critical: 4 };
@@ -395,17 +393,112 @@ export const resourceSharingService = {
         community_id: params.communityId,
         title: params.title,
         description: params.description,
-        category: params.category,
         urgency: params.urgency,
         location: params.location,
+        image_url: params.imageUrl,
         priority,
         status: 'open'
       }])
       .select()
       .single();
 
-    if (error) throw error;
-    return data as HelpRequest;
+    if (error) {
+      console.error('Supabase help_requests insert error:', {
+        error,
+        errorMessage: error?.message,
+        errorDetails: error?.details,
+        params
+      });
+      throw error;
+    }
+
+    const createdRequest = data as HelpRequest;
+
+    // Attach requester display name for immediate UI feedback
+    let requesterName: string | undefined;
+    try {
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('display_name')
+        .eq('user_id', params.userId)
+        .maybeSingle();
+
+      requesterName = profile?.display_name || undefined;
+    } catch (profileError) {
+      console.warn('Could not load requester profile for help request notification', profileError);
+    }
+
+    const enrichedRequest: HelpRequest = {
+      ...createdRequest,
+      requester_name: requesterName || createdRequest.requester_name || 'Medlem',
+      response_count: createdRequest.response_count ?? 0
+    };
+
+    // Broadcast notification to community members asynchronously
+    notificationService.createHelpRequestNotification({
+      communityId: params.communityId,
+      requestId: createdRequest.id,
+      requestTitle: params.title,
+      urgency: params.urgency,
+      creatorId: params.userId
+    }).catch((notificationError: unknown) => {
+      console.error('Failed to create help request notification', notificationError);
+    });
+
+    return enrichedRequest;
+  },
+
+  /**
+   * Update help request
+   */
+  async updateHelpRequest(
+    requestId: string,
+    userId: string,
+    updates: {
+      title?: string;
+      description?: string;
+      urgency?: HelpRequest['urgency'];
+      location?: string;
+      imageUrl?: string;
+    }
+  ): Promise<HelpRequest> {
+    // Build update object
+    const updateData: Record<string, any> = {
+      updated_at: new Date().toISOString()
+    };
+    
+    if (updates.title !== undefined) updateData.title = updates.title;
+    if (updates.description !== undefined) updateData.description = updates.description;
+    if (updates.urgency !== undefined) updateData.urgency = updates.urgency;
+    if (updates.location !== undefined) updateData.location = updates.location;
+    if (updates.imageUrl !== undefined) updateData.image_url = updates.imageUrl;
+
+    // First update the request
+    const { error: updateError } = await supabase
+      .from('help_requests')
+      .update(updateData)
+      .eq('id', requestId)
+      .eq('user_id', userId); // Only requester can update
+
+    if (updateError) throw updateError;
+
+    // Then fetch the updated request with user profile
+    const { data, error: fetchError } = await supabase
+      .from('help_requests')
+      .select(`
+        *,
+        user_profiles!help_requests_user_id_fkey(display_name)
+      `)
+      .eq('id', requestId)
+      .single();
+
+    if (fetchError) throw fetchError;
+    if (!data) throw new Error('Help request not found');
+
+    return {
+      ...data,
+      requester_name: data.user_profiles?.display_name ?? null
+    };
   },
 
   /**
@@ -439,6 +532,84 @@ export const resourceSharingService = {
       .eq('user_id', userId); // Only requester can delete
 
     if (error) throw error;
+  },
+
+  /**
+   * Create a response to a help request
+   */
+  async createHelpResponse(
+    requestId: string,
+    responderId: string,
+    message: string,
+    canHelp: boolean = true
+  ): Promise<void> {
+    const { error } = await supabase
+      .from('help_responses')
+      .insert({
+        help_request_id: requestId,
+        responder_id: responderId,
+        message,
+        can_help: canHelp
+      });
+
+    if (error) throw error;
+  },
+
+  /**
+   * Delete a help response (admin only)
+   */
+  async deleteHelpResponse(responseId: string): Promise<void> {
+    const { error } = await supabase
+      .from('help_responses')
+      .delete()
+      .eq('id', responseId);
+
+    if (error) throw error;
+  },
+
+  /**
+   * Update a help response (admin only)
+   */
+  async updateHelpResponse(responseId: string, message: string): Promise<void> {
+    const { error } = await supabase
+      .from('help_responses')
+      .update({ message })
+      .eq('id', responseId);
+
+    if (error) throw error;
+  },
+
+  /**
+   * Get responses for a help request
+   */
+  async getHelpRequestResponses(requestId: string): Promise<HelpResponse[]> {
+    const { data, error } = await supabase
+      .from('help_responses')
+      .select('*')
+      .eq('help_request_id', requestId)
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+
+    // Get responder names
+    const responderIds = [...new Set((data || []).map(r => r.responder_id))];
+    let responders: Array<{ user_id: string; display_name?: string }> = [];
+    
+    if (responderIds.length > 0) {
+      const { data: profileData } = await supabase
+        .from('user_profiles')
+        .select('user_id, display_name')
+        .in('user_id', responderIds);
+      responders = profileData || [];
+    }
+
+    return (data || []).map(response => {
+      const responder = responders.find(r => r.user_id === response.responder_id);
+      return {
+        ...response,
+        responder_name: responder?.display_name || 'Medlem'
+      };
+    });
   },
 
   /**

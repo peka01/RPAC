@@ -137,7 +137,12 @@
     "message_from": "Nytt meddelande från",
     "resource_request_from": "Resursförfrågan från",
     "wants_to_borrow": "vill låna din",
-    "system_alert": "Systemvarning"
+  "system_alert": "Systemvarning",
+    "help_request_title": "🔔 Ny hjälpförfrågan i {community}",
+    "help_request_content": "{title} · Prioritet: {urgency}",
+    "help_request_sender": "Hjälpcenter",
+    "help_response_title": "{responder} kan hjälpa till",
+    "help_response_content": "Du har fått ett svar på \"{title}\""
   },
   "preparedness": {
     "overall_score": "Hur förberedd du är",
@@ -408,12 +413,6 @@
     "logout": "Logga ut",
     "register": "Registrera"
   },
-  "settings": {
-    "title": "Inställningar",
-    "subtitle": "Hantera din profil, säkerhet och inställningar",
-    "login_required": "Du måste vara inloggad för att kunna göra ändringar.",
-    "allow_data_collection": "Tillåt anonymiserad datainsamling för att göra appen bättre"
-  },
   "descriptions": {
     "strengthen_resources": "Uppdatera och förbättra dina resurser",
     "coordinate_resources": "Dela saker med dina grannar",
@@ -631,12 +630,156 @@
       "delete_this_resource": "Ta bort resurs"
     },
     "help": {
-      "create_request": "Skapa förfrågan",
-      "urgency": "Brådskande",
-      "respond": "Jag kan hjälpa",
-      "anonymous": "Anonym",
-      "hours_ago": "timmar sedan",
-      "no_requests": "Inga aktiva förfrågningar"
+      "hero": {
+        "kicker": "Gemenskapen {community}",
+        "title": "Hjälp där det behövs som mest",
+        "description": "Samla stöd från grannar, koordinera resurser och håll koll på vad som är brådskande.",
+        "create_cta": "Skapa hjälpförfrågan",
+        "navigate_cta": "Se aktuella behov"
+      },
+      "stats": {
+        "active": "Aktiva behov",
+        "active_caption": "Behöver fortfarande stöd",
+        "urgent": "Akuta",
+        "urgent_caption": "Högsta prioritet just nu",
+        "resolved": "Lösta",
+        "resolved_caption": "Avslutade de senaste 30 dagarna"
+      },
+      "filters": {
+        "status_all": "Alla statusar",
+        "status_open": "Öppna",
+        "status_in_progress": "Pågår",
+        "status_resolved": "Lösta"
+      },
+      "list": {
+        "create_request": "Ny hjälpförfrågan"
+      },
+      "table": {
+        "headers": {
+          "request": "Förfrågan",
+          "requester": "Avsändare",
+          "urgency": "Prioritet",
+          "created": "Skapad",
+          "location": "Plats",
+          "actions": "Åtgärder"
+        },
+        "view_details": "Visa detaljer",
+        "offer_help": "Erbjud hjälp",
+        "no_location": "Ingen plats angiven"
+      },
+      "empty": {
+        "title": "Allt lugnt just nu",
+        "description": "Det finns för tillfället inga hjälpförfrågningar. Berätta vad du behöver så kan grannarna mobilisera stöd.",
+        "cta": "Skapa hjälpförfrågan"
+      },
+      "feedback": {
+        "create_error": "Kunde inte skapa hjälpförfrågan. Försök igen.",
+        "status_error": "Kunde inte uppdatera statusen just nu.",
+        "delete_confirm": "Vill du ta bort denna hjälpförfrågan? Detta går inte att ångra.",
+        "delete_error": "Kunde inte ta bort hjälpförfrågan.",
+        "response_error": "Kunde inte skicka ditt svar. Försök igen.",
+        "creating": "Publicerar hjälpförfrågan..."
+      },
+      "respond": {
+        "anonymous_helper": "En hjälpsam medlem",
+        "default_message_generic": "Hej! Jag kan eventuellt hjälpa till. Berätta gärna mer om vad som behövs.",
+        "default_message": "Hej, {responder} här. Jag kan hjälpa till med \"{title}\" – vill du prata vidare?",
+        "validation_required": "Skriv ett meddelande innan du skickar.",
+        "send_error": "Kunde inte skicka ditt erbjudande just nu.",
+        "close": "Stäng",
+        "kicker": "Erbjud din hjälp",
+        "hero_title": "Hjälp till med \"{title}\"",
+        "hero_description": "Ditt meddelande går direkt till personen som behöver stöd.",
+        "message_label": "Ditt meddelande",
+        "message_helper": "Berätta kort vem du är och hur du kan bidra.",
+        "commitment_note": "Vi startar samtidigt en direkt konversation i inkorgen.",
+        "cancel": "Avbryt",
+        "sending": "Skickar...",
+        "send": "Skicka hjälp"
+      },
+      "composer": {
+        "validation_required": "Fyll i både rubrik och beskrivning.",
+        "submit_error": "Kunde inte publicera förfrågan. Försök igen.",
+        "hero_kicker": "Gemenskapen {community}",
+        "hero_title": "Vad behöver du hjälp med?",
+        "hero_description": "Beskriv situationen kortfattat så kan andra se hur de bäst hjälper till.",
+        "close": "Stäng",
+        "promise_speed": "Snabba svar från grannar",
+        "promise_local": "Lokal hjälp nära dig",
+        "promise_followup": "Följ status och åtgärder",
+        "fields": {
+          "title_label": "Rubrik",
+          "title_placeholder": "Exempel: Behöver låna elverk över helgen",
+          "title_helper": "Håll rubriken konkret så blir den lättare att hitta.",
+          "description_label": "Beskrivning",
+          "description_placeholder": "Berätta vad som hänt, vad du behöver och när det behövs.",
+          "description_helper": "Ju tydligare du är, desto snabbare kan någon agera.",
+          "category_label": "Kategori",
+          "urgency_label": "Hur brådskande är det?",
+          "location_label": "Plats (valfritt)",
+          "location_placeholder": "Exempel: Förrådet på gården, Radhusgatan 12",
+          "location_helper": "Platsen delas bara med medlemmar i detta samhälle."
+        },
+        "footer_tip": "Tips: Kolla kontaktuppgifter och detaljer innan du skickar.",
+        "buttons": {
+          "cancel": "Avbryt",
+          "submit": "Publicera förfrågan",
+          "submitting": "Publicerar..."
+        }
+      },
+      "detail": {
+        "close": "Stäng",
+        "timeline_created": "Förfrågan skickades",
+        "timeline_in_progress": "Stöd pågår",
+        "timeline_resolved": "Markerad som löst",
+        "created_at": "Skapad {date}",
+        "requested_by": "Begärd av {name}",
+        "anonymous_member": "Okänd medlem",
+        "next_steps_title": "Nästa steg",
+        "next_steps_description": "Koordinera med de som erbjuder hjälp och uppdatera status när läget förändras.",
+        "actions": {
+          "offer_help": "Erbjud hjälp",
+          "mark_in_progress": "Markera som pågår",
+          "mark_resolved": "Markera som löst",
+          "reopen": "Återöppna",
+          "delete": "Ta bort förfrågan"
+        },
+        "timeline_title": "Aktivitet",
+        "summary_title": "Översikt",
+        "summary_status": "Status",
+        "summary_requested_by": "Begärd av",
+        "summary_created": "Skapad",
+        "summary_updated": "Uppdaterad",
+        "summary_location": "Plats",
+        "manage_title": "Hantera förfrågan",
+        "manage_description": "Ta bort förfrågan om den inte längre behövs eller skapades av misstag."
+      },
+      "categories": {
+        "food": "Mat & förnödenheter",
+        "water": "Vatten & hygien",
+        "medicine": "Sjukvård",
+        "energy": "Energi & värme",
+        "tools": "Verktyg & utrustning",
+        "other": "Övrigt",
+        "shelter": "Boende & skydd",
+        "transport": "Transport",
+        "skills": "Kompetenser"
+      },
+      "urgency": {
+        "low": "Låg prioritet",
+        "medium": "Behövs snart",
+        "high": "Brådskande",
+        "critical": "Akut läge"
+      },
+      "status": {
+        "open": "Behöver hjälp",
+        "in_progress": "Pågår",
+        "resolved": "Löst",
+        "closed": "Avslutat"
+      },
+      "notifications": {
+        "unknown_community": "okänt samhälle"
+      }
     },
     "crud": {
       "add_title": "Lägg till samhällsresurs",
@@ -765,8 +908,6 @@
       "confirm_remove": "Ta bort {name} från samhället?",
       "confirm_ban": "Blockera {name}? Detta förhindrar dem från att gå med igen.",
       "ban_reason": "Anledning till blockering",
-      "remove_member": "Ta bort medlem",
-      "confirm_remove": "Ta bort {name} från samhället?",
       "remove_reason": "Anledning till borttagning",
       "remove_reason_placeholder": "Valfritt: Ange anledning till borttagning",
       "removing": "Tar bort...",
@@ -902,6 +1043,7 @@
     "subtitle": "Hantera din profil, säkerhet och preferenser",
     "loading_settings": "Laddar inställningar...",
     "login_required": "Du måste vara inloggad för att komma åt inställningar.",
+  "allow_data_collection": "Tillåt anonymiserad datainsamling för att göra appen bättre",
     "tabs": {
       "profile": "Profil",
       "security": "Säkerhet",

@@ -317,6 +317,10 @@ ALTER TABLE resource_sharing ENABLE ROW LEVEL SECURITY;
 ALTER TABLE help_requests ENABLE ROW LEVEL SECURITY;
 
 -- User profiles policies
+DROP POLICY IF EXISTS "Users can view own profile" ON user_profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON user_profiles;
+DROP POLICY IF EXISTS "Users can insert own profile" ON user_profiles;
+
 CREATE POLICY "Users can view own profile" ON user_profiles
   FOR SELECT USING (auth.uid() = user_id);
 
@@ -327,6 +331,9 @@ CREATE POLICY "Users can insert own profile" ON user_profiles
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- Resources policies
+DROP POLICY IF EXISTS "Users can view own resources" ON resources;
+DROP POLICY IF EXISTS "Users can manage own resources" ON resources;
+
 CREATE POLICY "Users can view own resources" ON resources
   FOR SELECT USING (auth.uid() = user_id);
 
@@ -334,6 +341,12 @@ CREATE POLICY "Users can manage own resources" ON resources
   FOR ALL USING (auth.uid() = user_id);
 
 -- Cultivation policies
+DROP POLICY IF EXISTS "Users can manage own cultivation data" ON cultivation_calendar;
+DROP POLICY IF EXISTS "Users can manage own garden layouts" ON garden_layouts;
+DROP POLICY IF EXISTS "Users can manage own reminders" ON cultivation_reminders;
+DROP POLICY IF EXISTS "Users can manage own crisis plans" ON crisis_cultivation_plans;
+DROP POLICY IF EXISTS "Users can manage own nutrition calculations" ON nutrition_calculations;
+
 CREATE POLICY "Users can manage own cultivation data" ON cultivation_calendar
   FOR ALL USING (auth.uid() = user_id);
 
@@ -350,34 +363,32 @@ CREATE POLICY "Users can manage own nutrition calculations" ON nutrition_calcula
   FOR ALL USING (auth.uid() = user_id);
 
 -- Plant diagnoses policies
+DROP POLICY IF EXISTS "Users can manage own plant diagnoses" ON plant_diagnoses;
+
 CREATE POLICY "Users can manage own plant diagnoses" ON plant_diagnoses
   FOR ALL USING (auth.uid() = user_id);
 
 -- Community policies (public read, members can write)
+DROP POLICY IF EXISTS "Anyone can view public communities" ON local_communities;
+DROP POLICY IF EXISTS "Community admins can manage communities" ON local_communities;
+
 CREATE POLICY "Anyone can view public communities" ON local_communities
   FOR SELECT USING (is_public = true);
 
+-- Fixed: Simplified to avoid recursion on community_memberships query
+-- Only the creator can modify via RLS; admin roles checked at application level
 CREATE POLICY "Community admins can manage communities" ON local_communities
-  FOR ALL USING (
-    auth.uid() = created_by OR 
-    EXISTS (
-      SELECT 1 FROM community_memberships 
-      WHERE community_id = local_communities.id 
-      AND user_id = auth.uid() 
-      AND role IN ('admin', 'moderator')
-    )
-  );
+  FOR ALL USING (auth.uid() = created_by);
 
 -- Community memberships policies
+DROP POLICY IF EXISTS "Users can view community memberships" ON community_memberships;
+DROP POLICY IF EXISTS "Users can join communities" ON community_memberships;
+DROP POLICY IF EXISTS "Users can leave communities" ON community_memberships;
+
+-- Fixed: Simplified policy to avoid infinite recursion (issue: 42P17)
+-- Users can only view their own membership records
 CREATE POLICY "Users can view community memberships" ON community_memberships
-  FOR SELECT USING (
-    auth.uid() = user_id OR 
-    EXISTS (
-      SELECT 1 FROM community_memberships cm 
-      WHERE cm.community_id = community_memberships.community_id 
-      AND cm.user_id = auth.uid()
-    )
-  );
+  FOR SELECT USING (auth.uid() = user_id);
 
 CREATE POLICY "Users can join communities" ON community_memberships
   FOR INSERT WITH CHECK (auth.uid() = user_id);
@@ -386,6 +397,10 @@ CREATE POLICY "Users can leave communities" ON community_memberships
   FOR DELETE USING (auth.uid() = user_id);
 
 -- Messages policies
+DROP POLICY IF EXISTS "Users can view messages they sent or received" ON messages;
+DROP POLICY IF EXISTS "Users can send messages" ON messages;
+DROP POLICY IF EXISTS "Users can update messages they sent" ON messages;
+
 CREATE POLICY "Users can view messages they sent or received" ON messages
   FOR SELECT USING (auth.uid() = sender_id OR auth.uid() = receiver_id);
 
@@ -396,6 +411,9 @@ CREATE POLICY "Users can update messages they sent" ON messages
   FOR UPDATE USING (auth.uid() = sender_id);
 
 -- Resource sharing policies
+DROP POLICY IF EXISTS "Users can view shared resources" ON resource_sharing;
+DROP POLICY IF EXISTS "Users can manage own shared resources" ON resource_sharing;
+
 CREATE POLICY "Users can view shared resources" ON resource_sharing
   FOR SELECT USING (true); -- Public for community sharing
 
@@ -403,17 +421,19 @@ CREATE POLICY "Users can manage own shared resources" ON resource_sharing
   FOR ALL USING (auth.uid() = user_id);
 
 -- Help requests policies
-CREATE POLICY "Users can view help requests in their communities" ON help_requests
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM community_memberships 
-      WHERE community_id = help_requests.community_id 
-      AND user_id = auth.uid()
-    )
-  );
+-- Fixed: Removed recursive community_memberships query to prevent 42P17 errors
+DROP POLICY IF EXISTS "Users can view help requests in their communities" ON help_requests;
+DROP POLICY IF EXISTS "Users can create help requests" ON help_requests;
+DROP POLICY IF EXISTS "Users can update own help requests" ON help_requests;
 
+-- Simplified SELECT policy to avoid recursion
+-- Community membership verification happens at application level
+CREATE POLICY "Users can view help requests in their communities" ON help_requests
+  FOR SELECT USING (auth.uid() = user_id);
+
+-- Allow INSERT if user owns the request and community_id is provided
 CREATE POLICY "Users can create help requests" ON help_requests
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  FOR INSERT WITH CHECK (auth.uid() = user_id AND community_id IS NOT NULL);
 
 CREATE POLICY "Users can update own help requests" ON help_requests
   FOR UPDATE USING (auth.uid() = user_id);
@@ -430,6 +450,18 @@ BEGIN
   RETURN NEW;
 END;
 $$ language 'plpgsql';
+
+-- Drop existing triggers if they exist
+DROP TRIGGER IF EXISTS update_user_profiles_updated_at ON user_profiles;
+DROP TRIGGER IF EXISTS update_resources_updated_at ON resources;
+DROP TRIGGER IF EXISTS update_cultivation_calendar_updated_at ON cultivation_calendar;
+DROP TRIGGER IF EXISTS update_garden_layouts_updated_at ON garden_layouts;
+DROP TRIGGER IF EXISTS update_cultivation_reminders_updated_at ON cultivation_reminders;
+DROP TRIGGER IF EXISTS update_crisis_plans_updated_at ON crisis_cultivation_plans;
+DROP TRIGGER IF EXISTS update_nutrition_calculations_updated_at ON nutrition_calculations;
+DROP TRIGGER IF EXISTS update_local_communities_updated_at ON local_communities;
+DROP TRIGGER IF EXISTS update_resource_sharing_updated_at ON resource_sharing;
+DROP TRIGGER IF EXISTS update_help_requests_updated_at ON help_requests;
 
 -- Apply updated_at triggers to all relevant tables
 CREATE TRIGGER update_user_profiles_updated_at BEFORE UPDATE ON user_profiles
@@ -540,6 +572,10 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- =============================================
 -- VIEWS FOR COMMON QUERIES
 -- =============================================
+
+-- Drop existing views to avoid column dependency issues
+DROP VIEW IF EXISTS community_overview CASCADE;
+DROP VIEW IF EXISTS user_dashboard_data CASCADE;
 
 -- View for user dashboard data
 CREATE OR REPLACE VIEW user_dashboard_data AS

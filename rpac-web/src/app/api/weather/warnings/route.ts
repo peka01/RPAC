@@ -7,8 +7,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const county = searchParams.get('county');
 
-    console.log('Fetching SMHI warnings...');
-
     // Try to fetch real warnings from SMHI's new IBW API
     try {
       const smhiResponse = await fetch(
@@ -23,11 +21,8 @@ export async function GET(request: NextRequest) {
         }
       );
 
-      console.log('SMHI response status:', smhiResponse.status);
-
       if (smhiResponse.ok) {
         const warningData = await smhiResponse.json();
-        console.log('SMHI warnings data received:', warningData);
 
         // The new API returns an array of warnings in the 'value' property
         const warnings = warningData.value || warningData || [];
@@ -73,7 +68,6 @@ export async function GET(request: NextRequest) {
     }
 
     // Fallback: Return empty warnings if SMHI API is not available
-    console.log('Returning empty warnings as fallback');
     return NextResponse.json({
       warnings: [],
       metadata: {

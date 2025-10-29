@@ -4,11 +4,21 @@
  */
 
 import { supabase } from './supabase';
+import { t } from '@/lib/locales';
 import type { Notification } from '@/components/notification-center';
 
 export interface CreateNotificationParams {
   userId: string;
-  type: 'message' | 'resource_request' | 'emergency' | 'system' | 'membership_request' | 'membership_approved' | 'membership_rejected';
+  type:
+    | 'message'
+    | 'resource_request'
+    | 'emergency'
+    | 'system'
+    | 'membership_request'
+    | 'membership_approved'
+    | 'membership_rejected'
+    | 'help_request'
+    | 'help_response';
   title: string;
   content: string;
   senderName?: string;
@@ -336,6 +346,124 @@ export const notificationService = {
       console.log(`✅ Sent membership rejected notification to user ${userId}`);
     } catch (err) {
       console.error('Error creating membership rejected notification:', err);
+    }
+  },
+
+  /**
+   * Create notification when a new help request is published
+   */
+  async createHelpRequestNotification(params: {
+    communityId: string;
+    requestId: string;
+    requestTitle: string;
+    urgency: 'low' | 'medium' | 'high' | 'critical';
+    creatorId: string;
+  }): Promise<void> {
+    const { communityId, requestId, requestTitle, urgency, creatorId } = params;
+
+    try {
+      const { data: community } = await supabase
+        .from('local_communities')
+        .select('community_name')
+        .eq('id', communityId)
+        .maybeSingle();
+
+      const communityName = community?.community_name || t('community_resources.help.notifications.unknown_community');
+      const urgencyLabel = t(`community_resources.help.urgency.${urgency}`);
+
+      const { data: members, error: membersError } = await supabase
+        .from('community_memberships')
+        .select('user_id, status, membership_status')
+        .eq('community_id', communityId);
+
+      if (membersError) {
+        throw membersError;
+      }
+
+      if (!members || members.length === 0) {
+        return;
+      }
+
+      const recipients = members
+        .filter((member) => member.user_id !== creatorId)
+        .filter((member) => {
+          const status = (member as any).status ?? (member as any).membership_status ?? 'approved';
+          return status === 'approved';
+        });
+
+      if (recipients.length === 0) {
+        return;
+      }
+
+      const title = t('notifications.help_request_title', { community: communityName });
+      const content = t('notifications.help_request_content', { title: requestTitle, urgency: urgencyLabel });
+      const senderName = t('notifications.help_request_sender');
+      const actionUrl = `/local?tab=resources&resourceTab=help&helpRequest=${requestId}`;
+
+      for (const recipient of recipients) {
+        await this.createNotification({
+          userId: recipient.user_id,
+          type: 'help_request',
+          title,
+          content,
+          senderName,
+          actionUrl
+        });
+      }
+    } catch (err) {
+      console.error('Error creating help request notifications:', err);
+    }
+  },
+
+  /**
+   * Notify help requester when someone responds
+   */
+  async createHelpResponseNotification(params: {
+    requestId: string;
+    requestTitle: string;
+    requesterId: string;
+    responderId: string;
+    responderName: string;
+    notificationTitle?: string;
+    notificationContent?: string;
+  }): Promise<void> {
+    const { requestId, requestTitle, requesterId, responderId, responderName, notificationTitle, notificationContent } = params;
+
+    try {
+      // Avoid notifying the responder themselves
+      if (requesterId === responderId) {
+        return;
+      }
+
+      const fiveSecondsAgo = new Date(Date.now() - 5000).toISOString();
+      const { data: recentNotifications } = await supabase
+        .from('notifications')
+        .select('id')
+        .eq('user_id', requesterId)
+        .eq('sender_name', responderName)
+        .eq('type', 'help_response')
+        .gte('created_at', fiveSecondsAgo)
+        .limit(1);
+
+      if (recentNotifications && recentNotifications.length > 0) {
+        return;
+      }
+
+      // Use provided translations or fallback to English
+      const title = notificationTitle || `${responderName} can help`;
+      const content = notificationContent || `You have received a response to "${requestTitle}"`;
+      const actionUrl = `/local?tab=resources&resourceTab=help&helpRequest=${requestId}`;
+
+      await this.createNotification({
+        userId: requesterId,
+        type: 'help_response',
+        title,
+        content,
+        senderName: responderName,
+        actionUrl
+      });
+    } catch (err) {
+      console.error('Error creating help response notification:', err);
     }
   }
 };

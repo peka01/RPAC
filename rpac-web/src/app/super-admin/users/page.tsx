@@ -185,15 +185,30 @@ export default function UserManagementPage() {
 
     setSaving(true);
     try {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (!currentUser) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        alert('Not authenticated');
+        return;
+      }
 
-      // Use Supabase Admin API to update user password
-      const { error } = await supabase.auth.admin.updateUserById(selectedUser.user_id, {
-        password: newPassword
+      // Call server-side API route with admin privileges
+      const response = await fetch('/api/admin/update-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          userId: selectedUser.user_id,
+          newPassword: newPassword
+        })
       });
 
-      if (error) throw error;
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update password');
+      }
 
       alert(t('admin.messages.password_changed'));
       setShowPasswordModal(false);

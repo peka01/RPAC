@@ -11,7 +11,8 @@ import {
   Info,
   ChevronRight,
   MoreHorizontal,
-  Users
+  Users,
+  HeartHandshake
 } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { supabase } from '@/lib/supabase';
@@ -19,7 +20,16 @@ import type { User } from '@supabase/supabase-js';
 
 export interface Notification {
   id: string;
-  type: 'message' | 'resource_request' | 'emergency' | 'system' | 'membership_request' | 'membership_approved' | 'membership_rejected';
+  type:
+    | 'message'
+    | 'resource_request'
+    | 'emergency'
+    | 'system'
+    | 'membership_request'
+    | 'membership_approved'
+    | 'membership_rejected'
+    | 'help_request'
+    | 'help_response';
   title: string;
   content: string;
   sender_name?: string;
@@ -225,6 +235,10 @@ export function NotificationCenter({ user, onNotificationClick, isOpen: external
       case 'membership_approved':
       case 'membership_rejected':
         return <Users className="w-5 h-5 text-amber-600" />;
+      case 'help_request':
+        return <AlertTriangle className="w-5 h-5 text-orange-500" />;
+      case 'help_response':
+        return <HeartHandshake className="w-5 h-5 text-[#3D4A2B]" />;
       default:
         return <Info className="w-5 h-5 text-gray-600" />;
     }
@@ -550,6 +564,35 @@ export function NotificationCenter({ user, onNotificationClick, isOpen: external
               className="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
             >
               Hantera
+            </button>
+          </div>
+        );
+      case 'help_request':
+      case 'help_response':
+        return (
+          <div className="flex gap-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (notification.action_url) {
+                  window.location.href = notification.action_url;
+                }
+                if (!notification.is_read) {
+                  markAsRead(notification.id);
+                }
+              }}
+              className="px-3 py-1 text-xs bg-[#3D4A2B] text-white rounded-md hover:bg-[#2A331E] transition-colors"
+            >
+              {t('notifications.view')}
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                markAsRead(notification.id);
+              }}
+              className="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+            >
+              {t('notifications.mark_as_read')}
             </button>
           </div>
         );

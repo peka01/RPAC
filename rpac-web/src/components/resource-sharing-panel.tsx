@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { resourceSharingService, type SharedResource, type HelpRequest } from '@/lib/resource-sharing-service';
+import { helpRequestUrgencyConfig } from '@/constants/help-requests';
 import type { User } from '@supabase/supabase-js';
 
 interface ResourceSharingPanelProps {
@@ -51,7 +52,6 @@ export function ResourceSharingPanel({ user, communityId, onSendMessage }: Resou
   const [helpForm, setHelpForm] = useState({
     title: '',
     description: '',
-    category: 'food' as HelpRequest['category'],
     urgency: 'medium' as HelpRequest['urgency'],
     location: ''
   });
@@ -199,7 +199,6 @@ export function ResourceSharingPanel({ user, communityId, onSendMessage }: Resou
         communityId,
         title: helpForm.title,
         description: helpForm.description,
-        category: helpForm.category,
         urgency: helpForm.urgency,
         location: helpForm.location || undefined
       });
@@ -211,7 +210,6 @@ export function ResourceSharingPanel({ user, communityId, onSendMessage }: Resou
       setHelpForm({
         title: '',
         description: '',
-        category: 'food',
         urgency: 'medium',
         location: ''
       });
@@ -433,7 +431,6 @@ export function ResourceSharingPanel({ user, communityId, onSendMessage }: Resou
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="text-2xl">{getCategoryIcon(request.category)}</span>
                       <div>
                         <h4 className="font-semibold text-gray-900">{request.title}</h4>
                         <p className="text-xs text-gray-600">
@@ -666,38 +663,18 @@ export function ResourceSharingPanel({ user, communityId, onSendMessage }: Resou
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Kategori
-                </label>
-                <select
-                  value={helpForm.category}
-                  onChange={(e) => setHelpForm({ ...helpForm, category: e.target.value as any })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
-                >
-                  <option value="food">Mat</option>
-                  <option value="water">Vatten</option>
-                  <option value="medicine">Medicin</option>
-                  <option value="energy">Energi</option>
-                  <option value="tools">Verktyg</option>
-                  <option value="shelter">Boende</option>
-                  <option value="transport">Transport</option>
-                  <option value="skills">Kompetens</option>
-                  <option value="other">Övrigt</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Brådskande
                 </label>
                 <select
                   value={helpForm.urgency}
-                  onChange={(e) => setHelpForm({ ...helpForm, urgency: e.target.value as any })}
+                  onChange={(e) => setHelpForm({ ...helpForm, urgency: e.target.value as HelpRequest['urgency'] })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
                 >
-                  <option value="low">Låg</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">Hög</option>
-                  <option value="critical">Kritisk</option>
+                  {Object.entries(helpRequestUrgencyConfig).map(([key, config]) => (
+                    <option key={key} value={key}>
+                      {t(config.labelKey)}
+                    </option>
+                  ))}
                 </select>
               </div>
               

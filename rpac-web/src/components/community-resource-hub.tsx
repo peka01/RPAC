@@ -39,6 +39,8 @@ import { resourceSharingService, type SharedResource, type HelpRequest, communit
 import { SharedResourceActionsModal } from './shared-resource-actions-modal';
 import { CommunityResourceModal } from './community-resource-modal';
 import { ResourceListView } from './resource-list-view';
+import { HelpRequestsExperience } from './help-requests-experience';
+import { helpStatusFilters } from '@/constants/help-requests';
 import type { User } from '@supabase/supabase-js';
 
 interface CommunityResourceHubProps {
@@ -80,6 +82,7 @@ export function CommunityResourceHub({
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  const [helpStatusFilter, setHelpStatusFilter] = useState<'all' | HelpRequest['status']>('open');
   
   // Data states
   const [sharedResources, setSharedResources] = useState<SharedResource[]>([]);
@@ -92,7 +95,6 @@ export function CommunityResourceHub({
   // Modal states
   const [showAddCommunityResource, setShowAddCommunityResource] = useState(false);
   const [editingCommunityResource, setEditingCommunityResource] = useState<CommunityResource | null>(null);
-  const [showAddHelpRequest, setShowAddHelpRequest] = useState(false);
 
   const [managingResource, setManagingResource] = useState<SharedResource | null>(null);
 
@@ -237,7 +239,6 @@ export function CommunityResourceHub({
         resourceSharingService.getCommunityHelpRequests(communityId)
       ]);
       
-      console.log('Loaded shared resources:', shared.map(r => ({ id: r.id, name: r.resource_name, has_user_requested: r.has_user_requested })));
       setSharedResources(shared);
       setCommunityResources(owned);
       setHelpRequests(help);
@@ -285,24 +286,6 @@ export function CommunityResourceHub({
     return filtered;
   };
 
-  // Filter help requests
-  const filterHelpRequests = (resources: HelpRequest[]) => {
-    let filtered = resources;
-    
-    if (categoryFilter !== 'all') {
-      filtered = filtered.filter(r => r.category === categoryFilter);
-    }
-    
-    if (searchQuery) {
-      filtered = filtered.filter(r => 
-        r.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        r.description?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    
-    return filtered;
-  };
-
   // Group shared resources by resource name
   const groupSharedResources = (resources: SharedResource[]) => {
     const grouped = new Map<string, SharedResource[]>();
@@ -322,7 +305,6 @@ export function CommunityResourceHub({
   const filteredShared = filterSharedResources(sharedResources);
   const groupedSharedResources = groupSharedResources(filteredShared);
   const filteredOwned = filterCommunityResources(communityResources);
-  const filteredHelp = filterHelpRequests(helpRequests);
 
   // Calculate statistics
   const stats = {
@@ -436,12 +418,6 @@ export function CommunityResourceHub({
       setError('Kunde inte avbryta begäran');
     }
   };
-
-  function handleRespondToHelp(request: HelpRequest) {
-    if (onSendMessage) {
-      onSendMessage(`Jag kan hjälpa till med: "${request.title}". Låt oss prata om detaljerna.`);
-    }
-  }
 
   async function handleUpdateResource(resourceId: string, updates: Partial<SharedResource>) {
     try {
@@ -715,51 +691,51 @@ export function CommunityResourceHub({
             />
           </div>
 
-          {/* View Toggle - For shared and owned resources */}
-          {(activeTab === 'shared' || activeTab === 'owned') && (
-            <div className="flex bg-gray-100 rounded-lg p-1 flex-shrink-0">
-              <button
-                onClick={() => setViewMode('cards')}
-                className={`flex items-center justify-center p-2 rounded-md font-medium transition-all ${
-                  viewMode === 'cards'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-                title={t('ui.card_view')}
-              >
-                <Grid3x3 size={18} />
-              </button>
-              <button
-                onClick={() => setViewMode('table')}
-                className={`flex items-center justify-center p-2 rounded-md font-medium transition-all ${
-                  viewMode === 'table'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-                title={t('ui.table_view')}
-              >
-                <List size={18} />
-              </button>
-            </div>
-          )}
+          {/* View Toggle - For all tabs */}
+          <div className="flex bg-gray-100 rounded-lg p-1 flex-shrink-0">
+            <button
+              onClick={() => setViewMode('cards')}
+              className={`flex items-center justify-center p-2 rounded-md font-medium transition-all ${
+                viewMode === 'cards'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              title={t('ui.card_view')}
+            >
+              <Grid3x3 size={18} />
+            </button>
+            <button
+              onClick={() => setViewMode('table')}
+              className={`flex items-center justify-center p-2 rounded-md font-medium transition-all ${
+                viewMode === 'table'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              title={t('ui.table_view')}
+            >
+              <List size={18} />
+            </button>
+          </div>
 
           {/* Filter Toggle */}
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all flex-shrink-0 ${
-              showFilters || categoryFilter !== 'all'
-                ? 'bg-[#3D4A2B] text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            <Filter size={20} />
-            <span className="hidden sm:inline">Filter</span>
-            {categoryFilter !== 'all' && (
-              <span className="bg-white text-[#3D4A2B] px-2 py-0.5 rounded-full text-xs font-bold">
-                1
-              </span>
-            )}
-          </button>
+          {activeTab !== 'help' && (
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all flex-shrink-0 ${
+                showFilters || categoryFilter !== 'all'
+                  ? 'bg-[#3D4A2B] text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <Filter size={20} />
+              <span className="hidden sm:inline">Filter</span>
+              {categoryFilter !== 'all' && (
+                <span className="bg-white text-[#3D4A2B] px-2 py-0.5 rounded-full text-xs font-bold">
+                  1
+                </span>
+              )}
+            </button>
+          )}
 
           {/* Add Resource Button - Only for admins on owned tab */}
           {activeTab === 'owned' && isAdmin && (
@@ -774,10 +750,25 @@ export function CommunityResourceHub({
               <span className="hidden md:inline">Lägg till</span>
             </button>
           )}
+
+          {/* Create Help Request Button - For help tab */}
+          {activeTab === 'help' && (
+            <button
+              onClick={() => {
+                // Trigger the composer in the child component
+                const event = new CustomEvent('openHelpComposer');
+                window.dispatchEvent(event);
+              }}
+              className="flex items-center gap-2 px-4 py-3 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-lg font-bold hover:shadow-lg transition-all flex-shrink-0"
+            >
+              <Plus size={20} />
+              <span className="hidden md:inline">Lägg till</span>
+            </button>
+          )}
         </div>
 
-        {/* Category Filters */}
-        {showFilters && (
+        {/* Category Filters - For shared/owned/community tabs */}
+        {activeTab !== 'help' && showFilters && (
           <div className="mt-4 pt-4 border-t border-gray-200">
             <div className="flex flex-wrap gap-2">
               <button
@@ -807,6 +798,29 @@ export function CommunityResourceHub({
                   </button>
                 );
               })}
+            </div>
+          </div>
+        )}
+
+        {/* Help Status Filters - For help tab */}
+        {activeTab === 'help' && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap gap-2">
+                {helpStatusFilters.map((filter) => (
+                  <button
+                    key={filter.id}
+                    onClick={() => setHelpStatusFilter(filter.id)}
+                    className={`rounded-full px-4 py-2 text-xs font-semibold transition-all ${
+                      helpStatusFilter === filter.id
+                        ? 'bg-[#3D4A2B] text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {t(filter.labelKey)}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -863,42 +877,19 @@ export function CommunityResourceHub({
 
         {/* Tier 3: Help Requests */}
         {activeTab === 'help' && (
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="text-xl font-bold text-gray-900">Aktiva hjälpförfrågningar</h3>
-                <p className="text-gray-600">Vi hjälper varandra!</p>
-              </div>
-              <button
-                onClick={() => setShowAddHelpRequest(true)}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-xl font-bold hover:shadow-lg transition-all"
-              >
-                <Plus size={20} />
-                <span>Be om hjälp</span>
-              </button>
-            </div>
-
-            {filteredHelp.length === 0 ? (
-              <div className="bg-white rounded-xl p-12 text-center shadow-md">
-                <CheckCircle size={48} className="mx-auto mb-4 text-green-500" />
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Inga aktiva förfrågningar</h3>
-                <p className="text-gray-600">
-                  Alla behöver hjälp ibland - tveka inte att be om stöd
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredHelp.map(request => (
-                  <HelpRequestCard
-                    key={request.id}
-                    request={request}
-                    currentUserId={user.id}
-                    onRespond={() => handleRespondToHelp(request)}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+          <HelpRequestsExperience
+            user={user}
+            communityId={communityId}
+            communityName={actualCommunityName}
+            requests={helpRequests}
+            setRequests={setHelpRequests}
+            isAdmin={isAdmin}
+            statusFilter={helpStatusFilter}
+            setStatusFilter={setHelpStatusFilter}
+            searchQuery={searchQuery}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+          />
         )}
       </div>
 
@@ -1535,81 +1526,6 @@ function SharedResourceCard({ resource, currentUserId, onRequest, onCancelReques
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-// Help Request Card Component
-interface HelpRequestCardProps {
-  request: HelpRequest;
-  currentUserId: string;
-  onRespond: (requestId: string) => void;
-}
-
-function HelpRequestCard({ request, currentUserId, onRespond }: HelpRequestCardProps) {
-  const isOwner = request.user_id === currentUserId;
-  const urgencyColors: Record<string, string> = {
-    low: 'bg-green-100 text-green-700',
-    medium: 'bg-yellow-100 text-yellow-700',
-    high: 'bg-red-100 text-red-700',
-    critical: 'bg-red-200 text-red-800'
-  };
-  const urgencyLabels: Record<string, string> = { 
-    low: 'Låg', 
-    medium: 'Medel', 
-    high: 'Hög',
-    critical: 'Kritisk'
-  };
-
-  return (
-    <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all border-2 border-transparent hover:border-[#3D4A2B]">
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            <h3 className="font-bold text-lg text-gray-900">{request.title}</h3>
-            {isOwner && (
-              <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">
-                Din förfrågan
-              </span>
-            )}
-          </div>
-          <p className="text-gray-700 mb-3">{request.description}</p>
-        </div>
-        <span className={`px-3 py-1 rounded-full text-xs font-bold ${urgencyColors[request.urgency]}`}>
-          {urgencyLabels[request.urgency]}
-        </span>
-      </div>
-
-      <div className="flex items-center gap-4 mb-4 text-sm text-gray-600">
-        {request.category && (
-          <div className="flex items-center gap-2">
-            <Package size={16} className="text-gray-400" />
-            <span>{categoryConfig[request.category as keyof typeof categoryConfig]?.label || request.category}</span>
-          </div>
-        )}
-        {request.location && (
-          <div className="flex items-center gap-2">
-            <MapPin size={16} className="text-gray-400" />
-            <span>{request.location}</span>
-          </div>
-        )}
-        {request.created_at && (
-          <div className="flex items-center gap-2">
-            <Clock size={16} className="text-gray-400" />
-            <span>{new Date(request.created_at).toLocaleDateString('sv-SE')}</span>
-          </div>
-        )}
-      </div>
-
-      {!isOwner && (request.status === 'open' || request.status === 'in_progress') && (
-        <button
-          onClick={() => onRespond(request.id)}
-          className="w-full py-3 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-lg font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2"
-        >
-          <Heart size={18} />
-          <span>Jag kan hjälpa till</span>
-        </button>
-      )}
     </div>
   );
 }

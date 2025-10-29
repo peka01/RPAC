@@ -34,6 +34,7 @@ import { CommunityResourceModal } from './community-resource-modal';
 import { SharedResourceActionsModal } from './shared-resource-actions-modal';
 import type { User } from '@supabase/supabase-js';
 import { t } from '@/lib/locales';
+import { helpRequestUrgencyConfig } from '@/constants/help-requests';
 
 interface CommunityResourceHubMobileProps {
   user: User;
@@ -290,7 +291,6 @@ export function CommunityResourceHubMobile({
       ]);
 
       setSharedResources(shared);
-      console.log('Loaded shared resources:', shared.map(r => ({ id: r.id, resource_id: r.resource_id, status: r.status })));
       setCommunityResources(owned);
       setHelpRequests(help);
     } catch (err) {
@@ -400,10 +400,6 @@ export function CommunityResourceHubMobile({
   const filterHelpRequests = (resources: HelpRequest[]) => {
     let filtered = resources;
 
-    if (categoryFilter !== 'all') {
-      filtered = filtered.filter(r => r.category === categoryFilter);
-    }
-
     if (searchQuery) {
       filtered = filtered.filter(r =>
         r.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -480,7 +476,6 @@ export function CommunityResourceHubMobile({
         communityId,
         title: helpRequest.title!,
         description: helpRequest.description!,
-        category: helpRequest.category!,
         urgency: helpRequest.urgency || 'medium',
         location: helpRequest.location
       });
@@ -1002,7 +997,6 @@ function HelpRequestsView({
   return (
     <div className="space-y-3">
       {requests.map((request) => {
-        const category = categoryConfig[request.category as keyof typeof categoryConfig] || categoryConfig.other;
         const urgencyColors = {
           low: 'bg-blue-100 text-blue-700',
           medium: 'bg-yellow-100 text-yellow-700',
@@ -1016,7 +1010,6 @@ function HelpRequestsView({
             className="bg-white rounded-2xl p-4 shadow-md border border-[#5C6B47]/20"
           >
             <div className="flex items-start gap-3 mb-3">
-              <div className="text-3xl flex-shrink-0">{category.emoji}</div>
               <div className="flex-1">
                 <h3 className="font-bold text-gray-900 mb-1">{request.title}</h3>
                 <p className="text-sm text-gray-600 mb-2 line-clamp-2">{request.description}</p>
@@ -1025,9 +1018,6 @@ function HelpRequestsView({
                     {request.urgency === 'low' ? 'Låg prioritet' :
                       request.urgency === 'medium' ? 'Medel' :
                         request.urgency === 'high' ? 'Hög prioritet' : 'KRITISK'}
-                  </span>
-                  <span className="px-2 py-1 bg-[#556B2F]/10 text-[#556B2F] rounded-lg text-xs font-semibold">
-                    {category.label}
                   </span>
                   {request.status === 'in_progress' && (
                     <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold">
@@ -1267,7 +1257,6 @@ function ResourceDetailBottomSheet({
   };
 
   const renderHelpDetails = (req: HelpRequest) => {
-    const category = categoryConfig[req.category as keyof typeof categoryConfig] || categoryConfig.other;
     const urgencyColors = {
       low: 'bg-blue-100 text-blue-700',
       medium: 'bg-yellow-100 text-yellow-700',
@@ -1278,7 +1267,6 @@ function ResourceDetailBottomSheet({
     return (
       <>
         <div className="flex items-center gap-4 mb-6">
-          <div className="text-5xl">{category.emoji}</div>
           <div className="flex-1">
             <h2 className="text-2xl font-bold text-gray-900">{req.title}</h2>
             <p className="text-gray-500">Från {req.requester_name || 'Okänd'}</p>
@@ -1290,9 +1278,6 @@ function ResourceDetailBottomSheet({
             {req.urgency === 'low' ? 'Låg prioritet' :
               req.urgency === 'medium' ? 'Medel prioritet' :
                 req.urgency === 'high' ? 'Hög prioritet' : 'KRITISK'}
-          </span>
-          <span className="px-3 py-2 bg-[#556B2F]/10 text-[#556B2F] rounded-xl text-sm font-semibold">
-            {category.label}
           </span>
         </div>
 
@@ -1407,7 +1392,6 @@ function AddHelpRequestBottomSheet({
   const [form, setForm] = useState({
     title: '',
     description: '',
-    category: 'other' as HelpRequest['category'],
     urgency: 'medium' as HelpRequest['urgency'],
     location: ''
   });
@@ -1495,53 +1479,29 @@ function AddHelpRequestBottomSheet({
             />
           </div>
 
-          {/* Category */}
-          <div className="mb-6">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Kategori
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {Object.entries(categoryConfig).map(([key, config]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setForm({ ...form, category: key as HelpRequest['category'] })}
-                  className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all touch-manipulation active:scale-95 ${
-                    form.category === key
-                      ? 'border-[#3D4A2B] bg-[#3D4A2B]/10'
-                      : 'border-gray-200 bg-white hover:bg-gray-50'
-                  }`}
-                >
-                  <span className="text-2xl">{config.emoji}</span>
-                  <span className="text-xs font-medium text-gray-700">{config.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* Urgency */}
           <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Prioritet
             </label>
             <div className="grid grid-cols-2 gap-2">
-              {[
-                { key: 'low', label: 'Låg', color: 'bg-blue-100 text-blue-700 border-blue-300' },
-                { key: 'medium', label: 'Medel', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
-                { key: 'high', label: 'Hög', color: 'bg-orange-100 text-orange-700 border-orange-300' },
-                { key: 'critical', label: 'KRITISK', color: 'bg-red-100 text-red-700 border-red-300' }
-              ].map(({ key, label, color }) => (
+              {([
+                { key: 'low', activeClass: 'bg-green-100 text-green-700 border-green-300' },
+                { key: 'medium', activeClass: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
+                { key: 'high', activeClass: 'bg-orange-100 text-orange-700 border-orange-300' },
+                { key: 'critical', activeClass: 'bg-red-100 text-red-700 border-red-300' }
+              ] as Array<{ key: HelpRequest['urgency']; activeClass: string }>).map(({ key, activeClass }) => (
                 <button
                   key={key}
                   type="button"
-                  onClick={() => setForm({ ...form, urgency: key as HelpRequest['urgency'] })}
+                  onClick={() => setForm({ ...form, urgency: key })}
                   className={`py-3 px-4 rounded-xl border-2 font-semibold text-sm transition-all touch-manipulation active:scale-95 ${
                     form.urgency === key
-                      ? color
+                      ? activeClass
                       : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  {label}
+                  {t(helpRequestUrgencyConfig[key].labelKey)}
                 </button>
               ))}
             </div>
