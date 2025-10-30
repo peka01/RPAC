@@ -45,11 +45,14 @@ const VALID_HELP_FILES = [
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
   try {
+    // Await params as they are now a Promise in Next.js 15+
+    const resolvedParams = await params;
+    
     // Reconstruct the file path from the dynamic segments
-    const filePath = params.path.join('/');
+    const filePath = resolvedParams.path.join('/');
 
     // Security: Validate that the requested file is in the allowed list
     if (!VALID_HELP_FILES.includes(filePath)) {
