@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { X, Save, AlertCircle, Loader, CheckCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, Save, AlertCircle, Loader, CheckCircle, Image as ImageIcon } from 'lucide-react';
 import { resourceService, Resource } from '@/lib/supabase';
+import { ImageUpload, uploadImageToStorage } from '@/components/image-upload';
 
 interface EditResourceModalProps {
   isOpen: boolean;
@@ -27,6 +28,23 @@ export function EditResourceModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(resource.photo_url ?? null);
+
+  // Reset form when resource changes
+  useEffect(() => {
+    if (isOpen) {
+      setForm({
+        name: resource.name,
+        quantity: resource.quantity,
+        unit: resource.unit,
+        days_remaining: resource.days_remaining,
+      });
+      setPhotoUrl(resource.photo_url ?? null);
+      setImageFile(null);
+    }
+  }, [isOpen, resource]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +58,31 @@ export function EditResourceModal({
     setError(null);
 
     try {
-      await resourceService.updateResource(resource.id, form);
+      let finalPhotoUrl = photoUrl;
+
+      // Upload image if a new file was selected
+      if (imageFile) {
+        setIsUploadingImage(true);
+        try {
+          finalPhotoUrl = await uploadImageToStorage(
+            imageFile,
+            'resource-images', // Bucket name for resource images
+            'individual-resources'
+          );
+        } catch (uploadError) {
+          console.error('Image upload failed:', uploadError);
+          const errorMessage = uploadError instanceof Error ? uploadError.message : 'Okänt fel';
+          setError(`Kunde inte ladda upp bilden: ${errorMessage}. Försöker spara utan bild...`);
+          // Continue without image
+        } finally {
+          setIsUploadingImage(false);
+        }
+      }
+
+      await resourceService.updateResource(resource.id, {
+        ...form,
+        photo_url: finalPhotoUrl ?? undefined
+      });
       
       setSuccess(true);
       setTimeout(() => {
@@ -166,6 +208,34 @@ export function EditResourceModal({
                   </p>
                 </div>
 
+                {/* Image Upload */}
+                <div>
+                  <ImageUpload
+                    value={photoUrl ?? undefined}
+                    onChange={setPhotoUrl}
+                    onFileSelect={setImageFile}
+                    bucketName="resource-images"
+                    folderPath="individual-resources"
+                    label="Ladda upp bild (valfritt)"
+                    helperText="En bild kan hjälpa dig att identifiera resursen"
+                    disabled={loading || isUploadingImage}
+                  />
+                  {/* Image Preview */}
+                  {photoUrl && (
+                    <div className="mt-3 relative rounded-xl border-2 border-gray-200 overflow-hidden bg-gray-50">
+                      <img
+                        src={photoUrl}
+                        alt={form.name || 'Resursbild'}
+                        className="w-full h-auto max-h-48 object-contain bg-gray-50"
+                      />
+                      <div className="absolute bottom-2 right-2 bg-white/95 backdrop-blur-sm rounded-lg px-2 py-1 text-xs font-medium text-gray-700 shadow-sm flex items-center gap-1">
+                        <ImageIcon className="w-3 h-3" />
+                        Nuvarande bild
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex gap-3 pt-4">
                   <button
                     type="button"
@@ -177,13 +247,13 @@ export function EditResourceModal({
                   </button>
                   <button
                     type="submit"
-                    disabled={loading || !form.name.trim()}
+                    disabled={loading || isUploadingImage || !form.name.trim()}
                     className="flex-1 px-6 py-3 bg-gradient-to-r from-[#556B2F] to-[#3D4A2B] text-white font-bold rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    {loading ? (
+                    {loading || isUploadingImage ? (
                       <>
                         <Loader className="animate-spin" size={20} />
-                        Sparar...
+                        {isUploadingImage ? 'Laddar upp bild...' : 'Sparar...'}
                       </>
                     ) : (
                       <>

@@ -89,6 +89,30 @@ export default function SettingsPage() {
     console.log('Profile saved successfully');
   };
 
+  const handlePreferencesSave = async () => {
+    setIsSaving(true);
+    setSaveStatus('idle');
+    setErrorMessage('');
+    
+    try {
+      // Save preferences to localStorage or backend
+      // For now, just simulate saving
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setSaveStatus('success');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    } catch (error) {
+      setSaveStatus('error');
+      setErrorMessage('Kunde inte spara inställningar. Försök igen.');
+      setTimeout(() => {
+        setSaveStatus('idle');
+        setErrorMessage('');
+      }, 5000);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const tabs = [
     { id: 'profile', label: 'Profil', icon: User },
     { id: 'security', label: 'Byt lösenord', icon: Lock },
@@ -103,6 +127,19 @@ export default function SettingsPage() {
     setErrorMessage('');
     
     try {
+      // Only validate if user has actually entered any password data
+      // If all fields are empty, don't show validation errors
+      const hasAnyPasswordData = 
+        securityData.currentPassword.trim() || 
+        securityData.newPassword.trim() || 
+        securityData.confirmPassword.trim();
+      
+      if (!hasAnyPasswordData) {
+        // User hasn't entered anything, just return without error
+        setIsSaving(false);
+        return;
+      }
+      
       // Validate current password is provided
       if (!securityData.currentPassword.trim()) {
         throw new Error('Nuvarande lösenord krävs');
@@ -133,8 +170,30 @@ export default function SettingsPage() {
         throw new Error('Nytt lösenord måste vara annorlunda än det nuvarande lösenordet');
       }
       
-      // Simulate API call (replace with actual Supabase auth update)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Verify current password by attempting to re-authenticate
+      // This ensures the user knows their current password before changing it
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser?.email) {
+        throw new Error('Kunde inte hämta användarinformation. Logga ut och in igen.');
+      }
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: currentUser.email,
+        password: securityData.currentPassword
+      });
+
+      if (signInError) {
+        throw new Error('Nuvarande lösenord är felaktigt. Kontrollera att du har angett rätt lösenord.');
+      }
+
+      // Update password using Supabase
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: securityData.newPassword
+      });
+
+      if (updateError) {
+        throw new Error(updateError.message || 'Kunde inte uppdatera lösenordet. Försök igen.');
+      }
       
       setSaveStatus('success');
       
@@ -330,7 +389,11 @@ export default function SettingsPage() {
                     </div>
 
                     <button
-                      onClick={() => handleSave()}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleSave();
+                      }}
                       disabled={isSaving}
                       className="modern-button flex items-center space-x-2 px-6 py-3 text-white disabled:opacity-50"
                       style={{ background: 'linear-gradient(135deg, #3D4A2B 0%, #2A331E 100%)' }}
@@ -628,7 +691,7 @@ export default function SettingsPage() {
                     </div>
 
                     <button
-                      onClick={() => handleSave()}
+                      onClick={() => handlePreferencesSave()}
                       disabled={isSaving}
                       className="modern-button flex items-center space-x-2 px-6 py-3 text-white disabled:opacity-50"
                       style={{ background: 'linear-gradient(135deg, #3D4A2B 0%, #2A331E 100%)' }}
@@ -649,12 +712,9 @@ export default function SettingsPage() {
                         <div className="flex items-start space-x-3">
                           <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
                           <div className="flex-1">
-                          <h4 className="text-red-800 font-semibold mb-1">Fel vid lösenordsändring</h4>
-                          <p className="text-red-700 text-sm">{errorMessage || 'Ett oväntat fel uppstod. Försök igen.'}</p>
-                          <p className="text-red-600 text-xs mt-2">
-                            💡 Tips: Kontrollera att alla fält är ifyllda korrekt och att ditt nya lösenord uppfyller kraven ovan.
-                          </p>
-                        </div>
+                            <h4 className="text-red-800 font-semibold mb-1">Fel vid sparande</h4>
+                            <p className="text-red-700 text-sm">{errorMessage || 'Ett oväntat fel uppstod. Försök igen.'}</p>
+                          </div>
                         </div>
                       </div>
                     )}

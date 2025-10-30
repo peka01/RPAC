@@ -22,6 +22,7 @@ import {
 } from '@/constants/help-requests';
 import { resourceSharingService, type HelpRequest, notificationService } from '@/lib/services';
 import { useUserProfile } from '@/lib/useUserProfile';
+import { ImagePreviewIcon } from './image-preview-icon';
 
 interface HelpRequestsExperienceProps {
   user: User;
@@ -335,8 +336,13 @@ export function HelpRequestsExperience({
                 <div key={request.id} className="flex h-full flex-col justify-between rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all hover:border-[#3D4A2B]/40 hover:shadow-md">
                   <div>
                     <div className="flex items-center gap-3">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">{request.title}</h3>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                          {request.title}
+                          {request.image_url && (
+                            <ImagePreviewIcon imageUrl={request.image_url} size={14} />
+                          )}
+                        </h3>
                         <div className="mt-1 flex flex-wrap gap-2 text-xs">
                           <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 font-semibold ${statusMeta.badgeClass}`}>
                             <span className={`h-2 w-2 rounded-full ${statusMeta.dotClass}`} />
@@ -358,15 +364,6 @@ export function HelpRequestsExperience({
                         <>
                           <span>•</span>
                           <span>{request.location}</span>
-                        </>
-                      )}
-                      {request.image_url && (
-                        <>
-                          <span>•</span>
-                          <span className="inline-flex items-center gap-1 text-[#3D4A2B]">
-                            <Image className="w-3.5 h-3.5" />
-                            Bild
-                          </span>
                         </>
                       )}
                     </div>
@@ -448,7 +445,12 @@ export function HelpRequestsExperience({
                       <tr key={request.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4">
                           <div className="space-y-1">
-                            <p className="font-semibold text-gray-900">{request.title}</p>
+                            <p className="font-semibold text-gray-900 flex items-center gap-2">
+                              {request.title}
+                              {request.image_url && (
+                                <ImagePreviewIcon imageUrl={request.image_url} size={14} />
+                              )}
+                            </p>
                             <div className="flex flex-wrap gap-2 text-xs">
                               <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 font-semibold ${statusMeta.badgeClass}`}>
                                 <span className={`h-2 w-2 rounded-full ${statusMeta.dotClass}`} />

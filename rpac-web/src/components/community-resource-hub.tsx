@@ -42,6 +42,7 @@ import { ResourceListView } from './resource-list-view';
 import { HelpRequestsExperience } from './help-requests-experience';
 import { helpStatusFilters } from '@/constants/help-requests';
 import type { User } from '@supabase/supabase-js';
+import { ImagePreviewIcon } from './image-preview-icon';
 
 interface CommunityResourceHubProps {
   user: User;
@@ -330,6 +331,7 @@ export function CommunityResourceHub({
         usageInstructions: resource.usage_instructions,
         bookingRequired: resource.booking_required || false,
         notes: resource.notes,
+        photoUrl: resource.photo_url,
         createdBy: user.id
       });
       await loadAllData();
@@ -476,7 +478,12 @@ export function CommunityResourceHub({
                 <div className="flex items-center gap-3">
                   <span className="text-xl flex-shrink-0">{typeConfig.emoji}</span>
                   <div className="min-w-0">
-                    <div className="font-semibold text-gray-900">{resource.resource_name}</div>
+                    <div className="font-semibold text-gray-900 flex items-center gap-2">
+                      {resource.resource_name}
+                      {resource.photo_url && (
+                        <ImagePreviewIcon imageUrl={resource.photo_url} size={12} />
+                      )}
+                    </div>
                     <div className="text-xs text-gray-500">{category.label} • {typeConfig.label}</div>
                   </div>
                 </div>
@@ -1453,7 +1460,12 @@ function SharedResourceCard({ resource, currentUserId, onRequest, onCancelReques
             <span className="text-2xl">{category.emoji}</span>
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="font-black text-lg text-gray-900 break-words">{resource.resource_name}</h3>
+            <h3 className="font-black text-lg text-gray-900 break-words flex items-center gap-2">
+              {resource.resource_name}
+              {resource.photo_url && (
+                <ImagePreviewIcon imageUrl={resource.photo_url} size={12} />
+              )}
+            </h3>
             <p className="text-xs text-gray-600 font-medium">{category.label}</p>
           </div>
         </div>
@@ -1617,7 +1629,12 @@ function CommunityResourceCard({ resource, currentUserId, isAdmin, onEdit, onDel
             <span className="text-3xl">{category.emoji}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-black text-lg text-gray-900 break-words">{resource.resource_name}</h3>
+            <h3 className="font-black text-lg text-gray-900 break-words flex items-center gap-2">
+              {resource.resource_name}
+              {resource.photo_url && (
+                <ImagePreviewIcon imageUrl={resource.photo_url} size={14} />
+              )}
+            </h3>
             <div className="flex items-center gap-2 text-sm">
               <span>{resourceType.emoji}</span>
               <span className="text-gray-600 font-medium">{resourceType.label}</span>

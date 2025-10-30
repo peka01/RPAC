@@ -396,7 +396,10 @@ export default function LoginPage() {
               <div className="text-right mt-2">
                 <button
                   type="button"
-                  onClick={() => setShowForgotPassword(true)}
+                  onClick={() => {
+                    setResetEmail(email); // Pre-fill with login email
+                    setShowForgotPassword(true);
+                  }}
                   className="text-sm underline transition-colors hover:opacity-80"
                   style={{ color: 'var(--color-primary)' }}
                 >

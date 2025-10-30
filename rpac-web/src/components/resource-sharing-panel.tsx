@@ -20,6 +20,7 @@ import { t } from '@/lib/locales';
 import { resourceSharingService, type SharedResource, type HelpRequest } from '@/lib/resource-sharing-service';
 import { helpRequestUrgencyConfig } from '@/constants/help-requests';
 import type { User } from '@supabase/supabase-js';
+import { ImagePreviewIcon } from './image-preview-icon';
 
 interface ResourceSharingPanelProps {
   user: User;
@@ -431,8 +432,13 @@ export function ResourceSharingPanel({ user, communityId, onSendMessage }: Resou
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <div>
-                        <h4 className="font-semibold text-gray-900">{request.title}</h4>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                          {request.title}
+                          {request.image_url && (
+                            <ImagePreviewIcon imageUrl={request.image_url} size={14} />
+                          )}
+                        </h4>
                         <p className="text-xs text-gray-600">
                           {request.urgency === 'critical' && '🆘 KRITISK'}
                           {request.urgency === 'high' && '🚨 HÖG PRIORITET'}

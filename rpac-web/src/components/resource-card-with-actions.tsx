@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Pencil, Trash, Share2, Shield, CheckCircle, AlertTriangle, Calendar, Package, HelpCircle } from 'lucide-react';
+import { Pencil, Trash, Share2, Shield, CheckCircle, AlertTriangle, Calendar, Package, HelpCircle, Image as ImageIcon } from 'lucide-react';
 import { Resource } from '@/lib/supabase';
 import { t } from '@/lib/locales';
+import { ImagePreviewIcon } from './image-preview-icon';
 
 const categoryConfig = {
   food: { emoji: '🍞', label: 'Mat' },
@@ -111,6 +112,9 @@ export function ResourceCardWithActions({
                 <h3 className="font-bold text-lg text-gray-900 break-words min-w-0">
                   {resource.name}
                 </h3>
+                {resource.photo_url && (
+                  <ImagePreviewIcon imageUrl={resource.photo_url} size={14} />
+                )}
                 {resource.is_msb_recommended && (
                   <div className="flex-shrink-0 bg-[#556B2F]/10 text-[#556B2F] px-2 py-1 rounded text-xs font-bold flex items-center gap-1 relative group/tooltip whitespace-nowrap">
                     <Shield size={12} />
@@ -265,6 +269,9 @@ export function ResourceTableRow({
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">
           <span className="font-bold text-gray-900">{resource.name}</span>
+          {resource.photo_url && (
+            <ImagePreviewIcon imageUrl={resource.photo_url} size={14} />
+          )}
           {resource.is_msb_recommended && (
             <div className="bg-[#556B2F]/10 text-[#556B2F] px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1">
               <Shield size={10} />

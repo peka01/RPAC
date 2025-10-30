@@ -17,6 +17,7 @@ export interface SharedResource {
   status: 'available' | 'requested' | 'reserved' | 'taken';
   location?: string;
   notes?: string;
+  photo_url?: string; // Image URL for shared resource
   created_at: string;
   updated_at: string;
   // Joined data

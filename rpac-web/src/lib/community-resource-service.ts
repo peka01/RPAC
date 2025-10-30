@@ -103,6 +103,7 @@ export const communityResourceService = {
     usageInstructions?: string;
     bookingRequired: boolean;
     notes?: string;
+    photoUrl?: string;
     createdBy: string;
   }): Promise<CommunityResource> {
     const { data, error } = await supabase
@@ -119,6 +120,7 @@ export const communityResourceService = {
         usage_instructions: params.usageInstructions,
         booking_required: params.bookingRequired,
         notes: params.notes,
+        photo_url: params.photoUrl,
         created_by: params.createdBy,
         status: 'available'
       }])

@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Share2, Users, Calendar, MapPin, AlertCircle, CheckCircle, Loader } from 'lucide-react';
+import { X, Share2, Users, Calendar, MapPin, AlertCircle, CheckCircle, Loader, Image as ImageIcon, Eye, EyeOff } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { resourceSharingService } from '@/lib/resource-sharing-service';
 import { Resource } from '@/lib/supabase';
 import { supabase } from '@/lib/supabase';
+import { ImagePreviewIcon } from './image-preview-icon';
 
 interface Community {
   id: string;
@@ -41,7 +42,9 @@ export function ResourceShareToCommunityModal({
     sharedQuantity: resource.quantity,
     availableUntil: '',
     location: '',
-    notes: ''
+    notes: '',
+    includeImage: true, // Default to showing image
+    photoUrl: resource.photo_url || null // Default to resource's photo URL
   });
 
   useEffect(() => {
@@ -53,7 +56,9 @@ export function ResourceShareToCommunityModal({
         sharedQuantity: resource.quantity,
         availableUntil: '',
         location: '',
-        notes: ''
+        notes: '',
+        includeImage: true, // Default to showing image
+        photoUrl: resource.photo_url || null // Default to resource's photo URL
       });
       setError(null);
       setSuccess(false);
@@ -131,24 +136,40 @@ export function ResourceShareToCommunityModal({
 
       // Share resource with community (with denormalized fields for easier querying)
       const { supabase } = await import('@/lib/supabase');
+      
+      // Build the insert object - conditionally include photo_url if column exists
+      const insertData: any = {
+        user_id: userId,
+        community_id: shareForm.communityId,
+        resource_id: resource.id,
+        resource_name: resource.name,
+        resource_category: resource.category,
+        resource_unit: resource.unit,
+        shared_quantity: shareForm.sharedQuantity,
+        available_until: shareForm.availableUntil || null,
+        location: shareForm.location || null,
+        notes: shareForm.notes || null,
+        status: 'available'
+      };
+      
+      // Only include photo_url if image is enabled and photo exists
+      // Note: This will fail if the column doesn't exist - user needs to run migration
+      if (shareForm.includeImage && shareForm.photoUrl) {
+        insertData.photo_url = shareForm.photoUrl;
+      }
+      
       const { error: shareError } = await supabase
         .from('resource_sharing')
-        .insert([{
-          user_id: userId,
-          community_id: shareForm.communityId,
-          resource_id: resource.id,
-          resource_name: resource.name,
-          resource_category: resource.category,
-          resource_unit: resource.unit,
-          shared_quantity: shareForm.sharedQuantity,
-          available_until: shareForm.availableUntil || null,
-          location: shareForm.location || null,
-          notes: shareForm.notes || null,
-          status: 'available'
-        }]);
+        .insert([insertData]);
 
       if (shareError) {
         console.error('Supabase error details:', shareError);
+        
+        // Provide helpful error message if photo_url column is missing
+        if (shareError.message && shareError.message.includes('photo_url')) {
+          throw new Error('photo_url-kolumnen finns inte i databasen. Kör migrationsskriptet: database/add-photo-url-to-resource-sharing.sql');
+        }
+        
         throw shareError;
       }
 
@@ -211,9 +232,14 @@ export function ResourceShareToCommunityModal({
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Resource Info */}
           <div className="bg-gray-50 rounded-xl p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-gray-900">{resource.name}</h3>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-1">
+                <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                  {resource.name}
+                  {resource.photo_url && (
+                    <ImagePreviewIcon imageUrl={resource.photo_url} size={14} />
+                  )}
+                </h3>
                 <p className="text-sm text-gray-600">
                   {t('resources.categories.' + resource.category)}
                 </p>
@@ -226,6 +252,48 @@ export function ResourceShareToCommunityModal({
               </div>
             </div>
           </div>
+
+          {/* Image Preview Section */}
+          {resource.photo_url && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-bold text-gray-900 flex items-center gap-2">
+                  <ImageIcon size={16} />
+                  Visa bild när du delar
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShareForm({ ...shareForm, includeImage: !shareForm.includeImage })}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 border-gray-200 hover:border-[#3D4A2B] transition-colors"
+                >
+                  {shareForm.includeImage ? (
+                    <>
+                      <Eye size={16} className="text-[#3D4A2B]" />
+                      <span className="text-sm font-semibold text-[#3D4A2B]">Synlig</span>
+                    </>
+                  ) : (
+                    <>
+                      <EyeOff size={16} className="text-gray-400" />
+                      <span className="text-sm font-semibold text-gray-400">Dold</span>
+                    </>
+                  )}
+                </button>
+              </div>
+              {shareForm.includeImage && (
+                <div className="relative rounded-xl border-2 border-gray-200 overflow-hidden bg-gray-50">
+                  <img
+                    src={resource.photo_url}
+                    alt={resource.name}
+                    className="w-full h-auto max-h-48 object-contain bg-gray-50"
+                  />
+                  <div className="absolute bottom-2 right-2 bg-white/95 backdrop-blur-sm rounded-lg px-2 py-1 text-xs font-medium text-gray-700 shadow-sm flex items-center gap-1">
+                    <ImageIcon className="w-3 h-3" />
+                    Bild ingår när du delar
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Community Selection */}
           <div>

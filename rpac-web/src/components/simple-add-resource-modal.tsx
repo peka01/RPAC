@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { X, Plus, Shield, CheckCircle, AlertCircle, Loader, Sparkles } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { resourceService, Resource } from '@/lib/supabase';
+import { ImageUpload, uploadImageToStorage } from '@/components/image-upload';
 
 // Category configuration
 export const categoryConfig = {
@@ -190,6 +191,9 @@ export function SimpleAddResourceModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
   const resetForm = () => {
     setStep('category');
@@ -205,6 +209,8 @@ export function SimpleAddResourceModal({
     });
     setError(null);
     setSuccess(false);
+    setImageFile(null);
+    setPhotoUrl(null);
   };
 
   const handleCategorySelect = (category: CategoryKey) => {
@@ -251,6 +257,27 @@ export function SimpleAddResourceModal({
     setError(null);
 
     try {
+      let finalPhotoUrl = photoUrl;
+
+      // Upload image if a new file was selected
+      if (imageFile) {
+        setIsUploadingImage(true);
+        try {
+          finalPhotoUrl = await uploadImageToStorage(
+            imageFile,
+            'resource-images', // Bucket name for resource images
+            'individual-resources'
+          );
+        } catch (uploadError) {
+          console.error('Image upload failed:', uploadError);
+          const errorMessage = uploadError instanceof Error ? uploadError.message : 'Okänt fel';
+          setError(`Kunde inte ladda upp bilden: ${errorMessage}. Försöker spara utan bild...`);
+          // Continue without image
+        } finally {
+          setIsUploadingImage(false);
+        }
+      }
+
       await resourceService.addResource({
         user_id: userId,
         name: form.name,
@@ -259,6 +286,7 @@ export function SimpleAddResourceModal({
         unit: form.unit,
         days_remaining: form.days_remaining,
         is_msb_recommended: form.is_msb_recommended,
+        photo_url: finalPhotoUrl ?? undefined
       });
 
       setSuccess(true);
@@ -487,6 +515,20 @@ export function SimpleAddResourceModal({
                   </p>
                 </div>
 
+                {/* Image Upload */}
+                <div>
+                  <ImageUpload
+                    value={photoUrl ?? undefined}
+                    onChange={setPhotoUrl}
+                    onFileSelect={setImageFile}
+                    bucketName="resource-images"
+                    folderPath="individual-resources"
+                    label="Ladda upp bild (valfritt)"
+                    helperText="En bild kan hjälpa dig att identifiera resursen"
+                    disabled={loading || isUploadingImage}
+                  />
+                </div>
+
                 <div className="flex gap-3 pt-4">
                   <button
                     type="button"
@@ -503,13 +545,13 @@ export function SimpleAddResourceModal({
                   </button>
                   <button
                     type="submit"
-                    disabled={loading || !form.name.trim()}
+                    disabled={loading || isUploadingImage || !form.name.trim()}
                     className="flex-1 px-6 py-3 bg-gradient-to-r from-[#556B2F] to-[#3D4A2B] text-white font-bold rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    {loading ? (
+                    {loading || isUploadingImage ? (
                       <>
                         <Loader className="animate-spin" size={20} />
-                        Lägger till...
+                        {isUploadingImage ? 'Laddar upp bild...' : 'Lägger till...'}
                       </>
                     ) : (
                       <>

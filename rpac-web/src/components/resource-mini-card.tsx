@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { Pencil, Trash, Share2, MoreVertical, AlertTriangle, Users, CheckCircle, Clock } from 'lucide-react';
+import { Pencil, Trash, Share2, AlertTriangle, Users, CheckCircle, Clock, Image as ImageIcon } from 'lucide-react';
 import { Resource } from '@/lib/supabase';
 import { SharedResource } from '@/lib/resource-sharing-service';
 import { t } from '@/lib/locales';
+import { ImagePreviewIcon } from './image-preview-icon';
 
 const categoryConfig = {
   food: { emoji: '🍞', label: 'Mat' },
@@ -33,8 +33,6 @@ export function ResourceMiniCard({
   onShare,
   sharedResource
 }: ResourceMiniCardProps) {
-  const [showMenu, setShowMenu] = useState(false);
-  
   const config = categoryConfig[resource.category as CategoryKey];
   const isEmpty = resource.quantity === 0;
   const isExpiringSoon = resource.quantity > 0 && resource.days_remaining < 30 && resource.days_remaining < 99999;
@@ -46,9 +44,6 @@ export function ResourceMiniCard({
     console.log('🗑️ Mini card delete clicked for:', resource.name, {
       resourceId: resource.id
     });
-    
-    // Close menu first
-    setShowMenu(false);
     
     // Use native confirm dialog for better reliability
     if (window.confirm(`Är du säker på att du vill ta bort ${resource.name}?`)) {
@@ -82,8 +77,11 @@ export function ResourceMiniCard({
 
       {/* Name */}
       <div className="flex-1 min-w-0">
-        <div className={`font-semibold truncate ${isEmpty ? 'text-gray-500' : 'text-gray-900'}`}>
+        <div className={`font-semibold truncate flex items-center gap-1.5 ${isEmpty ? 'text-gray-500' : 'text-gray-900'}`}>
           {resource.name}
+          {resource.photo_url && (
+            <ImagePreviewIcon imageUrl={resource.photo_url} size={12} />
+          )}
         </div>
       </div>
 
@@ -131,62 +129,45 @@ export function ResourceMiniCard({
         </div>
       )}
 
-      {/* Quick Edit Button */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onEdit(resource);
-        }}
-        className="flex-shrink-0 p-2 text-gray-400 hover:text-[#3D4A2B] hover:bg-gray-100 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-        aria-label={t('dashboard.click_to_edit')}
-      >
-        <Pencil size={16} />
-      </button>
-
-      {/* More Actions Menu */}
-      <div className="relative flex-shrink-0">
+      {/* Action Buttons - Always Visible */}
+      <div className="flex items-center gap-1">
+        {/* Edit Button */}
         <button
           onClick={(e) => {
             e.stopPropagation();
-            setShowMenu(!showMenu);
+            onEdit(resource);
           }}
-          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-          aria-label="Fler alternativ"
+          className="flex-shrink-0 p-2 text-gray-400 hover:text-[#3D4A2B] hover:bg-[#3D4A2B]/10 rounded-lg transition-colors"
+          aria-label={t('dashboard.click_to_edit')}
+          title="Redigera"
         >
-          <MoreVertical size={16} />
+          <Pencil size={16} />
         </button>
 
-        {/* Dropdown Menu */}
-        {showMenu && (
-          <>
-            <div 
-              className="fixed inset-0 z-[100]"
-              onClick={() => setShowMenu(false)}
-            />
-            <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-[110]">
-              {onShare && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onShare(resource);
-                    setShowMenu(false);
-                  }}
-                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                >
-                  <Share2 size={14} />
-                  Dela lokalt
-                </button>
-              )}
-              <button
-                onClick={handleDeleteClick}
-                className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-              >
-                <Trash size={14} />
-                Radera
-              </button>
-            </div>
-          </>
+        {/* Share Button */}
+        {onShare && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onShare(resource);
+            }}
+            className="flex-shrink-0 p-2 text-gray-400 hover:text-[#556B2F] hover:bg-[#556B2F]/10 rounded-lg transition-colors"
+            aria-label="Dela lokalt"
+            title="Dela lokalt"
+          >
+            <Share2 size={16} />
+          </button>
         )}
+
+        {/* Delete Button */}
+        <button
+          onClick={handleDeleteClick}
+          className="flex-shrink-0 p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          aria-label="Ta bort"
+          title="Ta bort"
+        >
+          <Trash size={16} />
+        </button>
       </div>
     </div>
   );

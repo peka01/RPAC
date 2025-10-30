@@ -27,7 +27,8 @@ import {
   Zap,
   Share2,
   Check,
-  ChevronDown
+  ChevronDown,
+  Image as ImageIcon
 } from 'lucide-react';
 import { resourceSharingService, type SharedResource, type HelpRequest, communityResourceService, type CommunityResource, communityService, type LocalCommunity, supabase } from '@/lib/services';
 import { CommunityResourceModal } from './community-resource-modal';
@@ -35,6 +36,7 @@ import { SharedResourceActionsModal } from './shared-resource-actions-modal';
 import type { User } from '@supabase/supabase-js';
 import { t } from '@/lib/locales';
 import { helpRequestUrgencyConfig } from '@/constants/help-requests';
+import { ImagePreviewIcon } from './image-preview-icon';
 
 interface CommunityResourceHubMobileProps {
   user: User;
@@ -444,6 +446,7 @@ export function CommunityResourceHubMobile({
         usageInstructions: resource.usage_instructions,
         bookingRequired: resource.booking_required || false,
         notes: resource.notes,
+        photoUrl: resource.photo_url,
         createdBy: user.id
       });
       await loadAllData();
@@ -501,7 +504,7 @@ export function CommunityResourceHubMobile({
   console.log('CommunityResourceHubMobile render - managingResource:', managingResource);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#5C6B47]/10 via-white to-[#707C5F]/10 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-[#5C6B47]/10 via-white to-[#707C5F]/10 pb-40 safe-area-pb">
       {/* Header */}
       <div className="bg-gradient-to-br from-[#3D4A2B] to-[#2A331E] text-white px-4 pt-6 pb-8 shadow-lg">
         <div className="mb-6">
@@ -594,7 +597,7 @@ export function CommunityResourceHubMobile({
       </div>
 
       {/* Tabs */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
+      <div className="sticky top-0 z-10 bg-white border-b-2 border-gray-200/50 px-4 py-3 shadow-sm">
         <div className="flex gap-2">
           <button
             onClick={() => setActiveTab('shared')}
@@ -639,7 +642,7 @@ export function CommunityResourceHubMobile({
       </div>
 
       {/* Content */}
-      <div className="px-4 mt-4">
+      <div className="px-4 mt-4 pb-40 safe-area-pb">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
@@ -713,6 +716,7 @@ export function CommunityResourceHubMobile({
           onRequest={handleRequestResource}
           onCancelRequest={handleCancelRequest}
           userId={user.id}
+          onSendMessage={onSendMessage}
         />
       )}
 
@@ -778,7 +782,7 @@ export function CommunityResourceHubMobile({
               setShowAddHelpRequest(true);
             }
           }}
-          className="fixed bottom-24 right-6 w-14 h-14 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-full shadow-2xl hover:shadow-3xl transition-all z-40 flex items-center justify-center touch-manipulation active:scale-95"
+          className="fixed bottom-[168px] right-6 w-14 h-14 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-full shadow-2xl hover:shadow-3xl transition-all z-[60] flex items-center justify-center touch-manipulation active:scale-95"
           aria-label={activeTab === 'owned' ? 'Lägg till samhällsresurs' : 'Skapa hjälpbegäran'}
         >
           <Plus size={28} strokeWidth={2.5} />
@@ -922,7 +926,12 @@ function OwnedResourcesView({
                 <span className="text-3xl">{typeConfig.emoji}</span>
               </div>
               <div className="flex-1 text-left min-w-0">
-                <h3 className="font-bold text-gray-900 text-lg mb-1 truncate">{resource.resource_name}</h3>
+                <h3 className="font-bold text-gray-900 text-lg mb-1 truncate flex items-center gap-2">
+                  {resource.resource_name}
+                  {resource.photo_url && (
+                    <ImagePreviewIcon imageUrl={resource.photo_url} size={14} />
+                  )}
+                </h3>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Package size={14} className="flex-shrink-0" />
                   <span className="font-semibold text-[#3D4A2B] truncate">
@@ -1011,7 +1020,12 @@ function HelpRequestsView({
           >
             <div className="flex items-start gap-3 mb-3">
               <div className="flex-1">
-                <h3 className="font-bold text-gray-900 mb-1">{request.title}</h3>
+                <h3 className="font-bold text-gray-900 mb-1 flex items-center gap-2">
+                  {request.title}
+                  {request.image_url && (
+                    <ImagePreviewIcon imageUrl={request.image_url} size={14} />
+                  )}
+                </h3>
                 <p className="text-sm text-gray-600 mb-2 line-clamp-2">{request.description}</p>
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${urgencyColors[request.urgency]}`}>
@@ -1067,20 +1081,22 @@ function FilterBottomSheet({
       onClick={onClose}
     >
       <div
-        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl transition-transform animate-slide-up max-h-[80vh] overflow-y-auto"
+        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl transition-transform animate-slide-up max-h-[85vh] flex flex-col safe-area-pb"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6 pb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-gray-900">Filtrera efter kategori</h3>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-all touch-manipulation"
-            >
-              <X size={24} />
-            </button>
-          </div>
+        {/* Header */}
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10 rounded-t-3xl">
+          <h3 className="text-xl font-bold text-gray-900">Filtrera efter kategori</h3>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-full transition-all touch-manipulation"
+          >
+            <X size={24} />
+          </button>
+        </div>
 
+        {/* Content - Scrollable */}
+        <div className="flex-1 overflow-y-auto p-6 pb-8 min-h-0">
           <div className="space-y-3">
             <button
               onClick={() => {
@@ -1130,7 +1146,8 @@ function ResourceDetailBottomSheet({
   onEdit,
   onRequest,
   onCancelRequest,
-  userId
+  userId,
+  onSendMessage
 }: {
   resource: SharedResource | CommunityResource | HelpRequest;
   isAdmin: boolean;
@@ -1140,6 +1157,7 @@ function ResourceDetailBottomSheet({
   onRequest?: (resource: SharedResource) => void;
   onCancelRequest?: (resource: SharedResource) => void;
   userId: string;
+  onSendMessage?: (content: string) => void;
 }) {
   // Determine resource type
   const isShared = 'resource_name' in resource && 'shared_quantity' in resource;
@@ -1264,26 +1282,66 @@ function ResourceDetailBottomSheet({
       critical: 'bg-red-100 text-red-700'
     };
 
+    const statusColors = {
+      open: 'bg-green-100 text-green-700',
+      in_progress: 'bg-blue-100 text-blue-700',
+      resolved: 'bg-gray-100 text-gray-700',
+      closed: 'bg-gray-100 text-gray-600'
+    };
+
     return (
       <>
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-start gap-4 mb-6">
           <div className="flex-1">
-            <h2 className="text-2xl font-bold text-gray-900">{req.title}</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-1 flex items-center gap-2">
+              {req.title}
+              {req.image_url && (
+                <ImagePreviewIcon imageUrl={req.image_url} size={16} />
+              )}
+            </h2>
             <p className="text-gray-500">Från {req.requester_name || 'Okänd'}</p>
+            {req.created_at && (
+              <p className="text-xs text-gray-400 mt-1">
+                {new Date(req.created_at).toLocaleString('sv-SE', {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </p>
+            )}
           </div>
         </div>
 
-        <div className="flex gap-3 mb-6">
+        <div className="flex gap-2 mb-6 flex-wrap">
           <span className={`px-3 py-2 rounded-xl text-sm font-semibold ${urgencyColors[req.urgency]}`}>
             {req.urgency === 'low' ? 'Låg prioritet' :
               req.urgency === 'medium' ? 'Medel prioritet' :
                 req.urgency === 'high' ? 'Hög prioritet' : 'KRITISK'}
           </span>
+          {req.status && (
+            <span className={`px-3 py-2 rounded-xl text-sm font-semibold ${statusColors[req.status] || statusColors.closed}`}>
+              {req.status === 'open' ? 'Öppen' :
+                req.status === 'in_progress' ? 'Pågående' :
+                  req.status === 'resolved' ? 'Löst' : 'Stängd'}
+            </span>
+          )}
         </div>
+
+        {/* Image Display */}
+        {req.image_url && (
+          <div className="mb-6 rounded-xl overflow-hidden border-2 border-gray-200">
+            <img
+              src={req.image_url}
+              alt={req.title}
+              className="w-full h-auto max-h-64 object-cover bg-gray-50"
+            />
+          </div>
+        )}
 
         <div className="mb-6">
           <div className="text-gray-600 font-semibold mb-2">Beskrivning</div>
-          <p className="text-gray-900">{req.description}</p>
+          <p className="text-gray-900 whitespace-pre-wrap">{req.description}</p>
         </div>
 
         {req.location && (
@@ -1305,10 +1363,10 @@ function ResourceDetailBottomSheet({
       onClick={onClose}
     >
       <div
-        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl max-h-[85vh] flex flex-col animate-slide-up mb-20"
+        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl max-h-[90vh] flex flex-col animate-slide-up safe-area-pb"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10 rounded-t-3xl">
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-full transition-all touch-manipulation"
@@ -1319,13 +1377,13 @@ function ResourceDetailBottomSheet({
           <div className="w-10"></div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-4 min-h-0">
           {isShared && renderSharedDetails(resource as SharedResource)}
           {isOwned && renderOwnedDetails(resource as CommunityResource)}
           {isHelp && renderHelpDetails(resource as HelpRequest)}
         </div>
 
-        <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 pb-12 shadow-lg">
+        <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 safe-area-pb shadow-lg">
           <div className="flex gap-3">
             <button
               onClick={onClose}
@@ -1366,6 +1424,19 @@ function ResourceDetailBottomSheet({
               >
                 <Edit2 size={18} className="inline mr-2" />
                 Redigera
+              </button>
+            ) : isHelp && (resource as HelpRequest).status === 'open' && (resource as HelpRequest).user_id !== userId ? (
+              <button
+                onClick={() => {
+                  if (onSendMessage) {
+                    onSendMessage(`Jag kan hjälpa till med: "${(resource as HelpRequest).title}". Låt oss prata om detaljerna.`);
+                  }
+                  onClose();
+                }}
+                className="flex-1 py-3 px-4 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-xl font-semibold hover:shadow-xl transition-all touch-manipulation active:scale-95 flex items-center justify-center gap-2"
+              >
+                <Send size={18} />
+                Hjälp till
               </button>
             ) : (
               <div className="flex-1 py-3 px-4 bg-gray-100 text-gray-500 rounded-xl font-semibold text-center">
@@ -1423,7 +1494,7 @@ function AddHelpRequestBottomSheet({
       onClick={onClose}
     >
       <div
-        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl max-h-[90vh] overflow-y-auto animate-slide-up"
+        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl max-h-[90vh] flex flex-col animate-slide-up safe-area-pb"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -1440,8 +1511,8 @@ function AddHelpRequestBottomSheet({
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6">
+        {/* Form - Scrollable */}
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 pb-8">
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-start gap-3">
               <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={20} />

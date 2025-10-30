@@ -318,7 +318,10 @@ export function CommunityDashboardRefactored({ user, community, onNavigate }: Co
                       Medlemmar i ditt samhälle har begärt hjälp. Kan du bidra?
                     </p>
                     <button
-                      onClick={() => onNavigate('resources')}
+                      onClick={() => {
+                        // Navigate to resources page with help tab selected
+                        window.location.href = `/local?tab=resources&resourceTab=help&community=${community.id}`;
+                      }}
                       className="px-6 py-3 bg-[#B8860B] text-white font-bold rounded-xl hover:bg-[#9A7209] transition-colors"
                     >
                       Se förfrågningar

@@ -164,7 +164,7 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
 
   // Mobile Bottom Navigation
   const BottomNav = () => (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-[#5C6B47]/20 shadow-2xl z-50 safe-area-pb">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-[#5C6B47]/20 shadow-2xl z-50" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 0px)' }}>
       <div className="flex items-center justify-around px-1 py-3">
         <button
           onClick={() => setActiveView('home')}
@@ -232,7 +232,7 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
 
   // Home View - Dashboard
   const HomeView = () => (
-    <div className="pb-24 px-4 pt-6 space-y-6">
+    <div className="pb-32 px-4 pt-6 space-y-6 safe-area-pb">
       {/* Hero Card */}
       <div className="bg-gradient-to-br from-[#3D4A2B] to-[#2A331E] rounded-3xl p-6 text-white shadow-xl">
         <div className="flex items-start justify-between mb-4">
@@ -438,7 +438,7 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
     }
 
     return (
-      <div className="min-h-screen bg-white pb-24">
+      <div className="min-h-screen bg-white pb-32 safe-area-pb">
         {/* Header */}
         <div className="bg-gradient-to-br from-[#3D4A2B] to-[#2A331E] text-white px-4 py-6">
           <div className="flex items-center gap-3 mb-4">
@@ -694,7 +694,7 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
         {activeView === 'community-detail' && <CommunityDetailView />}
         
         {activeView === 'discovery' && (
-          <div className="pb-24 px-4 pt-6">
+          <div className="pb-32 px-4 pt-6 safe-area-pb">
             <CommunityDiscoveryMobile 
               user={user}
               userPostalCode={userPostalCode}
@@ -704,7 +704,7 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
         )}
 
         {activeView === 'resources' && (
-          <div className="pb-24">
+          <div className="pb-32 safe-area-pb">
             {activeCommunityId ? (
               <>
                 

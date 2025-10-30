@@ -19,6 +19,41 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
+        // Handle password reset flow - check for hash fragment first
+        // Supabase sends recovery tokens in the URL hash (#type=recovery&access_token=...)
+        if (typeof window !== 'undefined' && window.location.hash) {
+          const hashParams = new URLSearchParams(window.location.hash.substring(1));
+          const type = hashParams.get('type');
+          
+          // If this is a password recovery callback, redirect to reset password page
+          if (type === 'recovery') {
+            const accessToken = hashParams.get('access_token');
+            const refreshToken = hashParams.get('refresh_token');
+            
+            if (accessToken && refreshToken) {
+              // Exchange the tokens for a session
+              const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken
+              });
+              
+              if (sessionError) {
+                console.error('Session error:', sessionError);
+                setError('Ett fel uppstod vid autentisering. Försök igen.');
+                setLoading(false);
+                return;
+              }
+              
+              if (sessionData.session) {
+                // Redirect to reset password page
+                router.push('/auth/reset-password');
+                return;
+              }
+            }
+          }
+        }
+        
+        // Regular auth callback flow - check URL params for OAuth callbacks
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -36,7 +71,7 @@ export default function AuthCallbackPage() {
           // Small delay to show success message
           setTimeout(() => {
             router.push(next);
-          }, 2000);
+          }, 1000);
         } else {
           setError('Autentisering misslyckades. Kontrollera att länken är korrekt.');
           setLoading(false);

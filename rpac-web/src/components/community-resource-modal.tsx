@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, AlertCircle, Check, Building2, Wrench, BookOpen, Info } from 'lucide-react';
 import type { CommunityResource } from '@/lib/community-resource-service';
 import { useSmartModalClose } from '@/hooks/use-smart-modal-close';
+import { ImageUpload, uploadImageToStorage } from '@/components/image-upload';
 
 interface CommunityResourceModalProps {
   isOpen: boolean;
@@ -39,6 +40,8 @@ export function CommunityResourceModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const [form, setForm] = useState({
     resource_name: resource?.resource_name || '',
@@ -49,8 +52,28 @@ export function CommunityResourceModal({
     location: resource?.location || '',
     usage_instructions: resource?.usage_instructions || '',
     booking_required: resource?.booking_required || false,
-    notes: resource?.notes || ''
+    notes: resource?.notes || '',
+    photo_url: resource?.photo_url || undefined
   });
+
+  // Reset form when resource changes
+  useEffect(() => {
+    if (isOpen) {
+      setForm({
+        resource_name: resource?.resource_name || '',
+        resource_type: resource?.resource_type || ('equipment' as CommunityResource['resource_type']),
+        category: resource?.category || ('tools' as CommunityResource['category']),
+        quantity: resource?.quantity || 1,
+        unit: resource?.unit || 'st',
+        location: resource?.location || '',
+        usage_instructions: resource?.usage_instructions || '',
+        booking_required: resource?.booking_required || false,
+        notes: resource?.notes || '',
+        photo_url: resource?.photo_url || undefined
+      });
+      setImageFile(null);
+    }
+  }, [isOpen, resource]);
 
   // Track if form has been modified
   const hasFormData = Boolean(
@@ -76,7 +99,31 @@ export function CommunityResourceModal({
     setError(null);
 
     try {
-      await onSubmit(form);
+      let finalPhotoUrl = form.photo_url;
+
+      // Upload image if a new file was selected
+      if (imageFile) {
+        setIsUploadingImage(true);
+        try {
+          finalPhotoUrl = await uploadImageToStorage(
+            imageFile,
+            'resource-images', // Bucket name for resource images
+            'community-resources'
+          );
+        } catch (uploadError) {
+          console.error('Image upload failed:', uploadError);
+          const errorMessage = uploadError instanceof Error ? uploadError.message : 'Okänt fel';
+          setError(`Kunde inte ladda upp bilden: ${errorMessage}. Försöker spara utan bild...`);
+          // Continue without image
+        } finally {
+          setIsUploadingImage(false);
+        }
+      }
+
+      await onSubmit({
+        ...form,
+        photo_url: finalPhotoUrl
+      });
       setSuccess(true);
       setTimeout(() => {
         onClose();
@@ -308,6 +355,20 @@ export function CommunityResourceModal({
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B] focus:border-transparent resize-none"
               />
             </div>
+
+            {/* Image Upload */}
+            <div>
+              <ImageUpload
+                value={form.photo_url}
+                onChange={(url) => setForm({ ...form, photo_url: url ?? undefined })}
+                onFileSelect={setImageFile}
+                bucketName="resource-images"
+                folderPath="community-resources"
+                label="Ladda upp bild (valfritt)"
+                helperText="En bild kan hjälpa andra att förstå resursen bättre"
+                disabled={loading || isUploadingImage}
+              />
+            </div>
           </form>
         </div>
 
@@ -323,10 +384,12 @@ export function CommunityResourceModal({
             </button>
             <button
               onClick={handleSubmit}
-              disabled={loading || !form.resource_name}
+              disabled={loading || isUploadingImage || !form.resource_name}
               className="flex-1 px-6 py-3 bg-gradient-to-br from-[#556B2F] to-[#3D4A2B] text-white rounded-xl font-bold hover:shadow-lg transition-all disabled:opacity-50"
             >
-              {loading ? 'Sparar...' : mode === 'add' ? 'Lägg till' : 'Spara ändringar'}
+              {loading || isUploadingImage 
+                ? (isUploadingImage ? 'Laddar upp bild...' : 'Sparar...') 
+                : mode === 'add' ? 'Lägg till' : 'Spara ändringar'}
             </button>
           </div>
         </div>

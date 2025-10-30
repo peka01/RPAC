@@ -15,6 +15,7 @@ export interface Resource {
   is_msb_recommended?: boolean
   msb_priority?: 'high' | 'medium' | 'low'
   is_filled?: boolean
+  photo_url?: string
   created_at: string
   updated_at: string
 }
