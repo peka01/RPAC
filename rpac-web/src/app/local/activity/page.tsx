@@ -34,7 +34,7 @@ export default function ActivityPage() {
           router.push('/dashboard');
         }
       } catch (error) {
-        console.error('Auth check failed:', error);
+        // Silent redirect (expected when not logged in)
         router.push('/dashboard');
       } finally {
         setLoading(false);

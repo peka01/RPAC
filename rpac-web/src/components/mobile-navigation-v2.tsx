@@ -14,7 +14,8 @@ import {
   X,
   LogOut,
   ChevronDown,
-  Shield
+  Shield,
+  HelpCircle
 } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { useState, useEffect, useRef } from 'react';
@@ -310,6 +311,18 @@ export function MobileNavigationV2() {
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </div>
               )}
+            </button>
+
+            {/* Help/KRISter Button */}
+            <button
+              onClick={() => {
+                // Dispatch custom event to open KRISter
+                window.dispatchEvent(new Event('openKRISter'));
+              }}
+              className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-all touch-manipulation active:scale-95"
+              aria-label="Öppna KRISter hjälp"
+            >
+              <HelpCircle className="w-5 h-5 text-gray-600" />
             </button>
 
             {/* User Menu Button */}

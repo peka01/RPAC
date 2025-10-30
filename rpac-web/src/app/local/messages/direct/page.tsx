@@ -32,7 +32,7 @@ export default function DirectMessagesPage() {
           setUser(session.user);
         }
       } catch (error) {
-        console.error('Error checking auth:', error);
+        // Silent error handling (expected when not logged in)
       } finally {
         setLoading(false);
       }

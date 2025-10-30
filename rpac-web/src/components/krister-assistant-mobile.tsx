@@ -132,6 +132,16 @@ export function KRISterAssistantMobile({ user, userProfile = {}, currentPage, cu
     }
   }, [isOpen]);
 
+  // Listen for external open requests
+  useEffect(() => {
+    const handleOpenKRISter = () => {
+      setIsOpen(true);
+    };
+    
+    window.addEventListener('openKRISter', handleOpenKRISter);
+    return () => window.removeEventListener('openKRISter', handleOpenKRISter);
+  }, []);
+
   // Auto-resize textarea
   useEffect(() => {
     if (inputRef.current) {
@@ -455,18 +465,9 @@ export function KRISterAssistantMobile({ user, userProfile = {}, currentPage, cu
     }
   };
 
-  // Floating button when closed
+  // Don't show floating button - only accessible via top menu help icon
   if (!isOpen) {
-    return (
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-24 right-6 z-50 w-16 h-16 bg-gradient-to-br from-[#3D4A2B] to-[#2A331E] text-white rounded-full shadow-2xl active:scale-95 transition-all duration-300 flex items-center justify-center touch-manipulation"
-        title={t('krister.button_tooltip')}
-      >
-        <Bot size={32} strokeWidth={2.5} />
-        <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#5C6B47] rounded-full animate-pulse" />
-      </button>
-    );
+    return null;
   }
 
   // Full screen mobile chat
@@ -643,9 +644,114 @@ export function KRISterAssistantMobile({ user, userProfile = {}, currentPage, cu
               {[1, 2, 3, 4, 5].map(num => (
                 <button
                   key={num}
-                  onClick={() => {
+                  onClick={async () => {
                     const question = t(`krister.example_questions.question_${num}`);
+                    
+                    // Set the question in the input
                     setInputMessage(question);
+                    
+                    // Auto-send the question immediately
+                    setTimeout(async () => {
+                      const userMessage: Message = {
+                        id: `msg-${Date.now()}`,
+                        type: 'user',
+                        content: question,
+                        timestamp: new Date()
+                      };
+
+                      setMessages(prev => [...prev, userMessage]);
+                      setInputMessage('');
+                      setIsLoading(true);
+
+                      try {
+                        // Fetch user's cultivation plan and resources for context
+                        let cultivationPlan = null;
+                        let resources = null;
+                        
+                        if (user?.id) {
+                          // Fetch primary cultivation plan
+                          try {
+                            const { data: planData, error: planError } = await supabase
+                              .from('cultivation_plans')
+                              .select('*')
+                              .eq('user_id', user.id)
+                              .eq('is_primary', true)
+                              .single();
+                            
+                            if (planError && planError.code !== 'PGRST116') {
+                              console.warn('Error fetching cultivation plan:', planError);
+                            } else {
+                              cultivationPlan = planData;
+                            }
+                          } catch (err) {
+                            console.warn('Failed to fetch cultivation plan:', err);
+                          }
+
+                          // Fetch resources
+                          const { data: resourcesData } = await supabase
+                            .from('resources')
+                            .select('*')
+                            .eq('user_id', user.id);
+                          
+                          resources = resourcesData;
+                        }
+
+                        // Get current weather
+                        const weather = await WeatherService.getCurrentWeather(undefined, undefined, {
+                          county: userProfile?.county,
+                          city: userProfile?.city
+                        });
+
+                        // Get AI response with full context
+                        const response = await SecureOpenAIService.generatePersonalCoachResponse({
+                          userProfile: {
+                            climateZone: userProfile?.county ? getClimateZone(userProfile.county) : 'Götaland',
+                            householdSize: typeof userProfile?.household_size === 'number' ? userProfile.household_size : 2,
+                            hasChildren: typeof userProfile?.has_children === 'boolean' ? userProfile.has_children : false,
+                            county: userProfile?.county || 'Okänd',
+                            city: userProfile?.city || '',
+                            weather: weather ? {
+                              temperature: weather.temperature,
+                              humidity: weather.humidity,
+                              forecast: weather.forecast,
+                              windSpeed: weather.windSpeed
+                            } : undefined
+                          },
+                          userQuestion: question,
+                          chatHistory: messages.slice(-5).map(m => ({
+                            sender: m.type === 'user' ? 'Användare' : 'KRISter',
+                            message: m.content,
+                            timestamp: m.timestamp.toISOString()
+                          })),
+                          appContext: {
+                            currentPage,
+                            cultivationPlan: cultivationPlan || undefined,
+                            resources: resources || undefined,
+                            upcomingTasks: undefined
+                          }
+                        });
+
+                        const aiMessage: Message = {
+                          id: `msg-${Date.now()}-ai`,
+                          type: 'assistant',
+                          content: response,
+                          timestamp: new Date()
+                        };
+
+                        setMessages(prev => [...prev, aiMessage]);
+                      } catch (error) {
+                        console.error('Error getting AI response:', error);
+                        const errorMessage: Message = {
+                          id: `msg-${Date.now()}-error`,
+                          type: 'system',
+                          content: t('krister.error.ai_unavailable'),
+                          timestamp: new Date()
+                        };
+                        setMessages(prev => [...prev, errorMessage]);
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }, 100);
                   }}
                   className="w-full text-left text-sm text-gray-600 hover:text-[#3D4A2B] active:bg-[#3D4A2B]/10 rounded-xl px-4 py-3 transition-colors border border-gray-200 touch-manipulation active:scale-98"
                 >

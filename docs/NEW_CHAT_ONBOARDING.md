@@ -38,9 +38,15 @@ When starting a new chat, **ALWAYS** read these files in this order:
 - **Focus:** Offline-first crisis preparedness for Swedish users
 
 ### Current Phase Status
-- ✅ **Phase 1 (Individual):** COMPLETE
-- ✅ **Phase 2 (Local Community):** COMPLETE
-- 🔄 **Phase 3 (Regional):** IN PROGRESS
+- ✅ **Phase 1 (Individual):** COMPLETE - Full preparedness system with AI integration
+- ✅ **Phase 2 (Local Community):** COMPLETE - Complete community ecosystem
+  - Community discovery and management
+  - Resource sharing (shared, owned, help requests)
+  - Real-time messaging (community & direct)
+  - Activity feed and notifications
+  - Community homespace (public pages)
+  - Admin tools and analytics
+- 🔄 **Phase 3 (Regional):** IN PROGRESS - Basic structure, needs cross-community features
 
 ### Critical Development Server Info
 ```bash
@@ -185,26 +191,60 @@ Before finishing ANY task:
 
 ---
 
-## 🎯 Current Priorities (October 2025)
+## 🎯 Current Priorities (October 30, 2025)
 
-Check `docs/roadmap.md` for latest, but as of Oct 2025:
+Check `docs/roadmap.md` for latest, but as of Oct 30, 2025:
 
 **Recently Completed:**
-- ✅ Community messaging system (COMPLETE)
-- ✅ Resource sharing & help requests (COMPLETE)
-- ✅ AI integration (OpenAI GPT-4 complete)
-- ✅ Navigation system (Professional side menu)
-- ✅ Notification center (State-of-the-art system)
+- ✅ Community messaging system (community & direct) - COMPLETE
+- ✅ Resource sharing & help requests - COMPLETE
+- ✅ AI integration (OpenAI GPT-4) - COMPLETE
+- ✅ Navigation system (Professional collapsible sidebar) - COMPLETE
+- ✅ Notification center (State-of-the-art realtime system) - COMPLETE
+- ✅ Community homespace (Public pages with custom URLs) - COMPLETE
+- ✅ Super Admin system (User/community management) - COMPLETE
+- ✅ Activity feed (Real-time community activity) - COMPLETE
+- ✅ Help request system (Request & response workflow) - COMPLETE
+- ✅ Security hardening (Input validation, sanitization) - COMPLETE
+- ✅ Production polish (Removed all debug logging) - COMPLETE
 
 **Current Focus:**
-- 🔄 Regional coordination features
+- 🔄 Regional coordination features (cross-community)
 - 📋 Advanced community analytics
 - 📋 Push notifications for mobile
 - 📋 Enhanced crisis coordination
+- 📋 License/payment integration (Stripe/Swish)
 
 ---
 
-## 🚫 Common Mistakes to Avoid
+## �️ Quick Route Reference
+
+**Main Routes:**
+- `/` or `/dashboard` - Main overview with preparedness score
+- `/individual` - Personal preparedness (add `?section=resources|cultivation|knowledge|coach`)
+- `/local` - Community hub (add `?tab=home|activity|resources|messages|admin`)
+- `/regional` - Regional coordination and official resources
+- `/settings` - User settings and profile management
+
+**Community Sub-Routes:**
+- `/local/discover` - Find and join communities
+- `/local/messages/community` - Community group chat (all members)
+- `/local/messages/direct` - Direct messaging (1-on-1)
+- `/local?tab=resources&resourceTab=shared|owned|help` - Resource management
+
+**Special Routes:**
+- `/[samhalle]` - Public community pages (e.g., `/nykulla`, `/vasastan-stockholm`)
+- `/invite/[code]` - Community invitation acceptance
+- `/super-admin` - Admin dashboard (super_admin tier only)
+- `/auth/callback` - Supabase auth callback
+
+**API Routes:**
+- `/api/weather` - SMHI weather data
+- `/api/admin/*` - Admin-only endpoints (protected)
+
+---
+
+## �🚫 Common Mistakes to Avoid
 
 1. ❌ Using blue colors instead of olive green
 2. ❌ Hardcoding Swedish text instead of t()

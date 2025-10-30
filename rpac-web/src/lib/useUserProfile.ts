@@ -89,6 +89,20 @@ export function useUserProfile(user: User | null) {
       return;
     }
 
+    // Skip database queries for demo user (not a valid UUID)
+    if (user.id === 'demo-user') {
+      const defaultProfile = {
+        id: `profile_demo-user`,
+        user_id: 'demo-user',
+        ...getDefaultProfile(),
+        created_at: new Date(),
+        updated_at: new Date()
+      } as UserProfile;
+      setProfile(defaultProfile);
+      setLoading(false);
+      return;
+    }
+
     const loadProfile = async () => {
       try {
         const { data, error } = await supabase

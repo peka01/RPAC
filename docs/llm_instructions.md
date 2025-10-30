@@ -39,25 +39,115 @@ npm run dev              # Start once
 npm run build            # Only for production testing!
 ```
 
-## Current Status (October 9, 2025)
+## Current Status (October 30, 2025)
 
 **Phase 1 (Individual Level)**: ✅ COMPLETE
+- Personal resource inventory with MSB guidelines
+- Cultivation planning system with AI integration
+- Personal preparedness dashboard
+- Individual profile and settings
+
 **Phase 2 (Local Community Function)**: ✅ COMPLETE
 - Geographic integration with GeoNames database
-- Real-time messaging system
+- Real-time messaging system (community & direct messages)
 - Community management (create/join/leave/edit/delete)
 - Member count tracking and user presence
 - Complete resource sharing system with status management
+- Help request system with responses
+- Community activity feed
+- Community homespace (public-facing pages at `/[samhalle]`)
 - **Database cleanup completed** - Removed obsolete cultivation tables and migration files
 - **Professional navigation system with collapsible sidebar** - See "Navigation System Changes" below
 - State-of-the-art notification center with realtime updates
+- **Super Admin system** - User management, license system, community oversight
+- **Business model implementation** - Free/Premium/Manager tiers
 
 **Phase 3 (Regional Coordination)**: 🔄 IN PROGRESS
+- Regional overview with county-based organization
+- Links to official crisis resources (MSB, Krisinformation.se, Länsstyrelsen)
 
-## 🎨 Navigation System Changes (October 9, 2025) - IMPORTANT FOR USER GUIDANCE
+## 🎨 Navigation System Changes (October 30, 2025) - IMPORTANT FOR USER GUIDANCE
 
 ### Overview
 The side navigation has been completely redesigned with a collapsible sidebar and flyout menus.
+
+### Complete Route Map
+
+#### **Main Application Routes**
+
+**1. Dashboard (`/` or `/dashboard`)**
+- Operational overview with preparedness score
+- Quick access cards to all major sections
+- Weather widget, AI coach, and notifications
+- Mobile: Bottom navigation with Home icon
+
+**2. Individual Level (`/individual`)**
+- Base route with query parameters for sections:
+  - `/individual?section=resources` - Personal resource inventory (default)
+  - `/individual?section=cultivation` - Cultivation planning system
+  - `/individual?section=knowledge` - MSB guidelines and knowledge base
+  - `/individual?section=coach` - AI personal preparedness coach
+- Fully integrated resource management with MSB categories
+- Cultivation plans with AI-generated recommendations
+
+**3. Local Community (`/local`)**
+- Base `/local` route shows community dashboard (if member) or discovery (if not)
+- Query parameters for tabs:
+  - `/local?tab=home` - Community dashboard overview (default)
+  - `/local?tab=activity` - Community activity feed
+  - `/local?tab=resources&resourceTab=shared` - Shared community resources
+  - `/local?tab=resources&resourceTab=owned` - Community-owned resources
+  - `/local?tab=resources&resourceTab=help` - Help requests and responses
+  - `/local?tab=messages` - Community messages (redirects to sub-route)
+  - `/local?tab=admin` - Community administration (admins only)
+- Separate sub-routes:
+  - `/local/discover` - Find and join communities
+  - `/local/activity` - Dedicated activity feed page
+  - `/local/messages/community` - Community group chat
+  - `/local/messages/direct` - Direct messaging with members
+  - `/local/messages/resources` - Resource-related messages
+
+**4. Regional Level (`/regional`)**
+- County-based regional overview
+- Official crisis resource links (MSB, Krisinformation.se, Länsstyrelsen)
+- Regional statistics and coordination
+- Cross-community resource sharing (planned)
+
+**5. Settings (`/settings`)**
+- User profile management (name, display name, postal code)
+- Avatar upload to Supabase Storage
+- Account settings and preferences
+- Privacy controls
+- Theme customization
+
+**6. Authentication Routes (`/auth`)**
+- `/auth/callback` - Supabase auth callback handler
+- `/auth/reset-password` - Password reset flow
+- Login/signup handled in modals, not separate pages
+
+**7. Special Routes**
+
+- `/[samhalle]` - **Dynamic community homespace** (public-facing)
+  - Examples: `/nykulla`, `/vasastan-stockholm`, `/lund-centrum`
+  - Public community pages with custom URL slugs
+  - Shows community info, resources (anonymized), members, contact
+  - Fully customizable by community admins
+  
+- `/invite/[code]` - **Invitation acceptance**
+  - Dynamic route for community invitations
+  - Validates invitation code and adds user to community
+  
+- `/super-admin` - **Super Admin Dashboard**
+  - `/super-admin/login` - Super admin authentication
+  - `/super-admin/users` - User management (upgrade/downgrade tiers)
+  - `/super-admin/communities` - Community oversight
+  - `/super-admin/licenses` - License/subscription management
+  - Restricted to users with `user_tier = 'super_admin'`
+
+**8. API Routes (`/api`)**
+- `/api/weather` - Weather data from SMHI API
+- `/api/admin/[...]` - Admin-only API endpoints
+- Edge runtime for all dynamic routes
 
 ### Key Changes for User Experience:
 
@@ -102,15 +192,18 @@ When helping users navigate:
 - **Guide on active states**: "The current page is highlighted with a green background and border."
 - **Navigation paths updated**:
   - "Gemensamma resurser" is now directly under "Lokalt" (no "Resurser" parent)
-  - "Delade resurser" (formerly "Delade från medlemmar") is directly under "Lokalt"
+  - "Delade resurser" is directly under "Lokalt"
   - "Hjälpförfrågningar" is directly under "Lokalt"
   - No more "Nödsituationer" - removed entirely
+  - Community messages: `/local/messages/community`
+  - Direct messages: `/local/messages/direct`
 
 ### Technical Details:
 - Sidebar state persists during session (not across page reloads)
 - Flyout position calculated dynamically based on icon location
 - Click-outside detection closes flyouts
 - Mobile navigation unchanged (separate responsive component)
+- URL parameters drive active states for tabs within pages
 
 ## Scope
 

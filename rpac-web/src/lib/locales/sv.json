@@ -140,7 +140,7 @@
   "system_alert": "Systemvarning",
     "help_request_title": "🔔 Ny hjälpförfrågan i {community}",
     "help_request_content": "{title} · Prioritet: {urgency}",
-    "help_request_sender": "Hjälpcenter",
+    "help_request_sender": "",
     "help_response_title": "{responder} kan hjälpa till",
     "help_response_content": "Du har fått ett svar på \"{title}\""
   },
@@ -1304,6 +1304,14 @@
     "processing": "Bearbetar...",
     "thinking": "Tänker...",
     "context_help": {
+      "dashboard": {
+        "title": "Du är på Översiktssidan",
+        "description": "Din huvudsida visar snabblänkar och viktig information.",
+        "tips": [
+          "Använd snabblänkarna för att snabbt komma till Individuell, Lokalt eller Regionalt",
+          "Väderwidgeten visar extrema väderhändelser som kan påverka din odling"
+        ]
+      },
       "individual": {
         "title": "Du är på Mitt hem-sidan",
         "description": "Din personliga sida för att hantera ditt hem, resurser och odling.",
@@ -1322,13 +1330,31 @@
           "Använd meddelandefunktionen för att hålla kontakten"
         ]
       },
+      "local_activity": {
+        "title": "Du tittar på Samhällets aktivitet",
+        "description": "Se vad som händer i ditt samhälle i realtid.",
+        "tips": [
+          "Nya medlemmar visas här - välkomna dem!",
+          "Delade resurser och hjälpförfrågningar dyker upp direkt",
+          "Håll koll på samhällets aktivitetsnivå"
+        ]
+      },
+      "local_discover": {
+        "title": "Du letar efter Samhällen",
+        "description": "Hitta och gå med i lokala samhällen baserat på din plats.",
+        "tips": [
+          "Använd filtret för att hitta samhällen i ditt närområde (0-50 km)",
+          "Gröna markeringar visar samhällen inom 10 km från dig",
+          "Skapa ett nytt samhälle om det inte finns något i din närhet"
+        ]
+      },
       "regional": {
         "title": "Du är på Regional-sidan",
-        "description": "Översikt över regional beredskap och koordinering.",
+        "description": "Översikt över regional beredskap och officiella resurser.",
         "tips": [
-          "Se hur din region är förberedd för kriser",
-          "Få information om regionala resurser och hjälp",
-          "Delta i regional krisplanering"
+          "Länsstyrelsen: Din regions officiella krisinformation",
+          "Krisinformation.se: Sveriges officiella kriskanal",
+          "MSB: Myndigheten för samhällsskydd och beredskap"
         ]
       },
       "settings": {
@@ -1336,17 +1362,17 @@
         "description": "Här kan du anpassa din profil och appen efter dina behov.",
         "tips": [
           "Fyll i din hemprofil för mer personlig rådgivning",
-          "Konfigurera notifieringar för att hålla dig uppdaterad",
-          "Anpassa appen efter dina preferenser"
+          "Lägg till postnummer för att hitta lokala samhällen",
+          "Ladda upp en profilbild för bättre igenkänning"
         ]
       },
       "settings_profile": {
-        "title": "Du redigerar din Hemprofil",
-        "description": "Fyll i information om ditt hushåll för personliga beredskapstips.",
+        "title": "Du redigerar din Profil",
+        "description": "Fyll i information om dig själv och ditt hushåll.",
         "tips": [
-          "Antal personer påverkar hur mycket mat och vatten du behöver lagra",
-          "Lägg till information om barn, äldre eller husdjur för specifika råd",
-          "Din plats används för väderprognoser och lokal information"
+          "För- och efternamn visas för administratörer i ditt samhälle",
+          "Visningsnamn kan vara ett smeknamn eller alias",
+          "Antal personer påverkar beredskapstips och resursberäkningar"
         ]
       },
       "settings_location": {
@@ -1354,7 +1380,7 @@
         "description": "Ange din plats för att få lokala beredskapstips och hitta närliggande samhällen.",
         "tips": [
           "Postnummer används för att hitta samhällen i din närhet",
-          "Län och kommun ger mer exakt väderinformation",
+          "Län och kommun ger regional information och länkar",
           "Din plats visas aldrig för andra utan ditt godkännande"
         ]
       },
@@ -1390,7 +1416,26 @@
         "description": "Kommunicera med medlemmar i ditt lokala samhälle.",
         "tips": [
           "Samhällschatten syns för alla medlemmar i samhället",
-          "Använd direktmeddelanden för privata konversationer"
+          "Använd direktmeddelanden för privata konversationer",
+          "Nödmeddelanden prioriteras högst i chatten"
+        ]
+      },
+      "messaging_community": {
+        "title": "Samhällschatten",
+        "description": "Gruppchatt för alla medlemmar i ditt samhälle.",
+        "tips": [
+          "Alla meddelanden syns för alla medlemmar",
+          "Perfekt för att dela viktig information och koordinera",
+          "Respektera andra och håll en konstruktiv ton"
+        ]
+      },
+      "messaging_direct": {
+        "title": "Direktmeddelanden",
+        "description": "Privata 1-on-1 konversationer med samhällsmedlemmar.",
+        "tips": [
+          "Endast du och mottagaren ser dessa meddelanden",
+          "Bra för att diskutera specifika resursdelningar eller hjälpförfrågningar",
+          "Välj kontakt från listan till vänster"
         ]
       },
       "resource_sharing": {
@@ -1401,6 +1446,60 @@
           "Ange hur länge resursen är tillgänglig",
           "Svara snabbt på förfrågningar för att hjälpa andra"
         ]
+      },
+      "resource_shared": {
+        "title": "Delade resurser",
+        "description": "Resurser som medlemmar har delat med samhället.",
+        "tips": [
+          "Se vad andra erbjuder och kontakta dem om du behöver något",
+          "Dela själv genom att klicka 'Dela resurs'",
+          "Status visar om resursen fortfarande är tillgänglig"
+        ]
+      },
+      "resource_owned": {
+        "title": "Gemensamma resurser",
+        "description": "Resurser som samhället äger tillsammans.",
+        "tips": [
+          "Verktyg, utrustning och andra saker som samhället investerat i",
+          "Fråga administratören om du behöver låna något",
+          "Föreslå nya gemensamma inköp om något saknas"
+        ]
+      },
+      "resource_help": {
+        "title": "Hjälpförfrågningar",
+        "description": "Be om eller erbjud hjälp inom ditt samhälle.",
+        "tips": [
+          "Skapa en förfrågan när du behöver hjälp med något",
+          "Svara på andras förfrågningar om du kan hjälpa till",
+          "Markera som 'Löst' när hjälpen är mottagen"
+        ]
+      },
+      "community_admin": {
+        "title": "Samhällsadministration",
+        "description": "Hantera ditt samhälles inställningar och medlemmar.",
+        "tips": [
+          "Godkänn eller avvisa medlemsansökningar",
+          "Redigera samhällets offentliga hemsida",
+          "Se statistik över aktivitet och inbjudningar"
+        ]
+      },
+      "homespace": {
+        "title": "Samhällets hemsida",
+        "description": "Skapa en offentlig hemsida för ditt samhälle.",
+        "tips": [
+          "Din hemsida får en egen URL: beready.se/ditt-samhalle",
+          "Anpassa innehåll, bilder och synlighet",
+          "Publicera när du är nöjd - andra kan hitta er!"
+        ]
+      },
+      "super_admin": {
+        "title": "Super Admin",
+        "description": "Systemadministration och användarhantering.",
+        "tips": [
+          "Uppgradera användare till Community Manager-nivå",
+          "Övervaka alla samhällen i systemet",
+          "Hantera licenser och prenumerationer"
+        ]
       }
     },
     "daily_tips_section": "Dagens tips och insikter",
@@ -1408,10 +1507,10 @@
     "example_questions": {
       "title": "Exempel på frågor:",
       "question_1": "Hur mycket mat bör jag ha hemma?",
-      "question_2": "Vad ska jag odla i min trädgård?",
-      "question_3": "Hur förbereder jag mitt hem för kris?",
-      "question_4": "Vilka resurser rekommenderar MSB?",
-      "question_5": "Hur fungerar resursdelning?"
+      "question_2": "Hur kan jag dela resurser med mitt samhälle?",
+      "question_3": "Hur fungerar hjälpförfrågningar?",
+      "question_4": "Hur skapar jag en hemsida för mitt samhälle?",
+      "question_5": "Vad är skillnaden mellan delade och gemensamma resurser?"
     },
     "voice": {
       "start": "Tryck för att börja tala",

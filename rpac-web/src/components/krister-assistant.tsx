@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import {
   Bot,
   X,
@@ -23,6 +24,7 @@ import { WeatherService } from '@/lib/weather-service';
 import { RemindersContextService } from '@/lib/reminders-context-service-enhanced';
 import { TipHistoryService } from '@/lib/tip-history-service';
 import { supabase } from '@/lib/supabase';
+import { KRISterHelpLoader } from '@/lib/krister-help-loader';
 
 interface User {
   id: string;
@@ -85,6 +87,10 @@ interface DailyTip {
 }
 
 export function KRISterAssistant({ user, userProfile, currentPage, currentAction }: KRISterAssistantProps) {
+  // Get current route from Next.js hooks for reactivity
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  
   // Ensure we have a valid profile
   userProfile = userProfile || {
     id: '',
@@ -101,6 +107,9 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
   const [isListening, setIsListening] = useState(false);
   const [dailyTips, setDailyTips] = useState<DailyTip[]>([]);
   const [contextHelp, setContextHelp] = useState<any>(null);
+  const [exampleQuestions, setExampleQuestions] = useState<string[]>([]);
+  const [questionsLoading, setQuestionsLoading] = useState(false);
+  const [questionsError, setQuestionsError] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   
@@ -219,10 +228,21 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
     });
   };
 
-  // Load context-specific help when page changes
+  // Load context-specific help when page/route changes
   useEffect(() => {
-    loadContextHelp();
-  }, [currentPage, currentAction]);
+    if (isOpen) {
+      loadContextHelp();
+      loadExampleQuestions(); // Generate fresh questions on every route change
+    }
+  }, [pathname, searchParams, isOpen]);
+
+  // Also regenerate questions when route changes, even if chat has messages
+  useEffect(() => {
+    if (isOpen && messages.length > 1) {
+      // User has been chatting, but navigated to a new page - refresh questions
+      loadExampleQuestions();
+    }
+  }, [pathname, searchParams]);
 
   // Load daily tips on mount
   useEffect(() => {
@@ -231,67 +251,106 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
     }
   }, [user?.id]);
 
-  // Add greeting message when opened for first time
-  useEffect(() => {
-    if (isOpen && messages.length === 0) {
-      const greetingMessage: Message = {
-        id: `msg-${Date.now()}`,
-        type: 'system',
-        content: t('krister.greeting'),
-        timestamp: new Date()
-      };
-      setMessages([greetingMessage]);
-    }
-  }, [isOpen]);
+  // Removed greeting message - questions section provides enough guidance
 
-  const loadContextHelp = () => {
-    // Build context key with more granularity
+  // Listen for external open requests
+  useEffect(() => {
+    const handleOpenKRISter = () => {
+      setIsOpen(true);
+    };
+    
+    window.addEventListener('openKRISter', handleOpenKRISter);
+    return () => window.removeEventListener('openKRISter', handleOpenKRISter);
+  }, []);
+
+  const loadContextHelp = async () => {
+    try {
+      // Use the new help loader system to get context-aware markdown help
+      // Use the actual current route from Next.js hooks
+      const currentPathname = pathname || window.location.pathname;
+      const currentSearchParams = searchParams || new URLSearchParams(window.location.search);
+      
+      const helpContent = await KRISterHelpLoader.loadHelpForRoute(currentPathname, currentSearchParams);
+      
+      if (helpContent) {
+        setContextHelp({
+          title: helpContent.title,
+          description: helpContent.context,
+          steps: helpContent.steps,
+          tips: helpContent.tips,
+          faqs: helpContent.faqs,
+          relatedPages: helpContent.relatedPages
+        });
+        return; // Success, exit early
+      }
+    } catch (error) {
+      console.error('Error loading context help:', error);
+    }
+    
+    // Fallback to old sv.json system if help file doesn't exist yet
     let contextKey: string = currentPage;
     
-    // Add section/subsection for more specific help
-    if (currentAction) {
-      // Parse URL for more specific context
-      if (currentAction.includes('cultivation')) {
-        contextKey = 'cultivation';
-      } else if (currentAction.includes('resources')) {
-        contextKey = 'resources';
-      } else if (currentAction.includes('community')) {
-        contextKey = 'community';
-      } else if (currentAction.includes('messaging')) {
-        contextKey = 'messaging';
-      } else if (currentAction.includes('resource-sharing')) {
-        contextKey = 'resource_sharing';
-      } else if (currentAction.includes('settings')) {
-        contextKey = 'settings';
-        if (currentAction.includes('profile')) contextKey = 'settings_profile';
-        else if (currentAction.includes('location')) contextKey = 'settings_location';
+    // Build context key from URL
+    const currentPathname = pathname || window.location.pathname;
+    const tab = searchParams?.get('tab');
+    const section = searchParams?.get('section');
+    const resourceTab = searchParams?.get('resourceTab');
+    
+    // More granular context based on actual URL
+    if (currentPathname.includes('/individual')) {
+      if (section === 'cultivation') contextKey = 'cultivation';
+      else if (section === 'resources') contextKey = 'resources';
+      else if (section === 'knowledge') contextKey = 'individual';
+      else if (section === 'coach') contextKey = 'individual';
+      else contextKey = 'individual';
+    } else if (currentPathname.includes('/local/discover')) {
+      contextKey = 'local_discover';
+    } else if (currentPathname.includes('/local/messages/community')) {
+      contextKey = 'messaging_community';
+    } else if (currentPathname.includes('/local/messages/direct')) {
+      contextKey = 'messaging_direct';
+    } else if (currentPathname.includes('/local')) {
+      if (tab === 'activity') contextKey = 'local_activity';
+      else if (tab === 'messages') contextKey = 'messaging_community';
+      else if (tab === 'admin') contextKey = 'community_admin';
+      else if (tab === 'resources') {
+        if (resourceTab === 'shared') contextKey = 'resource_shared';
+        else if (resourceTab === 'owned') contextKey = 'resource_owned';
+        else if (resourceTab === 'help') contextKey = 'resource_help';
+        else contextKey = 'local';
+      } else {
+        contextKey = 'local';
       }
+    } else if (currentPathname.includes('/regional')) {
+      contextKey = 'regional';
+    } else if (currentPathname.includes('/settings')) {
+      if (tab === 'profile') contextKey = 'settings_profile';
+      else if (tab === 'location') contextKey = 'settings_location';
+      else contextKey = 'settings';
+    } else if (currentPathname === '/' || currentPathname.includes('/dashboard')) {
+      contextKey = 'dashboard';
     }
     
-    // Try to get specific context help, fallback to page-level
+    // Try to get specific context help from sv.json
     try {
       const helpData = {
         title: t(`krister.context_help.${contextKey}.title`),
         description: t(`krister.context_help.${contextKey}.description`),
-        tips: [
-          t(`krister.context_help.${contextKey}.tips.0`),
-          t(`krister.context_help.${contextKey}.tips.1`),
-          t(`krister.context_help.${contextKey}.tips.2`)
-        ]
+        tips: t(`krister.context_help.${contextKey}.tips`) as unknown as string[]
       };
       setContextHelp(helpData);
     } catch (error) {
-      // Fallback to page-level context
-      const helpData = {
-        title: t(`krister.context_help.${currentPage}.title`),
-        description: t(`krister.context_help.${currentPage}.description`),
-        tips: [
-          t(`krister.context_help.${currentPage}.tips.0`),
-          t(`krister.context_help.${currentPage}.tips.1`),
-          t(`krister.context_help.${currentPage}.tips.2`)
-        ]
-      };
-      setContextHelp(helpData);
+      // Final fallback to dashboard
+      try {
+        const helpData = {
+          title: t('krister.context_help.dashboard.title'),
+          description: t('krister.context_help.dashboard.description'),
+          tips: t('krister.context_help.dashboard.tips') as unknown as string[]
+        };
+        setContextHelp(helpData);
+      } catch (e) {
+        console.error('Failed to load any context help:', e);
+      }
     }
   };
 
@@ -344,6 +403,126 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
       console.error('Error loading daily tips:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadExampleQuestions = async () => {
+    try {
+      setQuestionsLoading(true);
+      setQuestionsError(false);
+      
+      // Build context from current route
+      const currentPathname = pathname || window.location.pathname;
+      const tab = searchParams?.get('tab');
+      const section = searchParams?.get('section');
+      
+      let pageContext = 'dashboard';
+      let pageDescription = 'översiktssidan';
+      
+      if (currentPathname.includes('/individual')) {
+        if (section === 'cultivation') {
+          pageContext = 'cultivation';
+          pageDescription = 'odlingssidan där användaren planerar och följer upp sin odling';
+        } else if (section === 'resources') {
+          pageContext = 'resources';
+          pageDescription = 'resurssidan där användaren hanterar sitt hemförråd';
+        } else {
+          pageContext = 'individual';
+          pageDescription = 'den individuella beredskapssidan';
+        }
+      } else if (currentPathname.includes('/local')) {
+        if (tab === 'activity') {
+          pageContext = 'local_activity';
+          pageDescription = 'den lokala aktivitetssidan';
+        } else if (tab === 'messages') {
+          pageContext = 'messaging';
+          pageDescription = 'meddelandesidan för samhället';
+        } else if (tab === 'admin') {
+          pageContext = 'community_admin';
+          pageDescription = 'administratörssidan för samhället';
+        } else {
+          pageContext = 'local';
+          pageDescription = 'den lokala samhällssidan';
+        }
+      } else if (currentPathname.includes('/regional')) {
+        pageContext = 'regional';
+        pageDescription = 'den regionala översiktssidan';
+      } else if (currentPathname.includes('/settings')) {
+        pageContext = 'settings';
+        pageDescription = 'inställningssidan';
+      }
+
+      // Get user context
+      const userContext = userProfile ? {
+        county: userProfile.county || 'okänd',
+        hasChildren: userProfile.has_children || false,
+        householdSize: userProfile.household_size || 2,
+        experienceLevel: userProfile.experience_level || 'nybörjare'
+      } : null;
+
+      // Call OpenAI API to generate context-aware questions
+      const prompt = `Du är KRISter, en AI-assistent för beredskapssystemet RPAC.
+Användaren befinner sig just nu på ${pageDescription}.
+
+Din uppgift: Generera exakt 3-4 korta, relevanta exempelfrågor som användaren kan ställa OM DEN HÄR SPECIFIKA SIDAN.
+
+VIKTIGT: Inkludera ALLTID minst 1-2 procedurella "hur gör jag..."-frågor där det är relevant!
+
+Frågorna ska vara:
+- Direkt relaterade till funktioner på denna sida
+- MIX av informationsfrågor OCH procedurfrågor ("hur gör jag...", "hur delar jag...", etc.)
+- Korta (max 8-10 ord)
+- Praktiska och handlingsbara
+- Anpassade till användarens kontext${userContext ? ` (län: ${userContext.county}, ${userContext.hasChildren ? 'har barn' : 'inga barn'}, ${userContext.householdSize} personer, ${userContext.experienceLevel})` : ''}
+
+Exempel för olika sidor:
+- Odling: "Vad ska jag plantera nu?", "Hur skapar jag en odlingsplan?"
+- Resurser (Mitt hem): "Vad ska jag ha i mitt beredskapslager?", "Hur delar jag en resurs med mitt samhälle?"
+- Lokalt: "Hur går jag med i ett samhälle?", "Hur begär jag en resurs från en granne?"
+- Regionalt: "Vilka samhällen är mest aktiva?", "Hur startar jag ett nytt samhälle?"
+
+Svara ENDAST med en JSON-array av frågesträngar, ingen annan text.
+Exempel: ["Fråga 1?", "Hur gör jag X?", "Fråga 3?"]`;
+
+      const response = await fetch('https://api.beready.se', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'User-Agent': 'RPAC-Client/1.0'
+        },
+        body: JSON.stringify({
+          prompt,
+          type: 'example-questions'
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API error:', response.status, errorText);
+        throw new Error(`API request failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content || data.response;
+      
+      if (!content) {
+        throw new Error('No content in response');
+      }
+
+      // Parse the JSON array
+      const questions = JSON.parse(content.trim());
+      
+      if (!Array.isArray(questions) || questions.length === 0) {
+        throw new Error('Invalid questions format');
+      }
+
+      setExampleQuestions(questions.slice(0, 4)); // Max 4 questions
+    } catch (error) {
+      console.error('Error loading example questions:', error);
+      setQuestionsError(true);
+      setExampleQuestions([]);
+    } finally {
+      setQuestionsLoading(false);
     }
   };
 
@@ -453,7 +632,8 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
           currentPage,
           cultivationPlan: cultivationPlan || undefined,
           resources: resources || undefined,
-          upcomingTasks: undefined
+          upcomingTasks: undefined,
+          helpDocumentation: contextHelp || undefined
         }
       });
 
@@ -538,16 +718,8 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
   };
 
   const handleClearChat = () => {
-    if (messages.length > 1) { // More than just the greeting
-      // Keep only the greeting message
-      const greetingMessage: Message = {
-        id: `msg-${Date.now()}`,
-        type: 'system',
-        content: t('krister.greeting'),
-        timestamp: new Date()
-      };
-      setMessages([greetingMessage]);
-    }
+    // Clear all messages - no greeting needed
+    setMessages([]);
   };
 
   const getTipIcon = (tip: DailyTip) => {
@@ -567,18 +739,9 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
     }
   };
 
-  // Floating button when closed
+  // Don't show floating button - only accessible via top menu help icon
   if (!isOpen) {
-    return (
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 w-16 h-16 bg-gradient-to-br from-[#3D4A2B] to-[#2A331E] text-white rounded-full shadow-2xl hover:shadow-3xl hover:scale-110 transition-all duration-300 flex items-center justify-center group"
-        title={t('krister.button_tooltip')}
-      >
-        <Bot size={32} className="transition-transform group-hover:scale-110" strokeWidth={2} />
-        <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#5C6B47] rounded-full animate-pulse" />
-      </button>
-    );
+    return null;
   }
 
   // Minimized state
@@ -699,24 +862,60 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
           <div className="bg-[#3D4A2B]/10 rounded-xl p-4 border-l-4 border-[#3D4A2B]">
             <div className="flex items-start gap-3">
               <HelpCircle className="text-[#3D4A2B] mt-0.5 flex-shrink-0" size={20} />
-              <div>
+              <div className="flex-1">
                 <h4 className="font-bold text-[#3D4A2B] mb-1">{contextHelp.title}</h4>
-                <p className="text-sm text-gray-700 mb-2">{contextHelp.description}</p>
-                <ul className="space-y-1">
-                  {contextHelp.tips.map((tip: string, idx: number) => (
-                    <li key={idx} className="text-xs text-gray-600 flex items-start gap-2">
-                      <span className="text-[#5C6B47] mt-0.5">•</span>
-                      <span>{tip}</span>
-                    </li>
-                  ))}
-                </ul>
+                <p className="text-sm text-gray-700 mb-3">{contextHelp.description}</p>
+                
+                {/* Tips section */}
+                {contextHelp.tips && contextHelp.tips.length > 0 && (
+                  <div className="mb-3">
+                    <p className="text-xs font-semibold text-[#3D4A2B] mb-1">💡 Tips:</p>
+                    <ul className="space-y-1">
+                      {contextHelp.tips.map((tip: string, idx: number) => (
+                        <li key={idx} className="text-xs text-gray-600 flex items-start gap-2">
+                          <span className="text-[#5C6B47] mt-0.5">•</span>
+                          <span>{tip}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {/* Steps section (if available from new help system) */}
+                {contextHelp.steps && contextHelp.steps.length > 0 && (
+                  <div className="mb-3">
+                    <p className="text-xs font-semibold text-[#3D4A2B] mb-1">📋 Steg-för-steg:</p>
+                    <ol className="space-y-1 list-decimal list-inside">
+                      {contextHelp.steps.slice(0, 3).map((step: any, idx: number) => (
+                        <li key={idx} className="text-xs text-gray-600">
+                          <span className="font-medium">{step.title}</span>
+                          {step.description && <p className="ml-5 text-gray-500">{step.description.substring(0, 80)}...</p>}
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
+                
+                {/* Related pages (if available) */}
+                {contextHelp.relatedPages && contextHelp.relatedPages.length > 0 && (
+                  <div className="pt-2 border-t border-[#3D4A2B]/20">
+                    <p className="text-xs font-semibold text-[#3D4A2B] mb-1">🔗 Relaterat:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {contextHelp.relatedPages.slice(0, 3).map((page: any, idx: number) => (
+                        <span key={idx} className="text-xs bg-[#3D4A2B]/20 text-[#3D4A2B] px-2 py-0.5 rounded-full">
+                          {page.title}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         )}
 
-        {/* Daily Tips Section */}
-        {dailyTips.length > 0 && (
+        {/* Daily Tips Section - DISABLED FOR NOW */}
+        {false && dailyTips.length > 0 && (
           <div>
             <h4 className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
               <Sparkles size={16} className="text-[#5C6B47]" />
@@ -787,24 +986,155 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Example Questions (shown when no messages) */}
-        {messages.length <= 1 && !isLoading && (
+        {/* Example Questions - Always shown when available */}
+        {!isLoading && (
           <div className="bg-white rounded-xl p-4 border border-gray-200">
-            <h4 className="text-sm font-bold text-gray-700 mb-3">{t('krister.example_questions.title')}</h4>
-            <div className="space-y-2">
-              {[1, 2, 3, 4, 5].map(num => (
-                <button
-                  key={num}
-                  onClick={() => {
-                    const question = t(`krister.example_questions.question_${num}`);
-                    setInputMessage(question);
-                  }}
-                  className="w-full text-left text-xs text-gray-600 hover:text-[#3D4A2B] hover:bg-[#3D4A2B]/5 rounded-lg px-3 py-2 transition-colors"
-                >
-                  {t(`krister.example_questions.question_${num}`)}
-                </button>
-              ))}
-            </div>
+            <h4 className="text-xs font-semibold text-gray-500 mb-2 flex items-center gap-1.5">
+              <HelpCircle size={14} className="text-gray-400" />
+              {messages.length <= 1 ? t('krister.example_questions.title') : 'Relaterade frågor'}
+            </h4>
+            
+            {questionsLoading && (
+              <div className="flex items-center justify-center py-6 text-gray-400">
+                <Loader2 size={18} className="animate-spin mr-2" />
+                <span className="text-xs">Genererar frågor...</span>
+              </div>
+            )}
+            
+            {questionsError && !questionsLoading && (
+              <div className="text-xs text-gray-500 py-2 px-3 bg-gray-50 rounded-lg">
+                Kunde inte ladda exempelfrågor just nu. Skriv din egen fråga nedan!
+              </div>
+            )}
+            
+            {!questionsLoading && !questionsError && exampleQuestions.length > 0 && (
+              <div className="space-y-1.5">
+                {exampleQuestions.map((question, index) => (
+                  <button
+                    key={index}
+                    onClick={async () => {
+                      // Set the question and immediately send it
+                      setInputMessage(question);
+                      
+                      // Use a small delay to ensure state is updated
+                      setTimeout(async () => {
+                        const userMessage: Message = {
+                          id: `msg-${Date.now()}`,
+                          type: 'user',
+                          content: question,
+                          timestamp: new Date()
+                        };
+                        
+                        setMessages(prev => [...prev, userMessage]);
+                        setInputMessage('');
+                        setIsLoading(true);
+                        
+                        try {
+                          // Fetch user's cultivation plan and resources for context
+                          let cultivationPlan = null;
+                          let resources = null;
+                          
+                          if (user?.id) {
+                            // Fetch primary cultivation plan
+                            try {
+                              const { data: planData, error: planError } = await supabase
+                                .from('cultivation_plans')
+                                .select('*')
+                                .eq('user_id', user.id)
+                                .eq('is_primary', true)
+                                .single();
+                              
+                              if (planError && planError.code !== 'PGRST116') {
+                                console.warn('Error fetching cultivation plan:', planError);
+                              } else {
+                                cultivationPlan = planData;
+                              }
+                            } catch (err) {
+                              console.warn('Failed to fetch cultivation plan:', err);
+                            }
+
+                            // Fetch resources
+                            const { data: resourcesData } = await supabase
+                              .from('resources')
+                              .select('*')
+                              .eq('user_id', user.id);
+                            
+                            resources = resourcesData;
+                          }
+
+                          // Get current weather
+                          const weather = await WeatherService.getCurrentWeather(undefined, undefined, {
+                            county: userProfile?.county,
+                            city: userProfile?.city
+                          });
+
+                          // Get AI response with full context
+                          const response = await SecureOpenAIService.generatePersonalCoachResponse({
+                            userProfile: {
+                              climateZone: userProfile?.county ? getClimateZone(userProfile.county) : 'Götaland',
+                              householdSize: typeof userProfile?.household_size === 'number' ? userProfile.household_size : 2,
+                              hasChildren: typeof userProfile?.has_children === 'boolean' ? userProfile.has_children : false,
+                              county: userProfile?.county || 'Okänd',
+                              city: userProfile?.city || '',
+                              postal_code: userProfile?.postal_code || '',
+                              weather: weather ? {
+                                temperature: weather.temperature,
+                                humidity: weather.humidity,
+                                forecast: weather.forecast,
+                                windSpeed: weather.windSpeed
+                              } : undefined
+                            },
+                            userQuestion: question,
+                            chatHistory: messages.slice(-5).map(m => ({
+                              sender: m.type === 'user' ? 'Användare' : 'KRISter',
+                              message: m.content,
+                              timestamp: m.timestamp.toISOString()
+                            })),
+                            appContext: {
+                              currentPage,
+                              cultivationPlan: cultivationPlan || undefined,
+                              resources: resources || undefined,
+                              upcomingTasks: undefined,
+                              helpDocumentation: contextHelp || undefined
+                            }
+                          });
+
+                          const aiMessage: Message = {
+                            id: `msg-${Date.now()}-ai`,
+                            type: 'assistant',
+                            content: response,
+                            timestamp: new Date()
+                          };
+
+                          setMessages(prev => [...prev, aiMessage]);
+                        } catch (error) {
+                          console.error('Error getting AI response:', error);
+                          const errorMessage: Message = {
+                            id: `msg-${Date.now()}-error`,
+                            type: 'system',
+                            content: t('krister.error.ai_unavailable'),
+                            timestamp: new Date()
+                          };
+                          setMessages(prev => [...prev, errorMessage]);
+                        } finally {
+                          setIsLoading(false);
+                        }
+                      }, 100);
+                    }}
+                    className="w-full text-left text-xs text-gray-600 hover:text-[#3D4A2B] hover:bg-[#3D4A2B]/5 rounded-lg px-3 py-2 transition-colors flex items-start gap-2"
+                  >
+                    <span className="text-gray-400 mt-0.5">•</span>
+                    <span className="flex-1">{question}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            
+            {!questionsLoading && !questionsError && exampleQuestions.length === 0 && (
+              <div className="text-xs text-gray-500 py-2 px-3 bg-gray-50 rounded-lg">
+                Skriv din fråga nedan för att komma igång!
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -378,6 +378,14 @@ Svara med JSON-array med tips:
       resources?: Array<{ category: string; acquired: boolean }>;
       upcomingTasks?: Array<{ activity: string; crop_name: string; month: string }>;
       currentPage?: string;
+      helpDocumentation?: {
+        title?: string;
+        description?: string;
+        steps?: Array<{ title: string; description: string }>;
+        tips?: string[];
+        faqs?: Array<{ question: string; answer: string }>;
+        relatedPages?: Array<{ title: string; path: string }>;
+      };
     };
   }): Promise<string> {
     // Get current date and season
@@ -458,20 +466,52 @@ VÄDERLÄGE (${userProfile.city || userProfile.county || 'Din plats'}):
       if (w.feelsLike) weatherContext += `\n- Känns som: ${w.feelsLike}°C`;
     }
 
+    // Build help documentation context (SINGLE SOURCE OF TRUTH!)
+    let helpContext = '';
+    if (appContext?.helpDocumentation) {
+      const help = appContext.helpDocumentation;
+      helpContext = `
+📖 HJÄLPDOKUMENTATION FÖR DENNA SIDA (SINGLE SOURCE OF TRUTH):
+${help.title ? `Titel: ${help.title}` : ''}
+${help.description ? `Beskrivning: ${help.description}` : ''}
+
+${help.steps && help.steps.length > 0 ? `
+STEG-FÖR-STEG INSTRUKTIONER:
+${help.steps.map((step, i) => `${i + 1}. ${step.title}${step.description ? `\n   ${step.description}` : ''}`).join('\n')}
+` : ''}
+
+${help.tips && help.tips.length > 0 ? `
+TIPS:
+${help.tips.map(tip => `• ${tip}`).join('\n')}
+` : ''}
+
+${help.faqs && help.faqs.length > 0 ? `
+VANLIGA FRÅGOR:
+${help.faqs.map(faq => `Q: ${faq.question}\nA: ${faq.answer}`).join('\n\n')}
+` : ''}
+
+⚠️ VIKTIGT: När användaren ställer en "hur gör jag..."-fråga, använd EXAKT dessa steg från dokumentationen!
+Citera eller parafrasera instruktionerna ovan - skapa INTE egna instruktioner!`;
+    }
+
     const prompt = `Du är KRISter, en svensk AI-assistent för samhällsberedskap och självförsörjning. Du hjälper användare med Beready-appen.
 
 BEREADY-APPENS FUNKTIONER:
 1. MITT HEM (Individuell beredskap):
    - Hemprofil: Hushållsstorlek, plats, husdjur
    - Resurslager: Hantera mat, vatten, mediciner, verktyg (MSB-baserat)
+     * Lägg till resurser från MSB-katalogen eller egna
+     * Dela resurser med dina samhällen (dela-knappen på varje resurs)
    - Odlingsplanering: Skapa odlingsplaner för självförsörjning
    - Odlingskalender: Månatliga sådd/skörd-uppgifter per klimatzon
 
 2. LOKALT (Samhällesfunktioner):
    - Hitta/gå med i lokala samhällen baserat på postnummer
-   - Dela resurser med grannar (mat, verktyg, utrustning)
+   - Se delade resurser från medlemmar (fliken "Delade från medlemmar")
+   - Be om/begära resurser som andra delat
    - Chatt med samhällsmedlemmar
    - Samhällsresurser: Gemensam utrustning (pumpar, generatorer, etc)
+   - Hjälpförfrågningar: Be om hjälp eller erbjud hjälp
 
 3. REGIONALT (Länsnivå):
    - Regional översikt för hela länet (t.ex. Kronobergs län, Skåne län)
@@ -503,6 +543,7 @@ ${appContext?.currentPage === 'cultivation' ? '→ Användaren tittar på ODLING
 ${appContext?.currentPage === 'individual' ? '→ Användaren är på MITT HEM - ge allmän beredskapsöversikt' : ''}
 ${appContext?.currentPage === 'local' ? '→ Användaren tittar på LOKALT - fokusera på samhällen och resursdelning' : ''}
 ${appContext?.currentPage === 'regional' ? '→ Användaren tittar på REGIONALT - fokusera på länsnivå, samordning mellan samhällen, Länsstyrelsen' : ''}
+${helpContext}
 
 ANVÄNDARENS SITUATION:${cultivationContext}${resourcesContext}${cultivationTasks}
 
@@ -528,6 +569,35 @@ SVARSREGLER:
 - Om användaren är på sidan "cultivation" → Fokusera på odling
 - Om användaren är på sidan "regional" → Fokusera på länsnivå, samhällen i länet, Länsstyrelsen
 - ⚠️ Om det finns VÄDERVARNINGAR: Nämn dessa FÖRST
+
+🎯 HUR-GÖR-JAG FRÅGOR (KRITISKT VIKTIGT!):
+När användaren frågar "hur gör jag...", "hur delar jag...", "hur går jag med...", "hur skapar jag..." eller liknande:
+
+**ANVÄND ALLTID HJÄLPDOKUMENTATION SOM SINGLE SOURCE OF TRUTH!**
+
+Hjälpdokumentation laddas automatiskt baserat på sidkontext via t('krister.context_help.{topic}').
+Du ska CITERA/ÅTERGE innehållet från hjälpdokumenten, inte skriva egna instruktioner.
+
+KORREKT PROCESS:
+1. Identifiera vilken hjälpdokumentation som är relevant (baserat på användarens fråga och nuvarande sida)
+2. Ge svaret DIREKT från hjälpdokumentationen med fullständiga steg
+3. Använd hjälptextens exakta instruktioner - citera dem ordagrant
+4. Formatera tydligt med numrerade steg
+
+EXEMPEL:
+Fråga: "Hur delar jag resurser?" (användaren är på Mitt hem → Resurser)
+✅ Använd innehållet från hjälpdokumentet (som redan är laddat i kontexten) och ge fullständiga steg:
+"Så här delar du en resurs med ditt samhälle:
+1. Gå till **Mitt hem** → **Resurser** (din personliga inventering)
+2. Hitta resursen du vill dela
+3. Klicka på dela-ikonen (📤) på resurskortet
+4. Välj vilket samhälle du vill dela med
+..." (resten från hjälpdokumentet)
+
+REGEL: Hjälpdokumenten är SINGLE SOURCE OF TRUTH!
+Ge FULLSTÄNDIGA svar från dokumentationen - användaren ska inte behöva klicka igen.
+
+ÖVRIGA SVAR (om det INTE är instruktioner):
 - Håll svaret koncist men hjälpsamt (2-4 meningar)
 - Om användaren behöver gå till en annan sida → Hänvisa kort (t.ex. "Du hittar odlingskalendern under Mitt hem", "Du hittar regional översikt under Regionalt")
 

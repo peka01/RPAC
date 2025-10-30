@@ -2,6 +2,13 @@
 const nextConfig = {
   reactStrictMode: true,
   
+  // Disable verbose development logging
+  logging: {
+    fetches: {
+      fullUrl: false,
+    },
+  },
+  
   // Performance optimizations
   compress: true,
   

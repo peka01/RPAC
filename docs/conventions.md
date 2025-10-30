@@ -7,6 +7,121 @@
 3. **Use latest and current knowledge** - Always apply the most up-to-date information and best practices
 4. **Swedish-first development** - All UI strings, AI communication, and documentation in Swedish unless otherwise specified
 5. **Act as an extremely experienced UX designer** - Every user-facing element must be carefully designed with crisis situations in mind
+6. **✅ MANDATORY: Update help docs** - Every feature change MUST update corresponding `.md` files in `rpac-web/docs/help/`
+
+## 📚 Help Documentation System - MANDATORY
+
+### Critical Rule: Help Docs MUST Stay Updated
+
+**⚠️ ZERO TOLERANCE**: Any PR that adds/modifies features WITHOUT updating help docs will be REJECTED.
+
+### When You MUST Update Help Docs
+
+Update the corresponding `.md` file in `rpac-web/docs/help/` when you:
+
+1. ✅ **Add a new page/route** → Create new help `.md` file
+2. ✅ **Add a feature/button** → Document in "Steg-för-steg" section
+3. ✅ **Change workflow** → Update step numbering and instructions
+4. ✅ **Modify UI text** → Update variable references
+5. ✅ **Remove a feature** → Remove from help `.md`
+6. ✅ **Change navigation** → Update "Relaterade sidor" links
+7. ✅ **Add FAQ** → Add to "Vanliga frågor" section
+
+### Help Doc Format (Template)
+
+```markdown
+# {{krister.context_help.<key>.title}}
+
+## Kontext
+
+{{krister.context_help.<key>.description}}
+
+[Brief overview]
+
+## Steg-för-steg
+
+### 1. [Step title]
+[Instructions with {{variable}} references]
+
+### 2. [Next step]
+[More instructions]
+
+## Tips
+
+{{krister.context_help.<key>.tips.0}}
+{{krister.context_help.<key>.tips.1}}
+{{krister.context_help.<key>.tips.2}}
+
+## Vanliga frågor
+
+**Q: [Question]**
+A: [Answer with {{variables}}]
+
+## Relaterade sidor
+- [Title](/help/path/file.md) - Description
+```
+
+### Variable Usage Rules
+
+❌ **WRONG** (hardcoded text):
+```markdown
+Klicka på "Översikt" för att fortsätta
+```
+
+✅ **CORRECT** (variable reference):
+```markdown
+Klicka på "{{navigation.overview}}" för att fortsätta
+```
+
+❌ **WRONG**:
+```markdown
+Gå till Inställningar → Profil
+```
+
+✅ **CORRECT**:
+```markdown
+Gå till {{navigation.settings}} → {{settings.tabs.profile}}
+```
+
+### File Locations
+
+```
+rpac-web/docs/help/
+├── dashboard.md
+├── individual/
+│   ├── resources.md
+│   ├── cultivation.md
+│   └── ...
+├── local/
+│   ├── home.md
+│   ├── discover.md
+│   ├── resources-shared.md
+│   └── ...
+├── regional/
+│   └── overview.md
+└── settings/
+    ├── profile.md
+    └── ...
+```
+
+### Pre-Commit Checklist
+
+Before committing ANY change:
+
+- [ ] Did I add/modify a feature? → Update help `.md`
+- [ ] Did I change UI text? → Use `{{variables}}` in `.md`
+- [ ] Did I change workflow? → Update "Steg-för-steg"
+- [ ] Did I add new page? → Create new help `.md` file
+- [ ] Are all internal links working? → Check "Relaterade sidor"
+
+### Complete Guide
+
+See **`rpac-web/docs/HELP_DOCS_GUIDE.md`** for:
+- Directory structure
+- Variable interpolation rules
+- Route mapping
+- Enforcement guidelines
+- Examples
 
 ## Professional Crisis Intelligence Design Philosophy
 

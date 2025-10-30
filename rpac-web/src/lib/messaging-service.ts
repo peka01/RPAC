@@ -67,21 +67,13 @@ export const messagingService = {
       query = query
         .or(`and(sender_id.eq.${userId},receiver_id.eq.${recipientId}),and(sender_id.eq.${recipientId},receiver_id.eq.${userId})`)
         .not('receiver_id', 'is', null); // Ensure it's actually a direct message
-      console.log('🔍 QUERY TYPE: DIRECT MESSAGE between', userId, 'and', recipientId);
     } else if (communityId) {
       // Community messages (NOT direct messages)
       // Must have community_id set and receiver_id NULL
       query = query.eq('community_id', communityId).is('receiver_id', null);
-      console.log('🔍 QUERY TYPE: COMMUNITY MESSAGE for community', communityId);
     }
     
-    console.log('📥 Fetching messages with params:', { userId, recipientId, communityId, limit });
-    
     const { data, error } = await query;
-    
-    console.log('📬 Messages fetched:', data?.length || 0, 'messages');
-    console.log('📬 Messages data:', data);
-    console.log('❌ Error (if any):', error);
     
     if (error) throw error;
     return (data || []).map(msg => this.formatMessage(msg));
@@ -123,11 +115,9 @@ export const messagingService = {
     if (recipientId) {
       messageData.receiver_id = recipientId;
       // Do NOT set community_id for direct messages
-      console.log('📤 Sending DIRECT message to user:', recipientId);
     } else if (communityId) {
       messageData.community_id = communityId;
       // Do NOT set receiver_id for community messages
-      console.log('📤 Sending COMMUNITY message to:', communityId);
     } else {
       throw new Error('Message must have either recipientId or communityId');
     }
@@ -143,13 +133,6 @@ export const messagingService = {
       messageData.metadata = { ...messageData.metadata, ...metadata };
     }
     
-    console.log('📤 Sending message with data:', {
-      ...messageData,
-      has_receiver_id: !!messageData.receiver_id,
-      has_community_id: !!messageData.community_id,
-      type: messageData.receiver_id ? 'DIRECT' : 'COMMUNITY'
-    });
-    
     const { data, error } = await supabase
       .from('messages')
       .insert([messageData])
@@ -159,13 +142,6 @@ export const messagingService = {
     if (error) {
       console.error('❌ Error sending message:', error);
     } else {
-      console.log('✅ Message sent successfully:', {
-        id: data.id,
-        has_receiver_id: !!data.receiver_id,
-        has_community_id: !!data.community_id,
-        type: data.receiver_id ? 'DIRECT' : 'COMMUNITY'
-      });
-
       // Create notification for recipient
       try {
         if (recipientId) {
@@ -342,13 +318,6 @@ export const messagingService = {
       ? `messages:community:${communityId}`
       : `messages:${userId}`;
     
-    console.log('🔔 Setting up realtime subscription:', {
-      channelName,
-      userId,
-      recipientId,
-      communityId
-    });
-    
     const channel = supabase
       .channel(channelName)
       .on(
@@ -364,10 +333,8 @@ export const messagingService = {
             : `receiver_id=eq.${userId}`
         },
         (payload) => {
-          console.log('🔔 Realtime message received!', payload);
           try {
             const message = this.formatMessage(payload.new);
-            console.log('🔔 Formatted message:', message);
             onMessage(message);
           } catch (error) {
             console.error('🔔 Error formatting realtime message:', error);
@@ -377,9 +344,7 @@ export const messagingService = {
           }
         }
       )
-      .subscribe((status) => {
-        console.log('🔔 Subscription status:', status);
-      });
+      .subscribe();
     
     return channel;
   },
@@ -446,24 +411,15 @@ export const messagingService = {
         const presence = presenceData?.find(p => p.user_id === membership.user_id);
         const profile = profiles?.find(p => p.user_id === membership.user_id);
         
-        console.log('👤 Processing contact:', { 
-          user_id: membership.user_id, 
-          profile_found: !!profile,
-          display_name: profile?.display_name 
-        });
-        
         let userName = 'Medlem';
         
         if (!profile) {
-          console.warn('⚠️ No profile found for user:', membership.user_id);
           userName = `Medlem ${index + 1}`;
         } else if (!profile.display_name || profile.display_name.trim() === '') {
-          console.warn('⚠️ Profile has no display_name:', membership.user_id);
           userName = `Medlem ${index + 1}`;
         } else {
           // Use display_name directly (it should be properly set now)
           userName = profile.display_name.trim();
-          console.log('✅ Using display_name:', userName);
         }
         
         return {

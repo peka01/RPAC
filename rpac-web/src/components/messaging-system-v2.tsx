@@ -123,28 +123,18 @@ export function MessagingSystemV2({ user, communityId, initialTab = 'community',
 
       // Load contacts (community members if in community mode, excluding self)
       if (communityId) {
-        console.log('👥 Loading contacts for community:', communityId);
         const onlineUsers = await messagingService.getOnlineUsers(communityId);
-        console.log('👥 Online users loaded:', onlineUsers.length, onlineUsers);
-        console.log('👥 Current user ID:', user.id);
         // Filter out the current user from the contacts list
         const filteredContacts = onlineUsers.filter(contact => contact.id !== user.id);
-        console.log('👥 Filtered contacts (excluding self):', filteredContacts.length, filteredContacts);
-        console.log('👥 Contact details:', onlineUsers.map(c => ({ id: c.id, name: c.name, status: c.status })));
         setContacts(filteredContacts);
         
         // Auto-select contact if initialContactId is provided
         if (initialContactId) {
           const targetContact = filteredContacts.find(c => c.id === initialContactId);
           if (targetContact) {
-            console.log('🎯 Auto-selecting contact from URL:', targetContact.name);
             setActiveContact(targetContact);
-          } else {
-            console.warn('⚠️ Target contact not found in community:', initialContactId);
           }
         }
-      } else {
-        console.log('⚠️ No communityId provided for loading contacts');
       }
 
       // Load messages
@@ -162,16 +152,8 @@ export function MessagingSystemV2({ user, communityId, initialTab = 'community',
     if (!user?.id) return;
 
     try {
-      console.log('🔍 MessagingSystemV2 loadMessages called with:', {
-        userId: user.id,
-        activeTab,
-        communityId,
-        activeContact: activeContact?.id
-      });
-
       // Don't load messages on Direct tab without a selected contact
       if (activeTab === 'direct' && !activeContact) {
-        console.log('📝 Direct tab without contact - setting empty messages');
         setMessages([]);
         return;
       }
@@ -180,17 +162,11 @@ export function MessagingSystemV2({ user, communityId, initialTab = 'community',
 
       if (activeTab === 'community' && communityId) {
         params.communityId = communityId;
-        console.log('🏘️ Loading community messages for:', communityId);
       } else if (activeTab === 'direct' && activeContact) {
         params.recipientId = activeContact.id;
-        console.log('💬 Loading direct messages with:', activeContact.id);
-      } else {
-        console.log('⚠️ No valid params for message loading:', { activeTab, communityId, activeContact: activeContact?.id });
       }
 
-      console.log('📤 Calling messagingService.getMessages with params:', params);
       const loadedMessages = await messagingService.getMessages(params);
-      console.log('📥 Received messages:', loadedMessages.length, loadedMessages);
       setMessages(loadedMessages);
 
       // Mark messages as read
@@ -217,7 +193,6 @@ export function MessagingSystemV2({ user, communityId, initialTab = 'community',
     // Play notification sound for emergency messages
     if (message.is_emergency) {
       // Could add audio notification here
-      console.log('🚨 EMERGENCY MESSAGE:', message.content);
     }
   };
 
@@ -242,7 +217,7 @@ export function MessagingSystemV2({ user, communityId, initialTab = 'community',
           senderName = user.email || 'Okänd användare';
         }
       } catch (err) {
-        console.log('Could not fetch user profile, using email:', user.email);
+        // Silent fallback to email if profile fetch fails
         senderName = user.email || 'Okänd användare';
       }
       

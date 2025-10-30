@@ -68,8 +68,7 @@ export default function LocalPage() {
           setUser(demoUser);
         }
       } catch (error) {
-        console.error('Auth check failed:', error);
-        // Use demo mode on error
+        // Silent fallback to demo mode (expected when not logged in)
         const demoUser = {
           id: 'demo-user',
           email: 'demo@beready.se',

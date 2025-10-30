@@ -154,10 +154,7 @@ export function CommunityDashboardRefactored({ user, community, onNavigate }: Co
     if (!community?.id) return;
     
     try {
-      console.log('[Desktop] Loading recent activities for community:', community.id);
       const activities = await communityActivityService.getCommunityActivities(community.id, 5);
-      console.log('[Desktop] Loaded activities:', activities);
-      console.log('[Desktop] First activity image_url:', activities[0]?.image_url);
       setRecentActivity(activities);
     } catch (error) {
       console.error('Error loading recent activity:', error);

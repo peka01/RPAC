@@ -26,7 +26,6 @@ export const communityActivityService = {
     communityId: string, 
     limit: number = 10
   ): Promise<CommunityActivity[]> {
-    console.log('getCommunityActivities called for community:', communityId, 'limit:', limit);
     try {
       const { data, error } = await supabase
         .from('homespace_activity_log')
@@ -35,23 +34,14 @@ export const communityActivityService = {
         .order('created_at', { ascending: false })
         .limit(limit);
 
-      console.log('Activity log query result:', { data, error });
-      if (data && data.length > 0) {
-        console.log('First activity raw data:', data[0]);
-        console.log('First activity has image_url?', 'image_url' in data[0], data[0].image_url);
-      }
-
       if (error) {
         console.error('Error fetching community activities:', error);
         return [];
       }
 
       if (!data || data.length === 0) {
-        console.log('No activities found for community');
         return [];
       }
-
-      console.log(`Found ${data.length} activities`);
 
       // Get user profiles for activities that have user_id but no user_name
       const userIds = data
@@ -190,7 +180,6 @@ export const communityActivityService = {
     requestedByName: string;
     category: string;
   }): Promise<void> {
-    console.log('logHelpRequested called with:', params);
     const { error } = await supabase
       .from('homespace_activity_log')
       .insert([{
@@ -209,7 +198,6 @@ export const communityActivityService = {
       console.error('Error inserting help_requested activity:', error);
       throw error;
     }
-    console.log('Successfully inserted help_requested activity');
   },
 
   /**
@@ -272,7 +260,6 @@ export const communityActivityService = {
     addedBy: string;
     addedByName: string;
   }): Promise<void> {
-    console.log('logCommunityResourceAdded called with:', params);
     const { error } = await supabase
       .from('homespace_activity_log')
       .insert([{
@@ -291,7 +278,6 @@ export const communityActivityService = {
       console.error('Error inserting community_resource_added activity:', error);
       throw error;
     }
-    console.log('Successfully inserted community_resource_added activity');
   },
 
   /**

@@ -49,6 +49,166 @@ const bannerPatterns = {
   'olive-geometric': 'bg-gradient-to-br from-[#3D4A2B] via-[#5C6B47] to-[#2A331E]'
 };
 
+/**
+ * Privacy-aware activity aggregation for public homepage
+ * - Anonymizes user names (shows "En medlem" instead of real names)
+ * - Removes specific resource names/quantities
+ * - Groups similar activities within time windows
+ * - Limits to diverse activity types (not just resource spam)
+ */
+function aggregateActivitiesForPublic(rawActivities: any[]): any[] {
+  if (!rawActivities || rawActivities.length === 0) return [];
+
+  // Category name mapping (Swedish)
+  const categoryNames: Record<string, string> = {
+    'food': 'mat',
+    'water': 'vatten',
+    'shelter': 'skydd',
+    'energy': 'energi',
+    'medicine': 'medicin',
+    'tools': 'verktyg',
+    'communication': 'kommunikation',
+    'transport': 'transport',
+    'other': 'övrigt'
+  };
+
+  // Activity type priority (show diverse activity types)
+  const activityTypePriority: Record<string, number> = {
+    'member_joined': 3,
+    'help_requested': 2,
+    'milestone': 1,
+    'exercise': 1,
+    'resource_added': 4,
+    'resource_shared': 5,
+    'custom': 2
+  };
+
+  // Step 1: Anonymize and redact sensitive info
+  const anonymized = rawActivities.map(activity => {
+    const categoryName = categoryNames[activity.resource_category as string] || activity.resource_category || 'resurser';
+    
+    let anonymizedTitle = activity.title;
+    let anonymizedDescription = activity.description;
+
+    // Anonymize based on activity type
+    switch (activity.activity_type) {
+      case 'resource_shared':
+        anonymizedTitle = 'Resurs delad med samhället';
+        anonymizedDescription = `En medlem delade en resurs i ${categoryName}-kategorin`;
+        break;
+      
+      case 'resource_added':
+        anonymizedTitle = 'Samhällsresurs tillagd';
+        anonymizedDescription = `En samhällsresurs lades till i ${categoryName}-kategorin`;
+        break;
+      
+      case 'member_joined':
+        anonymizedTitle = 'Ny medlem välkommen';
+        anonymizedDescription = 'En ny medlem gick med i samhället';
+        break;
+      
+      case 'help_requested':
+        anonymizedTitle = 'Hjälpförfrågan skapad';
+        anonymizedDescription = `En medlem begärde hjälp i ${categoryName}-kategorin`;
+        break;
+      
+      case 'milestone':
+      case 'exercise':
+      case 'custom':
+        // Keep as-is for these types (admin-created content)
+        break;
+    }
+
+    return {
+      ...activity,
+      title: anonymizedTitle,
+      description: anonymizedDescription,
+      priority: activityTypePriority[activity.activity_type] || 5
+    };
+  });
+
+  // Step 2: Group similar activities within 24-hour windows
+  const grouped: Map<string, any[]> = new Map();
+  
+  anonymized.forEach(activity => {
+    const date = new Date(activity.created_at).toDateString();
+    const groupKey = `${date}-${activity.activity_type}-${activity.resource_category || 'none'}`;
+    
+    if (!grouped.has(groupKey)) {
+      grouped.set(groupKey, []);
+    }
+    grouped.get(groupKey)!.push(activity);
+  });
+
+  // Step 3: Create aggregated entries
+  const aggregated: any[] = [];
+  
+  grouped.forEach((activities, key) => {
+    if (activities.length === 1) {
+      // Single activity - show as-is (already anonymized)
+      aggregated.push(activities[0]);
+    } else {
+      // Multiple similar activities - create summary
+      const first = activities[0];
+      const count = activities.length;
+      const categoryName = categoryNames[first.resource_category as string] || first.resource_category || 'resurser';
+      
+      let summaryTitle = first.title;
+      let summaryDescription = first.description;
+
+      if (first.activity_type === 'resource_shared') {
+        summaryTitle = `${count} resurser delade`;
+        summaryDescription = `Medlemmar delade ${count} resurser i ${categoryName}-kategorin`;
+      } else if (first.activity_type === 'resource_added') {
+        summaryTitle = `${count} samhällsresurser tillagda`;
+        summaryDescription = `${count} samhällsresurser lades till i ${categoryName}-kategorin`;
+      } else if (first.activity_type === 'member_joined') {
+        summaryTitle = `${count} nya medlemmar`;
+        summaryDescription = `${count} nya medlemmar gick med i samhället`;
+      }
+
+      aggregated.push({
+        ...first,
+        title: summaryTitle,
+        description: summaryDescription,
+        aggregated_count: count
+      });
+    }
+  });
+
+  // Step 4: Sort by priority and date, limit to 5 diverse entries
+  const sorted = aggregated
+    .sort((a, b) => {
+      // First by priority (lower = higher priority)
+      if (a.priority !== b.priority) {
+        return a.priority - b.priority;
+      }
+      // Then by date (newer first)
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    })
+    .slice(0, 8); // Take top 8
+
+  // Step 5: Ensure diversity - limit consecutive same-type activities
+  const diverse: any[] = [];
+  let lastType = '';
+  let typeCount = 0;
+
+  for (const activity of sorted) {
+    if (activity.activity_type === lastType) {
+      typeCount++;
+      if (typeCount > 2) continue; // Skip if more than 2 consecutive of same type
+    } else {
+      lastType = activity.activity_type;
+      typeCount = 1;
+    }
+    
+    diverse.push(activity);
+    if (diverse.length >= 5) break; // Limit to 5 total
+  }
+
+  return diverse;
+}
+
 export default function CommunityHomespace({ homespace, isPreview = false }: CommunityHomespaceProps) {
   const [linkCopied, setLinkCopied] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
@@ -104,6 +264,84 @@ export default function CommunityHomespace({ homespace, isPreview = false }: Com
     };
 
     loadEvents();
+  }, [homespace.communities.id]);
+
+  // Load resource statistics (anonymized - category counts only)
+  useEffect(() => {
+    const loadResourceStats = async () => {
+      setLoadingResources(true);
+      try {
+        // Fetch community-owned resources
+        const { data: communityResources, error: communityError } = await supabase
+          .from('community_resources')
+          .select('category')
+          .eq('community_id', homespace.communities.id)
+          .eq('status', 'available');
+
+        // Fetch shared resources (from individual members)
+        const { data: sharedResources, error: sharedError } = await supabase
+          .from('resource_sharing')
+          .select('resource_category')
+          .eq('community_id', homespace.communities.id)
+          .eq('is_available', true);
+
+        if (communityError) throw communityError;
+        if (sharedError) throw sharedError;
+
+        // Aggregate counts by category (anonymized)
+        const categoryCounts: Record<string, number> = {};
+        
+        // Count community resources
+        (communityResources || []).forEach((resource: any) => {
+          const category = resource.category;
+          categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+        });
+
+        // Count shared resources
+        (sharedResources || []).forEach((resource: any) => {
+          const category = resource.resource_category;
+          categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+        });
+
+        setResourceStats(Object.keys(categoryCounts).length > 0 ? categoryCounts : null);
+      } catch (error) {
+        console.error('Error loading resource stats:', error);
+        setResourceStats(null);
+      } finally {
+        setLoadingResources(false);
+      }
+    };
+
+    loadResourceStats();
+  }, [homespace.communities.id]);
+
+  // Load recent community activities (privacy-aware aggregation)
+  useEffect(() => {
+    const loadActivities = async () => {
+      setLoadingActivities(true);
+      try {
+        const { data, error } = await supabase
+          .from('homespace_activity_log')
+          .select('*')
+          .eq('community_id', homespace.communities.id)
+          .eq('visible_public', true)
+          .order('created_at', { ascending: false })
+          .limit(50); // Fetch more to aggregate intelligently
+
+        if (error) throw error;
+        
+        // Privacy-aware aggregation: anonymize and group similar activities
+        const anonymizedActivities = aggregateActivitiesForPublic(data || []);
+        setCommunityActivities(anonymizedActivities);
+      } catch (error) {
+        console.error('Error loading activities:', error);
+        setCommunityActivities([]);
+      } finally {
+        setLoadingActivities(false);
+      }
+    };
+
+    loadActivities();
   }, [homespace.communities.id]);
 
   const bannerClass = homespace.custom_banner_url 
@@ -167,40 +405,11 @@ export default function CommunityHomespace({ homespace, isPreview = false }: Com
     setTimeout(() => setLinkCopied(false), 2000);
   };
 
-  // Mock resource data (in real implementation, fetch from database)
-  const resourceStats = {
-    vehicles: 3,
-    tools: 24,
-    water: 5,
-    food: 12,
-    energy: 8,
-    medicine: 6
-  };
-
-  // Mock preparedness score (in real implementation, calculate from member data)
-  const preparednessScore = 78;
-  const categoryScores = {
-    food: 85,
-    water: 92,
-    energy: 74,
-    tools: 88,
-    medicine: 65,
-    communication: 80
-  };
-
-  const getStatusLabel = (score: number) => {
-    if (score >= 80) return t('homespace.preparedness.status.strong');
-    if (score >= 60) return t('homespace.preparedness.status.good');
-    if (score >= 40) return t('homespace.preparedness.status.developing');
-    return t('homespace.preparedness.status.needs_improvement');
-  };
-
-  const getStatusColor = (score: number) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-[#5C6B47]';
-    if (score >= 40) return 'text-amber-600';
-    return 'text-orange-600';
-  };
+  // Real resource data will be fetched from database
+  const [resourceStats, setResourceStats] = useState<Record<string, number> | null>(null);
+  const [communityActivities, setCommunityActivities] = useState<any[]>([]);
+  const [loadingResources, setLoadingResources] = useState(true);
+  const [loadingActivities, setLoadingActivities] = useState(true);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -408,31 +617,60 @@ export default function CommunityHomespace({ homespace, isPreview = false }: Com
               🛠️ {t('homespace.sections.resources')}
             </h2>
             <div className="bg-white rounded-2xl shadow-lg p-8">
-              <h3 className="text-xl font-semibold text-[#3D4A2B] mb-6">
-                {t('homespace.resources.community_resources')}
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-                {Object.entries(resourceStats).map(([category, count]) => (
-                  <div key={category} className="bg-gradient-to-br from-[#5C6B47]/10 to-[#3D4A2B]/5 rounded-xl p-4 text-center">
-                    <div className="text-3xl mb-2">
-                      {category === 'vehicles' && '🚗'}
-                      {category === 'tools' && '🔧'}
-                      {category === 'water' && '💧'}
-                      {category === 'food' && '🥫'}
-                      {category === 'energy' && '⚡'}
-                      {category === 'medicine' && '💊'}
-                    </div>
-                    <div className="text-2xl font-bold text-[#3D4A2B]">{count}</div>
-                    <div className="text-sm text-gray-600 mt-1 capitalize">
-                      {t(`homespace.resources.categories.${category}`)}
-                    </div>
+              {loadingResources ? (
+                <div className="text-center py-8">
+                  <div className="text-6xl mb-4">⏳</div>
+                  <p className="text-gray-600">Laddar resurser...</p>
+                </div>
+              ) : resourceStats && Object.keys(resourceStats).length > 0 ? (
+                <>
+                  <h3 className="text-xl font-semibold text-[#3D4A2B] mb-6">
+                    Våra tillgängliga resurskategorier
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+                    {Object.entries(resourceStats).map(([category, count]) => {
+                      const categoryEmojis: Record<string, string> = {
+                        food: '🍞',
+                        water: '💧',
+                        medicine: '💊',
+                        energy: '⚡',
+                        tools: '🔧',
+                        machinery: '🚜',
+                        other: '✨'
+                      };
+                      const categoryLabels: Record<string, string> = {
+                        food: 'Mat',
+                        water: 'Vatten',
+                        medicine: 'Medicin',
+                        energy: 'Energi',
+                        tools: 'Verktyg',
+                        machinery: 'Maskiner',
+                        other: 'Övrigt'
+                      };
+                      return (
+                        <div key={category} className="bg-gradient-to-br from-[#5C6B47]/10 to-[#3D4A2B]/5 rounded-xl p-4 text-center">
+                          <div className="text-3xl mb-2">
+                            {categoryEmojis[category] || '📦'}
+                          </div>
+                          <div className="text-2xl font-bold text-[#3D4A2B]">{count}</div>
+                          <div className="text-sm text-gray-600 mt-1">
+                            {categoryLabels[category] || category}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
-              </div>
-              <button className="text-[#3D4A2B] font-semibold hover:text-[#2A331E] transition-colors flex items-center gap-2">
-                {t('homespace.resources.view_full')}
-                <span className="text-sm text-gray-500">({t('homespace.resources.members_only')})</span>
-              </button>
+                  <p className="text-sm text-gray-500 text-center">
+                    Antal resurskategorier som finns tillgängliga i samhället. Medlemmar kan se detaljer.
+                  </p>
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-6xl mb-4">🛠️</div>
+                  <h3 className="text-2xl font-bold text-[#3D4A2B] mb-2">Inga resurser ännu</h3>
+                  <p className="text-gray-600">Samhället har inte delat några resurser än</p>
+                </div>
+              )}
             </div>
           </section>
         )}
@@ -444,92 +682,66 @@ export default function CommunityHomespace({ homespace, isPreview = false }: Com
               📊 {t('homespace.sections.preparedness')}
             </h2>
             <div className="bg-white rounded-2xl shadow-lg p-8">
-              <div className="mb-8">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-xl font-semibold text-[#3D4A2B]">
-                    {t('homespace.preparedness.score')}
-                  </h3>
-                  <span className="text-3xl font-bold text-[#3D4A2B]">{preparednessScore}/100</span>
-                </div>
-                <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-[#5C6B47] to-[#3D4A2B] transition-all duration-500"
-                    style={{ width: `${preparednessScore}%` }}
-                  />
-                </div>
+              <div className="text-center py-8">
+                <div className="text-6xl mb-4">📊</div>
+                <h3 className="text-2xl font-bold text-[#3D4A2B] mb-2">Kommer snart</h3>
+                <p className="text-gray-600">Beredskapspoäng och analys kommer att visas här</p>
               </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {Object.entries(categoryScores).map(([category, score]) => (
-                  <div key={category} className="bg-gray-50 rounded-xl p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-gray-700 capitalize">
-                        {t(`homespace.preparedness.categories.${category}`)}
-                      </span>
-                      <span className={`text-sm font-bold ${getStatusColor(score)}`}>
-                        {getStatusLabel(score)}
-                      </span>
-                    </div>
-                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-[#5C6B47] transition-all duration-500"
-                        style={{ width: `${score}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <button className="mt-6 text-[#3D4A2B] font-semibold hover:text-[#2A331E] transition-colors flex items-center gap-2">
-                {t('homespace.preparedness.detailed_analysis')}
-                <span className="text-sm text-gray-500">({t('homespace.resources.members_only')})</span>
-              </button>
             </div>
           </section>
         )}
 
         {/* Activities Section */}
-        <section className="mb-12">
-          <h2 className="text-3xl font-bold text-[#3D4A2B] mb-6 flex items-center gap-3">
-            📰 {t('homespace.sections.activities')}
-          </h2>
-          <div className="bg-white rounded-2xl shadow-lg p-8">
-            <div className="space-y-4">
-              {/* Mock activities - in real implementation, fetch from database */}
-              <div className="flex items-start gap-4 border-l-4 border-[#5C6B47] pl-4 py-2">
-                <span className="text-2xl">🚜</span>
-                <div>
-                  <div className="text-sm text-gray-500">2024-10-20</div>
-                  <div className="font-semibold text-gray-800">Ny gemensam generator installerad</div>
+        {homespace.show_member_activities && (
+          <section className="mb-12">
+            <h2 className="text-3xl font-bold text-[#3D4A2B] mb-6 flex items-center gap-3">
+              📰 {t('homespace.sections.activities')}
+            </h2>
+            <div className="bg-white rounded-2xl shadow-lg p-8">
+              {loadingActivities ? (
+                <div className="text-center py-8">
+                  <div className="text-6xl mb-4">⏳</div>
+                  <p className="text-gray-600">Laddar aktiviteter...</p>
                 </div>
-              </div>
-              <div className="flex items-start gap-4 border-l-4 border-[#5C6B47] pl-4 py-2">
-                <span className="text-2xl">👥</span>
-                <div>
-                  <div className="text-sm text-gray-500">2024-10-15</div>
-                  <div className="font-semibold text-gray-800">5 nya medlemmar välkomna!</div>
+              ) : communityActivities.length > 0 ? (
+                <>
+                  <div className="space-y-4">
+                    {communityActivities.map((activity, index) => (
+                      <div key={activity.id || index} className="flex items-start gap-4 border-l-4 border-[#5C6B47] pl-4 py-2">
+                        <span className="text-2xl">{activity.icon}</span>
+                        <div className="flex-1">
+                          <div className="text-sm text-gray-500">
+                            {new Date(activity.created_at).toLocaleDateString('sv-SE', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                            {activity.aggregated_count && activity.aggregated_count > 1 && (
+                              <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#5C6B47]/20 text-[#3D4A2B]">
+                                {activity.aggregated_count} aktiviteter
+                              </span>
+                            )}
+                          </div>
+                          <div className="font-semibold text-gray-800">{activity.title}</div>
+                          <div className="text-sm text-gray-600">{activity.description}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="mt-6 text-center text-sm text-gray-500">
+                    Anonymiserade aktiviteter från samhället. Medlemmar kan se fullständig historik.
+                  </p>
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-6xl mb-4">📰</div>
+                  <h3 className="text-2xl font-bold text-[#3D4A2B] mb-2">Inga aktiviteter ännu</h3>
+                  <p className="text-gray-600">Samhället har inte loggat några aktiviteter än</p>
                 </div>
-              </div>
-              <div className="flex items-start gap-4 border-l-4 border-[#5C6B47] pl-4 py-2">
-                <span className="text-2xl">🎯</span>
-                <div>
-                  <div className="text-sm text-gray-500">2024-10-10</div>
-                  <div className="font-semibold text-gray-800">Beredskapsövning genomförd</div>
-                </div>
-              </div>
-              <div className="flex items-start gap-4 border-l-4 border-[#5C6B47] pl-4 py-2">
-                <span className="text-2xl">🌱</span>
-                <div>
-                  <div className="text-sm text-gray-500">2024-10-05</div>
-                  <div className="font-semibold text-gray-800">Odlingsplanering för våren påbörjad</div>
-                </div>
-              </div>
+              )}
             </div>
-            <button className="mt-6 text-[#3D4A2B] font-semibold hover:text-[#2A331E] transition-colors">
-              {t('homespace.activities.view_older')}
-            </button>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* Skills Section */}
         {homespace.show_skills_public && (
@@ -538,16 +750,11 @@ export default function CommunityHomespace({ homespace, isPreview = false }: Com
               🎓 {t('homespace.sections.skills')}
             </h2>
             <div className="bg-white rounded-2xl shadow-lg p-8">
-              <div className="flex flex-wrap gap-3 mb-6">
-                {['plumbing', 'electrical', 'gardening', 'first_aid', 'carpentry', 'mechanics', 'cooking', 'radio'].map((skill) => (
-                  <div key={skill} className="bg-[#5C6B47] text-white px-4 py-2 rounded-full text-sm font-medium">
-                    {t(`homespace.skills.common_skills.${skill}`)}
-                  </div>
-                ))}
+              <div className="text-center py-8">
+                <div className="text-6xl mb-4">🎓</div>
+                <h3 className="text-2xl font-bold text-[#3D4A2B] mb-2">Kommer snart</h3>
+                <p className="text-gray-600">Medlemmarnas kompetenser kommer att visas här</p>
               </div>
-              <p className="text-gray-600">
-                {t('homespace.skills.available_skills', { count: '24' })}
-              </p>
             </div>
           </section>
         )}

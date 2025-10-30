@@ -9,7 +9,8 @@ import {
   LogOut, 
   Bell,
   ChevronDown,
-  Shield
+  Shield,
+  HelpCircle
 } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { supabase } from '@/lib/supabase';
@@ -209,6 +210,21 @@ export function TopMenu({ user }: TopMenuProps) {
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </div>
               )}
+            </button>
+          )}
+
+          {/* Help/KRISter Button */}
+          {user && (
+            <button
+              onClick={() => {
+                // Dispatch custom event to open KRISter
+                window.dispatchEvent(new Event('openKRISter'));
+              }}
+              className="w-12 h-12 bg-white/60 hover:bg-white/80 rounded-lg flex items-center justify-center transition-all duration-200 shadow-sm border border-gray-200/30"
+              aria-label="Öppna KRISter hjälp"
+              title="Få hjälp av KRISter"
+            >
+              <HelpCircle className="w-6 h-6 text-gray-600" />
             </button>
           )}
 
