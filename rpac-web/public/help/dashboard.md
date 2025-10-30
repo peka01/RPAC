@@ -7,6 +7,7 @@
 På översiktssidan får du:
 - **Väderprognos**: 5-dagars prognos med extremvädervarningar
 - **Snabblänkar**: Direkt åtkomst till Individuell, Lokalt och Regionalt
+En ny mening här!!
 
 ## Steg-för-steg
 
