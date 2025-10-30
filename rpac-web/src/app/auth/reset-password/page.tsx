@@ -212,7 +212,7 @@ export default function ResetPasswordPage() {
             >
               {loading ? (
                 <>
-                  <ShieldProgressSpinner size="sm" color="white" />
+                  <ShieldProgressSpinner size="sm" color="olive" />
                   <span>Återställer...</span>
                 </>
               ) : (
