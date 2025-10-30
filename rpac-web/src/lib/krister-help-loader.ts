@@ -174,7 +174,9 @@ export class KRISterHelpLoader {
   private static async fetchHelpContent(filePath: string): Promise<string> {
     // Option 1: Fetch from public API route
     try {
-      const response = await fetch(`/api/help/${filePath}`);
+      // Remove .md extension since API route adds it
+      const cleanPath = filePath.replace(/\.md$/, '');
+      const response = await fetch(`/api/help/${cleanPath}`);
       if (response.ok) {
         return await response.text();
       }

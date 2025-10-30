@@ -2,20 +2,18 @@
  * API Route: /api/help/[...path]
  * 
  * Serves markdown help documentation files for KRISter context-aware help system.
- * Files are stored in rpac-web/docs/help/ directory.
+ * Files are stored in rpac-web/public/help/ directory.
  * 
  * Examples:
- * - GET /api/help/dashboard -> docs/help/dashboard.md
- * - GET /api/help/individual/resources -> docs/help/individual/resources.md
- * - GET /api/help/local/home -> docs/help/local/home.md
+ * - GET /api/help/dashboard -> public/help/dashboard.md
+ * - GET /api/help/individual/resources -> public/help/individual/resources.md
+ * - GET /api/help/local/home -> public/help/local/home.md
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { readFile } from 'fs/promises';
-import { join } from 'path';
 
-// Remove edge runtime for development - use Node.js runtime to access filesystem
-// export const runtime = 'edge';
+// Edge runtime required for Cloudflare Pages
+export const runtime = 'edge';
 
 // Map of valid help file paths (for security)
 const VALID_HELP_FILES = [
@@ -62,12 +60,21 @@ export async function GET(
       );
     }
 
-    // Construct the full file system path
-    // In development, use Node.js filesystem
-    const docsPath = join(process.cwd(), 'docs', 'help', `${filePath}.md`);
+    // Fetch from public directory using origin
+    const url = new URL(request.url);
+    const helpFileUrl = `${url.origin}/help/${filePath}.md`;
     
     try {
-      const content = await readFile(docsPath, 'utf-8');
+      const response = await fetch(helpFileUrl);
+      
+      if (!response.ok) {
+        return NextResponse.json(
+          { error: 'Help file could not be read', path: filePath },
+          { status: 404 }
+        );
+      }
+      
+      const content = await response.text();
       
       return new NextResponse(content, {
         status: 200,
