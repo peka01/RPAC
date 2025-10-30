@@ -1024,7 +1024,7 @@ Exempel: ["Fråga 1?", "Hur gör jag X?", "Fråga 3?"]`;
                   </div>
                 )}
                 {/* Super-admin: Edit help doc */}
-                {helpEditorPath && (
+                {helpEditorPath && userProfile?.user_tier === 'super_admin' && (
                   <div className="mt-3 flex justify-end">
                     <button
                       onClick={openHelpEditor}

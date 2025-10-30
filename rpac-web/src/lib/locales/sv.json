@@ -1784,6 +1784,11 @@
       "default_description": "Lokalt beredskapssamhälle för ömsesidig hjälp och krisberedskap"
     }
   },
+  "local": {
+    "discover": {
+      "search_communities": "Hitta samhällen att gå med i"
+    }
+  },
   "admin": {
     "title": "Systemadministration",
     "dashboard": "Översikt",

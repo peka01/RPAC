@@ -64,7 +64,16 @@ export async function PUT(request: NextRequest) {
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     
     if (!supabaseUrl || !supabaseServiceKey) {
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+      // Log which variable is missing (for debugging - remove sensitive info in production)
+      const missingVars = [];
+      if (!supabaseUrl) missingVars.push('NEXT_PUBLIC_SUPABASE_URL');
+      if (!supabaseServiceKey) missingVars.push('SUPABASE_SERVICE_ROLE_KEY');
+      
+      console.error('Missing environment variables:', missingVars.join(', '));
+      return NextResponse.json({ 
+        error: 'Server configuration error',
+        details: `Missing: ${missingVars.join(', ')}`
+      }, { status: 500 });
     }
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
