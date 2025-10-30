@@ -213,15 +213,36 @@ export const resourceSharingService = {
 
     if (error) throw error;
     
-    // Log activity (async, don't wait for it)
-    communityActivityService.logResourceShared({
-      communityId: params.communityId,
-      resourceName: 'Resurs', // Will be replaced by trigger with actual name
-      resourceCategory: 'other', // Will be replaced by trigger with actual category
-      sharedBy: params.userId,
-      sharedByName: 'Medlem', // Will be replaced by trigger with actual name
-      quantity: params.sharedQuantity
-    }).catch(err => console.error('Failed to log sharing activity:', err));
+    // Log activity with actual resource and user details
+    try {
+      console.log('Logging resource sharing activity...');
+      
+      // Fetch resource details
+      const { data: resourceData } = await supabase
+        .from('resources')
+        .select('name, category')
+        .eq('id', params.resourceId)
+        .single();
+      
+      // Fetch user profile
+      const { data: userProfile } = await supabase
+        .from('user_profiles')
+        .select('display_name')
+        .eq('user_id', params.userId)
+        .single();
+      
+      await communityActivityService.logResourceShared({
+        communityId: params.communityId,
+        resourceName: resourceData?.name || 'Resurs',
+        resourceCategory: resourceData?.category || 'other',
+        sharedBy: params.userId,
+        sharedByName: userProfile?.display_name || 'En medlem',
+        quantity: params.sharedQuantity
+      });
+      console.log('Successfully logged resource sharing activity');
+    } catch (err) {
+      console.error('Failed to log sharing activity:', err);
+    }
     
     return data as SharedResource;
   },
@@ -446,6 +467,21 @@ export const resourceSharingService = {
       console.error('Failed to create help request notification', notificationError);
     });
 
+    // Log activity
+    try {
+      console.log('Attempting to log help request activity...');
+      await communityActivityService.logHelpRequested({
+        communityId: params.communityId,
+        requestTitle: params.title,
+        requestedBy: params.userId,
+        requestedByName: requesterName || 'Medlem',
+        category: 'help' // Generic category for help requests
+      });
+      console.log('Successfully logged help request activity');
+    } catch (activityError) {
+      console.error('Failed to log help request activity:', activityError);
+    }
+
     return enrichedRequest;
   },
 
@@ -554,6 +590,36 @@ export const resourceSharingService = {
       });
 
     if (error) throw error;
+
+    // Log activity if can_help is true
+    if (canHelp) {
+      try {
+        // Get the help request details to log the activity
+        const { data: helpRequest } = await supabase
+          .from('help_requests')
+          .select('title, community_id')
+          .eq('id', requestId)
+          .single();
+
+        // Get responder name
+        const { data: responderProfile } = await supabase
+          .from('user_profiles')
+          .select('display_name')
+          .eq('user_id', responderId)
+          .single();
+
+        if (helpRequest) {
+          await communityActivityService.logHelpResponseAdded({
+            communityId: helpRequest.community_id,
+            requestTitle: helpRequest.title,
+            responderName: responderProfile?.display_name || 'En medlem',
+            responderId
+          });
+        }
+      } catch (activityError) {
+        console.error('Failed to log help response activity:', activityError);
+      }
+    }
   },
 
   /**

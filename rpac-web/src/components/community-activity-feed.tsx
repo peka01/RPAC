@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 import {
   Users,
   Package,
@@ -11,7 +13,9 @@ import {
   Building2,
   Share2,
   Activity,
-  Loader
+  Loader,
+  ExternalLink,
+  ImageIcon
 } from 'lucide-react';
 import { communityActivityService, type CommunityActivity } from '@/lib/community-activity-service';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
@@ -25,12 +29,16 @@ interface CommunityActivityFeedProps {
 }
 
 const activityIcons = {
-  member_joined: { icon: Users, color: 'text-green-600', bg: 'bg-green-100' },
-  resource_added: { icon: Building2, color: 'text-blue-600', bg: 'bg-blue-100' },
-  resource_shared: { icon: Share2, color: 'text-purple-600', bg: 'bg-purple-100' },
-  help_requested: { icon: Heart, color: 'text-orange-600', bg: 'bg-orange-100' },
-  milestone: { icon: CheckCircle, color: 'text-yellow-600', bg: 'bg-yellow-100' },
-  custom: { icon: Activity, color: 'text-gray-600', bg: 'bg-gray-100' }
+  member_joined: { icon: Users, bg: 'bg-[#3D4A2B]' },
+  resource_added: { icon: Building2, bg: 'bg-[#5C6B47]' },
+  resource_shared: { icon: Share2, bg: 'bg-[#707C5F]' },
+  help_requested: { icon: Heart, bg: 'bg-[#8B9B6D]' },
+  help_response_added: { icon: CheckCircle, bg: 'bg-[#556B2F]' },
+  community_resource_added: { icon: Building2, bg: 'bg-[#3D4A2B]' },
+  community_resource_updated: { icon: Package, bg: 'bg-[#5C6B47]' },
+  community_resource_deleted: { icon: AlertCircle, bg: 'bg-[#707C5F]' },
+  milestone: { icon: CheckCircle, bg: 'bg-[#8B9B6D]' },
+  custom: { icon: Activity, bg: 'bg-[#556B2F]' }
 };
 
 const categoryEmojis = {
@@ -95,7 +103,7 @@ export function CommunityActivityFeed({
     
     return (
       <div className={`w-8 h-8 ${config.bg} rounded-full flex items-center justify-center`}>
-        <IconComponent size={16} className={config.color} strokeWidth={2} />
+        <IconComponent size={16} className="text-white" strokeWidth={2} />
       </div>
     );
   };
@@ -108,20 +116,49 @@ export function CommunityActivityFeed({
   const getActivityActionText = (activity: CommunityActivity) => {
     switch (activity.activity_type) {
       case 'resource_added':
-        return t('local_community.activity_resource_added');
+        return 'lade till resurs';
       case 'resource_shared':
-        return t('local_community.activity_resource_shared');
+        return 'delade resurs';
       case 'member_joined':
-        return t('local_community.activity_member_joined');
+        return 'gick med i samhället';
       case 'help_requested':
-        return t('local_community.activity_help_requested');
+        return 'begärde hjälp';
+      case 'help_response_added':
+        return 'erbjöd hjälp';
+      case 'community_resource_added':
+        return 'lade till gemensam resurs';
+      case 'community_resource_updated':
+        return 'uppdaterade gemensam resurs';
+      case 'community_resource_deleted':
+        return 'tog bort gemensam resurs';
       case 'milestone':
-        return t('local_community.activity_milestone');
+        return 'uppnådde milstolpe';
       case 'custom':
-        return t('local_community.activity_custom');
+        return 'aktivitet';
       default:
-        return t('local_community.activity_custom');
+        return 'aktivitet';
     }
+  };
+
+  const getActivityLink = (activity: CommunityActivity): string | null => {
+    // Help requests and responses link to resources tab with help view
+    if (activity.activity_type === 'help_requested' || activity.activity_type === 'help_response_added') {
+      return `/local?tab=resources&resourceTab=help`;
+    }
+    
+    // Community resources (owned by community) link to owned/gemensamma resurser tab
+    if (activity.activity_type === 'community_resource_added' || 
+        activity.activity_type === 'community_resource_updated') {
+      return `/local?tab=resources&resourceTab=owned`;
+    }
+    
+    // Shared resources (from members) link to shared tab
+    if (activity.activity_type === 'resource_shared' || activity.activity_type === 'resource_added') {
+      return `/local?tab=resources&resourceTab=shared`;
+    }
+    
+    // Member joined is not linkable
+    return null;
   };
 
   if (loading) {
@@ -176,56 +213,118 @@ export function CommunityActivityFeed({
           </div>
         ) : (
           <div className="space-y-3">
-            {activities.map((activity) => (
-              <div key={activity.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                {getActivityIcon(activity)}
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 text-sm">
-                        {activity.activity_type === 'member_joined' ? (
-                          // Special display for member joined activities - show member name prominently
-                          <>
-                            <span className="font-medium text-gray-900 truncate">
-                              {activity.user_name && activity.user_name !== 'Anonym användare' ? activity.user_name : 'Ny medlem'}
-                            </span>
-                            <span className="text-gray-500 text-xs">
-                              {getActivityActionText(activity)}
-                            </span>
-                          </>
-                        ) : (
-                          // Regular display for other activities
-                          <>
-                            <span className="font-medium text-gray-900 truncate">
-                              {activity.resource_name && getCategoryEmoji(activity.resource_category)} {activity.resource_name || activity.title}
-                            </span>
-                            {activity.resource_category && activity.resource_category !== 'other' && (
-                              <span className="px-2 py-0.5 bg-[#556B2F]/10 rounded-full text-[#556B2F] text-xs whitespace-nowrap">
-                                {activity.resource_category}
+            {activities.map((activity) => {
+              const link = getActivityLink(activity);
+              const hasImage = !!activity.image_url;
+              
+              if (activity.activity_type === 'resource_shared') {
+                console.log('[ActivityFeed] Resource shared activity:', {
+                  id: activity.id,
+                  resource_name: activity.resource_name,
+                  image_url: activity.image_url,
+                  hasImage: hasImage
+                });
+              }
+              
+              const content = (
+                <>
+                  {getActivityIcon(activity)}
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-900">
+                          {activity.activity_type === 'member_joined' ? (
+                            // Member joined: "Per Karlsson gick med i samhället"
+                            <>
+                              <span className="font-semibold">
+                                {activity.user_name && activity.user_name !== 'Anonym användare' ? activity.user_name : 'Ny medlem'}
                               </span>
-                            )}
-                            <span className="text-gray-500 text-xs">
-                              {getActivityActionText(activity)}
-                            </span>
-                            {activity.user_name && activity.user_name !== 'Anonym användare' && (
-                              <span className="text-gray-500 text-xs">
-                                • {activity.user_name}
+                              {' '}
+                              <span className="text-gray-600">
+                                {getActivityActionText(activity)}
                               </span>
-                            )}
-                          </>
+                            </>
+                          ) : (
+                            // Other activities: "Per Karlsson lade till gemensam resurs: Vattentäkt"
+                            <>
+                              {activity.user_name && activity.user_name !== 'Anonym användare' && (
+                                <>
+                                  <span className="font-semibold">{activity.user_name}</span>
+                                  {' '}
+                                </>
+                              )}
+                              <span className="text-gray-600">
+                                {getActivityActionText(activity)}
+                              </span>
+                              {activity.resource_name && (
+                                <>
+                                  {': '}
+                                  <span className="font-semibold text-gray-900">
+                                    {activity.resource_name}
+                                  </span>
+                                </>
+                              )}
+                            </>
+                          )}
+                        </p>
+                        
+                        {/* Show image thumbnail if available */}
+                        {hasImage && (
+                          <div className="mt-2 relative group">
+                            <div className="relative w-16 h-16 rounded-lg overflow-hidden border-2 border-gray-200 group-hover:border-[#3D4A2B] transition-all duration-200 cursor-pointer">
+                              <Image
+                                src={activity.image_url!}
+                                alt={activity.resource_name || activity.title}
+                                fill
+                                className="object-cover"
+                                sizes="64px"
+                              />
+                            </div>
+                            {/* Large hover preview */}
+                            <div className="absolute left-0 top-0 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none">
+                              <div className="relative w-64 h-64 rounded-xl overflow-hidden border-4 border-[#3D4A2B] shadow-2xl">
+                                <Image
+                                  src={activity.image_url!}
+                                  alt={activity.resource_name || activity.title}
+                                  fill
+                                  className="object-cover"
+                                  sizes="256px"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-2 text-xs text-gray-500 flex-shrink-0">
+                        <div className="flex items-center gap-1">
+                          <Clock size={12} />
+                          <span>{formatTimeAgo(activity.created_at)}</span>
+                        </div>
+                        {link && (
+                          <ExternalLink size={12} className="text-[#3D4A2B]" />
                         )}
                       </div>
                     </div>
-                    
-                    <div className="flex items-center gap-1 text-xs text-gray-500 flex-shrink-0">
-                      <Clock size={12} />
-                      <span>{formatTimeAgo(activity.created_at)}</span>
-                    </div>
                   </div>
+                </>
+              );
+
+              return link ? (
+                <Link
+                  key={activity.id}
+                  href={link}
+                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                >
+                  {content}
+                </Link>
+              ) : (
+                <div key={activity.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  {content}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

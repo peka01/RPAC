@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Users,
   Package,
@@ -23,9 +24,13 @@ import {
   BarChart3,
   Eye,
   Trash2,
-  UserPlus
+  UserPlus,
+  Building2,
+  Share2,
+  Image as ImageIcon
 } from 'lucide-react';
 import { resourceSharingService } from '@/lib/resource-sharing-service';
+import { communityActivityService, type CommunityActivity } from '@/lib/community-activity-service';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { CommunityActivityFeed } from '@/components/community-activity-feed';
 import type { User } from '@supabase/supabase-js';
@@ -57,6 +62,20 @@ interface RecentActivity {
   user?: string;
 }
 
+// Activity icon mapping - matches CommunityActivityFeed
+const activityIcons = {
+  member_joined: { icon: Users, bg: 'bg-[#3D4A2B]' },
+  resource_added: { icon: Building2, bg: 'bg-[#5C6B47]' },
+  resource_shared: { icon: Share2, bg: 'bg-[#707C5F]' },
+  help_requested: { icon: Heart, bg: 'bg-[#8B9B6D]' },
+  help_response_added: { icon: CheckCircle, bg: 'bg-[#556B2F]' },
+  community_resource_added: { icon: Building2, bg: 'bg-[#3D4A2B]' },
+  community_resource_updated: { icon: Package, bg: 'bg-[#5C6B47]' },
+  community_resource_deleted: { icon: AlertCircle, bg: 'bg-[#707C5F]' },
+  milestone: { icon: CheckCircle, bg: 'bg-[#8B9B6D]' },
+  custom: { icon: Activity, bg: 'bg-[#556B2F]' }
+};
+
 export function CommunityDashboardRefactored({ user, community, onNavigate }: CommunityDashboardRefactoredProps) {
   const [loading, setLoading] = useState(true);
   const [showHomespaceEditor, setShowHomespaceEditor] = useState(false);
@@ -69,7 +88,7 @@ export function CommunityDashboardRefactored({ user, community, onNavigate }: Co
     activeMembers: 0,
     recentActivity: 0
   });
-  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
+  const [recentActivity, setRecentActivity] = useState<CommunityActivity[]>([]);
 
   useEffect(() => {
     if (community?.id) {
@@ -135,32 +154,82 @@ export function CommunityDashboardRefactored({ user, community, onNavigate }: Co
     if (!community?.id) return;
     
     try {
-      // Mock recent activity data - in real implementation, fetch from database
-      const mockActivity: RecentActivity[] = [
-        {
-          id: '1',
-          type: 'member_joined',
-          message: 'Ny medlem gick med i samhället',
-          timestamp: '22 tim sedan'
-        },
-        {
-          id: '2',
-          type: 'member_joined',
-          message: 'Simon Salgfors gick med i samhället',
-          timestamp: '22 tim sedan'
-        },
-        {
-          id: '3',
-          type: 'member_joined',
-          message: 'Test User gick med i samhället',
-          timestamp: '22 tim sedan'
-        }
-      ];
-      
-      setRecentActivity(mockActivity);
+      console.log('[Desktop] Loading recent activities for community:', community.id);
+      const activities = await communityActivityService.getCommunityActivities(community.id, 5);
+      console.log('[Desktop] Loaded activities:', activities);
+      console.log('[Desktop] First activity image_url:', activities[0]?.image_url);
+      setRecentActivity(activities);
     } catch (error) {
       console.error('Error loading recent activity:', error);
+      setRecentActivity([]);
     }
+  };
+
+  const getActivityActionText = (activityType: string) => {
+    switch (activityType) {
+      case 'resource_added':
+        return 'lade till resurs';
+      case 'resource_shared':
+        return 'delade resurs';
+      case 'member_joined':
+        return 'gick med i samhället';
+      case 'help_requested':
+        return 'begärde hjälp';
+      case 'help_response_added':
+        return 'erbjöd hjälp';
+      case 'community_resource_added':
+        return 'lade till gemensam resurs';
+      case 'community_resource_updated':
+        return 'uppdaterade gemensam resurs';
+      case 'community_resource_deleted':
+        return 'tog bort gemensam resurs';
+      case 'milestone':
+        return 'uppnådde milstolpe';
+      default:
+        return 'aktivitet';
+    }
+  };
+
+  const getActivityLink = (activity: CommunityActivity): string | null => {
+    if (activity.activity_type === 'help_requested' || activity.activity_type === 'help_response_added') {
+      return `/local?tab=resources&resourceTab=help`;
+    }
+    if (activity.activity_type === 'community_resource_added' || 
+        activity.activity_type === 'community_resource_updated') {
+      return `/local?tab=resources&resourceTab=owned`;
+    }
+    if (activity.activity_type === 'resource_shared' || activity.activity_type === 'resource_added') {
+      return `/local?tab=resources&resourceTab=shared`;
+    }
+    return null;
+  };
+
+  const getActivityIcon = (activityType: string) => {
+    const config = activityIcons[activityType as keyof typeof activityIcons] || activityIcons.custom;
+    const IconComponent = config.icon;
+    
+    return (
+      <div className={`w-8 h-8 ${config.bg} rounded-full flex items-center justify-center flex-shrink-0`}>
+        <IconComponent size={16} className="text-white" strokeWidth={2} />
+      </div>
+    );
+  };
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'Just nu';
+    if (diffInMinutes < 60) return `${diffInMinutes} min sedan`;
+    
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours} tim sedan`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays} dag${diffInDays > 1 ? 'ar' : ''} sedan`;
+    
+    return date.toLocaleDateString('sv-SE');
   };
 
   if (!community) {
@@ -183,62 +252,6 @@ export function CommunityDashboardRefactored({ user, community, onNavigate }: Co
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* Main Content */}
       <div className="lg:col-span-2 space-y-6">
-
-
-            {/* Statistics Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Users size={20} className="text-blue-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">Medlemmar</h4>
-                  </div>
-                </div>
-                <div className="text-3xl font-bold text-gray-900 mb-1">{stats.activeMembers}</div>
-                <p className="text-sm text-gray-600">Aktiva medlemmar</p>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                    <Package size={20} className="text-yellow-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">Resurser</h4>
-                  </div>
-                </div>
-                <div className="text-3xl font-bold text-gray-900 mb-1">{stats.availableResources}</div>
-                <p className="text-sm text-gray-600">Tillgängliga resurser</p>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
-                    <Heart size={20} className="text-pink-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">Förfrågningar</h4>
-                  </div>
-                </div>
-                <div className="text-3xl font-bold text-gray-900 mb-1">{stats.helpRequests}</div>
-                <p className="text-sm text-gray-600">Aktiva förfrågningar</p>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Activity size={20} className="text-purple-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">Aktivitet</h4>
-                  </div>
-                </div>
-                <div className="text-3xl font-bold text-gray-900 mb-1">{stats.recentActivity}</div>
-                <p className="text-sm text-gray-600">Senaste veckan</p>
-              </div>
-            </div>
 
             {/* Action Cards */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -335,23 +348,118 @@ export function CommunityDashboardRefactored({ user, community, onNavigate }: Co
           {/* Right Sidebar - Activity Feed */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 sticky top-8">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Activity size={20} className="text-[#3D4A2B]" />
-                Senaste aktivitet
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <Activity size={20} className="text-[#3D4A2B]" />
+                  Senaste aktivitet
+                </h3>
+                <button
+                  onClick={() => window.location.href = `/local/activity?community=${community.id}`}
+                  className="text-sm text-[#3D4A2B] hover:text-[#2A331E] font-semibold hover:underline"
+                >
+                  Visa alla
+                </button>
+              </div>
               
-              <div className="space-y-4">
-                {recentActivity.map((activity) => (
-                  <div key={activity.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                    <div className="w-8 h-8 bg-[#5C6B47] rounded-full flex items-center justify-center flex-shrink-0">
-                      <Users size={16} className="text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-700">{activity.message}</p>
-                      <p className="text-xs text-gray-500 mt-1">{activity.timestamp}</p>
-                    </div>
+              <div className="space-y-3">
+                {recentActivity.length > 0 ? (
+                  recentActivity.map((activity) => {
+                    const link = getActivityLink(activity);
+                    const hasImage = !!activity.image_url;
+                    const content = (
+                      <>
+                        {getActivityIcon(activity.activity_type)}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-gray-900">
+                            {activity.activity_type === 'member_joined' ? (
+                              <>
+                                <span className="font-semibold">
+                                  {activity.user_name && activity.user_name !== 'Anonym användare' ? activity.user_name : 'Ny medlem'}
+                                </span>
+                                {' '}
+                                <span className="text-gray-600">
+                                  {getActivityActionText(activity.activity_type)}
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                {activity.user_name && activity.user_name !== 'Anonym användare' && (
+                                  <>
+                                    <span className="font-semibold">{activity.user_name}</span>
+                                    {' '}
+                                  </>
+                                )}
+                                <span className="text-gray-600">
+                                  {getActivityActionText(activity.activity_type)}
+                                </span>
+                                {activity.resource_name && (
+                                  <>
+                                    {': '}
+                                    <span className="font-semibold text-gray-900">
+                                      {activity.resource_name}
+                                    </span>
+                                  </>
+                                )}
+                              </>
+                            )}
+                          </p>
+                          
+                          {/* Show image thumbnail if available */}
+                          {hasImage && (
+                            <div className="mt-2 relative group">
+                              <div className="relative w-12 h-12 rounded-lg overflow-hidden border-2 border-gray-200 group-hover:border-[#3D4A2B] transition-all duration-200 cursor-pointer">
+                                <Image
+                                  src={activity.image_url!}
+                                  alt={activity.resource_name || activity.title}
+                                  fill
+                                  className="object-cover"
+                                  sizes="48px"
+                                />
+                              </div>
+                              {/* Large hover preview */}
+                              <div className="absolute left-0 top-0 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none">
+                                <div className="relative w-48 h-48 rounded-xl overflow-hidden border-4 border-[#3D4A2B] shadow-2xl">
+                                  <Image
+                                    src={activity.image_url!}
+                                    alt={activity.resource_name || activity.title}
+                                    fill
+                                    className="object-cover"
+                                    sizes="192px"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                            <Clock size={10} />
+                            <span>{formatTimeAgo(activity.created_at)}</span>
+                            {link && <ExternalLink size={10} className="ml-1 text-[#3D4A2B]" />}
+                          </div>
+                        </div>
+                      </>
+                    );
+
+                    return link ? (
+                      <Link
+                        key={activity.id}
+                        href={link}
+                        className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                      >
+                        {content}
+                      </Link>
+                    ) : (
+                      <div key={activity.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                        {content}
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-8">
+                    <Activity size={32} className="mx-auto text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-600">Ingen aktivitet ännu</p>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>

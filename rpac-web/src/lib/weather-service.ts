@@ -39,7 +39,10 @@ export class WeatherService {
       const response = await fetch(url.toString());
       
       if (!response.ok) {
-        console.error('Failed to fetch SMHI warnings:', response.statusText);
+        // API exists but returned error - log for debugging
+        if (response.status !== 404) {
+          console.warn(`Weather warnings API returned ${response.status}:`, response.statusText);
+        }
         return [];
       }
 
@@ -54,9 +57,10 @@ export class WeatherService {
       return warningData.warnings || [];
 
     } catch (error) {
-      console.error('Error fetching SMHI warnings:', error);
-      
-      // Return empty array instead of mock data
+      // Only log unexpected errors, not network issues
+      if (error instanceof Error && !error.message.includes('fetch')) {
+        console.warn('Weather warnings error:', error.message);
+      }
       return [];
     }
   }
@@ -346,17 +350,20 @@ export class WeatherService {
             const weatherSymbol = getParameter('Wsymb2');
             const forecast = this.getWeatherDescriptionFromSymbol(weatherSymbol);
             
-            // Weather data processed successfully
+            // Only return data if we have valid temperature data
+            if (temperature === null || temperature === undefined) {
+              return null as any;
+            }
 
             const realWeather: WeatherData = {
-              temperature: temperature !== null ? temperature : this.getRandomTemperature(),
-              humidity: humidity !== null ? humidity : this.getRandomHumidity(),
-              rainfall: rainfall !== null ? rainfall.toString() : this.getRandomRainfall(),
-              forecast: forecast || this.getRandomForecast(),
-              windSpeed: windSpeed !== null ? windSpeed : this.getRandomWindSpeed(),
-              windDirection: this.getRandomWindDirection(),
-              pressure: pressure !== null ? pressure : this.getRandomPressure(),
-              uvIndex: this.getRandomUVIndex(),
+              temperature: temperature,
+              humidity: humidity ?? 50,
+              rainfall: rainfall !== null ? rainfall.toString() : '0',
+              forecast: forecast || 'Okänt',
+              windSpeed: windSpeed ?? 0,
+              windDirection: 'N/A',
+              pressure: pressure ?? 1013,
+              uvIndex: 0,
               sunrise: '06:30',
               sunset: '18:45',
               lastUpdated: new Date().toISOString(),
@@ -377,39 +384,15 @@ export class WeatherService {
           }
         }
       } catch (smhiError) {
-        // SMHI API not available, use fallback data
+        // SMHI API not available - return null instead of mock data
+        return null as any;
       }
 
-      // Fallback to mock data if SMHI API fails
-      const mockWeather: WeatherData = {
-        temperature: this.getRandomTemperature(),
-        humidity: this.getRandomHumidity(),
-        rainfall: this.getRandomRainfall(),
-        forecast: this.getRandomForecast(),
-        windSpeed: this.getRandomWindSpeed(),
-        windDirection: this.getRandomWindDirection(),
-        pressure: this.getRandomPressure(),
-        uvIndex: this.getRandomUVIndex(),
-        sunrise: '06:30',
-        sunset: '18:45',
-        lastUpdated: new Date().toISOString(),
-
-        // Pass through location info
-        _postalCode: userProfile?.postal_code,
-        _city: userProfile?.city,
-        _county: userProfile?.county
-      };
-
-      // Cache the result
-      this.weatherCache = {
-        data: mockWeather,
-        timestamp: Date.now()
-      };
-
-      return mockWeather;
+      // API call succeeded but no valid data - return null
+      return null as any;
     } catch (error) {
-      // Return fallback data on error
-      return this.getFallbackWeather();
+      // Return null on error - NO MOCK DATA
+      return null as any;
     }
   }
 
@@ -502,68 +485,36 @@ export class WeatherService {
                 }
               });
               
-              forecast.push({
-                date: targetDateStr,
-                temperature: {
-                  min: Math.round(minTemp),
-                  max: Math.round(maxTemp)
-                },
-                weather: weatherDescription || this.getRandomForecast(),
-                rainfall: Math.round(totalRainfall * 10) / 10,
-                windSpeed: Math.round(maxWindSpeed * 10) / 10,
-                minTempTime: minTempTime,
-                maxTempTime: maxTempTime
-              });
-            } else {
-              // Fallback to mock data
-              forecast.push({
-                date: targetDateStr,
-                temperature: {
-                  min: this.getRandomTemperature() - 5,
-                  max: this.getRandomTemperature() + 5
-                },
-                weather: this.getRandomForecast(),
-                rainfall: Math.random() * 10,
-                windSpeed: this.getRandomWindSpeed()
-              });
+              // Only add forecast if we have valid min/max temps
+              if (minTemp !== Infinity && maxTemp !== -Infinity) {
+                forecast.push({
+                  date: targetDateStr,
+                  temperature: {
+                    min: Math.round(minTemp),
+                    max: Math.round(maxTemp)
+                  },
+                  weather: weatherDescription || 'Okänt',
+                  rainfall: Math.round(totalRainfall * 10) / 10,
+                  windSpeed: Math.round(maxWindSpeed * 10) / 10,
+                  minTempTime: minTempTime,
+                  maxTempTime: maxTempTime
+                });
+              }
             }
+            // If no data for this day, skip it (NO MOCK DATA)
           }
           
           return forecast;
         }
       } catch (smhiError) {
-        // SMHI forecast API not available, use fallback data
+        // SMHI forecast API not available - return empty array
+        return [];
       }
       
-      // Fallback to mock forecast data with some frost warnings for testing
-      const forecast: WeatherForecast[] = [];
-      const today = new Date();
-      
-      for (let i = 0; i < 5; i++) {
-        const date = new Date(today);
-        date.setDate(today.getDate() + i);
-        
-        // Generate some frost warnings for testing (especially for days 2-3)
-        const baseTemp = this.getRandomTemperature();
-        const minTemp = i === 2 ? Math.random() * 2 - 2 : baseTemp - 5; // Day 3 gets frost
-        const maxTemp = baseTemp + 5;
-        
-        forecast.push({
-          date: date.toISOString().split('T')[0],
-          temperature: {
-            min: Math.round(minTemp),
-            max: Math.round(maxTemp)
-          },
-          weather: this.getRandomForecast(),
-          rainfall: Math.random() * 10,
-          windSpeed: this.getRandomWindSpeed(),
-          minTempTime: minTemp < 2 ? '06:00' : undefined
-        });
-      }
-
-      return forecast;
+      // API succeeded but no valid data - return empty array
+      return [];
     } catch (error) {
-      // Return empty array on error
+      // Return empty array on error - NO MOCK DATA
       return [];
     }
   }
@@ -624,7 +575,8 @@ export class WeatherService {
         return hourlyData;
       }
     } catch (error) {
-      // Could not fetch hourly forecast
+      // Could not fetch hourly forecast - NO MOCK DATA
+      console.error('Error fetching hourly forecast:', error);
     }
     
     return [];

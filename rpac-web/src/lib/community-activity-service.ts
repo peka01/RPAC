@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 export interface CommunityActivity {
   id: string;
   community_id: string;
-  activity_type: 'member_joined' | 'resource_added' | 'resource_shared' | 'help_requested' | 'milestone' | 'custom';
+  activity_type: 'member_joined' | 'resource_added' | 'resource_shared' | 'help_requested' | 'help_response_added' | 'community_resource_added' | 'community_resource_updated' | 'community_resource_deleted' | 'milestone' | 'custom';
   title: string;
   description: string;
   icon: string;
@@ -13,6 +13,7 @@ export interface CommunityActivity {
   user_name?: string;
   resource_name?: string;
   resource_category?: string;
+  image_url?: string;
   visible_public: boolean;
   created_at: string;
 }
@@ -25,13 +26,20 @@ export const communityActivityService = {
     communityId: string, 
     limit: number = 10
   ): Promise<CommunityActivity[]> {
+    console.log('getCommunityActivities called for community:', communityId, 'limit:', limit);
     try {
       const { data, error } = await supabase
         .from('homespace_activity_log')
         .select('*')
         .eq('community_id', communityId)
-        .order('id', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(limit);
+
+      console.log('Activity log query result:', { data, error });
+      if (data && data.length > 0) {
+        console.log('First activity raw data:', data[0]);
+        console.log('First activity has image_url?', 'image_url' in data[0], data[0].image_url);
+      }
 
       if (error) {
         console.error('Error fetching community activities:', error);
@@ -39,8 +47,11 @@ export const communityActivityService = {
       }
 
       if (!data || data.length === 0) {
+        console.log('No activities found for community');
         return [];
       }
+
+      console.log(`Found ${data.length} activities`);
 
       // Get user profiles for activities that have user_id but no user_name
       const userIds = data
@@ -78,6 +89,7 @@ export const communityActivityService = {
           user_name: userName || 'Ny medlem',
           resource_name: item.resource_name || null,
           resource_category: item.resource_category || null,
+          image_url: item.image_url || null,
           visible_public: item.visible_public,
           created_at: item.created_at
         };
@@ -125,6 +137,7 @@ export const communityActivityService = {
     sharedBy: string;
     sharedByName: string;
     quantity: number;
+    imageUrl?: string;
   }): Promise<void> {
     const { error } = await supabase
       .from('homespace_activity_log')
@@ -137,6 +150,7 @@ export const communityActivityService = {
         user_id: params.sharedBy,
         resource_name: params.resourceName,
         resource_category: params.resourceCategory,
+        image_url: params.imageUrl || null,
         visible_public: true
       }]);
 
@@ -176,6 +190,7 @@ export const communityActivityService = {
     requestedByName: string;
     category: string;
   }): Promise<void> {
+    console.log('logHelpRequested called with:', params);
     const { error } = await supabase
       .from('homespace_activity_log')
       .insert([{
@@ -190,7 +205,11 @@ export const communityActivityService = {
         visible_public: true
       }]);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error inserting help_requested activity:', error);
+      throw error;
+    }
+    console.log('Successfully inserted help_requested activity');
   },
 
   /**
@@ -212,6 +231,113 @@ export const communityActivityService = {
         description: params.description,
         icon: params.icon,
         user_id: params.createdBy,
+        visible_public: true
+      }]);
+
+    if (error) throw error;
+  },
+
+  /**
+   * Log a help response
+   */
+  async logHelpResponseAdded(params: {
+    communityId: string;
+    requestTitle: string;
+    responderName: string;
+    responderId: string;
+  }): Promise<void> {
+    const { error } = await supabase
+      .from('homespace_activity_log')
+      .insert([{
+        community_id: params.communityId,
+        activity_type: 'help_response_added',
+        title: 'Hjälp erbjuden',
+        description: `${params.responderName} erbjöd hjälp med: "${params.requestTitle}"`,
+        icon: '🤲',
+        user_id: params.responderId,
+        resource_name: params.requestTitle,
+        visible_public: true
+      }]);
+
+    if (error) throw error;
+  },
+
+  /**
+   * Log a community resource addition
+   */
+  async logCommunityResourceAdded(params: {
+    communityId: string;
+    resourceName: string;
+    resourceType: string;
+    addedBy: string;
+    addedByName: string;
+  }): Promise<void> {
+    console.log('logCommunityResourceAdded called with:', params);
+    const { error } = await supabase
+      .from('homespace_activity_log')
+      .insert([{
+        community_id: params.communityId,
+        activity_type: 'community_resource_added',
+        title: 'Gemensam resurs tillagd',
+        description: `${params.addedByName} lade till gemensam resurs: "${params.resourceName}"`,
+        icon: '🏛️',
+        user_id: params.addedBy,
+        resource_name: params.resourceName,
+        resource_category: params.resourceType,
+        visible_public: true
+      }]);
+
+    if (error) {
+      console.error('Error inserting community_resource_added activity:', error);
+      throw error;
+    }
+    console.log('Successfully inserted community_resource_added activity');
+  },
+
+  /**
+   * Log a community resource update
+   */
+  async logCommunityResourceUpdated(params: {
+    communityId: string;
+    resourceName: string;
+    updatedBy: string;
+    updatedByName: string;
+  }): Promise<void> {
+    const { error } = await supabase
+      .from('homespace_activity_log')
+      .insert([{
+        community_id: params.communityId,
+        activity_type: 'community_resource_updated',
+        title: 'Gemensam resurs uppdaterad',
+        description: `${params.updatedByName} uppdaterade: "${params.resourceName}"`,
+        icon: '🔄',
+        user_id: params.updatedBy,
+        resource_name: params.resourceName,
+        visible_public: true
+      }]);
+
+    if (error) throw error;
+  },
+
+  /**
+   * Log a community resource deletion
+   */
+  async logCommunityResourceDeleted(params: {
+    communityId: string;
+    resourceName: string;
+    deletedBy: string;
+    deletedByName: string;
+  }): Promise<void> {
+    const { error } = await supabase
+      .from('homespace_activity_log')
+      .insert([{
+        community_id: params.communityId,
+        activity_type: 'community_resource_deleted',
+        title: 'Gemensam resurs borttagen',
+        description: `${params.deletedByName} tog bort: "${params.resourceName}"`,
+        icon: '🗑️',
+        user_id: params.deletedBy,
+        resource_name: params.resourceName,
         visible_public: true
       }]);
 

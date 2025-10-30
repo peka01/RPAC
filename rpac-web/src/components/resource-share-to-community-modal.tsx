@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { X, Share2, Users, Calendar, MapPin, AlertCircle, CheckCircle, Loader, Image as ImageIcon, Eye, EyeOff } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { resourceSharingService } from '@/lib/resource-sharing-service';
+import { communityActivityService } from '@/lib/community-activity-service';
 import { Resource } from '@/lib/supabase';
 import { supabase } from '@/lib/supabase';
 import { ImagePreviewIcon } from './image-preview-icon';
@@ -171,6 +172,38 @@ export function ResourceShareToCommunityModal({
         }
         
         throw shareError;
+      }
+
+      // Log activity after successful share
+      try {
+        console.log('Logging resource sharing activity...');
+        console.log('Resource photo_url:', resource.photo_url);
+        console.log('shareForm.includeImage:', shareForm.includeImage);
+        console.log('shareForm.photoUrl:', shareForm.photoUrl);
+        
+        // Fetch user profile for display name
+        const { data: userProfile } = await supabase
+          .from('user_profiles')
+          .select('display_name')
+          .eq('user_id', userId)
+          .single();
+        
+        const imageUrl = (shareForm.includeImage && shareForm.photoUrl) ? shareForm.photoUrl : undefined;
+        console.log('Final imageUrl for activity:', imageUrl);
+        
+        await communityActivityService.logResourceShared({
+          communityId: shareForm.communityId,
+          resourceName: resource.name,
+          resourceCategory: resource.category,
+          sharedBy: userId,
+          sharedByName: userProfile?.display_name || 'En medlem',
+          quantity: shareForm.sharedQuantity,
+          imageUrl: imageUrl
+        });
+        console.log('Successfully logged resource sharing activity');
+      } catch (activityError) {
+        console.error('Failed to log sharing activity:', activityError);
+        // Don't fail the share if activity logging fails
       }
 
       setSuccess(true);

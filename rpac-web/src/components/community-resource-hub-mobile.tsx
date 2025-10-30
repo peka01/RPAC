@@ -461,7 +461,7 @@ export function CommunityResourceHubMobile({
   const handleEditCommunityResource = async (resource: Partial<CommunityResource>) => {
     try {
       if (!editingCommunityResource) return;
-      await communityResourceService.updateCommunityResource(editingCommunityResource.id, resource);
+      await communityResourceService.updateCommunityResource(editingCommunityResource.id, resource, user.id);
       await loadAllData();
       setShowAddCommunityResource(false);
       setEditingCommunityResource(null);

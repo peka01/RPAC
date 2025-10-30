@@ -346,7 +346,7 @@ export function CommunityResourceHub({
   const handleEditCommunityResource = async (resource: Partial<CommunityResource>) => {
     try {
       if (!editingCommunityResource) return;
-      await communityResourceService.updateCommunityResource(editingCommunityResource.id, resource);
+      await communityResourceService.updateCommunityResource(editingCommunityResource.id, resource, user.id);
       await loadAllData();
       setShowAddCommunityResource(false);
       setEditingCommunityResource(null);
@@ -360,7 +360,7 @@ export function CommunityResourceHub({
     if (!confirm('Är du säker på att du vill ta bort denna resurs?')) return;
     
     try {
-      await communityResourceService.deleteCommunityResource(resourceId);
+      await communityResourceService.deleteCommunityResource(resourceId, user.id);
       await loadAllData();
     } catch (err) {
       console.error('Error deleting community resource:', err);

@@ -29,6 +29,7 @@ import {
   X
 } from 'lucide-react';
 import { resourceSharingService } from '@/lib/resource-sharing-service';
+import { communityActivityService } from '@/lib/community-activity-service';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { CommunityActivityFeed } from '@/components/community-activity-feed';
 import type { User } from '@supabase/supabase-js';
@@ -138,31 +139,40 @@ export function CommunityDashboardRefactoredMobile({ user, community, onNavigate
     if (!community?.id) return;
     
     try {
-      const mockActivity: RecentActivity[] = [
-        {
-          id: '1',
-          type: 'member_joined',
-          message: 'Ny medlem gick med i samhället',
-          timestamp: '22 tim sedan'
-        },
-        {
-          id: '2',
-          type: 'member_joined',
-          message: 'Simon Salgfors gick med i samhället',
-          timestamp: '22 tim sedan'
-        },
-        {
-          id: '3',
-          type: 'member_joined',
-          message: 'Test User gick med i samhället',
-          timestamp: '22 tim sedan'
-        }
-      ];
+      console.log('Loading recent activity for community:', community.id);
+      const activities = await communityActivityService.getCommunityActivities(community.id, 5);
+      console.log('Loaded activities:', activities);
       
-      setRecentActivity(mockActivity);
+      // Convert to the RecentActivity format
+      const formattedActivities: RecentActivity[] = activities.map(activity => ({
+        id: activity.id,
+        type: activity.activity_type as any,
+        message: activity.description || activity.title,
+        timestamp: formatTimeAgo(activity.created_at),
+        user: activity.user_name
+      }));
+      
+      setRecentActivity(formattedActivities);
     } catch (error) {
       console.error('Error loading recent activity:', error);
     }
+  };
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'Just nu';
+    if (diffInMinutes < 60) return `${diffInMinutes} min sedan`;
+    
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours} tim sedan`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays} dag${diffInDays > 1 ? 'ar' : ''} sedan`;
+    
+    return date.toLocaleDateString('sv-SE');
   };
 
   if (!community) {

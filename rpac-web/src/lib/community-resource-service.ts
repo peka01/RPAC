@@ -129,14 +129,30 @@ export const communityResourceService = {
 
     if (error) throw error;
     
-    // Log activity (async, don't wait for it)
-    communityActivityService.logResourceAdded({
-      communityId: params.communityId,
-      resourceName: params.resourceName,
-      resourceCategory: params.category,
-      addedBy: params.createdBy,
-      addedByName: 'Admin' // Will be replaced by trigger with actual name
-    }).catch(err => console.error('Failed to log resource activity:', err));
+    // Log activity
+    try {
+      console.log('Attempting to log community resource activity...');
+      // Get creator name
+      const { data: creatorProfile } = await supabase
+        .from('user_profiles')
+        .select('display_name')
+        .eq('user_id', params.createdBy)
+        .single();
+
+      console.log('Creator profile:', creatorProfile);
+
+      await communityActivityService.logCommunityResourceAdded({
+        communityId: params.communityId,
+        resourceName: params.resourceName,
+        resourceType: params.resourceType,
+        addedBy: params.createdBy,
+        addedByName: creatorProfile?.display_name || 'Admin'
+      });
+      
+      console.log('Successfully logged community resource activity');
+    } catch (activityError) {
+      console.error('Failed to log community resource activity:', activityError);
+    }
     
     return data as CommunityResource;
   },
@@ -146,8 +162,16 @@ export const communityResourceService = {
    */
   async updateCommunityResource(
     resourceId: string,
-    updates: Partial<CommunityResource>
+    updates: Partial<CommunityResource>,
+    updatedBy?: string
   ): Promise<void> {
+    // First get the resource to log activity
+    const { data: resource } = await supabase
+      .from('community_resources')
+      .select('resource_name, community_id')
+      .eq('id', resourceId)
+      .single();
+
     const { error } = await supabase
       .from('community_resources')
       .update({
@@ -157,18 +181,65 @@ export const communityResourceService = {
       .eq('id', resourceId);
 
     if (error) throw error;
+
+    // Log activity if we have the necessary info
+    if (resource && updatedBy) {
+      try {
+        const { data: updaterProfile } = await supabase
+          .from('user_profiles')
+          .select('display_name')
+          .eq('user_id', updatedBy)
+          .single();
+
+        await communityActivityService.logCommunityResourceUpdated({
+          communityId: resource.community_id,
+          resourceName: resource.resource_name,
+          updatedBy,
+          updatedByName: updaterProfile?.display_name || 'Admin'
+        });
+      } catch (activityError) {
+        console.error('Failed to log community resource update activity:', activityError);
+      }
+    }
   },
 
   /**
    * Delete a community resource
    */
-  async deleteCommunityResource(resourceId: string): Promise<void> {
+  async deleteCommunityResource(resourceId: string, deletedBy?: string): Promise<void> {
+    // First get the resource to log activity
+    const { data: resource } = await supabase
+      .from('community_resources')
+      .select('resource_name, community_id')
+      .eq('id', resourceId)
+      .single();
+
     const { error } = await supabase
       .from('community_resources')
       .delete()
       .eq('id', resourceId);
 
     if (error) throw error;
+
+    // Log activity if we have the necessary info
+    if (resource && deletedBy) {
+      try {
+        const { data: deleterProfile } = await supabase
+          .from('user_profiles')
+          .select('display_name')
+          .eq('user_id', deletedBy)
+          .single();
+
+        await communityActivityService.logCommunityResourceDeleted({
+          communityId: resource.community_id,
+          resourceName: resource.resource_name,
+          deletedBy,
+          deletedByName: deleterProfile?.display_name || 'Admin'
+        });
+      } catch (activityError) {
+        console.error('Failed to log community resource deletion activity:', activityError);
+      }
+    }
   },
 
   /**
