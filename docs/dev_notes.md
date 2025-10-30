@@ -47,6 +47,23 @@ File: `rpac-web/src/lib/krister-help-loader.ts`
 
 Features:
 - **Route mapping**: Maps 30+ route patterns to help files
+ 
+**3. Live Editing for Help Docs (2025-10-30)**:
+
+- Help files are read live from GitHub via `/api/help/[...path]` (no redeploy needed)
+- Super admin edit flow:
+  - UI Edit button in KRISter opens markdown editor
+  - Saves via `PUT /api/help-edit` which commits directly to GitHub
+  - Help panel cache-busts and reloads immediately
+- Required environment variables (Cloudflare Pages):
+  - `GITHUB_OWNER=beready-se`
+  - `GITHUB_REPO=RPAC`
+  - `GITHUB_BRANCH=main`
+  - `GITHUB_HELP_DIR=rpac-web/public/help`
+  - `GITHUB_TOKEN=<fine-grained PAT or GitHub App token>` (repo contents: read/write)
+  - `ADMIN_HELP_EDIT_TOKEN=<random, used as Bearer token from UI>`
+    - Note: Only super admins should have this; do not expose publicly
+  - Security: API also whitelists allowed help paths
   - Handles pathname + query parameters
   - Example: `/local?tab=resources&resourceTab=shared` → `local/resources-shared.md`
 - **Markdown parsing**: Extracts structured sections

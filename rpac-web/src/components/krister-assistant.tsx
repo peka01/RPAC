@@ -25,6 +25,8 @@ import { RemindersContextService } from '@/lib/reminders-context-service-enhance
 import { TipHistoryService } from '@/lib/tip-history-service';
 import { supabase } from '@/lib/supabase';
 import { KRISterHelpLoader } from '@/lib/krister-help-loader';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface User {
   id: string;
@@ -112,6 +114,13 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
   const [questionsError, setQuestionsError] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
+  // Help editor state (super admin)
+  const [showHelpEditor, setShowHelpEditor] = useState(false);
+  const [helpEditorContent, setHelpEditorContent] = useState('');
+  const [helpEditorPath, setHelpEditorPath] = useState(''); // e.g. 'local/home'
+  const [helpEditorCommitMsg, setHelpEditorCommitMsg] = useState('');
+  const [adminEditToken, setAdminEditToken] = useState('');
+  const [isSavingHelp, setIsSavingHelp] = useState(false);
   
   // Dragging and resizing state
   const [position, setPosition] = useState({ x: window.innerWidth - 420, y: 24 });
@@ -281,6 +290,9 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
           faqs: helpContent.faqs,
           relatedPages: helpContent.relatedPages
         });
+        // Precompute current help path for editor
+        const computedPath = computeHelpPathForRoute(currentPathname, currentSearchParams)?.replace(/\.md$/, '') || '';
+        setHelpEditorPath(computedPath);
         return; // Success, exit early
       }
     } catch (error) {
@@ -339,6 +351,9 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
         tips: t(`krister.context_help.${contextKey}.tips`) as unknown as string[]
       };
       setContextHelp(helpData);
+      // Compute path for legacy context as well
+      const computedPath = computeHelpPathForRoute(currentPathname, searchParams || undefined)?.replace(/\.md$/, '') || '';
+      setHelpEditorPath(computedPath);
     } catch (error) {
       // Final fallback to dashboard
       try {
@@ -351,6 +366,87 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
       } catch (e) {
         console.error('Failed to load any context help:', e);
       }
+    }
+  };
+
+  // Compute help file path (same logic as loader)
+  const computeHelpPathForRoute = (pathnameStr: string, params?: URLSearchParams): string | null => {
+    const clean = pathnameStr.replace(/^\/+|\/+$/g, '');
+    if (clean === '' || clean === 'dashboard') return 'dashboard.md';
+    if (clean === 'individual') {
+      const section = params?.get('section') || 'resources';
+      return `individual/${section}.md`;
+    }
+    if (clean === 'local') {
+      const tab = params?.get('tab');
+      const resourceTab = params?.get('resourceTab');
+      if (!tab || tab === 'home') return 'local/home.md';
+      if (tab === 'activity') return 'local/activity.md';
+      if (tab === 'resources') {
+        if (resourceTab === 'shared') return 'local/resources-shared.md';
+        if (resourceTab === 'owned') return 'local/resources-owned.md';
+        if (resourceTab === 'help') return 'local/resources-help.md';
+        return 'local/resources-shared.md';
+      }
+      if (tab === 'admin') return 'local/admin.md';
+    }
+    if (clean === 'local/discover') return 'local/discover.md';
+    if (clean === 'local/activity') return 'local/activity.md';
+    if (clean === 'local/messages/community') return 'local/messages-community.md';
+    if (clean === 'local/messages/direct') return 'local/messages-direct.md';
+    if (clean === 'regional') return 'regional/overview.md';
+    if (clean === 'settings') {
+      const tab = params?.get('tab') || 'profile';
+      return `settings/${tab}.md`;
+    }
+    if (clean === 'super-admin') return 'admin/super-admin.md';
+    return null;
+  };
+
+  const openHelpEditor = async () => {
+    try {
+      if (!helpEditorPath) return;
+      const resp = await fetch(`/api/help/${helpEditorPath}`);
+      if (!resp.ok) throw new Error('Failed to load help content');
+      const text = await resp.text();
+      setHelpEditorContent(text);
+      setHelpEditorCommitMsg(`Uppdatera hjälp: ${helpEditorPath}`);
+      setShowHelpEditor(true);
+    } catch (e) {
+      console.error('Load help for edit failed:', e);
+    }
+  };
+
+  const saveHelpEdits = async () => {
+    if (!helpEditorPath) return;
+    setIsSavingHelp(true);
+    try {
+      const resp = await fetch('/api/help-edit', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(adminEditToken ? { 'Authorization': `Bearer ${adminEditToken}` } : {}),
+        },
+        body: JSON.stringify({
+          path: helpEditorPath,
+          content: helpEditorContent,
+          message: helpEditorCommitMsg || `KRISter hjälp uppdaterad: ${helpEditorPath}`
+        })
+      });
+      if (!resp.ok) {
+        const err = await resp.text();
+        throw new Error(err);
+      }
+      // Close modal
+      setShowHelpEditor(false);
+      // Reload help with cache-bust
+      await KRISterHelpLoader.clearCache();
+      await loadContextHelp();
+    } catch (e) {
+      console.error('Save help edit failed:', e);
+      alert('Kunde inte spara ändringarna. Kontrollera admin-token.');
+    } finally {
+      setIsSavingHelp(false);
     }
   };
 
@@ -864,7 +960,9 @@ Exempel: ["Fråga 1?", "Hur gör jag X?", "Fråga 3?"]`;
               <HelpCircle className="text-[#3D4A2B] mt-0.5 flex-shrink-0" size={20} />
               <div className="flex-1">
                 <h4 className="font-bold text-[#3D4A2B] mb-1">{contextHelp.title}</h4>
-                <p className="text-sm text-gray-700 mb-3">{contextHelp.description}</p>
+                <div className="text-sm text-gray-700 mb-3 prose prose-sm max-w-none">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{contextHelp.description || ''}</ReactMarkdown>
+                </div>
                 
                 {/* Tips section */}
                 {contextHelp.tips && contextHelp.tips.length > 0 && (
@@ -874,7 +972,9 @@ Exempel: ["Fråga 1?", "Hur gör jag X?", "Fråga 3?"]`;
                       {contextHelp.tips.map((tip: string, idx: number) => (
                         <li key={idx} className="text-xs text-gray-600 flex items-start gap-2">
                           <span className="text-[#5C6B47] mt-0.5">•</span>
-                          <span>{tip}</span>
+                          <div className="prose prose-sm max-w-none">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{tip}</ReactMarkdown>
+                          </div>
                         </li>
                       ))}
                     </ul>
@@ -889,7 +989,11 @@ Exempel: ["Fråga 1?", "Hur gör jag X?", "Fråga 3?"]`;
                       {contextHelp.steps.slice(0, 3).map((step: any, idx: number) => (
                         <li key={idx} className="text-xs text-gray-600">
                           <span className="font-medium">{step.title}</span>
-                          {step.description && <p className="ml-5 text-gray-500">{step.description.substring(0, 80)}...</p>}
+                          {step.content && (
+                            <div className="ml-5 text-gray-500 prose prose-sm max-w-none">
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>{step.content.substring(0, 200)}</ReactMarkdown>
+                            </div>
+                          )}
                         </li>
                       ))}
                     </ol>
@@ -907,6 +1011,18 @@ Exempel: ["Fråga 1?", "Hur gör jag X?", "Fråga 3?"]`;
                         </span>
                       ))}
                     </div>
+                  </div>
+                )}
+                {/* Super-admin: Edit help doc */}
+                {helpEditorPath && (
+                  <div className="mt-3 flex justify-end">
+                    <button
+                      onClick={openHelpEditor}
+                      className="px-3 py-1.5 text-sm bg-[#3D4A2B] text-white rounded-lg hover:opacity-90"
+                      title={t('krister.help.edit')}
+                    >
+                      {t('krister.help.edit')}
+                    </button>
                   </div>
                 )}
               </div>
@@ -1215,6 +1331,102 @@ Exempel: ["Fråga 1?", "Hur gör jag X?", "Fråga 3?"]`;
         className="absolute right-0 top-3 bottom-3 w-1 cursor-e-resize"
         onMouseDown={handleResizeStart('e')}
       />
+      {/* Help Editor Modal */}
+      <HelpEditorModal
+        open={showHelpEditor}
+        onClose={() => setShowHelpEditor(false)}
+        content={helpEditorContent}
+        setContent={setHelpEditorContent}
+        commitMsg={helpEditorCommitMsg}
+        setCommitMsg={setHelpEditorCommitMsg}
+        adminToken={adminEditToken}
+        setAdminToken={setAdminEditToken}
+        onSave={saveHelpEdits}
+        saving={isSavingHelp}
+        path={helpEditorPath}
+      />
+    </div>
+  );
+}
+
+// Modal for help editor
+export function HelpEditorModal({
+  open,
+  onClose,
+  content,
+  setContent,
+  commitMsg,
+  setCommitMsg,
+  adminToken,
+  setAdminToken,
+  onSave,
+  saving,
+  path
+}: {
+  open: boolean;
+  onClose: () => void;
+  content: string;
+  setContent: (v: string) => void;
+  commitMsg: string;
+  setCommitMsg: (v: string) => void;
+  adminToken: string;
+  setAdminToken: (v: string) => void;
+  onSave: () => void;
+  saving: boolean;
+  path: string;
+}) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-[60] bg-black/30 flex items-center justify-center p-4">
+      <div className="w-full max-w-3xl bg-white rounded-xl shadow-lg border border-[#3D4A2B]/30 overflow-hidden">
+        <div className="px-4 py-3 bg-[#3D4A2B] text-white flex items-center justify-between">
+          <div className="font-semibold text-sm">{t('krister.help.edit_title')} • {path}.md</div>
+          <button onClick={onClose} className="p-1.5 hover:bg-white/10 rounded-lg">
+            <X size={18} />
+          </button>
+        </div>
+        <div className="p-4 space-y-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">{t('krister.help.commit_message')}</label>
+            <input
+              value={commitMsg}
+              onChange={(e) => setCommitMsg(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
+              placeholder={`Uppdatera hjälp: ${path}`}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">{t('krister.help.token_label')}</label>
+            <input
+              value={adminToken}
+              onChange={(e) => setAdminToken(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
+              placeholder="Admin token"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">.md</label>
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              rows={18}
+              className="w-full font-mono text-sm px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
+            />
+          </div>
+        </div>
+        <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-end gap-2 bg-gray-50">
+          <button onClick={onClose} className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 bg-white">
+            {t('krister.help.cancel')}
+          </button>
+          <button
+            onClick={onSave}
+            disabled={saving}
+            className="px-3 py-1.5 text-sm rounded-lg bg-[#3D4A2B] text-white disabled:opacity-50"
+          >
+            {saving ? 'Sparar…' : t('krister.help.save')}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

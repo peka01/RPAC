@@ -1309,7 +1309,8 @@
         "description": "Din huvudsida visar snabblänkar och viktig information.",
         "tips": [
           "Använd snabblänkarna för att snabbt komma till Individuell, Lokalt eller Regionalt",
-          "Väderwidgeten visar extrema väderhändelser som kan påverka din odling"
+          "Väderwidgeten visar extrema väderhändelser som kan påverka din odling",
+          "AI-coachen ger dagliga tips baserat på ditt väder, din profil och dina resurser"
         ]
       },
       "individual": {
@@ -1540,6 +1541,14 @@
       "title": "Ny chatt",
       "confirm": "Vill du starta en ny chatt? Din nuvarande konversation kommer att rensas.",
       "disabled": "Ingen chatt att rensa"
+    },
+    "help": {
+      "edit": "Redigera",
+      "edit_title": "Redigera hjälpdokumentation",
+      "commit_message": "Commit-meddelande",
+      "token_label": "Admin token",
+      "cancel": "Avbryt",
+      "save": "Spara"
     }
   },
   "homespace": {
