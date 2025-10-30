@@ -5,8 +5,7 @@
 {{krister.context_help.dashboard.description}}
 
 På översiktssidan får du:
-- **Väderprognos**: 3-dagars prognos med extremvädervarningar
-- **AI-coach**: Personliga beredskapstips baserat på väder och profil
+- **Väderprognos**: 5-dagars prognos med extremvädervarningar
 - **Snabblänkar**: Direkt åtkomst till Individuell, Lokalt och Regionalt
 
 ## Steg-för-steg
@@ -22,14 +21,7 @@ På översiktssidan får du:
 - Orange varning: Var förberedd
 - Frostvarningar viktiga för odling
 
-### 3. Läs AI-coachens tips
-- Uppdateras dagligen baserat på:
-  - Väderprognos
-  - Säsong
-  - Din profil
-  - Dina resurser
-
-### 4. Kontrollera dina resurser
+### 3. Kontrollera dina resurser
 - Gå till **{{navigation.individual}}** → Resurser för att se ditt beredskapslager
 - Lägg till och uppdatera resurser regelbundet
 - Följ MSB:s rekommendationer för beredskapslager
