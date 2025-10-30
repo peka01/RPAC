@@ -855,14 +855,7 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
             </h3>
 
             <form onSubmit={handleCreateCommunity} className="space-y-4">
-              {(() => {
-                console.log('🐛 CREATE MODAL DEBUG:', { 
-                  createForm, 
-                  showCreateModal,
-                  hasAccessType: !!createForm.accessType 
-                });
-                return null;
-              })()}
+              {/* Form content */}
               
               {/* Warning if no postal code */}
               {!userPostalCode && (
@@ -930,13 +923,9 @@ export function CommunityDiscovery({ user, userPostalCode, onJoinCommunity }: Co
               )}
 
               {/* Access Type */}
-              {(() => {
-                console.log('🔥🔥🔥 DESKTOP CREATE MODAL - RENDERING ACCESS TYPE', createForm);
-                return null;
-              })()}
-              <div style={{border: '10px solid red', padding: '30px', backgroundColor: 'yellow', margin: '20px 0'}}>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  🚨 DEBUG CREATE: {t('community.access_type') || 'Åtkomsttyp'} <span className="text-red-500">*</span>
+                  {t('community.access_type')} <span className="text-red-500">*</span>
                 </label>
                 <div className="space-y-3">
                   <label className="flex items-start gap-3 p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-[#3D4A2B] transition-colors">

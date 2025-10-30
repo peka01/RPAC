@@ -17,16 +17,6 @@ export function useMobileDetection(breakpoint: number = 768) {
       const mediaQuery = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
       const mobile = windowWidth < breakpoint || mediaQuery.matches;
       
-      // Only log when mobile state actually changes
-      if (mobile !== isMobile) {
-        console.log('📱 Mobile detection changed:', { 
-          windowWidth, 
-          breakpoint,
-          mediaQueryMatches: mediaQuery.matches, 
-          isMobile: mobile 
-        });
-      }
-      
       setIsMobile(mobile);
     };
     
@@ -36,7 +26,6 @@ export function useMobileDetection(breakpoint: number = 768) {
     // Also listen to media query changes for better dev tools support
     const mediaQuery = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
     const handleMediaChange = () => {
-      console.log('📱 Media query changed:', mediaQuery.matches);
       checkMobile();
     };
     mediaQuery.addEventListener('change', handleMediaChange);

@@ -887,6 +887,8 @@ export class WeatherService {
 
   /**
    * Convert SMHI weather symbol to Swedish description
+   * Based on SMHI Wsymb2 parameter definitions
+   * https://opendata.smhi.se/apidocs/metfcst/parameters.html
    */
   private static getWeatherDescriptionFromSymbol(symbol: number | null): string | null {
     if (symbol === null) return null;
@@ -898,27 +900,27 @@ export class WeatherService {
       4: 'Halvklar himmel',
       5: 'Molnigt',
       6: 'Molnigt',
-      7: 'Halvklar himmel',
-      8: 'Molnigt',
-      9: 'Mycket molnigt',
-      10: 'Molnigt',
-      11: 'Dimma',
-      12: 'Lätt regn',
-      13: 'Regn',
-      14: 'Regn',
-      15: 'Kraftigt regn',
-      16: 'Åska',
-      17: 'Åska',
-      18: 'Kraftigt regn',
-      19: 'Lätt snöfall',
-      20: 'Snöfall',
-      21: 'Snöfall',
-      22: 'Kraftigt snöfall',
-      23: 'Snöfall',
-      24: 'Snöfall',
-      25: 'Snöfall',
-      26: 'Snöfall',
-      27: 'Snöfall'
+      7: 'Lätt regn',
+      8: 'Regn',
+      9: 'Kraftigt regn',
+      10: 'Åska',
+      11: 'Lätt snöblandat regn',
+      12: 'Snöblandat regn',
+      13: 'Kraftigt snöblandat regn',
+      14: 'Lätt snöfall',
+      15: 'Snöfall',
+      16: 'Kraftigt snöfall',
+      17: 'Lätt regnskurar',
+      18: 'Regnskurar',
+      19: 'Kraftiga regnskurar',
+      20: 'Lätt skurar av snöblandat regn',
+      21: 'Skurar av snöblandat regn',
+      22: 'Kraftiga skurar av snöblandat regn',
+      23: 'Lätt snöbyar',
+      24: 'Snöbyar',
+      25: 'Kraftiga snöbyar',
+      26: 'Dimma',
+      27: 'Åskskurar'
     };
     
     return weatherSymbols[symbol] || null;

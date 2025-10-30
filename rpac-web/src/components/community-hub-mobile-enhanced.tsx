@@ -168,15 +168,14 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
   // Local Hub Hamburger Menu (replaces internal bottom nav to avoid overlap with global nav)
   const LocalHamburgerMenu = () => (
     <>
-      {/* Floating Hamburger Button - Always visible */}
+      {/* Floating Hamburger Button - Top Right */}
       <button
         onClick={() => setShowLocalMenu(true)}
         aria-label="Öppna lokalt meny"
         id="local-hamburger-fab"
-        className="fixed bottom-24 left-4 z-[60] w-14 h-14 rounded-2xl bg-[#3D4A2B] text-white shadow-2xl flex flex-col items-center justify-center gap-1 active:scale-95 touch-manipulation"
+        className="fixed top-4 right-4 z-[60] w-12 h-12 rounded-xl bg-[#3D4A2B] text-white shadow-lg flex items-center justify-center active:scale-95 touch-manipulation"
       >
-        <Menu size={26} />
-        <span className="text-[10px] font-semibold">Lokalt</span>
+        <Menu size={22} />
       </button>
 
       {/* Full Screen Sheet */}
