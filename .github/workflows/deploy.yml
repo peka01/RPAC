@@ -1,15 +1,22 @@
 name: Deploy to Cloudflare Pages
 
 # Trigger on pushes to main/master and PRs targeting those branches
+# Skip deployment for help doc changes (they're served live from GitHub, no rebuild needed)
 on:
   push:
     branches:
       - main
       - master
+    paths-ignore:
+      - 'rpac-web/public/help/**'
+      - 'rpac-web/docs/help/**'
   pull_request:
     branches:
       - main
       - master
+    paths-ignore:
+      - 'rpac-web/public/help/**'
+      - 'rpac-web/docs/help/**'
 
 # Environment variables shared across all jobs
 env:
