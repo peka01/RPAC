@@ -229,6 +229,8 @@
     "title": "Mitt närområde",
     "navigation_title": "Lokalt",
     "navigation_description": "Hitta och anslut till lokala beredskapsamhällen i ditt område",
+    "lokalt_nav": "Lokalt nav",
+    "samhallesdetaljer": "Samhällesdetaljer",
     "status_title": "Översikt",
     "find_communities": "Hitta samhällen",
     "messages": "Meddelanden",

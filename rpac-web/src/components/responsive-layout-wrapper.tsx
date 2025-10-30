@@ -40,10 +40,10 @@ export function ResponsiveLayoutWrapper({ children, hideMobileNav = false }: Res
   // Otherwise, render with the normal menu system
   return (
     <SidebarProvider>
+      {/* Allow global mobile nav to show; local page will now use hamburger sub-navigation instead of its own fixed bar. */}
       <SideMenuResponsive hideMobileNav={hideMobileNav}>
         {children}
       </SideMenuResponsive>
     </SidebarProvider>
   );
 }
-

@@ -19,7 +19,9 @@ import {
   Globe,
   ExternalLink,
   Edit,
-  Activity
+  Activity,
+  Menu,
+  X
 } from 'lucide-react';
 import { CommunityDiscoveryMobile } from './community-discovery-mobile';
 import { MessagingSystemV2 } from './messaging-system-v2';
@@ -52,6 +54,7 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
   const [showHomespaceEditor, setShowHomespaceEditor] = useState(false);
   const [homespaceSlug, setHomespaceSlug] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showLocalMenu, setShowLocalMenu] = useState(false);
   const { profile, loading } = useUserProfile(user);
   const userPostalCode = profile?.postal_code;
 
@@ -162,77 +165,116 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
     );
   }
 
-  // Mobile Bottom Navigation
-  const BottomNav = () => (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-[#5C6B47]/20 shadow-2xl z-50" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 0px)' }}>
-      <div className="flex items-center justify-around px-1 py-3">
-        <button
-          onClick={() => setActiveView('home')}
-          className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all touch-manipulation ${
-            activeView === 'home'
-              ? 'bg-[#3D4A2B] text-white scale-105'
-              : 'text-gray-600 active:scale-95'
-          }`}
-        >
-          <Home size={22} strokeWidth={activeView === 'home' ? 2.5 : 2} />
-          <span className={`text-xs font-medium ${activeView === 'home' ? 'font-bold' : ''}`}>
-            Hem
-          </span>
-        </button>
+  // Local Hub Hamburger Menu (replaces internal bottom nav to avoid overlap with global nav)
+  const LocalHamburgerMenu = () => (
+    <>
+      {/* Floating Hamburger Button - Always visible */}
+      <button
+        onClick={() => setShowLocalMenu(true)}
+        aria-label="Öppna lokalt meny"
+        id="local-hamburger-fab"
+        className="fixed bottom-24 left-4 z-[60] w-14 h-14 rounded-2xl bg-[#3D4A2B] text-white shadow-2xl flex flex-col items-center justify-center gap-1 active:scale-95 touch-manipulation"
+      >
+        <Menu size={26} />
+        <span className="text-[10px] font-semibold">Lokalt</span>
+      </button>
 
-        <button
-          onClick={() => setActiveView('discovery')}
-          className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all touch-manipulation ${
-            activeView === 'discovery'
-              ? 'bg-[#3D4A2B] text-white scale-105'
-              : 'text-gray-600 active:scale-95'
-          }`}
-        >
-          <Search size={22} strokeWidth={activeView === 'discovery' ? 2.5 : 2} />
-          <span className={`text-xs font-medium ${activeView === 'discovery' ? 'font-bold' : ''}`}>
-            Hitta
-          </span>
-        </button>
-
-        <button
-          onClick={() => setActiveView('resources')}
-          className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all touch-manipulation ${
-            activeView === 'resources'
-              ? 'bg-[#3D4A2B] text-white scale-105'
-              : 'text-gray-600 active:scale-95'
-          }`}
-        >
-          <Package size={22} strokeWidth={activeView === 'resources' ? 2.5 : 2} />
-          <span className={`text-xs font-medium ${activeView === 'resources' ? 'font-bold' : ''}`}>
-            Resurser
-          </span>
-        </button>
-
-        <button
-          onClick={() => setActiveView('messaging')}
-          className={`relative flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all touch-manipulation ${
-            activeView === 'messaging'
-              ? 'bg-[#3D4A2B] text-white scale-105'
-              : 'text-gray-600 active:scale-95'
-          }`}
-        >
-          <MessageCircle size={22} strokeWidth={activeView === 'messaging' ? 2.5 : 2} />
-          {unreadCount > 0 && (
-            <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-bounce">
-              {unreadCount > 9 ? '9+' : unreadCount}
+      {/* Full Screen Sheet */}
+      {showLocalMenu && (
+        <div className="fixed inset-0 z-50">
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fade-in"
+            onClick={() => setShowLocalMenu(false)}
+          />
+          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl border-t border-[#5C6B47]/20 animate-slide-in-bottom p-6 pt-8 max-h-[80vh] overflow-y-auto">
+            <div className="absolute top-3 right-4">
+              <button
+                onClick={() => setShowLocalMenu(false)}
+                className="p-3 rounded-xl bg-gray-100 hover:bg-gray-200 active:scale-95 transition-all"
+                aria-label="Stäng meny"
+              >
+                <X size={20} />
+              </button>
             </div>
-          )}
-          <span className={`text-xs font-medium ${activeView === 'messaging' ? 'font-bold' : ''}`}>
-            Chat
-          </span>
-        </button>
-      </div>
-    </div>
+            <div className="mb-6">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <Home size={20} /> Lokalt nav
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">Snabb åtkomst till lokala funktioner</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => { setActiveView('home'); setShowLocalMenu(false); }}
+                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border shadow-sm active:scale-95 transition-all ${activeView === 'home' ? 'bg-[#3D4A2B] text-white border-[#2A331E]' : 'bg-white text-gray-700 border-[#5C6B47]/30 hover:bg-[#5C6B47]/10'}`}
+              >
+                <Home size={24} />
+                <span className="text-sm font-medium">Hem</span>
+              </button>
+              <button
+                onClick={() => { setActiveView('discovery'); setShowLocalMenu(false); }}
+                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border shadow-sm active:scale-95 transition-all ${activeView === 'discovery' ? 'bg-[#3D4A2B] text-white border-[#2A331E]' : 'bg-white text-gray-700 border-[#5C6B47]/30 hover:bg-[#5C6B47]/10'}`}
+              >
+                <Search size={24} />
+                <span className="text-sm font-medium">Hitta</span>
+              </button>
+              <button
+                onClick={() => { setActiveView('resources'); setShowLocalMenu(false); }}
+                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border shadow-sm active:scale-95 transition-all ${activeView === 'resources' ? 'bg-[#3D4A2B] text-white border-[#2A331E]' : 'bg-white text-gray-700 border-[#5C6B47]/30 hover:bg-[#5C6B47]/10'}`}
+              >
+                <Package size={24} />
+                <span className="text-sm font-medium">Resurser</span>
+              </button>
+              <button
+                onClick={() => { setActiveView('messaging'); setShowLocalMenu(false); }}
+                className={`relative flex flex-col items-center gap-2 p-4 rounded-2xl border shadow-sm active:scale-95 transition-all ${activeView === 'messaging' ? 'bg-[#3D4A2B] text-white border-[#2A331E]' : 'bg-white text-gray-700 border-[#5C6B47]/30 hover:bg-[#5C6B47]/10'}`}
+              >
+                <MessageCircle size={24} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+                <span className="text-sm font-medium">Chat</span>
+              </button>
+            </div>
+
+            {/* Quick Action shortcuts inside menu */}
+            <div className="mt-8 space-y-3">
+              {activeCommunityId && (
+                <button
+                  onClick={() => { setActiveView('community-detail'); setShowLocalMenu(false); }}
+                  className="w-full flex items-center gap-4 p-4 rounded-2xl bg-white border border-[#5C6B47]/30 hover:bg-[#5C6B47]/10 active:scale-95 transition-all"
+                >
+                  <Building2 size={24} className="text-[#3D4A2B]" />
+                  <div className="flex-1 text-left">
+                    <div className="font-semibold text-gray-800">Samhällesdetaljer</div>
+                    <div className="text-xs text-gray-500">Visa och administrera samhälle</div>
+                  </div>
+                  <ChevronRight size={20} className="text-gray-400" />
+                </button>
+              )}
+              <button
+                onClick={() => { setActiveView('resources'); setShowLocalMenu(false); }}
+                className="w-full flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-[#A08E5A] to-[#5C6B47] text-white hover:shadow-lg active:scale-95 transition-all"
+              >
+                <Package size={24} />
+                <div className="flex-1 text-left">
+                  <div className="font-semibold">Resursdelning</div>
+                  <div className="text-xs text-white/80">Dela och begär resurser</div>
+                </div>
+                <ChevronRight size={20} className="text-white/70" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 
   // Home View - Dashboard
   const HomeView = () => (
-    <div className="pb-32 px-4 pt-6 space-y-6 safe-area-pb">
+  <div className="pb-24 px-4 pt-6 space-y-6 safe-area-pb">
       {/* Hero Card */}
       <div className="bg-gradient-to-br from-[#3D4A2B] to-[#2A331E] rounded-3xl p-6 text-white shadow-xl">
         <div className="flex items-start justify-between mb-4">
@@ -438,7 +480,7 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
     }
 
     return (
-      <div className="min-h-screen bg-white pb-32 safe-area-pb">
+  <div className="min-h-screen bg-white pb-24 safe-area-pb">
         {/* Header */}
         <div className="bg-gradient-to-br from-[#3D4A2B] to-[#2A331E] text-white px-4 py-6">
           <div className="flex items-center gap-3 mb-4">
@@ -694,7 +736,7 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
         {activeView === 'community-detail' && <CommunityDetailView />}
         
         {activeView === 'discovery' && (
-          <div className="pb-32 px-4 pt-6 safe-area-pb">
+          <div className="pb-24 px-4 pt-6 safe-area-pb">
             <CommunityDiscoveryMobile 
               user={user}
               userPostalCode={userPostalCode}
@@ -704,7 +746,7 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
         )}
 
         {activeView === 'resources' && (
-          <div className="pb-32 safe-area-pb">
+          <div className="pb-24 safe-area-pb">
             {activeCommunityId ? (
               <>
                 
@@ -798,8 +840,8 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
         )}
       </div>
 
-      {/* Bottom Navigation - Hidden when messaging is active */}
-      {activeView !== 'messaging' && <BottomNav />}
+  {/* Local Hamburger Menu (internal hub navigation) */}
+  <LocalHamburgerMenu />
 
       {/* Homespace Editor Modal */}
       {showHomespaceEditor && activeCommunityId && (

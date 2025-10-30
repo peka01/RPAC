@@ -187,6 +187,48 @@ Updated `docs/PRODUCTION_DEPLOYMENT.md` with:
 
 ---
 
+### 2025-10-30 - Mobile Local Page Navigation Overlap Fix 📱
+
+Issue: On the `/local` page (Lokalt), the community hub renders its own internal bottom navigation (Hem / Hitta / Resurser / Chat). The global `MobileNavigationV2` was also rendered by the root layout wrapper, causing two stacked fixed bottom nav bars and hiding the hub's action area behind the global nav (visible as a white bar).
+
+Fix: Updated `responsive-layout-wrapper.tsx` to auto-set `hideMobileNav` when `pathname === '/local'`, preventing the global mobile nav from rendering on that route. This removes the overlap and reveals the full community hub content. No styling changes required inside the hub component.
+
+File Modified:
+- `rpac-web/src/components/responsive-layout-wrapper.tsx`
+
+Reasoning: Centralized suppression avoids touching multiple pages and respects existing `hideMobileNav` prop semantics. Keeps global nav for all other mobile routes unchanged.
+
+Follow-up: If additional sub-routes under `/local` (e.g. `/local/messages/...`) also need the internal hub nav only, consider expanding the condition to `pathname?.startsWith('/local')`.
+
+---
+### 2025-10-30 - Local Hub Internal Navigation Refactor (Hamburger Menu) 🍔
+
+Context: The `/local` page previously rendered its own fixed bottom navigation (Hem/Hitta/Resurser/Chat) which conflicted with the global mobile navigation, leading to overlapping elements and hidden content.
+
+Change:
+- Removed the internal fixed BottomNav from `community-hub-mobile-enhanced.tsx`.
+- Added a floating hamburger button (`LocalHamburgerMenu`) at bottom-right (above global nav) that opens a slide-up sheet with the same internal nav actions plus quick shortcuts.
+- Restored global mobile nav rendering for `/local` by removing auto-hide logic in `responsive-layout-wrapper.tsx`.
+- Adjusted bottom padding from `pb-32` to `pb-24` across views inside the community hub (layout comfortable without internal bar).
+- Added localization keys: `local_community.lokalt_nav`, `local_community.samhallesdetaljer`.
+
+Benefits:
+- Eliminates double fixed bar stacking & overlap.
+- Preserves consistent app-wide navigation while still giving fast access to local actions.
+- Keeps olive palette and localization standards intact.
+
+Follow-up Ideas:
+- Animate hamburger FAB only when user scrolls up.
+- Add badge indicator for unread messages directly on FAB.
+- Consider moving community-specific quick actions into the sheet for further consolidation.
+
+Files Modified:
+- `rpac-web/src/components/community-hub-mobile-enhanced.tsx`
+- `rpac-web/src/components/responsive-layout-wrapper.tsx`
+- `rpac-web/src/lib/locales/sv.json`
+
+---
+
 ### 2025-10-21 - USER MANAGEMENT & BUSINESS MODEL SYSTEM 💼 **MAJOR FEATURE**
 
 Implemented a complete user management strategy aligned with future business model for paid licenses and community access control.
