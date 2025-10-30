@@ -119,7 +119,6 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
   const [helpEditorContent, setHelpEditorContent] = useState('');
   const [helpEditorPath, setHelpEditorPath] = useState(''); // e.g. 'local/home'
   const [helpEditorCommitMsg, setHelpEditorCommitMsg] = useState('');
-  const [adminEditToken, setAdminEditToken] = useState('');
   const [isSavingHelp, setIsSavingHelp] = useState(false);
   
   // Dragging and resizing state
@@ -418,14 +417,20 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
   };
 
   const saveHelpEdits = async () => {
-    if (!helpEditorPath) return;
+    if (!helpEditorPath || !user?.id) return;
     setIsSavingHelp(true);
     try {
+      // Get Supabase session token
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session?.access_token) {
+        throw new Error('Ingen aktiv session. Logga in igen.');
+      }
+
       const resp = await fetch('/api/help-edit', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          ...(adminEditToken ? { 'Authorization': `Bearer ${adminEditToken}` } : {}),
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           path: helpEditorPath,
@@ -434,17 +439,22 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
         })
       });
       if (!resp.ok) {
-        const err = await resp.text();
-        throw new Error(err);
+        let err: any;
+        try {
+          err = await resp.json();
+        } catch {
+          err = { error: await resp.text() };
+        }
+        throw new Error(err.error || 'Kunde inte spara ändringarna');
       }
       // Close modal
       setShowHelpEditor(false);
       // Reload help with cache-bust
       await KRISterHelpLoader.clearCache();
       await loadContextHelp();
-    } catch (e) {
+    } catch (e: any) {
       console.error('Save help edit failed:', e);
-      alert('Kunde inte spara ändringarna. Kontrollera admin-token.');
+      alert(e.message || 'Kunde inte spara ändringarna. Kontrollera att du är inloggad som super admin.');
     } finally {
       setIsSavingHelp(false);
     }
@@ -1339,8 +1349,6 @@ Exempel: ["Fråga 1?", "Hur gör jag X?", "Fråga 3?"]`;
         setContent={setHelpEditorContent}
         commitMsg={helpEditorCommitMsg}
         setCommitMsg={setHelpEditorCommitMsg}
-        adminToken={adminEditToken}
-        setAdminToken={setAdminEditToken}
         onSave={saveHelpEdits}
         saving={isSavingHelp}
         path={helpEditorPath}
@@ -1357,8 +1365,6 @@ export function HelpEditorModal({
   setContent,
   commitMsg,
   setCommitMsg,
-  adminToken,
-  setAdminToken,
   onSave,
   saving,
   path
@@ -1369,8 +1375,6 @@ export function HelpEditorModal({
   setContent: (v: string) => void;
   commitMsg: string;
   setCommitMsg: (v: string) => void;
-  adminToken: string;
-  setAdminToken: (v: string) => void;
   onSave: () => void;
   saving: boolean;
   path: string;
@@ -1396,16 +1400,7 @@ export function HelpEditorModal({
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">{t('krister.help.token_label')}</label>
-            <input
-              value={adminToken}
-              onChange={(e) => setAdminToken(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
-              placeholder="Admin token"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">.md</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Markdown</label>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}

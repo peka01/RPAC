@@ -5,11 +5,13 @@
  * Uses a whitelist of allowed file paths for safety.
  *
  * Security:
- * - Requires Authorization: Bearer <ADMIN_HELP_EDIT_TOKEN>
+ * - Requires authenticated Supabase session
+ * - Verifies user has user_tier === 'super_admin'
  * - Requires GitHub token with repo contents:write
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
 export const runtime = 'edge';
 
@@ -51,10 +53,44 @@ function base64EncodeUtf8(str: string): string {
 
 export async function PUT(request: NextRequest) {
   try {
-    const adminHeader = request.headers.get('authorization') || '';
-    const expected = process.env.ADMIN_HELP_EDIT_TOKEN;
-    if (!expected || !adminHeader.startsWith('Bearer ') || adminHeader.substring(7) !== expected) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Verify user is authenticated and is super admin
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized: Missing authentication' }, { status: 401 });
+    }
+
+    // Create Supabase client with service role for admin operations
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+    }
+
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+
+    // Get user from token
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized: Invalid session' }, { status: 401 });
+    }
+
+    // Check if user is super admin
+    const { data: profile, error: profileError } = await supabaseAdmin
+      .from('user_profiles')
+      .select('user_tier')
+      .eq('user_id', user.id)
+      .single();
+
+    if (profileError || profile?.user_tier !== 'super_admin') {
+      return NextResponse.json({ error: 'Forbidden: Super admin access required' }, { status: 403 });
     }
 
     const body = await request.json().catch(() => null) as { path?: string; content?: string; message?: string } | null;

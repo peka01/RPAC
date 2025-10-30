@@ -56,14 +56,13 @@ Features:
   - Saves via `PUT /api/help-edit` which commits directly to GitHub
   - Help panel cache-busts and reloads immediately
 - Required environment variables (Cloudflare Pages):
-  - `GITHUB_OWNER=beready-se`
+  - `GITHUB_OWNER=beready-se` (or your GitHub username/org)
   - `GITHUB_REPO=RPAC`
   - `GITHUB_BRANCH=main`
   - `GITHUB_HELP_DIR=rpac-web/public/help`
   - `GITHUB_TOKEN=<fine-grained PAT or GitHub App token>` (repo contents: read/write)
-  - `ADMIN_HELP_EDIT_TOKEN=<random, used as Bearer token from UI>`
-    - Note: Only super admins should have this; do not expose publicly
-  - Security: API also whitelists allowed help paths
+  - `SUPABASE_SERVICE_ROLE_KEY=<your Supabase service role key>` (for verifying super admin status)
+  - Security: API verifies user is authenticated super admin (user_tier === 'super_admin') via Supabase session
   - Handles pathname + query parameters
   - Example: `/local?tab=resources&resourceTab=shared` → `local/resources-shared.md`
 - **Markdown parsing**: Extracts structured sections
