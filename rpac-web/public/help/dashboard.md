@@ -5,7 +5,7 @@
 {{krister.context_help.dashboard.description}}
 
 På översiktssidan får du:
-- **Väderprognos**: 5-dagars prognos med extremvädervarningar
+- **Väderprognos**: 3-dagars prognos med extremvädervarningar
 - **AI-coach**: Personliga beredskapstips baserat på väder och profil
 - **Snabblänkar**: Direkt åtkomst till Individuell, Lokalt och Regionalt
 
