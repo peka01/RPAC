@@ -1,84 +1,42 @@
 # Resurser
-Resursinventeringen hjälper dig att:
-- Hålla koll på ditt hemförråd
-- Följa MSB:s beredskapslista
-- Se exakt hur länge du kan klara dig
-- Identifiera vad som saknas
-
-## Steg-för-steg
+Håll koll på ditt förråd och se hur länge du klarar dig. Följ dessa steg:
 
 ### 1. Öppna resursinventeringen
-- Från dashboard: Klicka "{{navigation.individual}}"
-- Välj `?section=resources` i URL
-- Eller klicka "Mina resurser" i sidomenyn
+- Klicka på "Mina resurser" i sidomenyn
 
-### 2. Förstå kategorierna (MSB-standard)
-- **Mat**: Torrvara, konserver, färskvara
-- **Vatten**: Dricksvatten, rengöringsvatten
-- **Medicin**: Receptbelagd, receptfri, förbandsmaterial
-- **Energi**: Batterier, bränsle, uppvärmning
-- **Hygien**: Toalettpapper, tvål, blöjor
-- **Övrigt**: Verktyg, radio, kontanter
+### 2. Förstå kategorierna
+- Mat, vatten, medicin, energi, hygien, verktyg
 
 ### 3. Lägg till en resurs
-1. Klicka på en kategori (t.ex. "Mat")
-2. Klicka "Lägg till resurs" eller "+"-knappen
-3. Fyll i:
-   - **Namn**: T.ex. "Ris", "Konservburkar"
-   - **Antal**: Mängd du har (t.ex. 5 kg, 20 st)
-   - **Enhet**: kg, liter, st, förpackningar
-   - **MSB-rekommenderad**: Bocka i om den finns på MSB:s lista
+1. Välj en kategori (t.ex. "Mat")
+2. Klicka "Lägg till resurs"
+3. Fyll i namn, antal, enhet, MSB-rekommendation
 4. Klicka "Spara"
 
 ### 4. Använd bulk-add för MSB-resurser
-1. Klicka "Lägg till MSB-resurser" (gul knapp)
-2. Välj från fördefinierad lista:
-   - ☑️ Bocka i vad du har hemma
-   - Ange antal direkt i listan
-3. Klicka "Lägg till valda" (sparar alla samtidigt)
+1. Tryck på "Lägg till MSB-resurser"
+2. Bocka i vad du har och ange antal
+3. Klicka "Lägg till valda"
 
 ### 5. Markera som fylld
-- Klicka checkboxen bredvid resursen
-- Status ändras till "Fylld" (grön)
-- Påverkar din beredskapspoäng positivt
+- Klicka i checkboxen bredvid resursen
+- Status blir "Fylld" och ökar din beredskapspoäng
 
 ### 6. Redigera eller ta bort
-- **Redigera**: Klicka blyertsikonen → Ändra → Spara
-- **Ta bort**: Klicka papperskorgen → Bekräfta
+- Redigera: Klicka blyertsikonen, ändra och spara
+- Ta bort: Klicka papperskorgen och bekräfta
 
 ### 7. Filtrera och sök
-- **Sökfält**: Skriv för att filtrera (t.ex. "ris")
-- **Kategorifilter**: Visa endast en kategori
-- **Status**: Visa endast fyllda/ofyllda
+- Använd sökfältet och kategorifilter
+- Visa endast fyllda/ofyllda resurser
 
-### 8. Byt vy (tabell/kort)
-- **Kortvy**: Bättre på mobil, visuell
-- **Tabellvy**: Bättre på desktop, kompakt
-- Klicka ikonen uppe till höger för att växla
+### 8. Byt vy
+- Växla mellan kort- och tabellvy
+- Klicka ikonen uppe till höger
 
-## Tips
-
-{{krister.context_help.resources.tips.0}}
-
-{{krister.context_help.resources.tips.1}}
-
-{{krister.context_help.resources.tips.2}}
-
-## Vanliga frågor
-
-**Q: Vad betyder "MSB-rekommenderad"?**
-A: Resurser som Myndigheten för samhällsskydd och beredskap rekommenderar i sin kriskrisberedskapsguide "Om krisen eller kriget kommer".
-
-**Q: Hur mycket vatten behöver jag?**
-A: MSB rekommenderar 3 liter per person och dag i minst 3 dagar = 9 liter/person.
-
-**Q: Kan jag dela mina resurser med samhället?**
-A: Ja! Gå till {{navigation.local}} → Resurser → Delade resurser och klicka "Dela resurs".
-
-**Q: Varför syns inte min beredskapspoäng?**
-A: Poängen visas på dashboard. Den uppdateras automatiskt när du lägger till eller tar bort resurser.
+För fler tips och vanliga frågor, se hjälpdokumentationen. Lycka till!
 
 ## Relaterade sidor
 - [Dashboard](/help/dashboard.md) - Se beredskapspoäng
-- [Individual - Cultivation](/help/individual/cultivation.md) - Odla egen mat
-- [Local - Shared Resources](/help/local/resources-shared.md) - Dela resurser
+- [Individuell - Odling](/help/individual/cultivation.md) - Odla egen mat
+- [Lokal - Delade resurser](/help/local/resources-shared.md) - Dela med samhället
