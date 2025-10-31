@@ -1,9 +1,4 @@
-# {{krister.context_help.resources.title}}
-
-## Kontext
-
-{{krister.context_help.resources.description}}
-
+#Resurser
 Resursinventeringen hjälper dig att:
 - Hålla koll på ditt hemförråd
 - Följa MSB:s beredskapslista
