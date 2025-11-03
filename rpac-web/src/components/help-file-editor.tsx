@@ -389,19 +389,20 @@ export default function HelpFileEditor({ filePath, initialContent, onClose, onSa
       
       let codeContext = '';
       if (needsCodeSearch) {
-        // Add searching indicator
+        // Inform user that codebase search is not available in production
         setAiChatHistory(prev => [...prev, { 
           role: 'assistant', 
-          content: '🔍 Söker i kodbasen...'
+          content: 'ℹ️ Kodbasökning är inte tillgänglig i produktionsmiljön. AI kommer att svara baserat på tillgänglig kontext från sidan.'
         }]);
-
+        
+        // Note: Codebase search requires Node.js filesystem which isn't available in Edge runtime
+        // Keeping this code commented for potential future implementation with a different approach
+        /*
         try {
-          // Extract search terms (component names, features, etc)
           const searchTerms = userMessage
             .replace(/kolla i kodbasen och|skapa en instruktion för|how to|find/gi, '')
             .trim();
 
-          // Use semantic search to find relevant code
           const searchResponse = await fetch('/api/codebase/search', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -424,21 +425,11 @@ ${r.content}
 \`\`\`
 `).join('\n')}
 `;
-            
-            // Update message to show search completed
-            setAiChatHistory(prev => {
-              const updated = [...prev];
-              updated[updated.length - 1] = { 
-                role: 'assistant', 
-                content: `✅ Hittade ${searchResults.results.length} relevanta kodfiler. Analyserar...`
-              };
-              return updated;
-            });
           }
         } catch (searchError) {
           console.error('Code search error:', searchError);
-          codeContext = '\n(Kodbasökning misslyckades, fortsätter med tillgänglig kontext)\n';
         }
+        */
       }
 
       // Build rich context for the AI
@@ -480,16 +471,12 @@ ANVÄNDARENS INSTRUKTION:
 ${userMessage}
 
 UPPGIFT:
-${needsCodeSearch ? 
-  'Baserat på kodbasen ovan, skapa detaljerad dokumentation som förklarar hur funktionen/komponenten fungerar. Inkludera praktiska steg-för-steg instruktioner.' : 
-  'Omskriv markdown-dokumentationen baserat på användarens instruktion.'
-}
+Omskriv markdown-dokumentationen baserat på användarens instruktion.
 - Tänk på sidans syfte och funktioner
 - Anpassa språket till målgruppen
 - Använd konkreta exempel från RPAC-kontexten när det är relevant
 - Behåll eller förbättra strukturen (rubriker, listor, steg)
 - Var tydlig och actionorienterad
-${needsCodeSearch ? '- Förklara baserat på faktisk implementation i koden\n- Inkludera exakta komponentnamn, props och metoder som används' : ''}
 
 Svara ENDAST med den omskrivna markdown-texten, inga förklaringar eller kommentarer.`;
 
@@ -522,14 +509,14 @@ Svara ENDAST med den omskrivna markdown-texten, inga förklaringar eller komment
         setAiModifiedContent(content);
         setShowAIChanges(true);
         
-        // Remove the "searching" message and add success
+        // Remove the info message and add success
         setAiChatHistory(prev => {
-          const filtered = prev.filter(msg => !msg.content.includes('🔍 Söker') && !msg.content.includes('Hittade'));
+          const filtered = prev.filter(msg => !msg.content.includes('ℹ️ Kodbasökning'));
           return [...filtered, { 
             role: 'assistant', 
             content: `✅ Dokumentet har uppdaterats!
 
-${needsCodeSearch ? '📝 Baserat på kodbasanalys:\n- Analyserade relevanta komponenter\n- Extraherade faktisk implementation\n- Skapade instruktioner från verklig kod\n\n' : ''}Ändringar:
+Ändringar:
 - Omskriven baserat på din instruktion
 - Strukturen har förbättrats
 - Innehållet är anpassat för RPAC-kontexten
@@ -544,7 +531,7 @@ ${needsCodeSearch ? '📝 Baserat på kodbasanalys:\n- Analyserade relevanta kom
     } catch (error) {
       console.error('AI rewrite error:', error);
       setAiChatHistory(prev => {
-        const filtered = prev.filter(msg => !msg.content.includes('🔍 Söker') && !msg.content.includes('Hittade'));
+        const filtered = prev.filter(msg => !msg.content.includes('ℹ️ Kodbasökning'));
         return [...filtered, { 
           role: 'assistant', 
           content: `❌ Fel: Kunde inte bearbeta texten med AI.
@@ -702,15 +689,11 @@ Försök igen eller ändra din instruktion.`
                       <p className="font-semibold mb-2">💡 Exempel på instruktioner:</p>
                       <div className="space-y-2">
                         <div>
-                          <p className="text-[#3D4A2B] font-medium">Omskrivning:</p>
+                          <p className="text-[#3D4A2B] font-medium">Exempel på frågor:</p>
                           <p>• "Gör texten mer kortfattad"</p>
                           <p>• "Förenkla språket för nybörjare"</p>
-                        </div>
-                        <div>
-                          <p className="text-[#3D4A2B] font-medium">Kodbasanalys:</p>
-                          <p>• "Kolla i kodbasen hur väderwidgeten fungerar"</p>
-                          <p>• "Hitta och beskriv ResourceListView-komponenten"</p>
-                          <p>• "Leta upp hur man sparar en resurs"</p>
+                          <p>• "Lägg till mer detaljer om denna funktion"</p>
+                          <p>• "Omformulera för en mer formell ton"</p>
                         </div>
                       </div>
                     </div>
