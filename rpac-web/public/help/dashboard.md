@@ -1,8 +1,4 @@
-# {{krister.context_help.dashboard.title}}
-
-## Kontext
-
-{{krister.context_help.dashboard.description}}
+# Översikt
 
 På översiktssidan får du:
 - **Väderprognos**: 5-dagars prognos med extremvädervarningar
