@@ -36,7 +36,9 @@ export class WeatherService {
         url.searchParams.set('county', county);
       }
 
-      const response = await fetch(url.toString());
+      const response = await fetch(url.toString(), {
+        signal: AbortSignal.timeout(8000) // 8 second timeout
+      });
       
       if (!response.ok) {
         // API exists but returned error - log for debugging
@@ -317,7 +319,9 @@ export class WeatherService {
         url.searchParams.set('lat', lat.toString());
         url.searchParams.set('lon', lon.toString());
 
-        const smhiResponse = await fetch(url.toString());
+        const smhiResponse = await fetch(url.toString(), {
+          signal: AbortSignal.timeout(8000) // 8 second timeout
+        });
         
         if (smhiResponse.ok) {
           const smhiData = await smhiResponse.json();
@@ -416,7 +420,9 @@ export class WeatherService {
         url.searchParams.set('lat', lat.toString());
         url.searchParams.set('lon', lon.toString());
 
-        const smhiResponse = await fetch(url.toString());
+        const smhiResponse = await fetch(url.toString(), {
+          signal: AbortSignal.timeout(8000) // 8 second timeout
+        });
         
         if (smhiResponse.ok) {
           const smhiData = await smhiResponse.json();
@@ -537,7 +543,9 @@ export class WeatherService {
       url.searchParams.set('lat', lat.toString());
       url.searchParams.set('lon', lon.toString());
 
-      const smhiResponse = await fetch(url.toString());
+      const smhiResponse = await fetch(url.toString(), {
+        signal: AbortSignal.timeout(8000) // 8 second timeout
+      });
       
       if (smhiResponse.ok) {
         const smhiData = await smhiResponse.json();

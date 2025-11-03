@@ -63,16 +63,22 @@ export async function GET(
     }
 
     // Build GitHub raw URL
-    const owner = process.env.GITHUB_OWNER || 'beready-se';
+    const owner = process.env.GITHUB_OWNER || 'peka01';
     const repo = process.env.GITHUB_REPO || 'RPAC';
     const branch = process.env.GITHUB_BRANCH || 'main';
     const repoHelpRoot = process.env.GITHUB_HELP_DIR || 'rpac-web/public/help';
+    
+    // Use GitHub API instead of raw.githubusercontent.com for better cache control
+    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${repoHelpRoot}/${filePath}.md?ref=${branch}`;
     const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${repoHelpRoot}/${filePath}.md`;
 
     const ghToken = process.env.GITHUB_TOKEN;
 
     const ghHeaders: Record<string, string> = {
-      'Accept': 'text/plain',
+      'Accept': 'application/vnd.github.raw+json', // Get raw content directly from API
+      // Cache-busting headers to get fresh content from GitHub
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
     };
     if (ghToken) {
       ghHeaders['Authorization'] = `Bearer ${ghToken}`;
@@ -80,16 +86,37 @@ export async function GET(
 
     let content: string | null = null;
 
-    const ghResp = await fetch(rawUrl, { headers: ghHeaders });
-    if (ghResp.ok) {
-      content = await ghResp.text();
-    } else {
-      // Fallback to local public asset in dev or when repo is private
-      const url = new URL(request.url);
-      const localUrl = `${url.origin}/help/${filePath}.md`;
-      const localResp = await fetch(localUrl);
-      if (localResp.ok) {
-        content = await localResp.text();
+    // Try GitHub API first (better cache control)
+    try {
+      const ghResp = await fetch(apiUrl, { 
+        headers: ghHeaders,
+        cache: 'no-store' // Force no caching in fetch itself
+      });
+      if (ghResp.ok) {
+        content = await ghResp.text();
+      }
+    } catch (apiError) {
+      // Silently fall back to raw URL
+    }
+
+    // Fallback to raw URL if API fails
+    if (!content) {
+      // Add cache-busting timestamp to URL for GitHub CDN
+      const cacheBustUrl = `${rawUrl}?t=${Date.now()}`;
+      const ghResp = await fetch(cacheBustUrl, { 
+        headers: ghHeaders,
+        cache: 'no-store'
+      });
+      if (ghResp.ok) {
+        content = await ghResp.text();
+      } else {
+        // Fallback to local public asset in dev or when repo is private
+        const url = new URL(request.url);
+        const localUrl = `${url.origin}/help/${filePath}.md`;
+        const localResp = await fetch(localUrl);
+        if (localResp.ok) {
+          content = await localResp.text();
+        }
       }
     }
 

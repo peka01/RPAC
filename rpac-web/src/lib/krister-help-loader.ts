@@ -176,7 +176,10 @@ export class KRISterHelpLoader {
     try {
       // Remove .md extension since API route adds it
       const cleanPath = filePath.replace(/\.md$/, '');
-      const response = await fetch(`/api/help/${cleanPath}`);
+      // Add cache-busting timestamp to ensure fresh content
+      const cacheBust = `?t=${Date.now()}`;
+      const url = `/api/help/${cleanPath}${cacheBust}`;
+      const response = await fetch(url);
       if (response.ok) {
         return await response.text();
       }

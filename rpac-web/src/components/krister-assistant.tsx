@@ -16,7 +16,8 @@ import {
   Clock,
   MessageSquare,
   HelpCircle,
-  RotateCcw
+  RotateCcw,
+  Edit3
 } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { SecureOpenAIService } from '@/lib/openai-worker-service';
@@ -27,6 +28,7 @@ import { supabase } from '@/lib/supabase';
 import { KRISterHelpLoader } from '@/lib/krister-help-loader';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import HelpFileEditor from './help-file-editor';
 
 interface User {
   id: string;
@@ -107,6 +109,7 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [dailyTips, setDailyTips] = useState<DailyTip[]>([]);
   const [contextHelp, setContextHelp] = useState<any>(null);
   const [exampleQuestions, setExampleQuestions] = useState<string[]>([]);
@@ -118,6 +121,7 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
   const [showHelpEditor, setShowHelpEditor] = useState(false);
   const [helpEditorContent, setHelpEditorContent] = useState('');
   const [helpEditorPath, setHelpEditorPath] = useState(''); // e.g. 'local/home'
+  const [helpEditorFullPath, setHelpEditorFullPath] = useState(''); // Full path for API
   const [helpEditorCommitMsg, setHelpEditorCommitMsg] = useState('');
   const [isSavingHelp, setIsSavingHelp] = useState(false);
   
@@ -287,7 +291,8 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
           steps: helpContent.steps,
           tips: helpContent.tips,
           faqs: helpContent.faqs,
-          relatedPages: helpContent.relatedPages
+          relatedPages: helpContent.relatedPages,
+          rawMarkdown: helpContent.rawMarkdown
         });
         // Precompute current help path for editor
         const computedPath = computeHelpPathForRoute(currentPathname, currentSearchParams)?.replace(/\.md$/, '') || '';
@@ -823,9 +828,17 @@ Exempel: ["Fråga 1?", "Hur gör jag X?", "Fråga 3?"]`;
     }
   };
 
-  const handleClearChat = () => {
-    // Clear all messages - no greeting needed
-    setMessages([]);
+  const handleRefreshContent = async () => {
+    setIsRefreshing(true);
+    try {
+      // Bust cache and reload help content from repository
+      KRISterHelpLoader.clearCache();
+      await loadContextHelp();
+    } catch (error) {
+      console.error('Error refreshing content:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const getTipIcon = (tip: DailyTip) => {
@@ -926,18 +939,38 @@ Exempel: ["Fråga 1?", "Hur gör jag X?", "Fråga 3?"]`;
           <button
             onClick={(e) => {
               e.stopPropagation();
-              handleClearChat();
+              handleRefreshContent();
             }}
-            disabled={messages.length <= 1}
+            disabled={isRefreshing}
             className={`p-1.5 rounded-lg transition-colors ${
-              messages.length > 1 
-                ? 'hover:bg-white/10 cursor-pointer' 
-                : 'opacity-30 cursor-not-allowed'
+              isRefreshing ? 'opacity-50' : 'hover:bg-white/10'
             }`}
-            title={messages.length > 1 ? t('krister.clear_chat.title') : t('krister.clear_chat.disabled')}
+            title={t('krister.refresh_content') || 'Uppdatera innehåll'}
           >
-            <RotateCcw size={18} />
+            <RotateCcw size={18} className={isRefreshing ? 'animate-spin' : ''} />
           </button>
+          {helpEditorPath && userProfile?.user_tier === 'super_admin' && (
+            <button
+              onClick={async (e) => {
+                e.stopPropagation();
+                // Fetch the current content and open in-app editor
+                try {
+                  const response = await fetch(`/api/help/${helpEditorPath}?t=${Date.now()}`);
+                  const content = await response.text();
+                  setHelpEditorContent(content);
+                  setHelpEditorFullPath(`rpac-web/public/help/${helpEditorPath}.md`);
+                  setShowHelpEditor(true);
+                } catch (error) {
+                  console.error('Failed to load help content for editing:', error);
+                  alert('Kunde inte ladda hjälpfilen för redigering');
+                }
+              }}
+              className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+              title={t('krister.help.edit')}
+            >
+              <Edit3 size={18} />
+            </button>
+          )}
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -963,80 +996,34 @@ Exempel: ["Fråga 1?", "Hur gör jag X?", "Fråga 3?"]`;
 
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-br from-[#5C6B47]/5 to-white">
-        {/* Context Help Card */}
+        {/* Context Help - Display raw markdown directly */}
         {contextHelp && (
-          <div className="bg-[#3D4A2B]/10 rounded-xl p-4 border-l-4 border-[#3D4A2B]">
-            <div className="flex items-start gap-3">
-              <HelpCircle className="text-[#3D4A2B] mt-0.5 flex-shrink-0" size={20} />
-              <div className="flex-1">
-                <h4 className="font-bold text-[#3D4A2B] mb-1">{contextHelp.title}</h4>
-                <div className="text-sm text-gray-700 mb-3 prose prose-sm max-w-none">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{contextHelp.description || ''}</ReactMarkdown>
-                </div>
-                
-                {/* Tips section */}
-                {contextHelp.tips && contextHelp.tips.length > 0 && (
-                  <div className="mb-3">
-                    <p className="text-xs font-semibold text-[#3D4A2B] mb-1">💡 Tips:</p>
-                    <ul className="space-y-1">
-                      {contextHelp.tips.map((tip: string, idx: number) => (
-                        <li key={idx} className="text-xs text-gray-600 flex items-start gap-2">
-                          <span className="text-[#5C6B47] mt-0.5">•</span>
-                          <div className="prose prose-sm max-w-none">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{tip}</ReactMarkdown>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                
-                {/* Steps section (if available from new help system) */}
-                {contextHelp.steps && contextHelp.steps.length > 0 && (
-                  <div className="mb-3">
-                    <p className="text-xs font-semibold text-[#3D4A2B] mb-1">📋 Steg-för-steg:</p>
-                    <ol className="space-y-1 list-decimal list-inside">
-                      {contextHelp.steps.slice(0, 3).map((step: any, idx: number) => (
-                        <li key={idx} className="text-xs text-gray-600">
-                          <span className="font-medium">{step.title}</span>
-                          {step.content && (
-                            <div className="ml-5 text-gray-500 prose prose-sm max-w-none">
-                              <ReactMarkdown remarkPlugins={[remarkGfm]}>{step.content.substring(0, 200)}</ReactMarkdown>
-                            </div>
-                          )}
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                )}
-                
-                {/* Related pages (if available) */}
-                {contextHelp.relatedPages && contextHelp.relatedPages.length > 0 && (
-                  <div className="pt-2 border-t border-[#3D4A2B]/20">
-                    <p className="text-xs font-semibold text-[#3D4A2B] mb-1">🔗 Relaterat:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {contextHelp.relatedPages.slice(0, 3).map((page: any, idx: number) => (
-                        <span key={idx} className="text-xs bg-[#3D4A2B]/20 text-[#3D4A2B] px-2 py-0.5 rounded-full">
-                          {page.title}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {/* Super-admin: Edit help doc */}
-                {helpEditorPath && userProfile?.user_tier === 'super_admin' && (
-                  <div className="mt-3 flex justify-end">
-                    <button
-                      onClick={openHelpEditor}
-                      className="px-3 py-1.5 text-sm bg-[#3D4A2B] text-white rounded-lg hover:opacity-90"
-                      title={t('krister.help.edit')}
-                    >
-                      {t('krister.help.edit')}
-                    </button>
-                  </div>
-                )}
+          <div className="text-sm leading-relaxed">
+            {contextHelp.rawMarkdown ? (
+              <div className="prose prose-sm max-w-none 
+                prose-headings:text-[#3D4A2B] prose-headings:font-semibold
+                prose-h1:text-base prose-h1:mb-2 prose-h1:mt-0
+                prose-h2:text-sm prose-h2:mt-4 prose-h2:mb-1.5 prose-h2:font-semibold
+                prose-h3:text-sm prose-h3:mt-2 prose-h3:mb-1 prose-h3:font-medium
+                prose-p:text-sm prose-p:text-gray-700 prose-p:my-1 prose-p:leading-relaxed
+                prose-li:text-sm prose-li:text-gray-700 prose-li:my-0.5
+                prose-ul:my-1.5 prose-ul:space-y-0.5
+                prose-ol:my-1.5 prose-ol:space-y-0.5
+                prose-a:text-[#3D4A2B] prose-a:underline prose-a:font-normal
+                prose-strong:font-bold
+                prose-code:text-xs prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded">
+                <ReactMarkdown 
+                  remarkPlugins={[remarkGfm]}
+                >
+                  {contextHelp.rawMarkdown}
+                </ReactMarkdown>
               </div>
-            </div>
+            ) : (
+              <div className="prose prose-sm max-w-none prose-headings:text-[#3D4A2B]">
+                <h1 className="text-base font-semibold mb-2">{contextHelp.title}</h1>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{contextHelp.description || ''}</ReactMarkdown>
+              </div>
+            )}
           </div>
         )}
 
@@ -1341,87 +1328,25 @@ Exempel: ["Fråga 1?", "Hur gör jag X?", "Fråga 3?"]`;
         className="absolute right-0 top-3 bottom-3 w-1 cursor-e-resize"
         onMouseDown={handleResizeStart('e')}
       />
-      {/* Help Editor Modal */}
-      <HelpEditorModal
-        open={showHelpEditor}
-        onClose={() => setShowHelpEditor(false)}
-        content={helpEditorContent}
-        setContent={setHelpEditorContent}
-        commitMsg={helpEditorCommitMsg}
-        setCommitMsg={setHelpEditorCommitMsg}
-        onSave={saveHelpEdits}
-        saving={isSavingHelp}
-        path={helpEditorPath}
-      />
-    </div>
-  );
-}
-
-// Modal for help editor
-export function HelpEditorModal({
-  open,
-  onClose,
-  content,
-  setContent,
-  commitMsg,
-  setCommitMsg,
-  onSave,
-  saving,
-  path
-}: {
-  open: boolean;
-  onClose: () => void;
-  content: string;
-  setContent: (v: string) => void;
-  commitMsg: string;
-  setCommitMsg: (v: string) => void;
-  onSave: () => void;
-  saving: boolean;
-  path: string;
-}) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-[60] bg-black/30 flex items-center justify-center p-4">
-      <div className="w-full max-w-3xl bg-white rounded-xl shadow-lg border border-[#3D4A2B]/30 overflow-hidden">
-        <div className="px-4 py-3 bg-[#3D4A2B] text-white flex items-center justify-between">
-          <div className="font-semibold text-sm">{t('krister.help.edit_title')} • {path}.md</div>
-          <button onClick={onClose} className="p-1.5 hover:bg-white/10 rounded-lg">
-            <X size={18} />
-          </button>
-        </div>
-        <div className="p-4 space-y-3">
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">{t('krister.help.commit_message')}</label>
-            <input
-              value={commitMsg}
-              onChange={(e) => setCommitMsg(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
-              placeholder={`Uppdatera hjälp: ${path}`}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Markdown</label>
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              rows={18}
-              className="w-full font-mono text-sm px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
-            />
-          </div>
-        </div>
-        <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-end gap-2 bg-gray-50">
-          <button onClick={onClose} className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 bg-white">
-            {t('krister.help.cancel')}
-          </button>
-          <button
-            onClick={onSave}
-            disabled={saving}
-            className="px-3 py-1.5 text-sm rounded-lg bg-[#3D4A2B] text-white disabled:opacity-50"
-          >
-            {saving ? 'Sparar…' : t('krister.help.save')}
-          </button>
-        </div>
-      </div>
+      {/* Help File Editor - Full-featured markdown editor */}
+      {showHelpEditor && (
+        <HelpFileEditor
+          filePath={helpEditorFullPath}
+          initialContent={helpEditorContent}
+          onClose={() => setShowHelpEditor(false)}
+          onSave={async (newContent) => {
+            // Refresh help content after save
+            await loadContextHelp();
+            setShowHelpEditor(false);
+          }}
+          pageContext={{
+            route: pathname || '',
+            pageTitle: contextHelp?.title || '',
+            features: contextHelp?.steps?.map((s: any) => s.title) || [],
+            components: ['ResourceListView', 'SideMenu', 'Krister Assistant', 'Forms', 'Navigation']
+          }}
+        />
+      )}
     </div>
   );
 }
