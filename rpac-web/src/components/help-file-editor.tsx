@@ -387,7 +387,7 @@ export default function HelpFileEditor({ filePath, initialContent, onClose, onSa
       // Check if user wants codebase search
       const needsCodeSearch = /kolla.*kodbas|sök.*kod|hitta.*komponent|leta.*fil|visa.*implementation|how.*implement|find.*code/i.test(userMessage);
       
-      let codeContext = '';
+      const codeContext = '';
       if (needsCodeSearch) {
         // Inform user that codebase search is not available in production
         setAiChatHistory(prev => [...prev, { 
