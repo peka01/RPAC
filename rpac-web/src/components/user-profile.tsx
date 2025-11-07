@@ -40,7 +40,7 @@ interface UserProfile {
   allergies?: string;
   blood_type?: string;
   special_needs?: string;
-  household_size?: number;
+  family_size?: number;
   has_children?: boolean;
   has_elderly?: boolean;
   has_pets?: boolean;
