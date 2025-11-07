@@ -98,7 +98,7 @@ export function IndividualDashboard({ user, onNavigate }: IndividualDashboardPro
       const score = Math.round((msbCategoriesCompleted / msbCategories.length) * 100);
 
       // Calculate self-sufficiency
-      const familySize = profile?.household_size || 1;
+      const familySize = profile?.family_size || 1;
       const waterResources = addedResources.filter(r => r.category === 'water' && r.quantity > 0);
       const foodResources = addedResources.filter(r => r.category === 'food' && r.quantity > 0);
       
@@ -151,7 +151,7 @@ export function IndividualDashboard({ user, onNavigate }: IndividualDashboardPro
         const crops = planData.crops || [];
         const cropNames = crops.map((crop: { cropName?: string; name?: string; [key: string]: unknown }) => crop.cropName || crop.name || crop).filter(Boolean);
 
-        const householdSize = profile?.household_size || 2;
+        const householdSize = profile?.family_size || 2;
         const targetDays = 30;
 
         const cultivationPlanForCalc = {

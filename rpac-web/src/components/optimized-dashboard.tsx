@@ -78,7 +78,7 @@ export function OptimizedDashboard({ user }: OptimizedDashboardProps) {
     ).length;
 
     // Calculate self-sufficiency based on water and food
-    const familySize = userProfile?.household_size || 1;
+    const familySize = userProfile?.family_size || 1;
     const waterResources = resources.filter(r => r.category === 'water' && r.quantity > 0);
     const foodResources = resources.filter(r => r.category === 'food' && r.quantity > 0);
     

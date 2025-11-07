@@ -368,9 +368,11 @@ export function SimpleCultivationManager({ userId, householdSize = 2 }: SimpleCu
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none z-50 shadow-xl">
                         <div className="font-bold mb-1">Beräkning:</div>
                         <div className="space-y-1">
-                          <div>• Hushållsstorlek: {householdSize} personer</div>
+                          <div>• Hushållsstorlek: {householdSize} {householdSize === 1 ? 'person' : 'personer'}</div>
                           <div>• Dagsbehov: ~2000 kcal/person</div>
-                          <div>• Månadsvis skörd dividerat med månadens totalbehov ({householdSize} × 2000 × 30 = {(householdSize * 2000 * 30).toLocaleString()} kcal)</div>
+                          <div>• Total skörd: {nutrition.totalKcal.toLocaleString()} kcal</div>
+                          <div>• Månadsbehov: {nutrition.targetKcalPerDay.toLocaleString()} kcal/dag × 30 = {(nutrition.targetKcalPerDay * 30).toLocaleString()} kcal</div>
+                          <div>• Täckningsgrad: {Math.round(nutrition.totalKcal / (nutrition.targetKcalPerDay * 30) * 100)}%</div>
                         </div>
                         <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1">
                           <div className="border-4 border-transparent border-t-gray-900"></div>

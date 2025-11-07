@@ -567,7 +567,7 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
       const userContext = userProfile ? {
         county: userProfile.county || 'okänd',
         hasChildren: userProfile.has_children || false,
-        householdSize: userProfile.household_size || 2,
+        householdSize: userProfile.family_size || 2,
         experienceLevel: userProfile.experience_level || 'nybörjare'
       } : null;
 
@@ -721,7 +721,7 @@ Exempel: ["Fråga 1?", "Hur gör jag X?", "Fråga 3?"]`;
       const response = await SecureOpenAIService.generatePersonalCoachResponse({
         userProfile: {
           climateZone: userProfile?.county ? getClimateZone(userProfile.county) : 'Götaland',
-          householdSize: typeof userProfile?.household_size === 'number' ? userProfile.household_size : 2,
+          householdSize: typeof userProfile?.family_size === 'number' ? userProfile.family_size : 2,
           hasChildren: typeof userProfile?.has_children === 'boolean' ? userProfile.has_children : false,
           county: userProfile?.county || 'Okänd',
           city: userProfile?.city || '',
@@ -1185,7 +1185,7 @@ Exempel: ["Fråga 1?", "Hur gör jag X?", "Fråga 3?"]`;
                           const response = await SecureOpenAIService.generatePersonalCoachResponse({
                             userProfile: {
                               climateZone: userProfile?.county ? getClimateZone(userProfile.county) : 'Götaland',
-                              householdSize: typeof userProfile?.household_size === 'number' ? userProfile.household_size : 2,
+                              householdSize: typeof userProfile?.family_size === 'number' ? userProfile.family_size : 2,
                               hasChildren: typeof userProfile?.has_children === 'boolean' ? userProfile.has_children : false,
                               county: userProfile?.county || 'Okänd',
                               city: userProfile?.city || '',

@@ -20,7 +20,7 @@ export interface UserProfile {
   allergies?: string;
   blood_type?: string;
   special_needs?: string;
-  household_size?: number;
+  family_size?: number;
   has_children?: boolean;
   has_elderly?: boolean;
   has_pets?: boolean;
@@ -75,7 +75,7 @@ export function useUserProfile(user: User | null) {
     allergies: '',
     blood_type: '',
     special_needs: '',
-    household_size: 1,
+    family_size: 1,
     has_children: false,
     has_elderly: false,
     has_pets: false,
@@ -194,7 +194,7 @@ export function useUserProfile(user: User | null) {
         allergies: updatedProfile.allergies || '',
         blood_type: updatedProfile.blood_type || '',
         special_needs: updatedProfile.special_needs || '',
-        household_size: updatedProfile.household_size || 1,
+        family_size: updatedProfile.family_size || 1,
         has_children: updatedProfile.has_children || false,
         has_elderly: updatedProfile.has_elderly || false,
         has_pets: updatedProfile.has_pets || false,
@@ -242,7 +242,7 @@ export function useUserProfile(user: User | null) {
 
     return {
       county: profile.county,
-      household_size: profile.household_size,
+      family_size: profile.family_size,
       has_pets: profile.has_pets,
       pet_types: profile.pet_types
     };

@@ -89,7 +89,7 @@ export const userProfileSchema = z.object({
     .optional()
     .or(z.literal('')),
   
-  household_size: z.number()
+  family_size: z.number()
     .int('Hushållsstorlek måste vara ett heltal')
     .min(1, 'Hushållsstorlek måste vara minst 1')
     .max(20, 'Hushållsstorlek får inte vara mer än 20'),

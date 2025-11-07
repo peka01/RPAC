@@ -43,7 +43,7 @@ interface ProfileData {
   county: string;
   
   // Household
-  household_size: number;
+  family_size: number;
   has_pets: boolean;
   pet_types: string;
 }
@@ -84,7 +84,7 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
     postal_code: '',
     city: '',
     county: '',
-    household_size: 1,
+    family_size: 1,
     has_pets: false,
     pet_types: ''
   });
@@ -129,7 +129,7 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
           postal_code: data.postal_code || '',
           city: data.city || '',
           county: data.county || '',
-          household_size: data.household_size || 1,
+          family_size: data.family_size || 1,
           has_pets: data.has_pets || false,
           pet_types: data.pet_types || ''
         });
@@ -300,7 +300,7 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
         postal_code: profile.postal_code || '',
         city: profile.city || '',
         county: profile.county ? profile.county.toLowerCase() : '', // Normalize to lowercase before validation
-        household_size: profile.household_size || 1,
+        family_size: profile.family_size || 1,
         has_pets: profile.has_pets || false,
         pet_types: profile.pet_types || ''
       };
@@ -351,6 +351,9 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
 
       setMessage({ type: 'success', text: 'Profil sparad!' });
       setAvatarFile(null);
+      
+      // Dispatch event to notify dashboard to reload
+      window.dispatchEvent(new Event('profileUpdated'));
       
       if (onSave) onSave();
 
@@ -671,8 +674,8 @@ const UnifiedProfileSettingsComponent = ({ user, onSave }: UnifiedProfileSetting
                 <input
                   type="number"
                   min="1"
-                  value={profile.household_size}
-                  onChange={handleNumberChange('household_size')}
+                  value={profile.family_size}
+                  onChange={handleNumberChange('family_size')}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3D4A2B]"
                 />
               </div>

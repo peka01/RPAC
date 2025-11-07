@@ -156,7 +156,7 @@ function IndividualPageContent() {
       return (
         <SimpleCultivationResponsive 
           userId={user.id}
-          householdSize={profile?.household_size || 2}
+          householdSize={profile?.family_size || 2}
         />
       );
     }
@@ -196,11 +196,11 @@ function IndividualPageContent() {
                  t('individual.subtitle')}
               </p>
             </div>
-            {profile?.household_size && profile.household_size > 1 && (
+            {profile?.family_size && (
               <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
                 <div className="flex items-center gap-2 text-sm">
                   <Users size={16} />
-                  <span>{profile.household_size} personer i hushållet</span>
+                  <span>{profile.family_size} {profile.family_size === 1 ? 'person' : 'personer'} i hushållet</span>
                 </div>
               </div>
             )}
@@ -224,11 +224,11 @@ function IndividualPageContent() {
                  t('individual.subtitle')}
               </p>
             </div>
-            {profile?.household_size && profile.household_size > 1 && (
+            {profile?.family_size && (
               <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2">
                 <div className="flex items-center gap-2 text-xs">
                   <Users size={14} />
-                  <span>{profile.household_size} personer</span>
+                  <span>{profile.family_size} {profile.family_size === 1 ? 'person' : 'personer'}</span>
                 </div>
               </div>
             )}

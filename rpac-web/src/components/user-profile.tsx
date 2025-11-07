@@ -164,7 +164,7 @@ export function UserProfile({
         allergies: profile.allergies || '',
         blood_type: profile.blood_type || '',
         special_needs: profile.special_needs || '',
-        household_size: profile.household_size || 1,
+        family_size: profile.family_size || 1,
         has_children: profile.has_children || false,
         has_elderly: profile.has_elderly || false,
         has_pets: profile.has_pets || false,
@@ -446,7 +446,7 @@ export function UserProfile({
           </label>
           {isEditing ? (
             <select
-              value={profile.household_size || 1}
+              value={profile.family_size || 1}
               onChange={(e) => setProfile(prev => ({ ...prev, household_size: parseInt(e.target.value) }))}
               className="w-full p-3 border rounded-lg"
               style={{ borderColor: 'var(--color-secondary)' }}
@@ -463,7 +463,7 @@ export function UserProfile({
           ) : (
             <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-olive-light)' }}>
               <span style={{ color: 'var(--text-primary)' }}>
-                {profile.household_size || 1} {profile.household_size === 1 ? 'person' : 'personer'}
+                {profile.family_size || 1} {profile.family_size === 1 ? 'person' : 'personer'}
               </span>
             </div>
           )}

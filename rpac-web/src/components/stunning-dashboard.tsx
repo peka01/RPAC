@@ -37,6 +37,7 @@ interface DashboardMetrics {
   communityNames: string[];
   availableResources: number;
   totalResources: number;
+  householdSize: number;
 }
 
 interface StunningDashboardProps {
@@ -58,9 +59,11 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
     unreadMessages: 0,
     communityNames: [],
     availableResources: 0,
-    totalResources: 0
+    totalResources: 0,
+    householdSize: 2
   });
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Load user profile data
   useEffect(() => {
@@ -306,7 +309,8 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
           availableResources,
           totalResources: resources.length,
            unreadMessages: messages?.length || 0,
-          communityNames
+          communityNames,
+          householdSize: profile?.family_size || 2
         });
       } catch (error) {
         console.error('Error loading dashboard data:', error);
@@ -320,13 +324,25 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
           availableResources: 0,
           totalResources: 0,
           unreadMessages: 0,
-          communityNames: []
+          communityNames: [],
+          householdSize: 2
         });
       }
     };
 
     loadDashboardData();
-  }, [user]);
+  }, [user, refreshTrigger]);
+
+  // Listen for profile updates
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      console.log('Profile updated, refreshing dashboard...');
+      setRefreshTrigger(prev => prev + 1);
+    };
+
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+    return () => window.removeEventListener('profileUpdated', handleProfileUpdate);
+  }, []);
 
     // Update time every minute
   useEffect(() => {
@@ -388,7 +404,7 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
                    </div>
                    <div className="flex-1 min-w-0">
                      <h3 className="font-bold text-gray-900 text-base leading-tight mb-0.5 truncate">{metrics.planName || 'Min odling'}</h3>
-                     <p className="text-xs text-gray-500 font-medium truncate">Självförsörjning</p>
+                     <p className="text-xs text-gray-500 font-medium truncate">{metrics.householdSize} {metrics.householdSize === 1 ? 'person' : 'personer'} i hushållet</p>
                    </div>
                  </div>
                  <div className="text-right flex-shrink-0 ml-4">
@@ -444,12 +460,11 @@ export default function StunningDashboard({ user }: StunningDashboardProps) {
                    </div>
                    <div className="flex-1 min-w-0">
                      <h3 className="font-bold text-gray-900 text-base leading-tight mb-0.5 truncate">Mina resurser</h3>
-                  <p className="text-xs text-gray-500 font-medium truncate">MSB rekommendationer</p>
                    </div>
                  </div>
                  <div className="text-right flex-shrink-0 ml-4">
                    <div className="text-3xl font-bold text-gray-900 mb-0.5">{metrics.msbFulfillmentPercent}%</div>
-                <div className="text-xs text-gray-500 uppercase tracking-wider font-semibold whitespace-nowrap">Uppfylld</div>
+                <div className="text-xs text-gray-500 uppercase tracking-wider font-semibold whitespace-nowrap">av MSB rek.</div>
                  </div>
                </div>
                

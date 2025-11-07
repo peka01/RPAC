@@ -48,6 +48,7 @@ interface DashboardMetrics {
   availableResources: number;
   totalResources: number;
   communityNames: string[];
+  householdSize: number;
 }
 
 
@@ -67,7 +68,8 @@ export function StunningDashboardMobileV2({ user }: { user: User | null }) {
     expiringResources: 0,
     availableResources: 0,
     totalResources: 0,
-    communityNames: []
+    communityNames: [],
+    householdSize: 2
   });
   const { weather, forecast, extremeWeatherWarnings, officialWarnings, loading: weatherLoading } = useWeather();
   const [loading, setLoading] = useState(true);
@@ -75,6 +77,7 @@ export function StunningDashboardMobileV2({ user }: { user: User | null }) {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminCommunities, setAdminCommunities] = useState<any[]>([]);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const router = useRouter();
 
   // Get user display name based on profile preference
@@ -114,7 +117,7 @@ export function StunningDashboardMobileV2({ user }: { user: User | null }) {
         // Load user profile data
         const { data: profile } = await supabase
           .from('user_profiles')
-          .select('display_name, first_name, last_name, name_display_preference, household_size')
+          .select('display_name, first_name, last_name, name_display_preference, family_size')
           .eq('user_id', user.id)
           .single();
         
@@ -207,7 +210,7 @@ export function StunningDashboardMobileV2({ user }: { user: User | null }) {
           if (cultivationPlans.crops && cultivationPlans.crops.length > 0) {
             // Import the nutrition calculation function
             const { calculatePlanNutrition } = await import('@/lib/cultivation-plan-service');
-            const householdSize = profile?.household_size || 2;
+            const householdSize = profile?.family_size || 2;
             const nutrition = calculatePlanNutrition(cultivationPlans, householdSize, 30);
             cultivationProgress = nutrition.percentOfTarget;
           }
@@ -239,7 +242,8 @@ export function StunningDashboardMobileV2({ user }: { user: User | null }) {
            expiringResources,
            availableResources: 0, // TODO: Calculate from community resources
            totalResources: resourceCount,
-           communityNames
+           communityNames,
+           householdSize: profile?.family_size || 2
          });
          
         setLoading(false);
@@ -257,7 +261,18 @@ export function StunningDashboardMobileV2({ user }: { user: User | null }) {
     }, 60000);
 
     return () => clearInterval(timeInterval);
-  }, [user]);
+  }, [user, refreshTrigger]);
+
+  // Listen for profile updates
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      console.log('Profile updated, refreshing mobile dashboard...');
+      setRefreshTrigger(prev => prev + 1);
+    };
+
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+    return () => window.removeEventListener('profileUpdated', handleProfileUpdate);
+  }, []);
 
   const getTimeOfDayGreeting = () => {
     const hour = currentTime.getHours();
@@ -323,7 +338,7 @@ export function StunningDashboardMobileV2({ user }: { user: User | null }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-gray-900 text-sm leading-tight mb-0.5 truncate">{metrics.planName || 'Min odling'}</h3>
-                  <p className="text-xs text-gray-500 font-medium truncate">Självförsörjning</p>
+                  <p className="text-xs text-gray-500 font-medium truncate">{metrics.householdSize} {metrics.householdSize === 1 ? 'person' : 'personer'} i hushållet</p>
                 </div>
               </div>
               <div className="text-right flex-shrink-0 ml-4">
@@ -374,12 +389,11 @@ export function StunningDashboardMobileV2({ user }: { user: User | null }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-gray-900 text-sm leading-tight mb-0.5 truncate">Mina resurser</h3>
-                  <p className="text-xs text-gray-500 font-medium truncate">MSB rekommendationer</p>
                 </div>
               </div>
               <div className="text-right flex-shrink-0 ml-4">
                 <div className="text-2xl font-bold text-gray-900 mb-0.5">{metrics.msbFulfillmentPercent}%</div>
-                <div className="text-xs text-gray-500 uppercase tracking-wider font-semibold whitespace-nowrap">Uppfylld</div>
+                <div className="text-xs text-gray-500 uppercase tracking-wider font-semibold whitespace-nowrap">av MSB rek.</div>
               </div>
             </div>
             
