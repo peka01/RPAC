@@ -15,25 +15,36 @@ interface ResponsiveLayoutWrapperProps {
 export function ResponsiveLayoutWrapper({ children, hideMobileNav = false }: ResponsiveLayoutWrapperProps) {
   const pathname = usePathname();
   
+  // List of app routes that should show the navigation menus
+  const appRoutes = [
+    '/',
+    '/dashboard',
+    '/individual',
+    '/local',
+    '/regional',
+    '/settings',
+    '/auth',
+    '/demo',
+    '/spinner',
+    '/loading',
+    '/shield',
+    '/progressive',
+    '/global',
+    '/super-admin',
+    '/help',
+    '/invite',
+    '/api',
+    '/test',
+  ];
+  
   // Check if this is a public homespace page (e.g., /nykulla, /samhalle-name)
   // These routes should NOT show the app menus
-  const isPublicHomespace = pathname && 
-    pathname !== '/' && 
-    !pathname.startsWith('/dashboard') &&
-    !pathname.startsWith('/individual') &&
-    !pathname.startsWith('/local') &&
-    !pathname.startsWith('/regional') &&
-    !pathname.startsWith('/settings') &&
-    !pathname.startsWith('/auth') &&
-    !pathname.startsWith('/demo') &&
-    !pathname.startsWith('/spinner') &&
-    !pathname.startsWith('/loading') &&
-    !pathname.startsWith('/shield') &&
-    !pathname.startsWith('/progressive') &&
-    !pathname.startsWith('/global');
+  const isAppRoute = pathname && appRoutes.some(route => 
+    pathname === route || pathname.startsWith(`${route}/`)
+  );
   
-  // If it's a public homespace, render children without menus
-  if (isPublicHomespace) {
+  // If it's NOT an app route, treat it as a public homespace
+  if (pathname && !isAppRoute) {
     return <>{children}</>;
   }
   

@@ -615,9 +615,7 @@ export function CommunityHubMobileEnhanced({ user, initialCommunityId, initialTa
                 >
                   <Home size={12} />
                   <span>beready.se/{homespaceSlug}</span>
-                  <svg width="10" height="10" viewBox="0 0 12 12" fill="none" className="opacity-70">
-                    <path d="M10.5 1.5L1.5 10.5M10.5 1.5H3M10.5 1.5V9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+                  <ExternalLink size={10} className="opacity-70" />
                 </a>
               )}
             </div>
