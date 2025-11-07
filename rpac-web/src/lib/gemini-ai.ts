@@ -516,4 +516,73 @@ export class GeminiAIService {
       priority: 'medium'
     };
   }
+
+  /**
+   * Get crop information from AI for custom crops
+   */
+  static async getCropInformation(cropName: string): Promise<{
+    name: string;
+    kcalPerKg: number;
+    category: string;
+    icon: string;
+    growingMonths: string[];
+    harvestMonths: string[];
+    yieldPerPlant: number;
+    yieldPerM2: number;
+    yieldPerRow: number;
+  } | null> {
+    try {
+      // Check if API key is configured
+      if (!config.gemini.apiKey) {
+        console.warn('Gemini API key not configured - cannot fetch custom crop information');
+        return null;
+      }
+
+      const prompt = `
+        Ge detaljerad information om grödan "${cropName}" för svenskt klimat.
+        
+        Svara ENDAST med JSON i exakt detta format (inga extra tecken eller formattering):
+        {
+          "name": "Svenskt namn",
+          "kcalPerKg": antal,
+          "category": "Kategori (Rotfrukter/Bladgrönsaker/Fruktgrönsaker/Baljväxter/Kålväxter/Lökväxter/Örter/Bär/Spannmål)",
+          "icon": "Emoji-ikon",
+          "growingMonths": ["Månad1", "Månad2"],
+          "harvestMonths": ["Månad1", "Månad2"],
+          "yieldPerPlant": decimaltal,
+          "yieldPerM2": decimaltal,
+          "yieldPerRow": decimaltal
+        }
+        
+        Använd svenska månadskortnamn: Jan, Feb, Mar, Apr, Maj, Jun, Jul, Aug, Sep, Okt, Nov, Dec
+        Ange första månaden i growingMonths som den optimala såmånaden.
+        Ange första månaden i harvestMonths som den optimala skördemånaden.
+      `;
+
+      const result = await model.generateContent(prompt);
+      const response = result.response;
+      const text = response.text();
+
+      // Clean up the response - remove markdown formatting if present
+      const jsonText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      
+      const cropData = JSON.parse(jsonText);
+      
+      return {
+        name: cropData.name,
+        kcalPerKg: cropData.kcalPerKg || 200,
+        category: cropData.category || 'Övrigt',
+        icon: cropData.icon || '🌱',
+        growingMonths: Array.isArray(cropData.growingMonths) ? cropData.growingMonths : ['Apr', 'Maj'],
+        harvestMonths: Array.isArray(cropData.harvestMonths) ? cropData.harvestMonths : ['Aug', 'Sep'],
+        yieldPerPlant: cropData.yieldPerPlant || 0.5,
+        yieldPerM2: cropData.yieldPerM2 || 2,
+        yieldPerRow: cropData.yieldPerRow || 3
+      };
+    } catch (error) {
+      console.error('Gemini AI crop information error:', error);
+      return null;
+    }
+  }
 }
+

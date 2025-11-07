@@ -13,6 +13,7 @@ import {
   MonthlyActivity,
   calculateExpectedYield
 } from '@/lib/cultivation-plan-service';
+import { OpenAIService } from '@/lib/openai-worker-service';
 
 interface SimpleCultivationManagerMobileProps {
   userId: string;
@@ -591,6 +592,10 @@ function CropSelectorModalMobile({ onClose, onSelect, existingCrops, editingCrop
 }) {
   const [selectedCrop, setSelectedCrop] = useState<CropName | null>(editingCrop?.cropName || null);
   const [quantity, setQuantity] = useState<number>(editingCrop?.quantity || 10);
+  const [customCropName, setCustomCropName] = useState('');
+  const [loadingCustomCrop, setLoadingCustomCrop] = useState(false);
+  const [customCropError, setCustomCropError] = useState('');
+  const [showCustomInput, setShowCustomInput] = useState(false);
 
   // When editing, allow the current crop to be selected even if it exists
   const availableCrops = Object.keys(CROP_LIBRARY).filter(
@@ -601,6 +606,47 @@ function CropSelectorModalMobile({ onClose, onSelect, existingCrops, editingCrop
   const estimatedYield = selectedCrop 
     ? calculateExpectedYield(selectedCrop, quantity)
     : 0;
+
+  const handleCustomCropAdd = async () => {
+    if (!customCropName.trim()) return;
+    
+    setLoadingCustomCrop(true);
+    setCustomCropError('');
+
+    try {
+      const normalizedName = customCropName.trim();
+      const existingCropKey = Object.keys(CROP_LIBRARY).find(
+        key => key.toLowerCase() === normalizedName.toLowerCase()
+      );
+
+      if (existingCropKey) {
+        setSelectedCrop(existingCropKey as CropName);
+        setCustomCropName('');
+        setLoadingCustomCrop(false);
+        return;
+      }
+
+      const cropInfo = await OpenAIService.getCropInformation(normalizedName);
+      
+      if (!cropInfo) {
+        setCustomCropError('API-nyckel saknas eller grödan hittades inte.');
+        setLoadingCustomCrop(false);
+        return;
+      }
+
+      (CROP_LIBRARY as any)[cropInfo.name] = cropInfo;
+      
+      setSelectedCrop(cropInfo.name as CropName);
+      setCustomCropName('');
+      setCustomCropError('');
+      setShowCustomInput(false);
+    } catch (error) {
+      console.error('Error adding custom crop:', error);
+      setCustomCropError('Ett fel uppstod.');
+    } finally {
+      setLoadingCustomCrop(false);
+    }
+  };
 
   const handleSubmit = () => {
     if (selectedCrop) {
@@ -631,6 +677,47 @@ function CropSelectorModalMobile({ onClose, onSelect, existingCrops, editingCrop
               <label className="block text-sm font-bold text-gray-700 mb-3">
                 Välj gröda
               </label>
+              
+              {showCustomInput ? (
+                <div className="mb-4 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={customCropName}
+                      onChange={(e) => setCustomCropName(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleCustomCropAdd()}
+                      placeholder="T.ex. Salvia, Melon..."
+                      className="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-[#3D4A2B] text-base"
+                      disabled={loadingCustomCrop}
+                      autoFocus
+                    />
+                    <button
+                      onClick={handleCustomCropAdd}
+                      disabled={!customCropName.trim() || loadingCustomCrop}
+                      className="px-4 py-2 bg-[#3D4A2B] text-white rounded-lg disabled:opacity-50 font-semibold text-sm"
+                    >
+                      {loadingCustomCrop ? '...' : 'OK'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowCustomInput(false);
+                        setCustomCropName('');
+                        setCustomCropError('');
+                      }}
+                      className="px-3 py-2 border-2 border-gray-300 rounded-lg"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+                  {customCropError && (
+                    <p className="mt-2 text-xs text-red-600">{customCropError}</p>
+                  )}
+                  <p className="mt-2 text-xs text-gray-600">
+                    AI hämtar odlingsinformation automatiskt
+                  </p>
+                </div>
+              ) : null}
+              
               <div className="grid grid-cols-3 gap-3">
                 {availableCrops.map(cropName => {
                   const crop = CROP_LIBRARY[cropName];
@@ -649,6 +736,15 @@ function CropSelectorModalMobile({ onClose, onSelect, existingCrops, editingCrop
                     </button>
                   );
                 })}
+                
+                {/* Add Custom Crop Button */}
+                <button
+                  onClick={() => setShowCustomInput(true)}
+                  className="p-3 rounded-xl border-2 border-dashed border-blue-300 bg-blue-50 transition-all text-center"
+                >
+                  <div className="text-2xl mb-1 text-blue-500">➕</div>
+                  <div className="text-[10px] font-semibold text-blue-700">Lägg till egen</div>
+                </button>
               </div>
             </div>
 

@@ -13,6 +13,7 @@ import {
   MonthlyActivity,
   calculateExpectedYield
 } from '@/lib/cultivation-plan-service';
+import { OpenAIService } from '@/lib/openai-worker-service';
 
 interface SimpleCultivationManagerProps {
   userId: string;
@@ -647,6 +648,10 @@ function CropSelectorModal({ onClose, onSelect, existingCrops, editingCrop }: {
 }) {
   const [selectedCrop, setSelectedCrop] = useState<CropName | null>(editingCrop?.cropName || null);
   const [quantity, setQuantity] = useState<number>(editingCrop?.quantity || 10);
+  const [customCropName, setCustomCropName] = useState('');
+  const [loadingCustomCrop, setLoadingCustomCrop] = useState(false);
+  const [customCropError, setCustomCropError] = useState('');
+  const [showCustomInput, setShowCustomInput] = useState(false);
 
   // When editing, allow the current crop to be selected even if it exists
   const availableCrops = Object.keys(CROP_LIBRARY).filter(
@@ -657,6 +662,50 @@ function CropSelectorModal({ onClose, onSelect, existingCrops, editingCrop }: {
   const estimatedYield = selectedCrop 
     ? calculateExpectedYield(selectedCrop, quantity)
     : 0;
+
+  const handleCustomCropAdd = async () => {
+    if (!customCropName.trim()) return;
+    
+    setLoadingCustomCrop(true);
+    setCustomCropError('');
+
+    try {
+      // Check if crop already exists (case-insensitive)
+      const normalizedName = customCropName.trim();
+      const existingCropKey = Object.keys(CROP_LIBRARY).find(
+        key => key.toLowerCase() === normalizedName.toLowerCase()
+      );
+
+      if (existingCropKey) {
+        setSelectedCrop(existingCropKey as CropName);
+        setCustomCropName('');
+        setLoadingCustomCrop(false);
+        return;
+      }
+
+      // Fetch crop info from AI
+      const cropInfo = await OpenAIService.getCropInformation(normalizedName);
+      
+      if (!cropInfo) {
+        setCustomCropError('Kunde inte hitta information. Kontrollera att GEMINI_API_KEY är konfigurerad.');
+        setLoadingCustomCrop(false);
+        return;
+      }
+
+      // Add to CROP_LIBRARY temporarily (in memory only)
+      (CROP_LIBRARY as any)[cropInfo.name] = cropInfo;
+      
+      setSelectedCrop(cropInfo.name as CropName);
+      setCustomCropName('');
+      setCustomCropError('');
+      setShowCustomInput(false);
+    } catch (error) {
+      console.error('Error adding custom crop:', error);
+      setCustomCropError('Ett fel uppstod. Försök igen.');
+    } finally {
+      setLoadingCustomCrop(false);
+    }
+  };
 
   const handleSubmit = () => {
     if (selectedCrop) {
@@ -690,6 +739,47 @@ function CropSelectorModal({ onClose, onSelect, existingCrops, editingCrop }: {
               <label className="block text-sm font-bold text-gray-700 mb-3">
                 Välj gröda
               </label>
+              
+              {showCustomInput ? (
+                <div className="mb-4 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={customCropName}
+                      onChange={(e) => setCustomCropName(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleCustomCropAdd()}
+                      placeholder="T.ex. Salvia, Melon..."
+                      className="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-[#3D4A2B] focus:ring-0"
+                      disabled={loadingCustomCrop}
+                      autoFocus
+                    />
+                    <button
+                      onClick={handleCustomCropAdd}
+                      disabled={!customCropName.trim() || loadingCustomCrop}
+                      className="px-4 py-2 bg-[#3D4A2B] text-white rounded-lg hover:bg-[#2A331E] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
+                    >
+                      {loadingCustomCrop ? 'Hämtar...' : 'Lägg till'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowCustomInput(false);
+                        setCustomCropName('');
+                        setCustomCropError('');
+                      }}
+                      className="px-3 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+                  {customCropError && (
+                    <p className="mt-2 text-sm text-red-600">{customCropError}</p>
+                  )}
+                  <p className="mt-2 text-xs text-gray-600">
+                    AI hämtar automatiskt odlingsinformation från vår kunskapsbas
+                  </p>
+                </div>
+              ) : null}
+              
               <div className="grid grid-cols-3 md:grid-cols-4 gap-3 max-h-[300px] overflow-y-auto p-2">
                 {availableCrops.map(cropName => {
                   const crop = CROP_LIBRARY[cropName];
@@ -709,6 +799,16 @@ function CropSelectorModal({ onClose, onSelect, existingCrops, editingCrop }: {
                     </button>
                   );
                 })}
+                
+                {/* Add Custom Crop Button */}
+                <button
+                  onClick={() => setShowCustomInput(true)}
+                  className="p-4 rounded-xl border-2 border-dashed border-blue-300 bg-blue-50 hover:bg-blue-100 hover:border-blue-400 transition-all text-center"
+                >
+                  <div className="text-3xl mb-2 text-blue-500">➕</div>
+                  <div className="text-xs font-semibold text-blue-700">Lägg till</div>
+                  <div className="text-[10px] text-blue-600">egen gröda</div>
+                </button>
               </div>
             </div>
 

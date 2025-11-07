@@ -61,7 +61,7 @@ export const CROP_LIBRARY = {
     name: 'Spenat', 
     kcalPerKg: 230, 
     category: 'Bladgrönsaker', 
-    icon: '🥬', 
+    icon: '🍃', 
     growingMonths: ['Mar', 'Apr', 'Maj'], 
     harvestMonths: ['Maj', 'Jun', 'Jul'],
     yieldPerPlant: 0.1,
@@ -138,7 +138,7 @@ export const CROP_LIBRARY = {
     name: 'Blomkål', 
     kcalPerKg: 250, 
     category: 'Kålväxter', 
-    icon: '🥬', 
+    icon: '🌼', 
     growingMonths: ['Apr', 'Maj'], 
     harvestMonths: ['Aug', 'Sep'],
     yieldPerPlant: 0.8,
@@ -160,7 +160,7 @@ export const CROP_LIBRARY = {
     name: 'Kålrot', 
     kcalPerKg: 370, 
     category: 'Rotfrukter', 
-    icon: '🥕', 
+    icon: '🫚', 
     growingMonths: ['Maj', 'Jun'], 
     harvestMonths: ['Sep', 'Okt', 'Nov'],
     yieldPerPlant: 0.5,
@@ -171,7 +171,7 @@ export const CROP_LIBRARY = {
     name: 'Rödbetor', 
     kcalPerKg: 430, 
     category: 'Rotfrukter', 
-    icon: '🥬', 
+    icon: '🔴', 
     growingMonths: ['Apr', 'Maj'], 
     harvestMonths: ['Jul', 'Aug', 'Sep'],
     yieldPerPlant: 0.2,
@@ -182,7 +182,7 @@ export const CROP_LIBRARY = {
     name: 'Squash', 
     kcalPerKg: 170, 
     category: 'Fruktgrönsaker', 
-    icon: '🥒', 
+    icon: '🫛', 
     growingMonths: ['Maj', 'Jun'], 
     harvestMonths: ['Jul', 'Aug', 'Sep'],
     yieldPerPlant: 4,
@@ -215,12 +215,122 @@ export const CROP_LIBRARY = {
     name: 'Basilika', 
     kcalPerKg: 230, 
     category: 'Örter', 
-    icon: '🌿', 
+    icon: '🌱', 
     growingMonths: ['Maj'], 
     harvestMonths: ['Jun', 'Jul', 'Aug'],
     yieldPerPlant: 0.08,
     yieldPerM2: 0.6,
     yieldPerRow: 1
+  },
+  'Vitlök': {
+    name: 'Vitlök',
+    kcalPerKg: 1490,
+    category: 'Lökväxter',
+    icon: '🧄',
+    growingMonths: ['Sep', 'Okt'],
+    harvestMonths: ['Jun', 'Jul'],
+    yieldPerPlant: 0.05,
+    yieldPerM2: 1.5,
+    yieldPerRow: 2
+  },
+  'Purjolök': {
+    name: 'Purjolök',
+    kcalPerKg: 610,
+    category: 'Lökväxter',
+    icon: '🧅',
+    growingMonths: ['Apr', 'Maj'],
+    harvestMonths: ['Sep', 'Okt', 'Nov'],
+    yieldPerPlant: 0.2,
+    yieldPerM2: 2.5,
+    yieldPerRow: 3.5
+  },
+  'Zucchini': {
+    name: 'Zucchini',
+    kcalPerKg: 170,
+    category: 'Fruktgrönsaker',
+    icon: '🟢',
+    growingMonths: ['Maj', 'Jun'],
+    harvestMonths: ['Jul', 'Aug', 'Sep'],
+    yieldPerPlant: 5,
+    yieldPerM2: 8,
+    yieldPerRow: 12
+  },
+  'Aubergine': {
+    name: 'Aubergine',
+    kcalPerKg: 250,
+    category: 'Fruktgrönsaker',
+    icon: '🍆',
+    growingMonths: ['Apr', 'Maj'],
+    harvestMonths: ['Jul', 'Aug', 'Sep'],
+    yieldPerPlant: 2,
+    yieldPerM2: 4,
+    yieldPerRow: 6
+  },
+  'Majs': {
+    name: 'Majs',
+    kcalPerKg: 860,
+    category: 'Spannmål',
+    icon: '🌽',
+    growingMonths: ['Maj', 'Jun'],
+    harvestMonths: ['Aug', 'Sep'],
+    yieldPerPlant: 0.3,
+    yieldPerM2: 1.5,
+    yieldPerRow: 3
+  },
+  'Jordgubbar': {
+    name: 'Jordgubbar',
+    kcalPerKg: 320,
+    category: 'Bär',
+    icon: '🍓',
+    growingMonths: ['Apr', 'Maj'],
+    harvestMonths: ['Jun', 'Jul'],
+    yieldPerPlant: 0.5,
+    yieldPerM2: 1.5,
+    yieldPerRow: 2
+  },
+  'Hallon': {
+    name: 'Hallon',
+    kcalPerKg: 520,
+    category: 'Bär',
+    icon: '🫐',
+    growingMonths: ['Apr'],
+    harvestMonths: ['Jul', 'Aug'],
+    yieldPerPlant: 2,
+    yieldPerM2: 3,
+    yieldPerRow: 5
+  },
+  'Grönkål': {
+    name: 'Grönkål',
+    kcalPerKg: 490,
+    category: 'Bladgrönsaker',
+    icon: '🥬',
+    growingMonths: ['Apr', 'Maj'],
+    harvestMonths: ['Okt', 'Nov', 'Dec'],
+    yieldPerPlant: 0.5,
+    yieldPerM2: 2,
+    yieldPerRow: 3
+  },
+  'Ruccola': {
+    name: 'Ruccola',
+    kcalPerKg: 250,
+    category: 'Bladgrönsaker',
+    icon: '🥗',
+    growingMonths: ['Apr', 'Maj', 'Jun'],
+    harvestMonths: ['Maj', 'Jun', 'Jul', 'Aug'],
+    yieldPerPlant: 0.05,
+    yieldPerM2: 1,
+    yieldPerRow: 1.5
+  },
+  'Dill': {
+    name: 'Dill',
+    kcalPerKg: 430,
+    category: 'Örter',
+    icon: '🌿',
+    growingMonths: ['Apr', 'Maj'],
+    harvestMonths: ['Jun', 'Jul', 'Aug'],
+    yieldPerPlant: 0.05,
+    yieldPerM2: 0.5,
+    yieldPerRow: 0.8
   },
 };
 
@@ -299,13 +409,17 @@ export function generateMonthlyActivities(crops: CultivationCrop[]): MonthlyActi
     crops.forEach(crop => {
       const cropData = CROP_LIBRARY[crop.cropName];
       
-      if (cropData.growingMonths.includes(month)) {
-        sowingCrops.push(crop.cropName);
-        plantingCrops.push(crop.cropName);
+      // Only show crop in its FIRST/OPTIMAL month for sowing and harvesting
+      if (cropData.growingMonths[0] === month) {
+        if (!sowingCrops.includes(crop.cropName)) {
+          sowingCrops.push(crop.cropName);
+        }
       }
       
-      if (cropData.harvestMonths.includes(month)) {
-        harvestingCrops.push(crop.cropName);
+      if (cropData.harvestMonths[0] === month) {
+        if (!harvestingCrops.includes(crop.cropName)) {
+          harvestingCrops.push(crop.cropName);
+        }
       }
     });
 
