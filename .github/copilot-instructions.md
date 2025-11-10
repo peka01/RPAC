@@ -51,6 +51,7 @@ This file contains short, actionable rules and references so an AI assistant can
 ### 6. Quick navigation references (files to load for context)
 - **Start here**: `docs/NEW_CHAT_ONBOARDING.md` (onboarding guide for new chat sessions)
 - **Core conventions**: `.cursorrules`, `docs/conventions.md`, `docs/llm_instructions.md`
+- **Help documentation**: `docs/help_conventions.md` (MANDATORY standards for all help files)
 - **Architecture**: `docs/architecture.md` (system overview + routing map)
 - **Roadmap**: `docs/roadmap.md` (current priorities, sprint focus)
 - **Components**: `rpac-web/src/components/resource-list-view.tsx` (canonical list component)
@@ -107,7 +108,10 @@ component-name-responsive.tsx   ← Wrapper (switches based on screen width)
 ### 9. Where to document your changes
 - **Implementation notes**: Append to `docs/dev_notes.md` (date + description).
 - **Architecture changes**: Update `docs/architecture.md` or `docs/conventions.md` (only for major changes).
-- **Help docs**: Update corresponding `.md` files in `rpac-web/docs/help/` when changing features (MANDATORY).
+- **Help docs**: Update corresponding `.md` files in `rpac-web/public/help/` when changing features (MANDATORY).
+  - ⚠️ **CRITICAL**: Follow `docs/help_conventions.md` for all help documentation.
+  - Use localization keys `{t('key.path')}`, NEVER hardcode UI text in help files.
+  - Update AI knowledge (`docs/llm_instructions.md`) when making major help changes.
 
 ### 10. Design philosophy (quick summary)
 - **Visual design**: Semi-military (clean, direct, olive-green palette, clear hierarchy).
@@ -130,7 +134,8 @@ Load in order:
 - [ ] No hardcoded Swedish text (search for åäöÅÄÖ in `.tsx` files)
 - [ ] Using olive-green colors (`#3D4A2B`), NOT blue
 - [ ] All dynamic routes have `export const runtime = 'edge';`
-- [ ] Help docs updated if feature changed
+- [ ] Help docs updated if feature changed (follow `docs/help_conventions.md`)
+- [ ] Help docs use `{t('key.path')}` format, not hardcoded text
 - [ ] SQL tested for correct table/column names
 - [ ] Minimum 44px touch targets for mobile
 

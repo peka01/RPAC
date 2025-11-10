@@ -1,14 +1,23 @@
-# {{krister.context_help.local.title}}
+# {{local_community.title}}
 
-## Kontext EDIT
+## Kontext
 
 {{krister.context_help.local.description}}
+
+{{local_community.navigation_description}}
 
 Lokalt-sidan är navet för ditt samhälle där du kan:
 - Se samhällets aktivitet i realtid
 - Dela och begära resurser
 - Kommunicera med medlemmar
 - Administrera samhället (om admin)
+
+**Tillgängliga funktioner:**
+- Hem-flik: Översikt och statistik
+- Aktivitetsflöde: Realtidsuppdateringar
+- Resurshantering: Dela, låna, ge hjälp
+- Meddelandefunktion: Chat och direktmeddelanden
+- Administratörsverktyg: För samhällets ledare
 
 ## Steg-för-steg
 
