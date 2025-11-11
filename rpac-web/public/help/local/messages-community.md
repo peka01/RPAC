@@ -1,6 +1,6 @@
 # {{krister.context_help.messaging_community.title}}
 
-## Kontext
+
 
 {{krister.context_help.messaging_community.description}}
 
@@ -107,6 +107,6 @@ A: Ja, gå till {{navigation.settings}} → Notifikationer.
 A: Kontakta admin direkt. De kan varna eller ta bort meddelanden.
 
 ## Relaterade sidor
-- [Local - Messages Direct](/help/local/messages-direct.md) - Privata meddelanden
+- [Lokalt - Direktmeddelanden](/help/local/messages-direct.md) - Privata meddelanden
 - [Settings - Notifications](/help/settings/notifications.md) - Anpassa notiser
 - [Local - Admin](/help/local/admin.md) - Moderera chatten (admin)

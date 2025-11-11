@@ -144,9 +144,9 @@ export class KRISterHelpLoader {
   }
 
   /**
-   * Load and parse help file
+   * Load and parse help file (public method for direct loading)
    */
-  private static async loadHelpFile(filePath: string): Promise<HelpContent> {
+  static async loadHelpFile(filePath: string): Promise<HelpContent> {
     // Check cache
     if (this.cache.has(filePath)) {
       return this.cache.get(filePath)!;
@@ -343,7 +343,7 @@ export class KRISterHelpLoader {
   private static interpolateVariables(markdown: string): string {
     const variableRegex = /\{\{([a-zA-Z0-9_.]+)\}\}/g;
     
-    return markdown.replace(variableRegex, (match, path) => {
+    const result = markdown.replace(variableRegex, (match, path) => {
       try {
         // Check if path ends with array index like .tips.0, .tips.1, etc.
         const arrayIndexMatch = path.match(/^(.+)\.(\d+)$/);
@@ -354,7 +354,9 @@ export class KRISterHelpLoader {
           
           if (Array.isArray(value)) {
             const index = parseInt(indexStr);
-            return value[index] || match;
+            const result = value[index] || match;
+            console.log(`[HelpLoader] Interpolated ${match} -> ${result}`);
+            return result;
           }
         }
         
@@ -363,22 +365,28 @@ export class KRISterHelpLoader {
         
         // If the value is an array (like tips without index), convert to markdown list
         if (Array.isArray(value)) {
-          return value.map(item => `- ${item}`).join('\n');
+          const result = value.map(item => `- ${item}`).join('\n');
+          console.log(`[HelpLoader] Interpolated array ${match} -> [${value.length} items]`);
+          return result;
         }
         
         // If it's a string, return it
         if (typeof value === 'string') {
+          console.log(`[HelpLoader] Interpolated ${match} -> ${value}`);
           return value;
         }
         
         // Value not found, return original match
-        console.warn(`Variable not found or invalid type for: ${path}`);
+        console.warn(`[HelpLoader] Variable not found or invalid type for: ${path}, keeping placeholder`);
         return match;
       } catch (error) {
-        console.warn(`Error interpolating variable: ${path}`, error);
+        console.warn(`[HelpLoader] Error interpolating variable: ${path}`, error);
         return match; // Keep the placeholder if variable not found
       }
     });
+    
+    console.log(`[HelpLoader] Interpolation complete. Original length: ${markdown.length}, Result length: ${result.length}`);
+    return result;
   }
 
   /**

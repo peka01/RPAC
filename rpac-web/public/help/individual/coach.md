@@ -1,6 +1,6 @@
 # {{individual.coach.title}}
 
-## Kontext
+
 
 AI-coachen (KRISter) är din personliga beredskapsrådgivare. Baserat på:
 - Din profil och erfarenhetsnivå

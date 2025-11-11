@@ -1,6 +1,20 @@
 'use client';
 
+/**
+ * KRISter Assistant - MOBILE VERSION
+ * 
+ * This component is used for screens < 768px (phones/tablets).
+ * For desktop devices (≥ 768px), see: krister-assistant.tsx
+ * 
+ * Both components are switched via: krister-assistant-responsive.tsx
+ * 
+ * IMPORTANT: When making styling changes, update BOTH components!
+ */
+
 import React, { useState, useEffect, useRef } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
   Bot,
   X,
@@ -24,6 +38,7 @@ import { SecureOpenAIService } from '@/lib/openai-worker-service';
 import { WeatherService } from '@/lib/weather-service';
 import { RemindersContextService } from '@/lib/reminders-context-service-enhanced';
 import { TipHistoryService } from '@/lib/tip-history-service';
+import { KRISterHelpLoader } from '@/lib/krister-help-loader';
 import { supabase } from '@/lib/supabase';
 
 interface User {
@@ -89,6 +104,9 @@ interface DailyTip {
 }
 
 export function KRISterAssistantMobile({ user, userProfile = {}, currentPage, currentAction }: KRISterAssistantMobileProps) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -96,11 +114,15 @@ export function KRISterAssistantMobile({ user, userProfile = {}, currentPage, cu
   const [isListening, setIsListening] = useState(false);
   const [dailyTips, setDailyTips] = useState<DailyTip[]>([]);
   const [contextHelp, setContextHelp] = useState<any>(null);
-  const [showContextHelp, setShowContextHelp] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<any>(null);
+
+  // Clear help cache on mount to ensure fresh content
+  useEffect(() => {
+    KRISterHelpLoader.clearCache();
+  }, []);
 
   // Scroll to bottom of messages
   useEffect(() => {
@@ -150,9 +172,60 @@ export function KRISterAssistantMobile({ user, userProfile = {}, currentPage, cu
     }
   }, [inputMessage]);
 
-  const loadContextHelp = () => {
-    // Build context key with more granularity
+  // Handle clicks on help file links
+  const handleHelpLinkClick = async (e: React.MouseEvent, href: string) => {
+    // Check if this is a help file link
+    if (href.startsWith('/help/') && href.endsWith('.md')) {
+      e.preventDefault();
+      // Extract path without /help/ prefix and .md suffix
+      const helpPath = href.replace('/help/', '').replace('.md', '');
+      // Load the help content
+      const content = await KRISterHelpLoader.loadHelpFile(helpPath + '.md');
+      if (content) {
+        setContextHelp(content);
+        // Scroll to top of help content
+        setTimeout(() => {
+          const contentArea = document.querySelector('.overflow-y-auto');
+          if (contentArea) {
+            contentArea.scrollTop = 0;
+          }
+        }, 0);
+      }
+    }
+  };
+
+  const loadContextHelp = async () => {
+    try {
+      // Use the new help loader system to get context-aware markdown help
+      // Use the actual current route from Next.js hooks
+      const currentPathname = pathname || window.location.pathname;
+      const currentSearchParams = searchParams || new URLSearchParams(window.location.search);
+      
+      const helpContent = await KRISterHelpLoader.loadHelpForRoute(currentPathname, currentSearchParams);
+      
+      if (helpContent) {
+        setContextHelp({
+          title: helpContent.title,
+          description: helpContent.context,
+          steps: helpContent.steps,
+          tips: helpContent.tips,
+          faqs: helpContent.faqs,
+          relatedPages: helpContent.relatedPages,
+          rawMarkdown: helpContent.rawMarkdown
+        });
+        return; // Success, exit early
+      }
+    } catch (error) {
+      console.error('Error loading context help:', error);
+    }
+    
+    // Fallback to old sv.json system if help file doesn't exist yet
     let contextKey: string = currentPage;
+    
+    // Build context key from URL
+    const currentPathname = pathname || window.location.pathname;
+    const tab = searchParams?.get('tab');
+    const section = searchParams?.get('section');
     
     // Add section/subsection for more specific help
     if (currentAction) {
@@ -179,11 +252,7 @@ export function KRISterAssistantMobile({ user, userProfile = {}, currentPage, cu
       const helpData = {
         title: t(`krister.context_help.${contextKey}.title`),
         description: t(`krister.context_help.${contextKey}.description`),
-        tips: [
-          t(`krister.context_help.${contextKey}.tips.0`),
-          t(`krister.context_help.${contextKey}.tips.1`),
-          t(`krister.context_help.${contextKey}.tips.2`)
-        ]
+        tips: t(`krister.context_help.${contextKey}.tips`) as unknown as string[]
       };
       setContextHelp(helpData);
     } catch (error) {
@@ -191,11 +260,7 @@ export function KRISterAssistantMobile({ user, userProfile = {}, currentPage, cu
       const helpData = {
         title: t(`krister.context_help.${currentPage}.title`),
         description: t(`krister.context_help.${currentPage}.description`),
-        tips: [
-          t(`krister.context_help.${currentPage}.tips.0`),
-          t(`krister.context_help.${currentPage}.tips.1`),
-          t(`krister.context_help.${currentPage}.tips.2`)
-        ]
+        tips: t(`krister.context_help.${currentPage}.tips`) as unknown as string[]
       };
       setContextHelp(helpData);
     }
@@ -472,7 +537,7 @@ export function KRISterAssistantMobile({ user, userProfile = {}, currentPage, cu
 
   // Full screen mobile chat
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-gradient-to-br from-[#5C6B47]/10 to-white/95 backdrop-blur-sm animate-slide-in-bottom">
+    <div className="fixed inset-0 z-50 flex flex-col bg-[#F5F7F2]/98 backdrop-blur-xl shadow-2xl animate-slide-in-bottom">
       {/* Header */}
       <div className="bg-gradient-to-r from-[#3D4A2B] to-[#2A331E] text-white px-4 py-4 shadow-lg">
         <div className="flex items-center justify-between">
@@ -532,33 +597,46 @@ export function KRISterAssistantMobile({ user, userProfile = {}, currentPage, cu
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-32">
-        {/* Context Help Card */}
-        {contextHelp && showContextHelp && (
-          <div className="bg-gradient-to-br from-[#3D4A2B]/10 to-[#5C6B47]/10 rounded-2xl p-4 border-l-4 border-[#3D4A2B] shadow-sm">
-            <div className="flex items-start gap-3">
-              <HelpCircle className="text-[#3D4A2B] mt-1 flex-shrink-0" size={24} />
-              <div className="flex-1">
-                <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-bold text-[#3D4A2B] text-lg">{contextHelp.title}</h4>
-                  <button
-                    onClick={() => setShowContextHelp(false)}
-                    className="p-1 hover:bg-white/50 rounded-lg transition-colors touch-manipulation"
-                  >
-                    <X size={18} className="text-[#3D4A2B]" />
-                  </button>
-                </div>
-                <p className="text-sm text-gray-700 mb-3">{contextHelp.description}</p>
-                <ul className="space-y-2">
-                  {contextHelp.tips.map((tip: string, idx: number) => (
-                    <li key={idx} className="text-sm text-gray-600 flex items-start gap-2">
-                      <span className="text-[#5C6B47] mt-1 font-bold">•</span>
-                      <span>{tip}</span>
-                    </li>
-                  ))}
-                </ul>
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-32 bg-gradient-to-b from-white/95 via-[#F5F7F2]/90 to-[#E8EBE3]/85">
+        {/* Context Help - Display raw markdown directly */}
+        {contextHelp && (
+          <div className="text-sm leading-relaxed">
+            {contextHelp.rawMarkdown ? (
+              <div className="prose prose-sm max-w-none 
+                prose-headings:text-[#3D4A2B] prose-headings:font-semibold
+                prose-h1:text-base prose-h1:mb-2 prose-h1:mt-0
+                prose-h2:text-sm prose-h2:mt-4 prose-h2:mb-1.5 prose-h2:font-semibold
+                prose-h3:text-sm prose-h3:mt-2 prose-h3:mb-1 prose-h3:font-medium
+                prose-p:text-sm prose-p:text-gray-700 prose-p:my-1 prose-p:leading-relaxed
+                prose-li:text-sm prose-li:text-gray-700 prose-li:my-0.5
+                prose-ul:my-1.5 prose-ul:space-y-0.5
+                prose-ol:my-1.5 prose-ol:space-y-0.5
+                prose-a:text-[#3D4A2B] prose-a:underline prose-a:font-normal
+                prose-strong:font-bold
+                prose-code:text-xs prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded">
+                <ReactMarkdown 
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    a: ({node, href, children, ...props}) => (
+                      <a
+                        href={href}
+                        onClick={(e) => href && handleHelpLinkClick(e, href)}
+                        {...props}
+                      >
+                        {children}
+                      </a>
+                    )
+                  }}
+                >
+                  {contextHelp.rawMarkdown}
+                </ReactMarkdown>
               </div>
-            </div>
+            ) : (
+              <div className="prose prose-sm max-w-none prose-headings:text-[#3D4A2B]">
+                <h1 className="text-base font-semibold mb-2">{contextHelp.title}</h1>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{contextHelp.description || ''}</ReactMarkdown>
+              </div>
+            )}
           </div>
         )}
 

@@ -1,6 +1,6 @@
 # {{krister.context_help.resource_help.title}}
 
-## Kontext
+
 
 {{krister.context_help.resource_help.description}}
 
@@ -131,5 +131,5 @@ A: Ja, filtrering på "Lösta" visar gamla förfrågningar (framtida feature).
 
 ## Relaterade sidor
 - [Local - Shared Resources](/help/local/resources-shared.md) - Låna saker istället
-- [Local - Messages Direct](/help/local/messages-direct.md) - Kontakta hjälpare
-- [Local - Activity](/help/local/activity.md) - Se när hjälp erbjuds
+- [Lokalt - Direktmeddelanden](/help/local/messages-direct.md) - Kontakta hjälpare
+- [Lokalt - Aktivitet](/help/local/activity.md) - Se när hjälp erbjuds

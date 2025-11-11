@@ -1,6 +1,6 @@
 # {{krister.context_help.resource_shared.title}}
 
-## Kontext
+
 
 {{krister.context_help.resource_shared.description}}
 
@@ -101,4 +101,4 @@ A: Ja! Lägg till flera poster eller öka mängden i beskrivningen.
 - [Individual - Resources](/help/individual/resources.md) - Din personliga inventering
 - [Local - Owned Resources](/help/local/resources-owned.md) - Gemensamma resurser
 - [Local - Help Requests](/help/local/resources-help.md) - Be om hjälp istället
-- [Local - Messages Direct](/help/local/messages-direct.md) - Kontakta delaren
+- [Lokalt - Direktmeddelanden](/help/local/messages-direct.md) - Kontakta delaren

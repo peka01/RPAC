@@ -1,6 +1,6 @@
 # Kontoinställningar
 
-## Kontext
+
 
 Här hanterar du ditt BeReady-konto:
 - E-post och lösenord

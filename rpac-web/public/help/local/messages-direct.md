@@ -1,6 +1,6 @@
 # {{krister.context_help.messaging_direct.title}}
 
-## Kontext
+
 
 {{krister.context_help.messaging_direct.description}}
 
@@ -115,6 +115,6 @@ A: Direktmeddelanden är 1-till-1. För grupp: Använd samhällschatten.
 A: Ja, permanent (tills du tar bort konversationen).
 
 ## Relaterade sidor
-- [Local - Messages Community](/help/local/messages-community.md) - Samhällschatt
+- [Lokalt - Samhällschatt](/help/local/messages-community.md) - Samhällschatt
 - [Local - Shared Resources](/help/local/resources-shared.md) - Kontakta resursdelare
 - [Settings - Notifications](/help/settings/notifications.md) - Anpassa notiser

@@ -1,6 +1,6 @@
 # {{regional.title}}
 
-## Kontext
+
 
 Den regionala nivån ger dig en översikt över alla beredskapssamhällen i ditt län. Här kan du se statistik, aktiviteter och koordineringsmöjligheter mellan lokala samhällen i din region.
 

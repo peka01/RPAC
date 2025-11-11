@@ -1,6 +1,6 @@
 # {{krister.context_help.local_activity.title}}
 
-## Kontext
+
 
 {{krister.context_help.local_activity.description}}
 

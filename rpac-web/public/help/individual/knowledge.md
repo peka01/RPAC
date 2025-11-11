@@ -1,6 +1,6 @@
 # {{individual.knowledge.title}}
 
-## Kontext
+
 
 Kunskapsbiblioteket är din personliga samling av beredskapsinformation och läranderesurser. Här hittar du:
 - Artiklar och guider från MSB och andra källor
@@ -116,4 +116,4 @@ A: Börja med "Nybörjare". När artiklarna känns lätta → höj till "Medel".
 ## Relaterade sidor
 - [Individual - Coach](/help/individual/coach.md) - AI-coachens personliga råd
 - [Individual - Resources](/help/individual/resources.md) - Applicera kunskapen praktiskt
-- [Local - Messages](/help/local/messages-community.md) - Diskutera med samhället
+- [Lokalt - Meddelanden](/help/local/messages-community.md) - Diskutera med samhället

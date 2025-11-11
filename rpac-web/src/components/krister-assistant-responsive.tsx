@@ -4,6 +4,19 @@ import { useState, useEffect } from 'react';
 import { KRISterAssistant } from './krister-assistant';
 import { KRISterAssistantMobile } from './krister-assistant-mobile';
 
+/**
+ * IMPORTANT: This is a RESPONSIVE WRAPPER that switches between two different components:
+ * 
+ * - Mobile (< 768px): Uses './krister-assistant-mobile.tsx' ← EDIT THIS FOR MOBILE
+ * - Desktop (≥ 768px): Uses './krister-assistant.tsx' ← EDIT THIS FOR DESKTOP
+ * 
+ * When making styling changes, make sure to edit BOTH files!
+ * 
+ * Files to update:
+ * - krister-assistant-mobile.tsx (for phones/tablets)
+ * - krister-assistant.tsx (for desktop)
+ */
+
 interface User {
   id: string;
   email?: string;

@@ -1,6 +1,6 @@
 # {{dashboard.title}}
 
-## Kontext
+
 
 {{krister.context_help.dashboard.description}}
 
@@ -77,5 +77,5 @@ A: Beredskapspoängen visar hur många av MSB:s rekommenderade resurskategorier 
 
 - [Individual - Resources](/help/individual/resources.md) - Lägg till och hantera resurser
 - [Local - Home](/help/local/home.md) - Anslut till ditt lokala samhälle
-- [Local - Discover](/help/local/discover.md) - Hitta samhällen nära dig
+- [Lokalt - Upptäck](/help/local/discover.md) - Hitta samhällen nära dig
 - [Settings - Profile](/help/settings/profile.md) - Uppdatera din profil och plats

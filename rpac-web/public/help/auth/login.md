@@ -1,6 +1,6 @@
 # Inloggning & Registrering
 
-## Kontext
+
 
 För att använda BeReady behöver du ett konto. Alla personuppgifter skyddas enligt GDPR.
 

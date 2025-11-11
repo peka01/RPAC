@@ -1,6 +1,6 @@
 # Profil - Inställningar
 
-## Kontext
+
 
 Din profil är din identitet i BeReady. Här ställer du in:
 - Personlig information (namn, plats, bio)

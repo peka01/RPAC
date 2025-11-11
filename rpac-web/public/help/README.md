@@ -79,7 +79,6 @@ Every help file follows this structure:
 ```markdown
 # {{variable.title}}
 
-## Kontext
 {{variable.description}}
 [Detailed context in Swedish]
 
@@ -237,6 +236,6 @@ After updating sv.json variables:
 
 - **Total Lines**: ~3500+ (all help files)
 - **Average File Size**: ~200 lines
-- **Sections per File**: 5 (Kontext, Steg, Tips, FAQ, Relaterat)
+- **Sections per File**: 4 (Steg, Tips, FAQ, Relaterat)
 - **Variables Used**: ~100+ unique variables
 - **Coverage**: 17/20 major pages (85%)

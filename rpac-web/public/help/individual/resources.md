@@ -1,6 +1,6 @@
 # {{individual.personal_resources}}
 
-## Kontext
+
 
 {{krister.context_help.resources.description}}
 

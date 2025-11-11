@@ -1,6 +1,6 @@
 # {{krister.context_help.resource_owned.title}}
 
-## Kontext
+
 
 {{krister.context_help.resource_owned.description}}
 
@@ -89,4 +89,4 @@ A: Samhället (via kassör/admin). Medlemmar kan hjälpa till ideellt.
 ## Relaterade sidor
 - [Local - Shared Resources](/help/local/resources-shared.md) - Personliga delningar
 - [Local - Admin](/help/local/admin.md) - Hantera gemensamma resurser (admin)
-- [Local - Messages Community](/help/local/messages-community.md) - Diskutera med samhället
+- [Lokalt - Samhällschatt](/help/local/messages-community.md) - Diskutera med samhället

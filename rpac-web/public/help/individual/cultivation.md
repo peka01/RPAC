@@ -1,6 +1,6 @@
 # {{krister.context_help.cultivation.title}}
 
-## Kontext
+
 
 {{krister.context_help.cultivation.description}}
 

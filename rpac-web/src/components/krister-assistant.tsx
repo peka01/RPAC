@@ -1,5 +1,16 @@
 'use client';
 
+/**
+ * KRISter Assistant - DESKTOP VERSION
+ * 
+ * This component is used for screens >= 768px (desktop/laptop).
+ * For mobile devices (< 768px), see: krister-assistant-mobile.tsx
+ * 
+ * Both components are switched via: krister-assistant-responsive.tsx
+ * 
+ * IMPORTANT: When making styling changes, update BOTH components!
+ */
+
 import React, { useState, useEffect, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import {
@@ -134,6 +145,11 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0, posX: 0, posY: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Clear help cache on mount to ensure fresh content
+  useEffect(() => {
+    KRISterHelpLoader.clearCache();
+  }, []);
 
   // Scroll to bottom of messages
   useEffect(() => {
@@ -274,6 +290,26 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
     window.addEventListener('openKRISter', handleOpenKRISter);
     return () => window.removeEventListener('openKRISter', handleOpenKRISter);
   }, []);
+
+  // Handle clicks on help file links
+  const handleHelpLinkClick = async (e: React.MouseEvent, href: string) => {
+    // Check if this is a help file link
+    if (href.startsWith('/help/') && href.endsWith('.md')) {
+      e.preventDefault();
+      // Extract path without /help/ prefix and .md suffix
+      const helpPath = href.replace('/help/', '').replace('.md', '');
+      // Load the help content
+      const content = await KRISterHelpLoader.loadHelpFile(helpPath + '.md');
+      if (content) {
+        setContextHelp(content);
+        // Scroll to top of help content
+        const contentArea = containerRef.current?.querySelector('.overflow-y-auto');
+        if (contentArea) {
+          contentArea.scrollTop = 0;
+        }
+      }
+    }
+  };
 
   const loadContextHelp = async () => {
     try {
@@ -913,7 +949,7 @@ Exempel: ["Fråga 1?", "Hur gör jag X?", "Fråga 3?"]`;
   return (
     <div 
       ref={containerRef}
-      className="fixed z-50 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-[#3D4A2B]/30 flex flex-col"
+      className="fixed z-50 bg-[#F5F7F2]/98 backdrop-blur-xl rounded-2xl shadow-2xl border border-[#3D4A2B]/40 flex flex-col"
       style={{ 
         left: `${position.x}px`, 
         top: `${position.y}px`,
@@ -995,7 +1031,7 @@ Exempel: ["Fråga 1?", "Hur gör jag X?", "Fråga 3?"]`;
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-br from-[#5C6B47]/5 to-white">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-white/95 via-[#F5F7F2]/90 to-[#E8EBE3]/85">
         {/* Context Help - Display raw markdown directly */}
         {contextHelp && (
           <div className="text-sm leading-relaxed">
@@ -1014,6 +1050,17 @@ Exempel: ["Fråga 1?", "Hur gör jag X?", "Fråga 3?"]`;
                 prose-code:text-xs prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded">
                 <ReactMarkdown 
                   remarkPlugins={[remarkGfm]}
+                  components={{
+                    a: ({node, href, children, ...props}) => (
+                      <a
+                        href={href}
+                        onClick={(e) => href && handleHelpLinkClick(e, href)}
+                        {...props}
+                      >
+                        {children}
+                      </a>
+                    )
+                  }}
                 >
                   {contextHelp.rawMarkdown}
                 </ReactMarkdown>

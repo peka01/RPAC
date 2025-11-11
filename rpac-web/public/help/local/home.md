@@ -1,6 +1,6 @@
 # {{local_community.title}}
 
-## Kontext
+
 
 {{krister.context_help.local.description}}
 
@@ -71,7 +71,7 @@ A: Endast samhällets administratör ser Admin-fliken. Kontakta admin för att f
 A: Ja! Använder Supabase Realtime för live-uppdateringar.
 
 ## Relaterade sidor
-- [Local - Discover](/help/local/discover.md) - Hitta samhällen
-- [Local - Activity](/help/local/activity.md) - Se aktivitetsflöde
-- [Local - Resources](/help/local/resources-shared.md) - Dela resurser
-- [Local - Messages](/help/local/messages-community.md) - Kommunikation
+- [Lokalt - Upptäck](/help/local/discover.md) - Hitta samhällen
+- [Lokalt - Aktivitet](/help/local/activity.md) - Se aktivitetsflöde
+- [Lokalt - Resurser](/help/local/resources-shared.md) - Dela resurser
+- [Lokalt - Meddelanden](/help/local/messages-community.md) - Kommunikation
