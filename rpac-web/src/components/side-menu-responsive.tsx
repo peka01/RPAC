@@ -26,11 +26,18 @@ export function SideMenuResponsive({ children, hideMobileNav = false }: SideMenu
   const [communityPulse, setCommunityPulse] = useState(true);
   const pathname = usePathname();
   const { isCollapsed } = useSidebar();
+  const [sidebarWidth, setSidebarWidth] = useState<number>(256); // Default 256px
 
   const { profile: userProfile } = useUserProfile(user);
 
   useEffect(() => {
     setMounted(true);
+
+    // Load saved sidebar width from localStorage
+    const savedWidth = localStorage.getItem('sidebar-width');
+    if (savedWidth) {
+      setSidebarWidth(parseInt(savedWidth, 10));
+    }
 
     // Check user authentication
     const checkUser = async () => {
@@ -104,12 +111,17 @@ export function SideMenuResponsive({ children, hideMobileNav = false }: SideMenu
       )}
 
       {/* Content with appropriate padding */}
-      <main className={`
-        transition-all duration-300 ease-in-out
-        ${!isMobile ? (isCollapsed ? 'ml-24 pt-[48px]' : 'ml-80 pt-[48px]') : 'ml-0 pt-20'}
-        ${isMobile && !hideMobileNav ? 'pb-20' : 'pb-0'}
-        min-h-screen
-      `}>
+      <main 
+        className={`
+          transition-all duration-300 ease-in-out
+          ${!isMobile ? 'pt-[48px]' : 'ml-0 pt-20'}
+          ${isMobile && !hideMobileNav ? 'pb-20' : 'pb-0'}
+          min-h-screen
+        `}
+        style={{
+          marginLeft: !isMobile ? (isCollapsed ? '96px' : `${sidebarWidth}px`) : '0'
+        }}
+      >
         {children}
       </main>
 

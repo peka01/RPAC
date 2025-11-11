@@ -55,6 +55,16 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
   const [activeFlyout, setActiveFlyout] = useState<string | null>(null);
   const [flyoutPosition, setFlyoutPosition] = useState<{ top: number; left: number } | null>(null);
   const { isCollapsed, setIsCollapsed } = useSidebar();
+  const [sidebarWidth, setSidebarWidth] = useState<number>(256); // Default 256px (w-64)
+  const [isResizing, setIsResizing] = useState(false);
+
+  // Load saved width from localStorage
+  useEffect(() => {
+    const savedWidth = localStorage.getItem('sidebar-width');
+    if (savedWidth) {
+      setSidebarWidth(parseInt(savedWidth, 10));
+    }
+  }, []);
 
   // Auto-expand sections when their children are active
   useEffect(() => {
@@ -137,6 +147,44 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
     setActiveFlyout(null); // Close any open flyouts when toggling
     setFlyoutPosition(null); // Clear flyout position
   };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+      
+      const newWidth = e.clientX;
+      // Constrain width between 200px and 400px
+      if (newWidth >= 200 && newWidth <= 400) {
+        setSidebarWidth(newWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (isResizing) {
+        setIsResizing(false);
+        localStorage.setItem('sidebar-width', sidebarWidth.toString());
+      }
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'ew-resize';
+      document.body.style.userSelect = 'none';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizing, sidebarWidth]);
 
   const handleFlyoutClick = (sectionName: string, event: React.MouseEvent) => {
     if (isCollapsed) {
@@ -224,9 +272,13 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
   };
 
   return (
-    <div className={`fixed top-0 left-0 h-full z-40 bg-white border-r border-gray-200 shadow-lg flex flex-col transition-all duration-300 ease-in-out sidebar-container ${
-      isCollapsed ? 'w-24' : 'w-80'
-    }`}>
+    <div 
+      className="fixed top-0 left-0 h-full z-40 bg-white border-r border-gray-200 shadow-lg flex flex-col sidebar-container"
+      style={{
+        width: isCollapsed ? '96px' : `${sidebarWidth}px`,
+        transition: isResizing ? 'none' : 'width 0.3s ease-in-out'
+      }}
+    >
       
       {/* Header */}
       <div className="flex items-center justify-center p-4 border-b border-gray-200 transition-all duration-300 h-16">
@@ -440,6 +492,16 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
           }`} strokeWidth={2.5} />
         </button>
       </div>
+
+      {/* Resize Handle - Only visible when not collapsed */}
+      {!isCollapsed && (
+        <div
+          className="absolute top-0 right-0 w-1 h-full cursor-ew-resize hover:w-1.5 hover:bg-[#3D4A2B]/20 transition-all group"
+          onMouseDown={handleMouseDown}
+        >
+          <div className="absolute top-1/2 right-0 -translate-y-1/2 w-1 h-12 bg-[#3D4A2B]/30 rounded-l-full opacity-0 group-hover:opacity-100 transition-opacity" />
+        </div>
+      )}
     </div>
   );
 }
