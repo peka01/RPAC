@@ -209,6 +209,7 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
     if (!isDragging) return;
 
     const handleMouseMove = (e: MouseEvent) => {
+      e.preventDefault();
       const deltaX = e.clientX - dragStart.x;
       const deltaY = e.clientY - dragStart.y;
       
@@ -221,12 +222,15 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
 
     const handleMouseUp = () => {
       setIsDragging(false);
+      document.body.style.userSelect = '';
     };
 
+    document.body.style.userSelect = 'none';
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
 
     return () => {
+      document.body.style.userSelect = '';
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
@@ -237,6 +241,7 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
     if (!isResizing) return;
 
     const handleMouseMove = (e: MouseEvent) => {
+      e.preventDefault();
       const deltaX = e.clientX - resizeStart.x;
       const deltaY = e.clientY - resizeStart.y;
       
@@ -274,24 +279,29 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
     const handleMouseUp = () => {
       setIsResizing(false);
       setResizeDirection('');
+      document.body.style.userSelect = '';
     };
 
+    document.body.style.userSelect = 'none';
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
 
     return () => {
+      document.body.style.userSelect = '';
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isResizing, resizeStart, resizeDirection]);
 
   const handleDragStart = (e: React.MouseEvent) => {
+    e.preventDefault();
     setIsDragging(true);
     setDragStart({ x: e.clientX, y: e.clientY });
   };
 
   const handleResizeStart = (direction: string) => (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     setIsResizing(true);
     setResizeDirection(direction);
     setResizeStart({ 
