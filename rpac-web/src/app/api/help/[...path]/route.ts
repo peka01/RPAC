@@ -48,16 +48,20 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
 ) {
+  let filePath = '';
   try {
     // Await params as they are now a Promise in Next.js 15+
     const resolvedParams = await params;
     
     // Reconstruct and normalize file path from dynamic segments
     const segments = (resolvedParams.path || []).filter(s => s && s.trim() !== '');
-    const filePath = segments.join('/');
+    filePath = segments.join('/');
+
+    console.log('[HelpAPI] Request for:', filePath);
 
     // Security: Validate that the requested file is in the allowed list
     if (!VALID_HELP_FILES.includes(filePath)) {
+      console.log('[HelpAPI] File not in whitelist:', filePath);
       return NextResponse.json(
         { error: 'Help file not found', path: filePath },
         { status: 404 }
@@ -120,45 +124,76 @@ export async function GET(
     // Try GitHub API if local failed or in production
     if (!content) {
       try {
+        console.log('[HelpAPI] Attempting GitHub API fetch:', apiUrl);
         const ghResp = await fetch(apiUrl, { 
           headers: ghHeaders,
           cache: 'no-store'
         });
         if (ghResp.ok) {
           content = await ghResp.text();
+          console.log('[HelpAPI] GitHub API fetch successful, length:', content.length);
+        } else {
+          console.log('[HelpAPI] GitHub API fetch failed:', ghResp.status, ghResp.statusText);
         }
       } catch (apiError) {
+        console.error('[HelpAPI] GitHub API error:', apiError);
         // Silently fall back to raw URL
       }
     }
 
     // Fallback to raw URL if API fails
     if (!content) {
-      const cacheBustUrl = `${rawUrl}?t=${Date.now()}`;
-      const ghResp = await fetch(cacheBustUrl, { 
-        headers: ghHeaders,
-        cache: 'no-store'
-      });
-      if (ghResp.ok) {
-        content = await ghResp.text();
-      } else if (!isDev) {
-        // Last resort: try local in production
-        const url = new URL(request.url);
-        const localUrl = `${url.origin}/help/${filePath}.md`;
-        const localResp = await fetch(localUrl);
+      try {
+        const cacheBustUrl = `${rawUrl}?t=${Date.now()}`;
+        console.log('[HelpAPI] Attempting GitHub raw fetch:', cacheBustUrl);
+        const ghResp = await fetch(cacheBustUrl, { 
+          headers: ghHeaders,
+          cache: 'no-store'
+        });
+        if (ghResp.ok) {
+          content = await ghResp.text();
+          console.log('[HelpAPI] GitHub raw fetch successful, length:', content.length);
+        } else {
+          console.log('[HelpAPI] GitHub raw fetch failed:', ghResp.status, ghResp.statusText);
+        }
+      } catch (rawError) {
+        console.error('[HelpAPI] GitHub raw error:', rawError);
+      }
+    }
+
+    // Last resort: try local in production
+    if (!content && !isDev) {
+      try {
+        const requestUrl = new URL(request.url);
+        const baseUrl = `${requestUrl.protocol}//${requestUrl.host}`;
+        const localUrl = `${baseUrl}/help/${filePath}.md`;
+        console.log('[HelpAPI] Last resort local fetch:', localUrl);
+        const localResp = await fetch(localUrl, {
+          cache: 'no-store',
+          headers: {
+            'Accept': 'text/markdown, text/plain, */*'
+          }
+        });
         if (localResp.ok) {
           content = await localResp.text();
+          console.log('[HelpAPI] Last resort fetch successful, length:', content.length);
+        } else {
+          console.log('[HelpAPI] Last resort fetch failed:', localResp.status, localResp.statusText);
         }
+      } catch (lastError) {
+        console.error('[HelpAPI] Last resort error:', lastError);
       }
     }
 
     if (!content) {
+      console.error('[HelpAPI] All fetch attempts failed for:', filePath);
       return NextResponse.json(
-        { error: 'Help file could not be read from GitHub or local', path: filePath },
+        { error: 'Help file could not be read from any source', path: filePath },
         { status: 404 }
       );
     }
 
+    console.log('[HelpAPI] Successfully loaded help file:', filePath);
     return new NextResponse(content, {
       status: 200,
       headers: {
@@ -168,7 +203,7 @@ export async function GET(
     });
     
   } catch (error) {
-    console.error('[HelpAPI] Error loading help file:', error);
+    console.error('[HelpAPI] Error loading help file:', filePath, error);
     console.error('[HelpAPI] Error details:', {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined
@@ -176,7 +211,8 @@ export async function GET(
     return NextResponse.json(
       { 
         error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
+        path: filePath
       },
       { status: 500 }
     );
