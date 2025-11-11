@@ -10,19 +10,11 @@ Lokalt-sidan är navet för ditt samhälle där du kan:
 - Kommunicera med medlemmar
 - Administrera samhället (om admin)
 
-**Tillgängliga funktioner:**
-- Hem-flik: Översikt och statistik
-- Aktivitetsflöde: Realtidsuppdateringar
-- Resurshantering: Dela, låna, ge hjälp
-- Meddelandefunktion: Chat och direktmeddelanden
-- Administratörsverktyg: För samhällets ledare
-
 ## Steg-för-steg
 
 ### 1. Gå med i ett samhälle (första gången)
-1. Om du inte är medlem än: Sidan visar "Hitta samhällen"
-2. Klicka **Hitta samhällen**
-3. Följ instruktioner i [Upptäck samhällen](/help/local/discover.md)
+1. Om du inte är medlem än, klicka **{{local_community.find_communities}}**
+2. Följ instruktioner i [Upptäck samhällen](/help/local/discover.md)
 
 ### 2. Navigera mellan flikar
 - **Hem**: Samhällets översikt
