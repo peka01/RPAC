@@ -1,8 +1,8 @@
-# {{krister.context_help.cultivation.title}}
+[🏠](/help/dashboard.md) > [Mitt hem](/help/individual/resources.md) > Odling
 
+# Odling
 
-
-{{krister.context_help.cultivation.description}}
+Planera och hantera din odling för självförsörjning.
 
 Odlingsfunktionen hjälper dig att:
 - Planera vad du ska odla varje månad
@@ -13,8 +13,7 @@ Odlingsfunktionen hjälper dig att:
 ## Steg-för-steg
 
 ### 1. Öppna odlingsplaneraren
-- Från {{navigation.individual}}: Välj "Min odling"
-- Eller navigera till `/individual?section=cultivation`
+- Från **Mitt hem**: Välj **Min odling**
 - Klicka "Skapa ny plan" för att börja
 
 ### 2. Skapa en odlingsplan (5 steg)
@@ -74,11 +73,11 @@ Odlingsfunktionen hjälper dig att:
 
 ## Tips
 
-{{krister.context_help.cultivation.tips.0}}
+Börja med enkla grödor som potatis, morötter och sallad
 
-{{krister.context_help.cultivation.tips.1}}
+Skapa en odlingsplan som visar vad du ska plantera varje månad
 
-{{krister.context_help.cultivation.tips.2}}
+Följ din klimatzon (Götaland, Svealand eller Norrland) för rätt tider
 
 ## Vanliga frågor
 

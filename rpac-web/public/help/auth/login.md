@@ -1,14 +1,14 @@
+[🏠](/help/dashboard.md) > Inloggning
+
 # Inloggning & Registrering
-
-
 
 För att använda BeReady behöver du ett konto. Alla personuppgifter skyddas enligt GDPR.
 
 ## Steg-för-steg: Registrera dig
 
 ### 1. Öppna registreringssidan
-- Gå till `beready.se/auth/register`
-- Eller klicka "Skapa konto" på startsidan
+- Gå till beready.se
+- Eller klicka **Skapa konto** på startsidan
 
 ### 2. Fyll i formuläret
 
@@ -59,8 +59,8 @@ Krav:
 ## Steg-för-steg: Logga in
 
 ### 1. Öppna inloggningssidan
-- Gå till `beready.se/auth/login`
-- Eller klicka "Logga in"
+- Gå till beready.se
+- Eller klicka **Logga in**
 
 ### 2. Fyll i uppgifter
 - **E-post**: Din registrerade e-post
@@ -126,7 +126,7 @@ A: Inte just nu. Planerat för framtida uppdatering.
 A: Kolla skräppost. Vänta 10 min. Försök "Skicka nytt mail" på registreringssidan.
 
 **Q: Kan jag ändra e-postadress senare?**
-A: Ja, i {{navigation.settings}} → Konto.
+A: Ja, i **Inställningar** → **Konto**.
 
 **Q: Vad händer om jag glömmer lösenordet?**
 A: Använd "Glömt lösenord?" på inloggningssidan.
@@ -135,7 +135,7 @@ A: Använd "Glömt lösenord?" på inloggningssidan.
 A: Ja! Krypterad kommunikation, GDPR-compliance, säkra servrar (Supabase).
 
 **Q: Kan jag radera mitt konto?**
-A: Ja, {{navigation.settings}} → Konto → "Radera konto". Detta tar bort ALLT permanent.
+A: Ja, **Inställningar** → **Konto** → **Radera konto**. Detta tar bort ALLT permanent.
 
 ## Relaterade sidor
 - [Settings - Account](/help/settings/account.md) - Hantera konto

@@ -45,9 +45,10 @@ This document defines the standards for writing help documentation in RPAC (Regi
 
 **Overview pages:**
 ```markdown
+[🏠](/help/dashboard.md) > [Section](/help/section.md) > Current Page Name
+
 # [Feature Name]
 
-## Kontext
 [Brief intro: What is this? Why does it exist?]
 [Current features list]
 
@@ -63,6 +64,16 @@ This document defines the standards for writing help documentation in RPAC (Regi
 ## Relaterade sidor
 [Links to related help]
 ```
+
+**Breadcrumb Navigation (MANDATORY):**
+- [ ] **Always include at top of page** - Shows user's location in help system
+- [ ] **Format:** `[🏠](/help/dashboard.md) > [Section](/help/section.md) > Current Page`
+- [ ] **Home icon linked** - Use 🏠 emoji linking to dashboard (no colored icons per RPAC style)
+- [ ] **Current page NOT linked** - Just plain text
+- [ ] **Example:** `[🏠](/help/dashboard.md) > [Lokalt](/help/local/home.md) > [Resurser](/help/local/resources-shared.md) > Delade resurser`
+
+**Location Context (REMOVED):**
+- The location context blockquote has been removed as breadcrumb navigation is sufficient
 
 **Note:** Do NOT include status indicators (e.g., "Status: ✅ Fullt fungerande") in help documentation. Features documented in help files are assumed to be functional.
 
@@ -144,16 +155,22 @@ This document defines the standards for writing help documentation in RPAC (Regi
 
 #### Interface Text Styling
 - [ ] UI element names in **bold**
-- [ ] Include localization key reference
-- [ ] Show Swedish text in parentheses
+- [ ] Include localization key reference when first mentioned
+- [ ] Show Swedish text in parentheses for clarity (optional after first mention)
 - [ ] Use exact capitalization from interface
+- [ ] **NEVER reference URL paths** - Use menu navigation only
 
 **Examples:**
-- "Gå till **{t('navigation.settings')}** ("Inställningar")"
-- "Klicka på **{t('community.join_community')}** ("Gå med i samhälle")"
-- "Välj **{t('individual.cultivation_planning')}** ("Min odling")"
+- "Gå till **Inställningar**" (not "Gå till /settings")
+- "Klicka på **Lokalt** i sidomenyn" (not "Navigera till /local")
+- "Välj **Resurser** > **Delade resurser**" (not "Gå till /local?tab=resources&resourceTab=shared")
 
 ### Content Quality
+
+#### Mandatory Page Elements (CRITICAL)
+- [ ] **Breadcrumb navigation** - Always at top, before title (use [🏠](/help/dashboard.md) for home link)
+- [ ] **Bold UI terms** - All menu names, button labels, field names in bold
+- [ ] **Menu-based navigation** - Never reference URL paths (no `/local/discover`, etc.)
 
 #### Instructions Must Be:
 - [ ] **Complete:** All necessary steps included in order
@@ -323,9 +340,9 @@ Klicka på **{t('regional.county_overview')}** ("Länsöversikt")
 
 ### Overview Page Template
 ```markdown
-# [Feature Name]
+[🏠](/help/dashboard.md) > [Section](/help/section.md) > Current Page Name
 
-## Kontext
+# [Feature Name]
 
 [Brief intro paragraph explaining what this feature is and why it exists]
 
@@ -334,12 +351,10 @@ Klicka på **{t('regional.county_overview')}** ("Länsöversikt")
 - [Function 2]
 - [Function 3]
 
-**Status**: ✅ [Status indicator]
-
 ## Steg-för-steg
 
 ### 1. [First major topic]
-[Explanation with examples]
+[Explanation with examples using bold UI terms]
 
 ### 2. [Second major topic]
 [Explanation with examples]
@@ -347,19 +362,22 @@ Klicka på **{t('regional.county_overview')}** ("Länsöversikt")
 ## Tips
 
 **💡 [Tip 1 title]**
+
 [Tip explanation]
 
 **💡 [Tip 2 title]**
+
 [Tip explanation]
 
 ## Vanliga frågor
 
 **Q: [Question]?**
-A: [Answer]
+
+A: [Answer using bold UI terms, no URL paths]
 
 ## Relaterade sidor
-- [Link 1] - Description
-- [Link 2] - Description
+- [Link 1](/help/path.md) - Description
+- [Link 2](/help/path.md) - Description
 ```
 
 ### Instruction Page Template

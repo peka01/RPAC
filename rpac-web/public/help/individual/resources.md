@@ -1,8 +1,8 @@
-# {{individual.personal_resources}}
+[🏠](/help/dashboard.md) > [Mitt hem](/help/individual/resources.md) > Personliga resurser
 
+# Personliga resurser
 
-
-{{krister.context_help.resources.description}}
+Hantera ditt hemförråd och beredskapsresurser.
 
 Resursinventeringen hjälper dig att:
 - Hålla koll på ditt hemförråd
@@ -20,59 +20,58 @@ Resursinventeringen hjälper dig att:
 
 ### 1. Öppna resursinventeringen
 
-1. Klicka på **{{navigation.individual}}** ("Mitt hem") i sidomenyn
-2. Välj "{{individual.personal_resources}}" ("Personliga resurser & verktyg")
-3. Eller navigera direkt till `/individual?section=resources`
+1. Klicka på **Mitt hem** i sidomenyn
+2. Välj **Personliga resurser & verktyg**
 
 ### 2. Förstå MSB-kategorierna
 
 Sex huvudkategorier enligt MSB:
 
-- **{{resources.categories.food}}** ("Mat"): Torrvaror, konserver, nödmat
-- **{{resources.categories.water}}** ("Vatten"): Dricksvatten, reningsutrustning
-- **{{resources.categories.medicine}}** ("Medicin"): Första hjälpen, recept, värktabletter
-- **{{resources.categories.energy}}** ("Energi"): Batterier, elverk, värme
-- **{{resources.categories.tools}}** ("Verktyg"): Grundläggande verktyg och utrustning
-- **{{resources.categories.other}}** ("Övrigt"): Hygien, kommunikation, dokument
+- **Mat**: Torrvaror, konserver, nödmat
+- **Vatten**: Dricksvatten, reningsutrustning
+- **Medicin**: Första hjälpen, recept, värktabletter
+- **Energi**: Batterier, elverk, värme
+- **Verktyg**: Grundläggande verktyg och utrustning
+- **Övrigt**: Hygien, kommunikation, dokument
 
 ### 3. Lägg till en resurs manuellt
 
-1. Välj kategori (t.ex. "{{resources.categories.food}}")
-2. Klicka **{{buttons.register_resource}}** ("Lägg till en resurs")
+1. Välj kategori (t.ex. **Mat**)
+2. Klicka **Lägg till en resurs**
 3. Fyll i formuläret:
    - **Namn**: T.ex. "Ris"
    - **Antal**: T.ex. "5"
    - **Enhet**: T.ex. "kg"
    - **Hållbarhet** (frivilligt): Antal dagar kvar
    - **MSB-rekommendation**: Om detta är en MSB-resurs
-4. Klicka **{{buttons.save}}** ("Spara")
+4. Klicka **Spara**
 
 ### 4. Använd bulk-tillägg för MSB-resurser
 
 Snabbaste sättet att fylla i grundläggande beredskap:
 
-1. Klicka **{{resources.load_msb_resources}}** ("Ladda MSB-resurser")
+1. Klicka **Ladda MSB-resurser**
 2. Se hela listan över MSB:s rekommenderade resurser
 3. Bocka i vad du har hemma
 4. Ange antal för varje resurs
-5. Klicka **{{resources.bulk_add_button}}** ("Lägg till X resurser")
+5. Klicka **Lägg till X resurser**
 6. Alla valda resurser läggs till direkt!
 
-**Tips**: Kvantiteter skalas automatiskt baserat på antal personer i ditt hushåll (anges i {{navigation.settings}}).
+**Tips**: Kvantiteter skalas automatiskt baserat på antal personer i ditt hushåll (anges i **Inställningar**).
 
 ### 5. Hantera befintliga resurser
 
 #### Redigera resurs:
-1. Klicka **{{buttons.edit}}** ("Redigera") på resursen
+1. Klicka **Redigera** på resursen
 2. Ändra uppgifter
-3. Klicka **{{buttons.save}}** ("Spara")
+3. Klicka **Spara**
 
 #### Ta bort resurs:
-1. Klicka **{{buttons.delete}}** ("Ta bort") på resursen
+1. Klicka **Ta bort** på resursen
 2. Bekräfta borttagningen
 
 #### Markera som tömd/fylld:
-- Klicka **{{resources.empty_resource}}** ("Töm resurs") för att nollställa antal
+- Klicka **Töm resurs** för att nollställa antal
 - Användbart när du förbrukar en resurs helt
 
 ### 6. Filtrera och söka
@@ -93,7 +92,7 @@ Snabbaste sättet att fylla i grundläggande beredskap:
 
 ### 7. Byt vy (kort vs. tabell)
 
-1. Klicka **{{ui.card_view}}** ("Kortvy") eller **{{ui.table_view}}** ("Tabellvy") i verktygsfältet
+1. Klicka **Kortvy** eller **Tabellvy** i verktygsfältet
 2. **Kortvy**: Bättre översikt, visar bilder
 3. **Tabellvy**: Kompakt, lättare att jämföra
 
@@ -101,32 +100,32 @@ Snabbaste sättet att fylla i grundläggande beredskap:
 
 Om du har överskott:
 
-1. Klicka **{{resources.sharing.share_with_community}}** ("Dela lokalt") på resursen
+1. Klicka **Dela lokalt** på resursen
 2. Välj samhälle (om du är med i flera)
 3. Ange hur mycket du vill dela
 4. Sätt tillgänglighet (hur länge resursen är tillgänglig)
-5. Klicka **{{resources.sharing.share_button}}** ("Dela resurs")
+5. Klicka **Dela resurs**
 6. Resursen syns nu för alla medlemmar!
 
 ## Tips
 
 **💡 Börja med MSB-grunderna**
 
-{{krister.context_help.resources.tips.0}}
+Börja med MSB:s grundlista: mat, vatten, mediciner för 3-7 dagar
 
 **💡 Skala efter hushållsstorlek**
 
-{{krister.context_help.resources.tips.1}}
+Markera resurser som är fyllda för att se ditt framsteg
 
 **💡 Dela överskott**
 
-{{krister.context_help.resources.tips.2}}
+Dela överflöd med ditt lokala samhälle via resursdelning
 
 ## Vanliga frågor
 
 **Q: Vilka resurser rekommenderar MSB?**
 
-A: MSB rekommenderar att alla hushåll ska ha mat och vatten för minst 3-7 dagar, första hjälpen, mediciner, batteridriven radio, ficklampor och kontanter. Använd **{{resources.load_msb_resources}}** ("Ladda MSB-resurser") för hela listan!
+A: MSB rekommenderar att alla hushåll ska ha mat och vatten för minst 3-7 dagar, första hjälpen, mediciner, batteridriven radio, ficklampor och kontanter. Använd **Ladda MSB-resurser** för hela listan!
 
 **Q: Hur räknas beredskapspoängen?**
 

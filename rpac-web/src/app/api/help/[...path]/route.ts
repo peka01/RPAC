@@ -86,22 +86,40 @@ export async function GET(
 
     let content: string | null = null;
 
-    // Try GitHub API first (better cache control)
-    try {
-      const ghResp = await fetch(apiUrl, { 
-        headers: ghHeaders,
-        cache: 'no-store' // Force no caching in fetch itself
-      });
-      if (ghResp.ok) {
-        content = await ghResp.text();
+    // In development, prioritize local files
+    const isDev = process.env.NODE_ENV === 'development';
+    
+    if (isDev) {
+      // Try local files first in development
+      try {
+        const url = new URL(request.url);
+        const localUrl = `${url.origin}/help/${filePath}.md?t=${Date.now()}`;
+        const localResp = await fetch(localUrl, { cache: 'no-store' });
+        if (localResp.ok) {
+          content = await localResp.text();
+        }
+      } catch (localError) {
+        // Fall through to GitHub
       }
-    } catch (apiError) {
-      // Silently fall back to raw URL
+    }
+
+    // Try GitHub API if local failed or in production
+    if (!content) {
+      try {
+        const ghResp = await fetch(apiUrl, { 
+          headers: ghHeaders,
+          cache: 'no-store'
+        });
+        if (ghResp.ok) {
+          content = await ghResp.text();
+        }
+      } catch (apiError) {
+        // Silently fall back to raw URL
+      }
     }
 
     // Fallback to raw URL if API fails
     if (!content) {
-      // Add cache-busting timestamp to URL for GitHub CDN
       const cacheBustUrl = `${rawUrl}?t=${Date.now()}`;
       const ghResp = await fetch(cacheBustUrl, { 
         headers: ghHeaders,
@@ -109,8 +127,8 @@ export async function GET(
       });
       if (ghResp.ok) {
         content = await ghResp.text();
-      } else {
-        // Fallback to local public asset in dev or when repo is private
+      } else if (!isDev) {
+        // Last resort: try local in production
         const url = new URL(request.url);
         const localUrl = `${url.origin}/help/${filePath}.md`;
         const localResp = await fetch(localUrl);

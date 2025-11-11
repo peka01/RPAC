@@ -1,8 +1,8 @@
-# {{krister.context_help.messaging_direct.title}}
+[🏠](/help/dashboard.md) > [Lokalt](/help/local/home.md) > Direktmeddelanden
 
+# Direktmeddelanden
 
-
-{{krister.context_help.messaging_direct.description}}
+Privata 1-on-1 konversationer med samhällsmedlemmar.
 
 Direktmeddelanden används för:
 - Privata konversationer 1-till-1
@@ -15,8 +15,7 @@ Direktmeddelanden används för:
 ## Steg-för-steg
 
 ### 1. Öppna direktmeddelanden
-- Från {{navigation.local}}: Meddelanden → Direktmeddelanden
-- Eller `/local/messages/direct`
+- Från **Lokalt**: Välj **Meddelanden** → **Direktmeddelanden**
 - Ser lista över dina konversationer
 
 ### 2. Se konversationslista
@@ -78,7 +77,7 @@ Du får notis när:
 - Nytt meddelande kommer
 - Du är offline (push-notis om aktiverat)
 
-Anpassa i {{navigation.settings}} → Notifikationer:
+Anpassa i **Inställningar** → **Notifikationer**:
 - Ljud på/av
 - Desktop-notiser
 - Push till mobil

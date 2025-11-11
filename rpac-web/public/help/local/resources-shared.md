@@ -1,8 +1,8 @@
-# {{krister.context_help.resource_shared.title}}
+[🏠](/help/dashboard.md) > [Lokalt](/help/local/home.md) > Delade resurser
 
+# Delade resurser
 
-
-{{krister.context_help.resource_shared.description}}
+Resurser som medlemmar har delat med samhället.
 
 På denna sida ser du resurser som medlemmar har delat med samhället. Du kan:
 - Se vad som finns tillgängligt
@@ -12,8 +12,7 @@ På denna sida ser du resurser som medlemmar har delat med samhället. Du kan:
 ## Steg-för-steg
 
 ### 1. Öppna delade resurser
-- Från {{navigation.local}}: Resurser → Delade resurser
-- Eller `/local?tab=resources&resourceTab=shared`
+- Från **Lokalt**: Välj **Resurser** → **Delade resurser**
 
 ### 2. Se tillgängliga resurser
 Varje resurs visar:
@@ -71,11 +70,11 @@ För att ta bort/redigera:
 
 ## Tips
 
-{{krister.context_help.resource_shared.tips.0}}
+Se vad andra erbjuder och kontakta dem om du behöver något
 
-{{krister.context_help.resource_shared.tips.1}}
+Dela själv genom att klicka 'Dela resurs'
 
-{{krister.context_help.resource_shared.tips.2}}
+Status visar om resursen fortfarande är tillgänglig
 
 ## Vanliga frågor
 

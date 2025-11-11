@@ -1,8 +1,8 @@
-# {{krister.context_help.resource_help.title}}
+[🏠](/help/dashboard.md) > [Lokalt](/help/local/home.md) > Hjälpförfrågningar
 
+# Hjälpförfrågningar
 
-
-{{krister.context_help.resource_help.description}}
+Be om eller erbjud hjälp inom ditt samhälle.
 
 Hjälpförfrågningar är för när du behöver:
 - Hjälp med något praktiskt (flytta möbler, reparera, etc.)
@@ -15,8 +15,7 @@ Hjälpförfrågningar är för när du behöver:
 ## Steg-för-steg
 
 ### 1. Öppna hjälpförfrågningar
-- Från {{navigation.local}}: Resurser → Hjälpförfrågningar
-- Eller `/local?tab=resources&resourceTab=help`
+- Från **Lokalt**: Välj **Resurser** → **Hjälpförfrågningar**
 
 ### 2. Se aktiva hjälpförfrågningar
 Varje förfrågan visar:
@@ -100,11 +99,17 @@ Varje förfrågan visar:
 
 ## Tips
 
-{{krister.context_help.resource_help.tips.0}}
+**💡 Skapa en förfrågan**
 
-{{krister.context_help.resource_help.tips.1}}
+Skapa en förfrågan när du behöver hjälp med något
 
-{{krister.context_help.resource_help.tips.2}}
+**💡 Svara på andras förfrågningar**
+
+Svara på andras förfrågningar om du kan hjälpa till
+
+**💡 Markera som löst**
+
+Markera som 'Löst' när hjälpen är mottagen
 
 ## Vanliga frågor
 

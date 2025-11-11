@@ -70,10 +70,34 @@ export async function POST(request: NextRequest) {
     );
 
     if (!updateResponse.ok) {
-      const errorData = await updateResponse.text();
-      console.error('GitHub API error:', errorData);
+      const errorText = await updateResponse.text();
+      console.error('GitHub API error:', {
+        status: updateResponse.status,
+        statusText: updateResponse.statusText,
+        body: errorText
+      });
+      
+      let errorMessage = 'Failed to save file to GitHub';
+      
+      // Parse error if possible
+      try {
+        const errorData = JSON.parse(errorText);
+        if (errorData.message) {
+          errorMessage += `: ${errorData.message}`;
+        }
+      } catch {
+        // Not JSON, use raw text
+        if (errorText) {
+          errorMessage += `: ${errorText}`;
+        }
+      }
+      
       return NextResponse.json(
-        { error: 'Failed to save file to GitHub', details: errorData },
+        { 
+          error: errorMessage,
+          status: updateResponse.status,
+          details: errorText 
+        },
         { status: updateResponse.status }
       );
     }
@@ -86,9 +110,17 @@ export async function POST(request: NextRequest) {
       content: result.content,
     });
   } catch (error) {
-    console.error('Save error:', error);
+    console.error('Save error:', {
+      message: (error as Error).message,
+      stack: (error as Error).stack,
+      error
+    });
     return NextResponse.json(
-      { error: 'Internal server error', details: (error as Error).message },
+      { 
+        error: 'Internal server error', 
+        details: (error as Error).message,
+        type: (error as Error).name
+      },
       { status: 500 }
     );
   }

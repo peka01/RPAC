@@ -1,10 +1,10 @@
-# {{local_community.title}}
+[🏠](/help/dashboard.md) > Lokalt
 
+# Lokalt
 
+Här kan du ansluta till ditt lokala samhälle, dela resurser och kommunicera med grannar.
 
-{{krister.context_help.local.description}}
-
-{{local_community.navigation_description}}
+Här kan du ansluta till ditt lokala samhälle, dela resurser och kommunicera med grannar.
 
 Lokalt-sidan är navet för ditt samhälle där du kan:
 - Se samhällets aktivitet i realtid
@@ -23,18 +23,18 @@ Lokalt-sidan är navet för ditt samhälle där du kan:
 
 ### 1. Gå med i ett samhälle (första gången)
 1. Om du inte är medlem än: Sidan visar "Hitta samhällen"
-2. Klicka "{{local.discover.search_communities}}"
-3. Följ instruktioner i [Community Discovery](/help/local/discover.md)
+2. Klicka **Hitta samhällen**
+3. Följ instruktioner i [Upptäck samhällen](/help/local/discover.md)
 
 ### 2. Navigera mellan flikar
-- **Hem** (`?tab=home`): Samhällets översikt
-- **Aktivitet** (`?tab=activity`): Realtidsflöde
-- **Resurser** (`?tab=resources`): Resurshantering
+- **Hem**: Samhällets översikt
+- **Aktivitet**: Realtidsflöde
+- **Resurser**: Resurshantering
   - Delade resurser
   - Gemensamma resurser  
   - Hjälpförfrågningar
-- **Meddelanden** (`?tab=messages`): Kommunikation
-- **Admin** (`?tab=admin`): Administratörsverktyg (endast admin)
+- **Meddelanden**: Kommunikation
+- **Admin**: Administratörsverktyg (endast admin)
 
 ### 3. Samhällsöversikt (Hem-fliken)
 På hem-sidan ser du:
@@ -50,11 +50,11 @@ På hem-sidan ser du:
 
 ## Tips
 
-{{krister.context_help.local.tips.0}}
+Gå med i ditt närområdes samhälle för att få tillgång till lokal hjälp
 
-{{krister.context_help.local.tips.1}}
+Dela överflöd av resurser med andra i din närhet
 
-{{krister.context_help.local.tips.2}}
+Använd meddelandefunktionen för att hålla kontakten
 
 ## Vanliga frågor
 

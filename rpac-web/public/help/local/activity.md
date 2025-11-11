@@ -1,8 +1,8 @@
-# {{krister.context_help.local_activity.title}}
+[🏠](/help/dashboard.md) > [Lokalt](/help/local/home.md) > Aktivitet
 
+# Samhällets aktivitet
 
-
-{{krister.context_help.local_activity.description}}
+Se vad som händer i ditt samhälle i realtid.
 
 Aktivitetsflödet visar:
 - Nya medlemmar som gått med
@@ -16,9 +16,7 @@ Allt uppdateras i **realtid** via Supabase Realtime!
 ## Steg-för-steg
 
 ### 1. Öppna aktivitetsflödet
-- Från {{navigation.local}}: Klicka "Aktivitet"
-- Eller navigera till `/local?tab=activity`
-- Eller `/local/activity` för dedicerad sida
+- Från **Lokalt**: Klicka **Aktivitet**
 
 ### 2. Förstå aktivitetstyperna
 
@@ -65,11 +63,11 @@ Allt uppdateras i **realtid** via Supabase Realtime!
 
 ## Tips
 
-{{krister.context_help.local_activity.tips.0}}
+Nya medlemmar visas här - välkomna dem!
 
-{{krister.context_help.local_activity.tips.1}}
+Delade resurser och hjälpförfrågningar dyker upp direkt
 
-{{krister.context_help.local_activity.tips.2}}
+Håll koll på samhällets aktivitetsnivå
 
 ## Vanliga frågor
 

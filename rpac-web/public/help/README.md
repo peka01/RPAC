@@ -109,21 +109,38 @@ A: Another answer
 
 ## Variable Usage
 
-### Common Variables
-- `{{krister.context_help.PAGE.title}}` - Page title
-- `{{krister.context_help.PAGE.description}}` - Brief description
-- `{{krister.context_help.PAGE.tips.N}}` - Tip number N
-- `{{navigation.PAGE}}` - Navigation label
+### Common Variables (UI-shared only)
+- `{{navigation.PAGE}}` - Navigation label (e.g. {{navigation.individual}})
 - `{{individual.PAGE.title}}` - Individual section title
-- `{{local.PAGE.title}}` - Local section title
+- `{{community.PAGE}}` - Community/local section labels
+- `{{buttons.PAGE}}` - Button text
+- `{{forms.PAGE}}` - Form field labels
+- `{{dashboard.title}}` - Dashboard title
+
+### ⚠️ DEPRECATED Variables (DO NOT USE)
+- ~~`{{krister.context_help.PAGE.title}}`~~ → Use plain Swedish text instead
+- ~~`{{krister.context_help.PAGE.description}}`~~ → Use plain Swedish text instead
+- ~~`{{krister.context_help.PAGE.tips.N}}`~~ → Use plain Swedish text instead
+
+### Content Strategy
+**NEW APPROACH**: Help files should be self-contained with plain Swedish text for:
+- Page titles (unless they exactly match UI elements)
+- Descriptions and introductions
+- Tips and recommendations
+
+**USE VARIABLES ONLY FOR**: UI elements that appear elsewhere (navigation, buttons, form fields)
 
 ### Example
 ```markdown
-# {{krister.context_help.dashboard.title}}
+# Översiktssidan
+
+Din huvudsida visar snabblänkar och viktig information.
 
 Navigate via {{navigation.individual}} or {{navigation.local}}.
 
-{{krister.context_help.dashboard.tips.0}}
+**💡 Använd snabblänkarna**
+
+Använd snabblänkarna för att snabbt komma till Individuell, Lokalt eller Regionalt
 ```
 
 ## Adding New Help Files

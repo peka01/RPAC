@@ -1,8 +1,8 @@
-# {{krister.context_help.community_admin.title}}
+[🏠](/help/dashboard.md) > [Lokalt](/help/local/home.md) > Administration
 
+# Samhällsadministration
 
-
-{{krister.context_help.community_admin.description}}
+Hantera ditt samhälles inställningar och medlemmar.
 
 Som admin ansvarar du för:
 - Godkänna/neka medlemsansökningar
@@ -16,8 +16,7 @@ Som admin ansvarar du för:
 ## Steg-för-steg
 
 ### 1. Öppna admin-panelen
-- Från {{navigation.local}}: Admin-fliken
-- Eller `/local?tab=admin`
+- Från **Lokalt**: Välj **Admin**
 - Endast tillgänglig om du är admin
 
 ### 2. Hantera medlemsansökningar
@@ -177,11 +176,17 @@ För samhällen med "Endast inbjudan":
 
 ## Tips
 
-{{krister.context_help.community_admin.tips.0}}
+**💡 Godkänn eller avvisa medlemsansökningar**
 
-{{krister.context_help.community_admin.tips.1}}
+Godkänn eller avvisa medlemsansökningar
 
-{{krister.context_help.community_admin.tips.2}}
+**💡 Redigera samhällets offentliga hemsida**
+
+Redigera samhällets offentliga hemsida
+
+**💡 Se statistik**
+
+Se statistik över aktivitet och inbjudningar
 
 ## Vanliga frågor
 

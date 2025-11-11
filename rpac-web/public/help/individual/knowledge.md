@@ -1,6 +1,6 @@
-# {{individual.knowledge.title}}
+[🏠](/help/dashboard.md) > [Mitt hem](/help/individual/resources.md) > Kunskap
 
-
+# Kunskap
 
 Kunskapsbiblioteket är din personliga samling av beredskapsinformation och läranderesurser. Här hittar du:
 - Artiklar och guider från MSB och andra källor
@@ -13,8 +13,7 @@ Allt för att öka din kompetens inom beredskap!
 ## Steg-för-steg
 
 ### 1. Öppna kunskapsbiblioteket
-- Från {{navigation.individual}}: Kunskap-fliken
-- Eller `/individual?section=knowledge`
+- Från **Mitt hem**: Välj **Kunskap**
 
 ### 2. Utforska innehåll
 

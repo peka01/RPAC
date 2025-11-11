@@ -1,11 +1,11 @@
-# {{regional.title}}
+[🏠](/help/dashboard.md) > Regional översikt
 
-
+# Regional översikt
 
 Den regionala nivån ger dig en översikt över alla beredskapssamhällen i ditt län. Här kan du se statistik, aktiviteter och koordineringsmöjligheter mellan lokala samhällen i din region.
 
 **Tillgängliga funktioner:**
-- **{{regional.county_overview}}** ("Länsöversikt"): Statistik och data för ditt län
+- **Länsöversikt**: Statistik och data för ditt län
 - Samhällslista: Alla offentliga samhällen i länet
 - Aktivitetsflöde: Senaste händelser i regionen
 - Länsstyrelsen: Officiell länsinformation och öppna data
@@ -31,8 +31,7 @@ Regional nivå visar en samlad bild av alla beredskapssamhällen i ditt län. H�
 ### 2. Öppna regional vy
 
 **Från navigation:**
-1. Klicka på "Regional" i sidomenyn
-2. Eller gå direkt till `/regional`
+1. Klicka på **Regionalt** i sidomenyn
 
 **Vad händer:**
 - Systemet läser ditt län från din profil

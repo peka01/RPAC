@@ -1,6 +1,6 @@
+[🏠](/help/dashboard.md) > [Inställningar](/help/settings/profile.md) > Konto
+
 # Kontoinställningar
-
-
 
 Här hanterar du ditt BeReady-konto:
 - E-post och lösenord
@@ -11,8 +11,7 @@ Här hanterar du ditt BeReady-konto:
 ## Steg-för-steg
 
 ### 1. Öppna kontoinställningar
-- Från {{navigation.settings}}: Konto-fliken
-- Eller `/settings?tab=account`
+- Från **Inställningar**: Välj **Konto**
 
 ### 2. Ändra e-postadress
 
@@ -137,13 +136,13 @@ Lista över:
 
 #### Steg:
 1. Scrolla ner till "Riskzon"
-2. Klicka "Radera mitt konto"
+2. Klicka **Radera mitt konto**
 3. Läs varningen
 4. Skriv "RADERA" i bekräftelsefältet
 5. Ange lösenord
-6. Klicka "Radera permanent"
+6. Klicka **Radera permanent**
 7. Omedelbar radering
-8. Bekräftelsemail skickas
+8. Bekräftelseemail skickas
 
 **Alternativ**: Inaktivera konto istället (kommer snart)
 
@@ -173,7 +172,7 @@ A: Nej, men du kan avsluta och starta igen senare.
 A: Nej, prenumerationen gäller ut månaden. Ingen återbetalning.
 
 **Q: Hur raderar jag mitt konto?**
-A: Settings → Konto → "Radera mitt konto". VARNING: Permanent!
+A: **Inställningar** → **Konto** → **Radera mitt konto**. VARNING: Permanent!
 
 **Q: Kan jag återställa raderat konto?**
 A: Nej. Permanent betyder permanent. Tänk noga innan du raderar!

@@ -1,8 +1,8 @@
-# {{individual.coach.title}}
+[🏠](/help/dashboard.md) > [Mitt hem](/help/individual/resources.md) > AI-coach
 
+# AI-coach
 
-
-AI-coachen (KRISter) är din personliga beredskapsrådgivare. Baserat på:
+AI-coachen (KRISter) är din personliga beredskopsrådgivare.
 - Din profil och erfarenhetsnivå
 - Dina resurser och mål
 - Säsong och väder
@@ -15,8 +15,7 @@ AI-coachen (KRISter) är din personliga beredskapsrådgivare. Baserat på:
 ## Steg-för-steg
 
 ### 1. Öppna AI-coachen
-- Från {{navigation.individual}}: Coach-fliken
-- Eller `/individual?section=coach`
+- Från **Mitt hem**: Välj **AI-coach**
 - Eller klicka på KRISter-ikonen (tillgänglig överallt)
 
 ### 2. Dagens tips
@@ -67,7 +66,7 @@ KRISter analyserar och svarar med:
 - Chattar sparas lokalt (ej sålda till tredje part)
 - Du kan radera chatthistorik när som helst
 - OpenAI ser prompts men INTE persondata
-- Se {{navigation.settings}} → Integritet för mer info
+- Se **Inställningar** → Integritet för mer info
 
 ### 5. Skapa handlingsplan
 
@@ -136,11 +135,17 @@ Coachen anpassar råd efter årstid:
 
 ## Tips
 
-{{krister.context_help.individual_coach.tips.0}}
+**💡 Använd AI-coachen**
 
-{{krister.context_help.individual_coach.tips.1}}
+Få personliga råd baserat på din profil och situation
 
-{{krister.context_help.individual_coach.tips.2}}
+**💡 Följ dagliga tips**
+
+Kontrollera regelbundet för nya rekommendationer och påminnelser
+
+**💡 Ställ frågor**
+
+Fråga KRISter om allt som rör beredskap och självförsörjning
 
 ## Vanliga frågor
 

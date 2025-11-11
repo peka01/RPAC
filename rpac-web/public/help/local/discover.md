@@ -1,8 +1,8 @@
-# {{krister.context_help.local_discover.title}}
+[🏠](/help/dashboard.md) > [Lokalt](/help/local/home.md) > Upptäck
 
+# Upptäck samhällen
 
-
-{{krister.context_help.local_discover.description}}
+Hitta och gå med i lokala samhällen baserat på din plats.
 
 Samhällssökningen hjälper dig:
 - Hitta samhällen baserat på avstånd från dig
@@ -13,8 +13,7 @@ Samhällssökningen hjälper dig:
 ## Steg-för-steg
 
 ### 1. Öppna samhällssökningen
-- Från {{navigation.local}}: Klicka "Hitta samhällen"
-- Eller navigera direkt till `/local/discover`
+- Från **Lokalt**: Klicka **Hitta samhällen**
 - Kartan visar samhällen nära dig
 
 ### 2. Förstå avståndsmarkeringar
@@ -77,16 +76,16 @@ Om samhället har publicerat en hemsida:
 
 ## Tips
 
-{{krister.context_help.local_discover.tips.0}}
+Använd filtret för att hitta samhällen i ditt närområde (0-50 km)
 
-{{krister.context_help.local_discover.tips.1}}
+Gröna markeringar visar samhällen inom 10 km från dig
 
-{{krister.context_help.local_discover.tips.2}}
+Skapa ett nytt samhälle om det inte finns något i din närhet
 
 ## Vanliga frågor
 
 **Q: Varför ser jag inga samhällen?**
-A: Kontrollera att du angett postnummer i {{navigation.settings}}. Inga samhällen i din närhet? Skapa ett!
+A: Kontrollera att du angett postnummer i **Inställningar**. Inga samhällen i din närhet? Skapa ett!
 
 **Q: Kan jag vara med i flera samhällen?**
 A: Ja! Gå med i obegränsat antal samhällen.

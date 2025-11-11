@@ -1,6 +1,6 @@
+[🏠](/help/dashboard.md) > [Inställningar](/help/settings/profile.md) > Profil
+
 # Profil - Inställningar
-
-
 
 Din profil är din identitet i BeReady. Här ställer du in:
 - Personlig information (namn, plats, bio)
@@ -13,8 +13,7 @@ Din profil är din identitet i BeReady. Här ställer du in:
 ## Steg-för-steg
 
 ### 1. Öppna profilinställningar
-- Från {{navigation.settings}}: Profil-fliken
-- Eller `/settings?tab=profile`
+- Från **Inställningar**: Välj **Profil**
 
 ### 2. Grundläggande information
 
@@ -136,7 +135,7 @@ A: Nej! Endast du och samhällsadmins (för att beräkna avstånd i samhällssö
 A: Nej, visningsnamn krävs. Men det kan vara "Anonym123" om du vill (inte rekommenderat).
 
 **Q: Hur tar jag bort min profil helt?**
-A: Gå till {{navigation.settings}} → Konto → "Radera konto". Detta tar bort ALLT permanent.
+A: Gå till **Inställningar** → **Konto** → **Radera konto**. Detta tar bort ALLT permanent.
 
 ## Relaterade sidor
 - [Settings - Account](/help/settings/account.md) - Konto och inloggning

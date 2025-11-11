@@ -1,8 +1,8 @@
-# {{krister.context_help.resource_owned.title}}
+[🏠](/help/dashboard.md) > [Lokalt](/help/local/home.md) > Gemensamma resurser
 
+# Gemensamma resurser
 
-
-{{krister.context_help.resource_owned.description}}
+Resurser som samhället äger tillsammans.
 
 Gemensamma resurser är sådant som samhället äger tillsammans, till exempel:
 - Verktyg (motorsåg, stegar, trädgårdsredskap)
@@ -14,8 +14,7 @@ Alla medlemmar kan låna, men admin hanterar listan.
 ## Steg-för-steg
 
 ### 1. Öppna gemensamma resurser
-- Från {{navigation.local}}: Resurser → Gemensamma resurser
-- Eller `/local?tab=resources&resourceTab=owned`
+- Från **Lokalt**: Välj **Resurser** → **Gemensamma resurser**
 
 ### 2. Se gemensamma resurser
 Varje resurs visar:

@@ -340,7 +340,11 @@ export default function HelpFileEditor({ filePath, initialContent, onClose, onSa
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        console.error('Save API error:', errorData);
+        console.error('Save API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData
+        });
         
         // Show helpful message for missing GitHub token
         if (errorData.error?.includes('not configured')) {
@@ -356,7 +360,7 @@ export default function HelpFileEditor({ filePath, initialContent, onClose, onSa
           return;
         }
         
-        throw new Error(errorData.error || 'Failed to save file');
+        throw new Error(errorData.error || errorData.details || 'Failed to save file');
       }
 
       const result = await response.json();

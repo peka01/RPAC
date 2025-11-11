@@ -1,8 +1,8 @@
+[🏠](/help/dashboard.md) > Översikt
+
 # {{dashboard.title}}
 
-
-
-{{krister.context_help.dashboard.description}}
+Din huvudsida visar snabblänkar och viktig information.
 
 På översiktssidan får du:
 - Snabb överblick av din beredskap
@@ -15,28 +15,28 @@ På översiktssidan får du:
 
 Navigera snabbt mellan de tre huvudnivåerna:
 
-- **{{navigation.individual}}** ("Mitt hem"): Din personliga beredskap och resurser
-- **{{navigation.local}}** ("Lokalt"): Ditt lokala samhälle och grannar
-- **{{navigation.regional}}** ("Regionalt"): Regional översikt och koordination
+- **Mitt hem**: Din personliga beredskap och resurser
+- **Lokalt**: Ditt lokala samhälle och grannar
+- **Regionalt**: Regional översikt och koordination
 
 ### 2. Kontrollera dina resurser
 
-1. Klicka på **{{navigation.individual}}** ("Mitt hem")
-2. Välj "{{individual.personal_resources}}" ("Personliga resurser & verktyg")
+1. Klicka på **Mitt hem** i sidomenyn
+2. Välj **Personliga resurser & verktyg**
 3. Se dina beredskapskategorier
 4. Lägg till och uppdatera resurser regelbundet
 5. Följ MSB:s rekommendationer för beredskapslager
 
 ### 3. Anslut till ditt lokala samhälle
 
-1. Klicka på **{{navigation.local}}** ("Lokalt")
-2. Om du inte är medlem: Använd "{{community.find_local}}" ("Hitta lokala samhällen")
+1. Klicka på **Lokalt** i sidomenyn
+2. Om du inte är medlem: Klicka på **Hitta samhällen**
 3. Gå med i ett samhälle i din närhet
 4. Dela resurser och hjälp dina grannar
 
 ### 4. Utforska regional information
 
-1. Klicka på **{{navigation.regional}}** ("Regionalt")
+1. Klicka på **Regionalt** i sidomenyn
 2. Se statistik för ditt län
 3. Hitta andra samhällen i regionen
 4. Få tillgång till officiella länslänkar
@@ -45,29 +45,29 @@ Navigera snabbt mellan de tre huvudnivåerna:
 
 **💡 Håll koll på ditt beredskapspoäng**
 
-{{krister.context_help.dashboard.tips.0}}
+Använd snabblänkarna för att snabbt komma till Individuell, Lokalt eller Regionalt
 
 **💡 Använd snabbknappar**
 
-{{krister.context_help.dashboard.tips.1}}
+Väderwidgeten visar extrema väderhändelser som kan påverka din odling
 
 **💡 Kontrollera notifieringar**
 
-{{krister.context_help.dashboard.tips.2}}
+AI-coachen ger dagliga tips baserat på ditt väder, din profil och dina resurser
 
 ## Vanliga frågor
 
 **Q: Hur kan jag se min beredskapsöversikt?**
 
-A: Gå till **{{navigation.individual}}** ("Mitt hem") → **{{individual.personal_resources}}** ("Personliga resurser & verktyg") och se alla dina beredskapskategorier.
+A: Gå till **Mitt hem** > **Personliga resurser & verktyg** och se alla dina beredskapskategorier.
 
 **Q: Var ser jag hur förberedd jag är?**
 
-A: Under **{{navigation.individual}}** ("Mitt hem") → **{{individual.personal_resources}}** ("Personliga resurser & verktyg") kan du se vilka kategorier du har fyllt i. MSB rekommenderar mat och vatten för minst 3-7 dagar.
+A: Under **Mitt hem** > **Personliga resurser & verktyg** kan du se vilka kategorier du har fyllt i. MSB rekommenderar mat och vatten för minst 3-7 dagar.
 
 **Q: Hur hittar jag mitt lokala samhälle?**
 
-A: Klicka på **{{navigation.local}}** ("Lokalt") och använd "{{community.find_local}}" ("Hitta lokala samhällen") för att söka baserat på ditt postnummer.
+A: Klicka på **Lokalt** i sidomenyn och välj **Hitta samhällen** för att söka baserat på ditt postnummer.
 
 **Q: Vad betyder beredskapspoängen?**
 

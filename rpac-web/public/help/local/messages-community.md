@@ -1,8 +1,8 @@
-# {{krister.context_help.messaging_community.title}}
+[🏠](/help/dashboard.md) > [Lokalt](/help/local/home.md) > Samhällschatt
 
+# Samhällschatt
 
-
-{{krister.context_help.messaging_community.description}}
+Gruppchatt för alla medlemmar i ditt samhälle.
 
 Samhällschatten är platsen för:
 - Allmänna diskussioner
@@ -15,9 +15,7 @@ Alla medlemmar kan läsa och skriva. Meddelanden uppdateras i **realtid**!
 ## Steg-för-steg
 
 ### 1. Öppna samhällschatten
-- Från {{navigation.local}}: Meddelanden → Samhället
-- Eller `/local?tab=messages`
-- Eller `/local/messages/community`
+- Från **Lokalt**: Välj **Meddelanden** → **Samhället**
 
 ### 2. Läsa meddelanden
 - Senaste meddelandet längst ner
@@ -59,7 +57,7 @@ Varje meddelande visar:
 
 #### Notifikationer
 - Du får varning när någon skriver (om inloggad)
-- Anpassa i {{navigation.settings}}
+- Anpassa i **Inställningar**
 
 #### Sökning (framtida feature)
 - Sök i chatthistorik
@@ -101,7 +99,7 @@ A: Inte direkt i chatten ännu. Dela länkar eller använd hjälpförfrågningar
 A: De sparas permanent. Hela historiken laddas när du öppnar chatten.
 
 **Q: Kan jag stänga av notifikationer?**
-A: Ja, gå till {{navigation.settings}} → Notifikationer.
+A: Ja, gå till **Inställningar** → **Notifikationer**.
 
 **Q: Vad om någon är otrevlig?**
 A: Kontakta admin direkt. De kan varna eller ta bort meddelanden.
