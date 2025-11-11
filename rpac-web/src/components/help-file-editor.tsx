@@ -1011,26 +1011,6 @@ Försök igen eller ändra din instruktion.`
                   </div>
                 </div>
 
-                {/* Warning Box */}
-                <div className="bg-amber-50 border-2 border-amber-400 rounded-lg p-5 shadow-sm">
-                  <div className="flex items-start gap-3">
-                    <Info size={24} className="text-amber-600 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                      <h3 className="font-bold text-amber-900 mb-2">⚠️ VIKTIGT: Uppdatera KRISter när du ändrar hjälpdokument!</h3>
-                      <div className="text-sm text-amber-800 space-y-2">
-                        <p>
-                          När du uppdaterar hjälpdokumentation (t.ex. lägger till nya steg för hur man delar resurser), 
-                          måste du också uppdatera denna system prompt så att KRISter vet om förändringarna.
-                        </p>
-                        <p className="font-semibold">
-                          Exempel: Om du ändrar stegen för att dela en resurs i <code>individual/resources.md</code>, 
-                          uppdatera avsnittet "BEREADY-APPENS FUNKTIONER" → "MITT HEM" → "Resurslager" nedan.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 {/* Info Box */}
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-sm">
                   <div className="flex items-start gap-3">
