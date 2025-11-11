@@ -39,12 +39,12 @@ See `../docs/DEVELOPMENT_SETUP.md` for complete troubleshooting guide.
 - **Next Themes** - Mörkt/ljust tema
 
 ### Backend & Infrastructure ✅ IMPLEMENTED
-- **Cloudflare Pages** - Global edge deployment med Edge Runtime (V8 Isolates)
-- **Cloudflare Functions** - Serverless API endpoints i `/functions/api/`
+- **Vercel** - Global edge deployment with automatic GitHub integration
+- **Vercel Functions** - Serverless API endpoints
 - **Supabase** - Real-time databas och autentisering med PostgreSQL
 - **Row Level Security** - Dataskydd med RLS-policies
 - **Foreign Key Constraints** - Dataintegritet och referential integrity
-- **@cloudflare/next-on-pages** - Next.js adapter för Cloudflare Pages
+- **Vercel Native** - Next.js runs natively on Vercel (no adapter needed)
 - **Cloudflare Worker API** - AI Worker på `api.beready.se`
 
 ### Features ✅ IMPLEMENTED

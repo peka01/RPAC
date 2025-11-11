@@ -1,3 +1,42 @@
+### 2025-11-11 - MIGRATION: Moved from Cloudflare Pages to Vercel
+
+**Reason**: Cloudflare edge runtime was blocking GitHub API fetches for help system, causing persistent 404 errors in production.
+
+**What Changed**:
+- **Deployment platform**: Cloudflare Pages  Vercel
+- **CI/CD**: Manual wrangler deploy  Automatic GitHub integration
+- **Edge runtime**: Cloudflare Workers  Vercel Edge Functions
+- **Documentation**: Updated all references from Cloudflare to Vercel
+
+**Files Modified**:
+- `docs/GITHUB_HELP_INTEGRATION.md` - Complete rewrite for Vercel
+- `.github/copilot-instructions.md` - Updated architecture and deployment sections
+- `rpac-web/README.md` - Changed deployment platform references
+- `rpac-web/package.json` - Removed Cloudflare scripts and dependencies
+- `rpac-web/src/app/api/help/[...path]/route.ts` - Updated comments
+- All page routes with edge runtime - Updated comments to reference Vercel
+
+**Files Removed** (no longer needed):
+- `wrangler.toml` - Cloudflare configuration (can be deleted)
+
+**Dependencies Removed**:
+- `@cloudflare/next-on-pages`
+- `wrangler`
+
+**Benefits**:
+-  Native Next.js support (no adapter needed)
+-  No edge runtime fetch restrictions
+-  Automatic deployment on push to main
+-  Better logging and debugging
+-  Help API now works correctly in production
+
+**Action Required**:
+- Run `npm install` to remove old Cloudflare dependencies
+- Delete `wrangler.toml` file
+- Update DNS to point beready.se to Vercel (if needed)
+- Set GITHUB_TOKEN in Vercel environment variables
+
+---
 ### 2025-11-11 - FIX: Removed phantom help files from whitelist (production 404s)
 
 **Issue**: Production site (beready.se) returning 404 errors when loading help files.
@@ -6865,6 +6904,7 @@ This cleanup represents a major milestone in project maintenance and sets the st
 
 **Uppdaterad:** 2025-10-09  
 **Nästa review:** Vid varje större feature-lansering
+
 
 
 

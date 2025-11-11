@@ -4,14 +4,14 @@ This file contains short, actionable rules and references so an AI assistant can
 
 ### 1. Where to run and build
 - **Dev server**: Always run from `rpac-web` folder: `cd rpac-web; npm install; npm run dev`
-- **Production build**: `cd rpac-web; npm run pages:build; npm run deploy` (uses `wrangler` for Cloudflare Pages)
+- **Production build**: Automatic via Vercel on push to `main` branch
 - **MCP servers**: `mcp-servers` folder (start with `npm start`)
 - ⚠️ **Common mistake**: Running `npm run dev` from root fails—`package.json` is in `rpac-web/`
 
 ### 2. High-level architecture (one-paragraph)
-- **Frontend**: Next.js 15 (app router) in `rpac-web` (React 19 + TypeScript + Tailwind). Edge functions via `@cloudflare/next-on-pages`.
-- **Backend**: Supabase (Postgres + RLS) as primary DB; Cloudflare Pages Functions for AI/edge APIs; small MCP servers in `mcp-servers`.
-- **Communication**: Frontend → Supabase + Cloudflare endpoints; realtime via Supabase channels.
+- **Frontend**: Next.js 15 (app router) in `rpac-web` (React 19 + TypeScript + Tailwind). Deployed on Vercel with Edge Runtime.
+- **Backend**: Supabase (Postgres + RLS) as primary DB; Vercel Functions for AI/edge APIs; small MCP servers in `mcp-servers`.
+- **Communication**: Frontend → Supabase + Vercel endpoints; realtime via Supabase channels.
 - **Features**: Phase 1 (Individual) ✅ COMPLETE, Phase 2 (Local Community) ✅ COMPLETE, Phase 3 (Regional) 🔄 IN PROGRESS.
 - **Key routes**: `/dashboard`, `/individual`, `/local` (with tabs), `/regional`, `/settings`, `/[samhalle]` (public homespace), `/super-admin`.
 
@@ -26,7 +26,7 @@ This file contains short, actionable rules and references so an AI assistant can
   - Location: `rpac-web/src/components/resource-list-view.tsx`
   - Built-in: search, filters, card/table toggle, mobile optimization.
 - **Navigation**: URL parameters for tabs (e.g., `/local?tab=home`, `/individual?section=resources`).
-- **Edge runtime**: ALL dynamic routes MUST export `export const runtime = 'edge';` for Cloudflare compatibility.
+- **Edge runtime**: ALL dynamic routes MUST export `export const runtime = 'edge';` for Vercel compatibility.
 
 ### 4. SQL / DB migration rules (CRITICAL—errors block deployment)
 - **DO NOT use** `CREATE POLICY IF NOT EXISTS`—Postgres doesn't support it.
@@ -44,8 +44,8 @@ This file contains short, actionable rules and references so an AI assistant can
 - All migrations in `rpac-web/database/` must be idempotent.
 
 ### 5. Edge runtime / deployment gotchas
-- Missing `export const runtime = 'edge';` in dynamic routes → deployment fails silently.
-- Verify `wrangler.toml` has `compatibility_flags = ["nodejs_compat"]` and current `compatibility_date`.
+- Missing `export const runtime = 'edge';` in dynamic routes → deployment may fail.
+- Vercel automatically deploys on push to `main` branch via GitHub integration.
 - See `docs/PRODUCTION_DEPLOYMENT.md` for full deployment checklist.
 
 ### 6. Quick navigation references (files to load for context)

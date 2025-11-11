@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { Lock, Eye, EyeOff, CheckCircle, AlertTriangle, ArrowLeft } from 'lucide-react';
 
-// Configure for Edge Runtime (required for Cloudflare Pages)
+// Configure for Edge Runtime (Vercel)
 export const runtime = 'edge';
 
 export default function ResetPasswordPage() {

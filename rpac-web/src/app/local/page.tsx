@@ -9,7 +9,7 @@ import { ShieldProgressSpinner } from '@/components/ShieldProgressSpinner';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 
-// Configure for Edge Runtime (required for Cloudflare Pages)
+// Configure for Edge Runtime (Vercel)
 export const runtime = 'edge';
 
 export default function LocalPage() {

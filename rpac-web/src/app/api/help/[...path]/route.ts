@@ -13,7 +13,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-// Edge runtime required for Cloudflare Pages
+// Edge runtime for Vercel
 export const runtime = 'edge';
 
 // Map of valid help file paths (for security)

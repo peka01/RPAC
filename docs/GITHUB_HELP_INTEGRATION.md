@@ -49,9 +49,9 @@ KRISter renders help in UI
 **Purpose:** Proxy endpoint that fetches markdown files from GitHub repository
 
 **Key Features:**
-- Edge runtime compatible (Cloudflare Pages)
+- Edge runtime compatible (Vercel)
 - Security whitelist (VALID_HELP_FILES array)
-- Dual fetch strategy (API + raw URL fallback)
+- GitHub raw URL fetching
 - Comprehensive error logging
 - Cache-busting headers
 
@@ -189,13 +189,13 @@ GITHUB_BRANCH=main
 GITHUB_HELP_DIR=rpac-web/public/help
 ```
 
-**Production (Cloudflare Pages):**
-1. Go to Cloudflare dashboard → Pages → beready.se → Settings → Environment variables
+**Production (Vercel):**
+1. Go to Vercel dashboard → Your project → Settings → Environment Variables
 2. Add production variable:
    - Name: `GITHUB_TOKEN`
    - Value: `ghp_xxx` (PAT with repo scope)
    - Environment: Production
-3. Redeploy for changes to take effect
+3. Redeploy automatically on next push
 
 **Creating a GitHub PAT:**
 1. GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
@@ -236,7 +236,7 @@ GITHUB_HELP_DIR=rpac-web/public/help
 - Low request volume (help opened occasionally, not per page load)
 
 **Future Optimization (if needed):**
-- Cloudflare KV cache with 5-minute TTL
+- Vercel Edge Config cache with 5-minute TTL
 - Webhook from GitHub to invalidate cache on push
 - Client-side cache with ETag validation
 
@@ -276,12 +276,12 @@ GITHUB_HELP_DIR=rpac-web/public/help
 
 1. **Success Rate:**
    - Target: >99.5%
-   - Monitor: Cloudflare Pages logs
+   - Monitor: Vercel Analytics & Logs
    - Alert on: <95% success rate
 
 2. **Response Time:**
    - Target: <500ms p95
-   - Monitor: Cloudflare Analytics
+   - Monitor: Vercel Analytics
    - Alert on: >2s p95
 
 3. **GitHub API Rate Limits:**
@@ -296,7 +296,7 @@ GITHUB_HELP_DIR=rpac-web/public/help
 
 **Log Analysis:**
 ```powershell
-# Check production logs in Cloudflare dashboard
+# Check production logs in Vercel dashboard
 # Filter by: [HelpAPI]
 # Look for patterns in failed requests
 ```
@@ -401,18 +401,18 @@ peka01/RPAC
 
 2. **Wait ~1 minute**
    - GitHub CDN propagates changes
-   - No Cloudflare Pages deployment triggered
+   - Vercel automatically redeploys on push to main
 
 3. **Verify in production**
-   - Visit https://beready.se
+   - Visit your Vercel production URL
    - Open KRISter
    - Navigate to updated page
    - Confirm new help content shows
 
 **If help doesn't update:**
 1. Check GitHub API rate limits
-2. Verify GITHUB_TOKEN is set in Cloudflare Pages env vars
-3. Check Cloudflare Pages logs for errors
+2. Verify GITHUB_TOKEN is set in Vercel env vars
+3. Check Vercel Function logs for errors
 4. Test direct GitHub API access with token
 
 ### Rollback Strategy
@@ -486,7 +486,7 @@ peka01/RPAC
 
 **Causes:**
 - Browser cache (unlikely with no-cache headers)
-- CDN cache between Cloudflare and GitHub
+- CDN cache between Vercel and GitHub
 - Wrong branch being fetched
 
 **Solutions:**
@@ -508,7 +508,7 @@ peka01/RPAC
 
 **Solutions:**
 1. Verify GITHUB_TOKEN set and has `repo` scope
-2. Check Cloudflare Pages logs for API errors
+2. Check Vercel Function logs for API errors
 3. Test GitHub API access: `curl -H "Authorization: Bearer $TOKEN" https://api.github.com/user`
 4. Ensure file path in VALID_HELP_FILES
 
@@ -537,7 +537,7 @@ peka01/RPAC
 
 When help system fails:
 
-- [ ] Check Cloudflare Pages logs for `[HelpAPI]` entries
+- [ ] Check Vercel Function logs for `[HelpAPI]` entries
 - [ ] Verify GITHUB_TOKEN set in environment
 - [ ] Test GitHub API access with token
 - [ ] Confirm file exists in GitHub at correct path
@@ -604,17 +604,16 @@ If token compromised:
 
 **Optimization Opportunities:**
 
-1. **Cloudflare KV Caching:**
+1. **Vercel Edge Config Caching:**
    ```typescript
-   // Check KV cache first
-   const cached = await HELP_CACHE.get(filePath);
+   // Check Edge Config cache first
+   const cached = await edgeConfig.get(`help:${filePath}`);
    if (cached) return cached;
    
    // Fetch from GitHub
    const content = await fetchFromGitHub(filePath);
    
-   // Cache for 5 minutes
-   await HELP_CACHE.put(filePath, content, { expirationTtl: 300 });
+   // Cache for 5 minutes (implement with KV or similar)
    ```
 
 2. **Prefetching Common Files:**
@@ -639,7 +638,7 @@ If token compromised:
 
 ### Short-term (Next Sprint)
 
-1. **Cloudflare KV Cache:**
+1. **Vercel Edge Config Cache:**
    - Implement 5-minute cache TTL
    - Reduce GitHub API requests by 90%
    - Maintain acceptable update latency
@@ -650,7 +649,7 @@ If token compromised:
    - "Försök igen" button
 
 3. **Monitoring Dashboard:**
-   - Cloudflare Workers Analytics
+   - Vercel Analytics integration
    - Success rate, latency, errors
    - GitHub API quota remaining
 
@@ -662,7 +661,7 @@ If token compromised:
    - Event-driven architecture
 
 2. **Help Content CDN:**
-   - Cloudflare R2 bucket mirror
+   - Vercel Blob storage mirror
    - Sync from GitHub on push
    - Ultra-low latency serving
 
@@ -692,4 +691,4 @@ If token compromised:
 
 **Remember:** The GitHub repository is THE source of truth. Never add static fallbacks. Never bundle help content. Always fetch from GitHub. This is a core architectural principle that ensures immediate visibility and prevents stale content issues.
 
-**When in doubt:** Check the GitHub file directly, verify GITHUB_TOKEN is set, and review Cloudflare Pages logs for detailed error messages.
+**When in doubt:** Check the GitHub file directly, verify GITHUB_TOKEN is set, and review Vercel Function logs for detailed error messages.

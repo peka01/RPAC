@@ -12,7 +12,7 @@ import type { User } from '@supabase/supabase-js';
 import type { LocalCommunity } from '@/lib/supabase';
 import { ResourceListView, Column } from '@/components/resource-list-view';
 
-// Configure for Edge Runtime (required for Cloudflare Pages)
+// Configure for Edge Runtime (Vercel)
 export const runtime = 'edge';
 
 export default function DiscoverPage() {
