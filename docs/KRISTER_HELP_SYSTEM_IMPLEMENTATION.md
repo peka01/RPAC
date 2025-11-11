@@ -110,6 +110,9 @@ interpolateVariables(markdown): string
 
 ## Architecture
 
+**⚠️ CRITICAL:** Help content ALWAYS loads from GitHub repository, never from static files.  
+**→ Full details:** [`docs/GITHUB_HELP_INTEGRATION.md`](./GITHUB_HELP_INTEGRATION.md)
+
 ### Flow
 
 ```
@@ -123,7 +126,9 @@ KRISterHelpLoader.loadHelpForRoute(pathname, searchParams)
   ↓
 Route mapping → Get help file path
   ↓
-Load markdown (currently placeholder, future: API/KV/R2)
+Fetch from GitHub via /api/help/[...path]
+  ↓
+GitHub API (with auth token) OR raw URL fallback
   ↓
 Parse markdown → Extract sections
   ↓

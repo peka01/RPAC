@@ -17,8 +17,10 @@ import { NextRequest, NextResponse } from 'next/server';
 export const runtime = 'edge';
 
 // Map of valid help file paths (for security)
+// NOTE: Only include files that actually exist in rpac-web/public/help/
 const VALID_HELP_FILES = [
   'dashboard',
+  // Individual
   'individual/overview',
   'individual/resources',
   'individual/cultivation',
@@ -26,29 +28,29 @@ const VALID_HELP_FILES = [
   'individual/coach',
   'individual/contacts',
   'individual/plan',
+  // Local
   'local/home',
   'local/discover',
   'local/activity',
-  'local/forum',
-  'local/map',
-  'local/find',
-  'local/members',
-  'local/garden',
   'local/resources-shared',
   'local/resources-owned',
   'local/resources-help',
   'local/messages-community',
   'local/messages-direct',
   'local/admin',
+  // Regional
   'regional/overview',
+  // Settings
   'settings/profile',
   'settings/security',
   'settings/account',
   'settings/privacy',
   'settings/notifications',
   'settings/preferences',
+  // Admin
   'admin/overview',
   'admin/super-admin',
+  // Auth
   'auth/login',
   'auth/register',
 ];
@@ -101,36 +103,8 @@ export async function GET(
 
     let content: string | null = null;
 
-    // In development, prioritize local files
-    const isDev = process.env.NODE_ENV === 'development';
-    
-    if (isDev) {
-      // Try local files first in development
-      try {
-        // In edge runtime, construct the base URL from the request
-        const requestUrl = new URL(request.url);
-        const baseUrl = `${requestUrl.protocol}//${requestUrl.host}`;
-        const localUrl = `${baseUrl}/help/${filePath}.md?t=${Date.now()}`;
-        console.log('[HelpAPI] Attempting local fetch:', localUrl);
-        const localResp = await fetch(localUrl, { 
-          cache: 'no-store',
-          headers: {
-            'Accept': 'text/markdown, text/plain, */*'
-          }
-        });
-        if (localResp.ok) {
-          content = await localResp.text();
-          console.log('[HelpAPI] Local fetch successful, length:', content.length);
-        } else {
-          console.log('[HelpAPI] Local fetch failed:', localResp.status, localResp.statusText);
-        }
-      } catch (localError) {
-        console.error('[HelpAPI] Local fetch error:', localError);
-        // Fall through to GitHub
-      }
-    }
-
-    // Try GitHub API if local failed or in production
+    // ALWAYS fetch from GitHub - this is the source of truth
+    console.log('[HelpAPI] Fetching from GitHub for:', filePath);
     if (!content) {
       try {
         console.log('[HelpAPI] Attempting GitHub API fetch:', apiUrl);
@@ -167,30 +141,6 @@ export async function GET(
         }
       } catch (rawError) {
         console.error('[HelpAPI] GitHub raw error:', rawError);
-      }
-    }
-
-    // Last resort: try local in production
-    if (!content && !isDev) {
-      try {
-        const requestUrl = new URL(request.url);
-        const baseUrl = `${requestUrl.protocol}//${requestUrl.host}`;
-        const localUrl = `${baseUrl}/help/${filePath}.md`;
-        console.log('[HelpAPI] Last resort local fetch:', localUrl);
-        const localResp = await fetch(localUrl, {
-          cache: 'no-store',
-          headers: {
-            'Accept': 'text/markdown, text/plain, */*'
-          }
-        });
-        if (localResp.ok) {
-          content = await localResp.text();
-          console.log('[HelpAPI] Last resort fetch successful, length:', content.length);
-        } else {
-          console.log('[HelpAPI] Last resort fetch failed:', localResp.status, localResp.statusText);
-        }
-      } catch (lastError) {
-        console.error('[HelpAPI] Last resort error:', lastError);
       }
     }
 

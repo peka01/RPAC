@@ -1,12 +1,17 @@
 # Help Text Writing Conventions for RPAC
 
 **Version:** 1.0  
-**Last Updated:** November 10, 2025  
+**Last Updated:** November 11, 2025  
 **Status:** Mandatory for all help documentation
 
 ## Overview
 
 This document defines the standards for writing help documentation in RPAC (Regional Preparedness and Community). All help texts must be concise, clear, actionable, and properly localized.
+
+**⚠️ CRITICAL:** Before writing help content, understand how the help system works:  
+**→ Read:** [`docs/GITHUB_HELP_INTEGRATION.md`](./GITHUB_HELP_INTEGRATION.md) (explains why help MUST load from GitHub)
+
+This document covers **WHAT** to write and **HOW** to write it. The GitHub integration guide covers **WHERE** help lives and **WHY** it's architected that way.
 
 **Core Principles:**
 1. **Swedish-first**: All content written in Swedish, using everyday language (no military jargon)

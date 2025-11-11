@@ -52,6 +52,7 @@ This file contains short, actionable rules and references so an AI assistant can
 - **Start here**: `docs/NEW_CHAT_ONBOARDING.md` (onboarding guide for new chat sessions)
 - **Core conventions**: `.cursorrules`, `docs/conventions.md`, `docs/llm_instructions.md`
 - **Help documentation**: `docs/help_conventions.md` (MANDATORY standards for all help files)
+- **GitHub help system**: `docs/GITHUB_HELP_INTEGRATION.md` (⚠️ CRITICAL: Why and how help loads from GitHub)
 - **Architecture**: `docs/architecture.md` (system overview + routing map)
 - **Roadmap**: `docs/roadmap.md` (current priorities, sprint focus)
 - **Components**: `rpac-web/src/components/resource-list-view.tsx` (canonical list component)

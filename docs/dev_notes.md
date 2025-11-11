@@ -1,3 +1,47 @@
+### 2025-11-11 - DOCS: Created comprehensive GitHub help integration architecture documentation
+
+**Issue**: Critical architecture decision about GitHub-based help loading was not documented as a system-level principle, causing repeated circular debugging when issues arose.
+
+**Problem**: 
+- Help API code had comments but no high-level architecture doc
+- New AI sessions didn't understand WHY help must come from GitHub
+- Repeated troubleshooting of same issues (404s, static fallbacks, etc.)
+- Missing documentation on GitHub API integration, rate limits, deployment workflow
+
+**Solution**: Created `docs/GITHUB_HELP_INTEGRATION.md` with comprehensive coverage:
+- **Critical Principle**: Help MUST ALWAYS read from GitHub (explained WHY)
+- **System Architecture**: Complete flow diagram and component descriptions
+- **GitHub API Integration**: Authentication, rate limits, error handling
+- **Security**: Path traversal prevention, token security
+- **Deployment Workflow**: How help changes are deployed (no app redeploy needed)
+- **Troubleshooting**: Common issues and debug checklist
+- **Performance**: Current metrics and optimization opportunities
+- **Monitoring**: Key metrics to track
+
+**Cross-References Added**:
+- `.github/copilot-instructions.md` - Section 6 now links to GitHub help integration
+- `docs/help_conventions.md` - Prominent link at top explaining architecture
+- `docs/KRISTER_HELP_SYSTEM_IMPLEMENTATION.md` - Updated flow to show GitHub fetching
+- `docs/NEW_CHAT_ONBOARDING.md` - Added to essential context files
+
+**Impact**:
+- Future AI sessions will understand GitHub-only architecture immediately
+- Prevents repeated re-discovery of "help must come from GitHub" principle
+- Comprehensive reference for troubleshooting production issues
+- Clear documentation for setting up GITHUB_TOKEN in environments
+
+**Files Created**:
+- `docs/GITHUB_HELP_INTEGRATION.md` - Complete architecture guide (400+ lines)
+
+**Files Modified**:
+- `.github/copilot-instructions.md` - Added GitHub help system to section 6
+- `docs/help_conventions.md` - Added critical link at top of overview
+- `docs/KRISTER_HELP_SYSTEM_IMPLEMENTATION.md` - Updated architecture flow
+- `docs/NEW_CHAT_ONBOARDING.md` - Added to development standards section
+
+**Result**: No more circular debugging! Architecture is now prominently documented and cross-referenced from all relevant onboarding files.
+
+---
 ### 2025-11-11 - ROUTE MAPPINGS EDITOR: Visual configuration for KRISter help system
 
 **Objective**: Provide visual interface for managing route→help file mappings without editing TypeScript code.
@@ -6795,5 +6839,6 @@ This cleanup represents a major milestone in project maintenance and sets the st
 
 **Uppdaterad:** 2025-10-09  
 **Nästa review:** Vid varje större feature-lansering
+
 
 

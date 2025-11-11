@@ -19,6 +19,8 @@ When starting a new chat, **ALWAYS** read these files in this order:
 ```
 📖 docs/conventions.md - Development rules, UX principles, color palette, mobile standards
 📖 docs/llm_instructions.md - AI context, current status, component standards
+📖 docs/help_conventions.md - Help documentation standards (MANDATORY when touching help)
+📖 docs/GITHUB_HELP_INTEGRATION.md - ⚠️ CRITICAL: Why help loads from GitHub (prevents circular debugging)
 📖 .cursorrules - Quick reference rules (points to the above docs)
 ```
 
