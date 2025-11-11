@@ -4,7 +4,6 @@
 
 Här kan du ansluta till ditt lokala samhälle, dela resurser och kommunicera med grannar.
 
-Här kan du ansluta till ditt lokala samhälle, dela resurser och kommunicera med grannar.
 
 Lokalt-sidan är navet för ditt samhälle där du kan:
 - Se samhällets aktivitet i realtid
