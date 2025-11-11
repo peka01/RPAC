@@ -27,6 +27,7 @@ export function TopMenu({ user }: TopMenuProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   // Get user display name based on profile preference
   const getUserDisplayName = () => {
@@ -82,7 +83,12 @@ export function TopMenu({ user }: TopMenuProps) {
   // Load user profile data
   useEffect(() => {
     const loadUserProfile = async () => {
-      if (!user) return;
+      if (!user) {
+        setIsCheckingAuth(false);
+        return;
+      }
+      
+      setIsCheckingAuth(false);
       
       try {
         const { data: profile } = await supabase
@@ -290,6 +296,17 @@ export function TopMenu({ user }: TopMenuProps) {
                     </button>
                   </div>
                 )}
+              </div>
+            ) : isCheckingAuth ? (
+              // Loading state - show shield progress indicator
+              <div className="flex items-center gap-4 px-4 py-3">
+                <div className="relative w-10 h-10">
+                  <Shield className="w-10 h-10 text-[#5C6B47]/30 animate-pulse" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-3 h-3 bg-[#5C6B47] rounded-full animate-ping" />
+                  </div>
+                </div>
+                <span className="text-gray-500 text-sm font-medium animate-pulse">{t('dashboard.loading')}</span>
               </div>
             ) : (
               <button

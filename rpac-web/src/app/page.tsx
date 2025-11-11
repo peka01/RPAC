@@ -21,6 +21,7 @@ export default function LoginPage() {
   const [resetEmail, setResetEmail] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
   const [resetMessage, setResetMessage] = useState('');
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const router = useRouter();
 
   // Helper function to suggest display name from email
@@ -59,6 +60,7 @@ export default function LoginPage() {
         router.push('/dashboard');
       } else {
         setShowModal(true);
+        setCheckingAuth(false);
       }
     };
     checkUser();
@@ -257,6 +259,39 @@ export default function LoginPage() {
 
 
   // Landing page when not showing modal
+  // Loading state - show shield progress indicator
+  if (checkingAuth) {
+    return (
+      <div 
+        className="fixed inset-0 flex items-center justify-center" 
+        style={{ 
+          background: 'var(--bg-primary)',
+          height: '100vh',
+          width: '100vw'
+        }}
+      >
+        <div className="text-center">
+          <div className="flex justify-center mb-8">
+            <img 
+              src="/logga-beready.png" 
+              alt="BE READY" 
+              className="h-20 w-auto"
+            />
+          </div>
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative w-16 h-16">
+              <Shield className="w-16 h-16 text-[#5C6B47]/30 animate-pulse" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-6 h-6 bg-[#5C6B47] rounded-full animate-ping" />
+              </div>
+            </div>
+            <p className="text-gray-500 text-sm font-medium animate-pulse">{t('dashboard.loading')}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!showModal) {
     return (
       <div 

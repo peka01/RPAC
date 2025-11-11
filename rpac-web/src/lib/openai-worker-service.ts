@@ -86,8 +86,8 @@ async function callWorkerAPI(prompt: string): Promise<string> {
         'User-Agent': 'RPAC-Client/1.0'
       },
       body: JSON.stringify({ prompt, type: 'general' }),
-      // Add timeout to prevent hanging
-      signal: AbortSignal.timeout(10000) // 10 second timeout
+      // Increased timeout from 10s to 30s for slow OpenAI responses
+      signal: AbortSignal.timeout(30000) // 30 second timeout
     });
 
     if (!response.ok) {
@@ -102,8 +102,9 @@ async function callWorkerAPI(prompt: string): Promise<string> {
     
     // Return a friendly fallback message instead of throwing
     // This prevents the UI from breaking when the API is down
-    if (error instanceof Error && error.name === 'AbortError') {
-      console.warn('API request timed out after 10 seconds');
+    if (error instanceof Error && error.name === 'TimeoutError') {
+      console.warn('API request timed out after 30 seconds');
+      throw new Error('TIMEOUT');
     }
     
     // Re-throw to let the caller handle it with proper fallback messages
