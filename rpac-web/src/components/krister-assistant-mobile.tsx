@@ -356,6 +356,12 @@ export function KRISterAssistantMobile({ user, userProfile, currentPage, current
       setDailyTips(newTips.slice(0, 3)); // Show max 3 tips
     } catch (error) {
       console.error('Error loading daily tips:', error);
+      // Set empty array on error to prevent UI from breaking
+      setDailyTips([]);
+      // Optionally show a user-friendly message
+      if (error instanceof Error && error.message.includes('Failed to fetch')) {
+        console.warn('AI service temporarily unavailable. Tips will be loaded when service is back online.');
+      }
     } finally {
       setIsLoading(false);
     }

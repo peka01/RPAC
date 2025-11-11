@@ -62,7 +62,7 @@ Svara med JSON-array med tips:
 ]`;
 
     // Call the Cloudflare Worker API
-    const workerResponse = await fetch('https://api.beready.se', {
+    const workerResponse = await fetch('https://beready.se/api/ai', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

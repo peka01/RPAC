@@ -17,7 +17,61 @@ This document covers **WHAT** to write and **HOW** to write it. The GitHub integ
 1. **Swedish-first**: All content written in Swedish, using everyday language (no military jargon)
 2. **Variable-based UI references**: Never hardcode UI text, always use localization keys
 3. **Actionable**: Every help topic provides clear instructions for preferred workflows
-4. **Synchronized**: Help updates trigger AI assistant knowledge updates
+4. **Synchronized**: Help updates trigger AI assistant (KRISter) knowledge updates
+
+## ⚠️ CRITICAL: Update KRISter System Prompt When Help Changes
+
+**MANDATORY RULE:** When you update help documentation, you MUST also update KRISter's system prompt!
+
+### Why This Matters
+
+KRISter uses a system prompt that describes how the app works. When users ask "how do I..." questions, KRISter references this prompt AND the loaded help documentation. If the prompt is outdated, KRISter will give incorrect answers even if the help docs are correct.
+
+**Example of what happens when prompt is NOT updated:**
+- User asks: "Hur delar man ett släp?" (How do you share a trailer?)
+- Help doc says: Go to Mitt hem → Resurser, click share icon
+- **Old prompt said: Go to Regional overview → Click community → Share resources** ❌
+- Result: KRISter gives wrong answer, user is confused
+
+### How to Update KRISter Prompt
+
+**Using the Help File Editor:**
+
+1. **Open Help Editor** (click KRISter help icon → "Redigera hjälpfil")
+2. **Make your help documentation changes** in the "Redigera innehåll" tab
+3. **Switch to "KRISter System Prompt" tab**
+4. **Find the relevant section** in the prompt (e.g., "BEREADY-APPENS FUNKTIONER" → "MITT HEM")
+5. **Update the text** to match your help documentation changes
+6. **Save both tabs** (help doc + system prompt)
+7. **Test**: Ask KRISter the question to verify correct answer
+
+**What to Update in the Prompt:**
+
+| Help Doc Section | Update This in Prompt |
+|-----------------|----------------------|
+| New feature added | "BEREADY-APPENS FUNKTIONER" → Add to relevant section (MITT HEM / LOKALT / REGIONALT) |
+| Steps changed for "how to..." | "HUR-GÖR-JAG FRÅGOR" → Update example if relevant |
+| Feature removed | Remove from "BEREADY-APPENS FUNKTIONER" |
+| UI terminology changed | Update throughout prompt to match new terminology |
+
+**Sections in KRISter System Prompt:**
+- **BEREADY-APPENS FUNKTIONER**: High-level overview of what the app can do
+- **HUR-GÖR-JAG FRÅGOR**: Instructions on how to answer procedural questions
+- **EXEMPEL**: Concrete examples of correct answers
+
+### Post-Update Verification Checklist
+
+After updating both help docs and KRISter prompt:
+
+- [ ] **Test with real question**: Open KRISter, ask the "how do I..." question
+- [ ] **Verify answer matches help doc**: KRISter should cite the updated steps
+- [ ] **Check for contradictions**: Make sure prompt and help doc say the same thing
+- [ ] **Update related help files**: If multiple help files cover similar topics
+- [ ] **Document in dev_notes.md**: Note what was changed and why
+
+**Remember:** KRISter is only as good as its system prompt! Keep it synchronized with help documentation.
+
+---
 
 ## Pre-Writing Checklist
 

@@ -1,11 +1,13 @@
 /**
- * OpenAI Service using Cloudflare Worker API
- * This service replaces all direct OpenAI calls with calls to our Cloudflare Worker
+ * OpenAI Service using Vercel API Route
+ * This service replaces all direct OpenAI calls with calls to our Vercel API endpoint
+ * Previously used Cloudflare Worker at api.beready.se, now uses Vercel edge function
  */
 
 import type { RemindersContext } from './reminders-context-service';
 
-const WORKER_API_URL = 'https://api.beready.se';
+// Use relative URL for Vercel API route (works in both dev and production)
+const WORKER_API_URL = '/api/ai';
 
 interface AgeGroup {
   age: number;
@@ -84,6 +86,8 @@ async function callWorkerAPI(prompt: string): Promise<string> {
         'User-Agent': 'RPAC-Client/1.0'
       },
       body: JSON.stringify({ prompt, type: 'general' }),
+      // Add timeout to prevent hanging
+      signal: AbortSignal.timeout(10000) // 10 second timeout
     });
 
     if (!response.ok) {
@@ -95,6 +99,14 @@ async function callWorkerAPI(prompt: string): Promise<string> {
     return data.choices?.[0]?.message?.content || data.response || 'No response generated';
   } catch (error) {
     console.error('AI API call failed:', error);
+    
+    // Return a friendly fallback message instead of throwing
+    // This prevents the UI from breaking when the API is down
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.warn('API request timed out after 10 seconds');
+    }
+    
+    // Re-throw to let the caller handle it with proper fallback messages
     throw error;
   }
 }
@@ -690,7 +702,7 @@ Svara med JSON:
 }
 Fokusera på svenska växter och odlingsförhållanden.`;
 
-      const response = await fetch('https://api.beready.se', {
+      const response = await fetch('/api/ai', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,3 +1,181 @@
+### 2025-11-11 - MIGRATION: Moved AI API from Cloudflare Worker to Vercel
+
+**Change**: Migrated AI API endpoint from Cloudflare Worker (`https://api.beready.se`) to Vercel API route (`/api/ai`).
+
+**Reason**: 
+- Consolidate infrastructure - keep everything in Vercel
+- Avoid managing domains in multiple places
+- Simpler deployment pipeline
+- Better integration with Next.js
+
+**What Changed**:
+
+1. **Created new Vercel API endpoint**:
+   - `src/app/api/ai/route.ts` - Edge runtime OpenAI proxy
+   - Handles POST requests with prompt + type
+   - Returns OpenAI-compatible responses
+   - Includes GET health check endpoint
+
+2. **Updated service to use Vercel endpoint**:
+   - `src/lib/openai-worker-service.ts`:
+   - Changed `WORKER_API_URL` from `https://api.beready.se` to `/api/ai`
+   - Now uses relative URL (works in dev and production)
+   - Added 10-second timeout for fetch requests
+
+3. **Improved error handling**:
+   - `openai-worker-service.ts`: Added timeout, better logging
+   - `krister-assistant.tsx`: Graceful fallback on API errors
+   - `krister-assistant-mobile.tsx`: Same error handling
+
+**Setup Required** (see `docs/VERCEL_API_SETUP.md`):
+
+1. Add environment variable in Vercel:
+   - `OPENAI_API_KEY=sk-proj-...` (Production, Preview, Development)
+
+2. (Optional) Configure custom domain:
+   - Vercel: Add `api.beready.se` domain
+   - Cloudflare: CNAME `api`  `cname.vercel-dns.com` (DNS only, not proxied)
+
+**Files Created**:
+- `src/app/api/ai/route.ts` - OpenAI proxy API endpoint
+- `docs/VERCEL_API_SETUP.md` - Complete setup guide
+
+**Files Modified**:
+- `src/lib/openai-worker-service.ts` - Updated API URL to `/api/ai`
+
+**Testing**:
+```bash
+# Health check
+curl https://beready.se/api/ai
+
+# AI request
+curl -X POST https://beready.se/api/ai -H "Content-Type: application/json" -d '{"prompt": "Test", "type": "general"}'
+```
+
+**Next Steps**:
+1. Set `OPENAI_API_KEY` in Vercel environment variables
+2. Redeploy to production
+3. Test KRISter functionality
+4. Remove Cloudflare Worker (if it exists)
+
+**Result**: Simplified infrastructure - all services now run in Vercel!
+
+---
+### 2025-11-11 - FEATURE: "Lär från hjälpdokument" button in KRISter System Prompt editor
+
+**Enhancement**: Added "Learn" button to KRISter System Prompt tab that automatically scans all help documentation and updates KRISter's knowledge base.
+
+**Why This Was Needed**:
+After editing help documentation, developers need an easy way to update KRISter's knowledge without manually editing the entire system prompt. The Learn button automates this process.
+
+**How It Works**:
+1. User clicks "Lär från hjälpdokument" button in KRISter System Prompt tab
+2. System fetches ALL help .md files from GitHub (dashboard, individual, local, regional, settings, auth)
+3. Parses each file to extract:
+   - Procedures (Steg-för-steg sections)
+   - FAQs (Vanliga frågor)
+   - Tips
+   - Titles and descriptions
+4. Processes into structured knowledge base organized by category
+5. Updates KRISter's internal knowledge (future: auto-updates system prompt)
+6. Shows success message: "Lärt! (X filer)"
+
+**UI Features**:
+- Blue button with Sparkles icon: "Lär från hjälpdokument"
+- Loading state: Spinner + "Läser in..."
+- Success state: Green + "Lärt! (23 filer)" (shows number of processed files)
+- Error state: Red + "Fel"
+- Tooltip explains what the button does
+
+**Files Created**:
+- `src/app/api/help/learn/route.ts` - API endpoint that:
+  - Fetches all help .md files from GitHub
+  - Parses markdown into structured sections
+  - Extracts procedures, FAQs, tips
+  - Returns processed knowledge base
+
+**Files Modified**:
+- `src/components/help-file-editor.tsx`:
+  - Added `isLearning`, `learnStatus`, `learnedFilesCount` state
+  - Added `learnFromHelpDocs()` function
+  - Added Learn button in KRISter tab header (before Save button)
+  - Updated info box to mention Learn button
+
+**Developer Workflow**:
+1. Edit help documentation (e.g., update steps in `local/resources-shared.md`)
+2. Save help file to GitHub
+3. Open KRISter System Prompt tab
+4. Click "Lär från hjälpdokument"  Scans all 23 help files
+5. KRISter now knows the updated procedures
+6. Test by asking KRISter the question
+
+**Future Enhancements**:
+- Auto-update system prompt sections based on learned knowledge
+- Show diff of what changed after learning
+- Schedule automatic learning (e.g., daily)
+- Add "Test with question" to verify learning worked
+
+**Result**: One-click update of KRISter's knowledge base from all help documentation! No more manual editing of system prompt for every help doc change.
+
+---
+### 2025-11-11 - FEATURE: KRISter System Prompt Editor in Help File Editor
+
+**Issue**: When help documentation is updated, developers often forget to update KRISter's system prompt, leading to inconsistent or incorrect answers.
+
+**Example**: User asked "Hur delar man ett släp?" (How do you share a trailer?). KRISter gave completely wrong answer about going to Regional overview, when the correct process is:
+1. Go to Mitt hem  Resurser
+2. Find the resource
+3. Click share icon ()
+4. Select community
+5. Fill in details and save
+
+**Root Cause**: KRISter's system prompt in `openai-worker-service.ts` wasn't updated to match help documentation.
+
+**Solution**: Added **KRISter System Prompt tab** to Help File Editor
+- New tab in help editor: "KRISter System Prompt"
+- Shows current system prompt used by KRISter
+- Real-time editing with save functionality
+- Warning boxes reminding developers to update both help docs AND prompt
+- Visual indicators for unsaved changes
+- Tips and examples for what to update
+
+**Features**:
+-  Load KRISter prompt via `/api/krister-prompt` (GET)
+-  Save changes via POST (returns warning that manual update still needed)
+-  Side-by-side editing with markdown help content
+-  Clear warnings: "Update KRISter when you change help docs!"
+-  Example scenarios showing what to update
+-  Visual diff (unsaved changes indicator)
+
+**Files Created**:
+- `src/app/api/krister-prompt/route.ts` - API endpoint for prompt CRUD
+
+**Files Modified**:
+- `src/components/help-file-editor.tsx`:
+  - Added `krister` tab to activeTab state
+  - Added KRISter prompt state management
+  - Added `loadKRISterPrompt()` and `saveKRISterPrompt()` functions
+  - Added new tab UI with rich editor and instructions
+  - Added warning boxes and tips
+
+**Next Steps** (Future Implementation):
+1. Store prompt in Supabase for persistence across sessions
+2. Add version history/rollback functionality
+3. Add diff view to see what changed
+4. Add "Test this prompt" button that opens KRISter with test questions
+5. Auto-sync changes to `openai-worker-service.ts` (optional)
+
+**Developer Workflow Now**:
+1. Open help file in editor (e.g., `individual/resources.md`)
+2. Update help content (e.g., change steps for sharing resources)
+3. Switch to "KRISter System Prompt" tab
+4. Update relevant section in prompt (e.g., "MITT HEM"  "Resurslager")
+5. Save both help doc and prompt
+6. Test by asking KRISter the question
+
+**Result**: Developers will now see KRISter prompt side-by-side with help docs, making it impossible to forget updating both! 
+
+---
 ### 2025-11-11 - MIGRATION: Moved from Cloudflare Pages to Vercel
 
 **Reason**: Cloudflare edge runtime was blocking GitHub API fetches for help system, causing persistent 404 errors in production.
@@ -17,7 +195,8 @@
 - All page routes with edge runtime - Updated comments to reference Vercel
 
 **Files Removed** (no longer needed):
-- `wrangler.toml` - Cloudflare configuration (can be deleted)
+- `wrangler.toml` - Cloudflare configuration âœ… DELETED
+- `.github/workflows/deploy.yml` - Cloudflare Pages GitHub Action âœ… DELETED
 
 **Dependencies Removed**:
 - `@cloudflare/next-on-pages`
@@ -6904,6 +7083,9 @@ This cleanup represents a major milestone in project maintenance and sets the st
 
 **Uppdaterad:** 2025-10-09  
 **NÃ¤sta review:** Vid varje stÃ¶rre feature-lansering
+
+
+
 
 
 

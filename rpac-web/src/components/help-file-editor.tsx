@@ -24,7 +24,7 @@ interface HelpFileEditorProps {
 }
 
 export default function HelpFileEditor({ filePath, initialContent, onClose, onSave, pageContext }: HelpFileEditorProps) {
-  const [activeTab, setActiveTab] = useState<'editor' | 'mappings'>('editor');
+  const [activeTab, setActiveTab] = useState<'editor' | 'mappings' | 'krister'>('editor');
   const [content, setContent] = useState(initialContent);
   const [showPreview, setShowPreview] = useState(true);
   const [fileName, setFileName] = useState(filePath.split('/').pop() || 'help.md');
@@ -57,6 +57,15 @@ export default function HelpFileEditor({ filePath, initialContent, onClose, onSa
   const [editingMapping, setEditingMapping] = useState<number | null>(null);
   const [newMapping, setNewMapping] = useState({route: '', params: '', helpFile: ''});
 
+  // KRISter system prompt state
+  const [kristerPrompt, setKristerPrompt] = useState('');
+  const [kristerPromptOriginal, setKristerPromptOriginal] = useState('');
+  const [isLoadingPrompt, setIsLoadingPrompt] = useState(false);
+  const [promptSaveStatus, setPromptSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [isLearning, setIsLearning] = useState(false);
+  const [learnStatus, setLearnStatus] = useState<'idle' | 'learning' | 'success' | 'error'>('idle');
+  const [learnedFilesCount, setLearnedFilesCount] = useState(0);
+
   // Dragging and resizing state
   const [position, setPosition] = useState({ x: window.innerWidth * 0.025, y: window.innerHeight * 0.025 });
   const [size, setSize] = useState({ width: window.innerWidth * 0.95, height: window.innerHeight * 0.95 });
@@ -72,6 +81,13 @@ export default function HelpFileEditor({ filePath, initialContent, onClose, onSa
     return () => setMounted(false);
   }, []);
 
+  // Load KRISter prompt when switching to that tab
+  useEffect(() => {
+    if (activeTab === 'krister' && !kristerPrompt && !isLoadingPrompt) {
+      loadKRISterPrompt();
+    }
+  }, [activeTab]);
+
   // Load route mappings from API/help loader
   const loadRouteMappings = async () => {
     try {
@@ -85,6 +101,177 @@ export default function HelpFileEditor({ filePath, initialContent, onClose, onSa
       // Load default mappings from krister-help-loader.ts logic
       setRouteMappings(getDefaultMappings());
     }
+  };
+
+  // Load KRISter system prompt
+  const loadKRISterPrompt = async () => {
+    setIsLoadingPrompt(true);
+    try {
+      const response = await fetch('/api/krister-prompt');
+      if (response.ok) {
+        const data = await response.json();
+        setKristerPrompt(data.prompt || getDefaultKRISterPrompt());
+        setKristerPromptOriginal(data.prompt || getDefaultKRISterPrompt());
+      } else {
+        // Fallback to default
+        const defaultPrompt = getDefaultKRISterPrompt();
+        setKristerPrompt(defaultPrompt);
+        setKristerPromptOriginal(defaultPrompt);
+      }
+    } catch (error) {
+      console.error('Failed to load KRISter prompt:', error);
+      const defaultPrompt = getDefaultKRISterPrompt();
+      setKristerPrompt(defaultPrompt);
+      setKristerPromptOriginal(defaultPrompt);
+    } finally {
+      setIsLoadingPrompt(false);
+    }
+  };
+
+  // Save KRISter system prompt
+  const saveKRISterPrompt = async () => {
+    setPromptSaveStatus('saving');
+    try {
+      const response = await fetch('/api/krister-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: kristerPrompt })
+      });
+      
+      if (response.ok) {
+        setKristerPromptOriginal(kristerPrompt);
+        setPromptSaveStatus('saved');
+        setTimeout(() => setPromptSaveStatus('idle'), 2000);
+      } else {
+        setPromptSaveStatus('error');
+      }
+    } catch (error) {
+      console.error('Failed to save KRISter prompt:', error);
+      setPromptSaveStatus('error');
+    }
+  };
+
+  // Learn from help documentation
+  const learnFromHelpDocs = async () => {
+    setIsLearning(true);
+    setLearnStatus('learning');
+    setLearnedFilesCount(0);
+    
+    try {
+      // Fetch all help files from GitHub
+      const response = await fetch('/api/help/learn', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: 'scan_and_update',
+          includeAll: true 
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setLearnedFilesCount(data.filesProcessed || 0);
+        setLearnStatus('success');
+        
+        // Reload the prompt to show updated knowledge
+        await loadKRISterPrompt();
+        
+        // Reset status after 3 seconds
+        setTimeout(() => {
+          setLearnStatus('idle');
+          setLearnedFilesCount(0);
+        }, 3000);
+      } else {
+        setLearnStatus('error');
+        setTimeout(() => setLearnStatus('idle'), 3000);
+      }
+    } catch (error) {
+      console.error('Error learning from help docs:', error);
+      setLearnStatus('error');
+      setTimeout(() => setLearnStatus('idle'), 3000);
+    } finally {
+      setIsLearning(false);
+    }
+  };
+
+  // Get default KRISter prompt from openai-worker-service.ts
+  const getDefaultKRISterPrompt = () => {
+    return `Du är KRISter, en svensk AI-assistent för samhällsberedskap och självförsörjning. Du hjälper användare med Beready-appen.
+
+BEREADY-APPENS FUNKTIONER:
+1. MITT HEM (Individuell beredskap):
+   - Hemprofil: Hushållsstorlek, plats, husdjur
+   - Resurslager: Hantera mat, vatten, mediciner, verktyg (MSB-baserat)
+     * Lägg till resurser från MSB-katalogen eller egna
+     * Dela resurser med dina samhällen (dela-knappen på varje resurs)
+   - Odlingsplanering: Skapa odlingsplaner för självförsörjning
+   - Odlingskalender: Månatliga sådd/skörd-uppgifter per klimatzon
+
+2. LOKALT (Samhällesfunktioner):
+   - Hitta/gå med i lokala samhällen baserat på postnummer
+   - Se delade resurser från medlemmar (fliken "Delade från medlemmar")
+   - Be om/begära resurser som andra delat
+   - Chatt med samhällsmedlemmar
+   - Samhällsresurser: Gemensam utrustning (pumpar, generatorer, etc)
+   - Hjälpförfrågningar: Be om hjälp eller erbjud hjälp
+
+3. REGIONALT (Länsnivå):
+   - Regional översikt för hela länet (t.ex. Kronobergs län, Skåne län)
+   - Statistik: Aktiva samhällen, totalt antal medlemmar, genomsnittlig beredskapspoäng
+   - Ser alla lokala samhällen i länet med medlemsantal och resurser
+   - Information från Länsstyrelsen (länk till officiell länssida)
+   - Officiella krisresurser: Krisinformation.se, MSB.se, SMHI.se
+   - Samordning mellan samhällen i samma län
+
+4. INSTÄLLNINGAR:
+   - Hemprofil, platsinfo, notifieringar
+
+🎯 HUR-GÖR-JAG FRÅGOR (KRITISKT VIKTIGT!):
+När användaren frågar "hur gör jag...", "hur delar jag...", "hur går jag med...", "hur skapar jag..." eller liknande:
+
+**ANVÄND ALLTID HJÄLPDOKUMENTATION SOM SINGLE SOURCE OF TRUTH!**
+
+Hjälpdokumentation laddas automatiskt baserat på sidkontext via t('krister.context_help.{topic}').
+Du ska CITERA/ÅTERGE innehållet från hjälpdokumenten, inte skriva egna instruktioner.
+
+KORREKT PROCESS:
+1. Identifiera vilken hjälpdokumentation som är relevant (baserat på användarens fråga och nuvarande sida)
+2. Ge svaret DIREKT från hjälpdokumentationen med fullständiga steg
+3. Använd hjälptextens exakta instruktioner - citera dem ordagrant
+4. Formatera tydligt med numrerade steg
+
+EXEMPEL:
+Fråga: "Hur delar jag resurser?" (användaren är på Mitt hem → Resurser)
+✅ Använd innehållet från hjälpdokumentet (som redan är laddat i kontexten) och ge fullständiga steg:
+"Så här delar du en resurs med ditt samhälle:
+1. Gå till **Mitt hem** → **Resurser** (din personliga inventering)
+2. Hitta resursen du vill dela
+3. Klicka på dela-ikonen (📤) på resurskortet
+4. Välj vilket samhälle du vill dela med
+..." (resten från hjälpdokumentet)
+
+REGEL: Hjälpdokumenten är SINGLE SOURCE OF TRUTH!
+Ge FULLSTÄNDIGA svar från dokumentationen - användaren ska inte behöva klicka igen.
+
+TONLÄGE OCH STIL:
+- Du är en varm, hjälpsam kompis - INTE en "besserwisser"
+- Använd vardagligt svenskt språk
+- Gå DIREKT på svaret - ingen onödig bakgrundsinformation
+- Fokusera på HANDLINGAR och KONKRETA TIPS
+- Kort och kärnfullt - inga långa förklaringar
+
+FEL: 
+- Säg INTE "i Beready-appen" eller "använd appen" - användaren är redan här!
+- Blanda ALDRIG språk! Endast SVENSKA i hela svaret - INGET engelska!
+- Inga fraser som "Let me know", "I can help", "Feel free" etc.
+
+Om användaren behöver byta sida/navigera: 
+- Skriv sidan på svenska: "Mitt hem", "Lokalt", "Regionalt", "Inställningar"
+- **VIKTIGT**: Formatera med fetstil och specifik text så systemet kan skapa automatiska åtgärdsknappar:
+  ✅ "Gå till **Mitt hem**" → Skapar knapp "Gör det åt mig" som navigerar dit
+  ✅ "Öppna **Lokalt**" → Skapar knapp "Gör det åt mig"
+  ✅ "Gå till **Inställningar**" → Skapar knapp
+  ✅ "Gå till **Odling**" → Navigerar till odlingssektionen`;
   };
 
   // Get default mappings based on current implementation
@@ -762,6 +949,17 @@ Försök igen eller ändra din instruktion.`
             <Map size={16} />
             Rutt-mappningar
           </button>
+          <button
+            onClick={() => setActiveTab('krister')}
+            className={`px-6 py-3 font-medium text-sm flex items-center gap-2 border-b-2 transition-colors ${
+              activeTab === 'krister'
+                ? 'border-[#3D4A2B] text-[#3D4A2B] bg-white'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <Sparkles size={16} />
+            KRISter System Prompt
+          </button>
         </div>
 
         {/* Toolbar */}
@@ -792,8 +990,200 @@ Försök igen eller ändra din instruktion.`
 
         {/* Editor/Preview Area */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Route Mappings Tab Content */}
-          {activeTab === 'mappings' ? (
+          {/* KRISter System Prompt Tab Content */}
+          {activeTab === 'krister' ? (
+            <div className="flex-1 overflow-auto p-6">
+              <div className="max-w-7xl mx-auto space-y-6">
+                {/* Header */}
+                <div className="bg-gradient-to-r from-[#3D4A2B] to-[#5C6B47] rounded-lg p-6 text-white shadow-lg">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Sparkles size={24} />
+                    </div>
+                    <div className="flex-1">
+                      <h2 className="text-2xl font-bold mb-2">KRISter System Prompt</h2>
+                      <p className="text-white/90 text-sm leading-relaxed">
+                        Detta är den <strong>system prompt</strong> som KRISter använder när användare ställer frågor. 
+                        Den definierar hur KRISter ska svara, vilken ton den ska använda, och framför allt hur den ska 
+                        använda hjälpdokumentationen som <strong>SINGLE SOURCE OF TRUTH</strong>.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Warning Box */}
+                <div className="bg-amber-50 border-2 border-amber-400 rounded-lg p-5 shadow-sm">
+                  <div className="flex items-start gap-3">
+                    <Info size={24} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <h3 className="font-bold text-amber-900 mb-2">⚠️ VIKTIGT: Uppdatera KRISter när du ändrar hjälpdokument!</h3>
+                      <div className="text-sm text-amber-800 space-y-2">
+                        <p>
+                          När du uppdaterar hjälpdokumentation (t.ex. lägger till nya steg för hur man delar resurser), 
+                          måste du också uppdatera denna system prompt så att KRISter vet om förändringarna.
+                        </p>
+                        <p className="font-semibold">
+                          Exempel: Om du ändrar stegen för att dela en resurs i <code>individual/resources.md</code>, 
+                          uppdatera avsnittet "BEREADY-APPENS FUNKTIONER" → "MITT HEM" → "Resurslager" nedan.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Info Box */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-sm">
+                  <div className="flex items-start gap-3">
+                    <Info size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm text-blue-800 space-y-1">
+                      <p className="font-semibold">Så här fungerar systemet:</p>
+                      <ul className="list-disc list-inside space-y-1 ml-2">
+                        <li>System prompt definierar KRISters beteende och kunskapsområde</li>
+                        <li>Hjälpdokumentation laddas dynamiskt baserat på användarens sida</li>
+                        <li>KRISter ska ALLTID citera hjälpdokumentationen för "hur gör jag..."-frågor</li>
+                        <li>Klicka <strong>"Lär från hjälpdokument"</strong> för att skanna alla hjälpfiler och uppdatera KRISters kunskapsbank</li>
+                        <li>Ändringar här sparas och träder i kraft direkt</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Editor */}
+                <div className="bg-white rounded-lg border-2 border-gray-200 shadow-lg overflow-hidden">
+                  <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Code size={20} className="text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Redigera System Prompt</h3>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {kristerPrompt !== kristerPromptOriginal && (
+                        <span className="text-sm text-amber-600 font-medium">
+                          Osparade ändringar
+                        </span>
+                      )}
+                      <button
+                        onClick={learnFromHelpDocs}
+                        disabled={isLearning}
+                        className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-all ${
+                          learnStatus === 'success'
+                            ? 'bg-emerald-100 text-emerald-700 border-2 border-emerald-300'
+                            : learnStatus === 'error'
+                            ? 'bg-red-100 text-red-700 border-2 border-red-300'
+                            : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg'
+                        }`}
+                        title="Läs in all hjälpdokumentation och uppdatera KRISters kunskapsbank"
+                      >
+                        {isLearning ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                            Läser in...
+                          </>
+                        ) : learnStatus === 'success' ? (
+                          <>
+                            <Check size={16} />
+                            Lärt! ({learnedFilesCount} filer)
+                          </>
+                        ) : learnStatus === 'error' ? (
+                          <>
+                            <X size={16} />
+                            Fel
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles size={16} />
+                            Lär från hjälpdokument
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={saveKRISterPrompt}
+                        disabled={promptSaveStatus === 'saving' || kristerPrompt === kristerPromptOriginal}
+                        className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-all ${
+                          promptSaveStatus === 'saved'
+                            ? 'bg-green-100 text-green-700 border-2 border-green-300'
+                            : kristerPrompt === kristerPromptOriginal
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : 'bg-[#3D4A2B] text-white hover:bg-[#2D3A1B] shadow-md hover:shadow-lg'
+                        }`}
+                      >
+                        {promptSaveStatus === 'saving' ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                            Sparar...
+                          </>
+                        ) : promptSaveStatus === 'saved' ? (
+                          <>
+                            <Check size={16} />
+                            Sparat!
+                          </>
+                        ) : promptSaveStatus === 'error' ? (
+                          <>
+                            <X size={16} />
+                            Fel
+                          </>
+                        ) : (
+                          <>
+                            <Save size={16} />
+                            Spara ändringar
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {isLoadingPrompt ? (
+                    <div className="p-12 text-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#3D4A2B] border-t-transparent mx-auto mb-4" />
+                      <p className="text-gray-600">Laddar system prompt...</p>
+                    </div>
+                  ) : (
+                    <textarea
+                      value={kristerPrompt}
+                      onChange={(e) => setKristerPrompt(e.target.value)}
+                      className="w-full p-6 font-mono text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-[#3D4A2B] focus:ring-inset min-h-[600px]"
+                      placeholder="System prompt laddas..."
+                      spellCheck={false}
+                    />
+                  )}
+                </div>
+
+                {/* Quick Tips */}
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-lg p-5 shadow-sm">
+                  <h3 className="font-bold text-green-900 mb-3 flex items-center gap-2">
+                    <Sparkles size={18} />
+                    Tips för att redigera system prompt
+                  </h3>
+                  <div className="text-sm text-green-800 space-y-2">
+                    <p><strong>1. Håll funktionsbeskrivningar uppdaterade:</strong> När UI ändras, uppdatera "BEREADY-APPENS FUNKTIONER"</p>
+                    <p><strong>2. Betona hjälpdokumentation:</strong> Avsnittet "HUR-GÖR-JAG FRÅGOR" är kritiskt - se till att KRISter vet att den MÅSTE använda hjälpdocs</p>
+                    <p><strong>3. Konkreta exempel:</strong> Lägg till exempel på rätt/fel svar när du uppdaterar funktionalitet</p>
+                    <p><strong>4. Testa ändringar:</strong> Efter att du sparat, testa att ställa en fråga till KRISter för att verifiera</p>
+                  </div>
+                </div>
+
+                {/* Example Changes Box */}
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-5 shadow-sm">
+                  <h3 className="font-bold text-purple-900 mb-3">📋 Exempel: Uppdatera när hjälpdokumentation ändras</h3>
+                  <div className="text-sm text-purple-800 space-y-3">
+                    <div className="bg-white rounded p-3 border border-purple-200">
+                      <p className="font-semibold mb-1">Scenario:</p>
+                      <p>Du uppdaterade <code>individual/resources.md</code> och ändrade stegen för att dela en resurs.</p>
+                    </div>
+                    <div className="bg-white rounded p-3 border border-purple-200">
+                      <p className="font-semibold mb-1">Vad du måste göra:</p>
+                      <ol className="list-decimal list-inside space-y-1 ml-2">
+                        <li>Hitta avsnittet "BEREADY-APPENS FUNKTIONER" → "1. MITT HEM" i prompten ovan</li>
+                        <li>Uppdatera texten under "Resurslager" för att matcha nya steg</li>
+                        <li>Uppdatera exemplet under "HUR-GÖR-JAG FRÅGOR" om det är relevant</li>
+                        <li>Klicka "Spara ändringar"</li>
+                        <li>Testa att fråga KRISter "Hur delar jag en resurs?" för att verifiera</li>
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : activeTab === 'mappings' ? (
             <div className="flex-1 overflow-auto p-6">
               <div className="max-w-7xl mx-auto space-y-6">
                 {/* Header */}

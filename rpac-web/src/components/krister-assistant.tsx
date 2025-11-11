@@ -596,6 +596,12 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
       setDailyTips(newTips.slice(0, 3)); // Show max 3 tips
     } catch (error) {
       console.error('Error loading daily tips:', error);
+      // Set empty array on error to prevent UI from breaking
+      setDailyTips([]);
+      // Optionally show a user-friendly message
+      if (error instanceof Error && error.message.includes('Failed to fetch')) {
+        console.warn('AI service temporarily unavailable. Tips will be loaded when service is back online.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -679,7 +685,7 @@ Exempel för olika sidor:
 Svara ENDAST med en JSON-array av frågesträngar, ingen annan text.
 Exempel: ["Fråga 1?", "Hur gör jag X?", "Fråga 3?"]`;
 
-      const response = await fetch('https://api.beready.se', {
+      const response = await fetch('/api/ai', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
