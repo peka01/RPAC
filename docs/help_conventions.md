@@ -22,11 +22,14 @@ This document defines the standards for writing help documentation in RPAC (Regi
 - [ ] **Define scope:** What exactly will this help text cover?
 - [ ] **Check prerequisites:** What should users know or have done before this?
 - [ ] **Test the feature:** Follow exact steps in both desktop and mobile views
+- [ ] **⚠️ VERIFY COMPONENT MATCH:** Help must describe EXACTLY what users see in the actual component/page
 
 ### Research Requirements
 - [ ] **Test the feature personally:** Use it as the target user would
 - [ ] **Note exact interface text:** Document all button names, menu items, field labels
 - [ ] **Find localization keys:** Look up keys in `rpac-web/src/lib/locales/sv.json`
+- [ ] **Read the actual component code:** Verify what fields, buttons, and sections actually exist
+- [ ] **⚠️ CRITICAL: Compare help to component:** Ensure help describes what's implemented, not what was planned
 - [ ] **Identify common issues:** What problems do users encounter?
 - [ ] **Check related features:** What other parts connect to this?
 - [ ] **Review mobile experience:** Verify mobile-specific UI elements and workflows
@@ -244,12 +247,20 @@ Klicka på **{t('regional.county_overview')}** ("Länsöversikt")
   - [ ] Sounds like friendly conversation
   - [ ] Swedish sounds natural (not translated from English)
 
+- [ ] **⚠️ CRITICAL - Component accuracy verification:**
+  - [ ] **Open the actual component file** (e.g., `unified-profile-settings.tsx`, `settings/page.tsx`)
+  - [ ] **Compare help against component JSX** - Every section, field, button in help must exist in component
+  - [ ] **Verify no phantom features** - Remove any help text describing features not yet implemented
+  - [ ] **Check field types and validation** - Ensure help describes actual constraints (e.g., max file size, required fields)
+  - [ ] **Test the exact workflow** - Follow help instructions in the actual app to confirm accuracy
+
 - [ ] **Fact checking:**
   - [ ] Instructions followed exactly as written
   - [ ] All localization keys verified in `sv.json`
   - [ ] Links tested and working
   - [ ] Screenshots accurate (if used)
   - [ ] Database table/column names correct (if mentioned)
+  - [ ] Component code reviewed for accuracy
 
 - [ ] **User perspective:**
   - [ ] Would a new user understand this?
@@ -328,6 +339,7 @@ Klicka på **{t('regional.county_overview')}** ("Länsöversikt")
   - [ ] User workflow changed
   - [ ] Bug fix changes expected behavior
   - [ ] Feature moved from "coming soon" to "implemented"
+  - [ ] **⚠️ Component refactored or fields changed** - Re-verify help against new implementation
 
 - [ ] **What to update:**
   - [ ] The specific help file affected
@@ -335,6 +347,58 @@ Klicka på **{t('regional.county_overview')}** ("Länsöversikt")
   - [ ] FAQ sections mentioning the feature
   - [ ] `docs/dev_notes.md` with changelog entry
   - [ ] `docs/llm_instructions.md` if major feature
+
+### Component-to-Help Audit Process (MANDATORY)
+When creating or updating help documentation:
+
+1. **Identify the component:**
+   - Find the React component file (e.g., `src/app/settings/page.tsx`)
+   - Note any sub-components (e.g., `UnifiedProfileSettings`)
+
+2. **Read the component code:**
+   - List all form fields, their types, and validation rules
+   - Note all sections, tabs, or collapsible areas
+   - Document all buttons and their actions
+   - Check for conditional rendering (features that only show in certain states)
+
+3. **Create component inventory:**
+   ```markdown
+   Component: unified-profile-settings.tsx
+   Fields:
+   - display_name (text, required)
+   - first_name (text, optional)
+   - last_name (text, optional)
+   - avatar_url (file upload, max 2MB, JPG/PNG/GIF)
+   - email (read-only)
+   - phone (text, optional)
+   - address (text, optional)
+   - postal_code (text, optional, triggers county auto-fill)
+   - city (text, optional)
+   - county (auto-filled, read-only)
+   - family_size (number, min 1)
+   - has_pets (checkbox)
+   - pet_types (text, conditional on has_pets)
+   
+   Sections:
+   - Profile (avatar, names, contact)
+   - Location (address, postal code, city, county)
+   - Household (family size, pets)
+   
+   Actions:
+   - Upload avatar
+   - Remove avatar
+   - Save all (single button at bottom)
+   ```
+
+4. **Write help matching inventory:**
+   - Every field in component → documented in help
+   - Every section in component → section in help
+   - No extra features in help that don't exist in component
+
+5. **Cross-check after writing:**
+   - Read help paragraph by paragraph
+   - For each instruction, verify it works in the actual app
+   - Flag any discrepancies immediately
 
 ## Content Type Templates
 
@@ -485,6 +549,37 @@ A: [Answer]
 - "För att komma igång behöver du först navigera till inställningar"
 - "Systemet kräver att du anger platsinformation"
 - "Operationen måste slutföras innan fortsättning"
+
+---
+
+## Route Mappings Configuration
+
+### Using the Route Mappings Editor
+
+When adding new pages or help files, update route mappings using the visual editor:
+
+1. **Open Help Editor:**
+   - Click KRISter help icon
+   - Click "Redigera hjälpfil" button
+   - Switch to "Rutt-mappningar" tab
+
+2. **Add New Mapping:**
+   - **Rutt**: URL pattern (e.g., `/settings`, `/local`)
+   - **Parametrar**: URL params if needed (e.g., `?tab=profile`)
+   - **Hjälpfil**: Path to .md file without extension (e.g., `settings/profile`)
+   - Click "Lägg till"
+
+3. **Save Changes:**
+   - Click "Spara ändringar" button
+   - Mappings persist in `config/help-mappings.json`
+
+**Full documentation:** See `docs/ROUTE_MAPPINGS_EDITOR.md`
+
+**Best Practices:**
+- Keep route patterns simple and exact (no regex complexity)
+- Use lowercase for consistency
+- Organize help files by feature area (e.g., `settings/`, `local/`)
+- Test mapping by navigating to the page and checking KRISter
 
 ---
 

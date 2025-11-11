@@ -2,142 +2,141 @@
 
 # Profil - Inställningar
 
-Din profil är din identitet i BeReady. Här ställer du in:
-- Personlig information (namn, plats, bio)
+Din profil är din identitet i BeReady. Här fyller du i:
+- Grundläggande information (namn, kontaktuppgifter)
 - Profilbild
-- Erfarenhetsnivå
-- Synlighetsinställningar
-
-**GDPR**: Du bestämmer vad som är publikt!
+- Platsinformation (adress, postnummer, stad)
+- Hushållsinformation (antal personer, husdjur)
 
 ## Steg-för-steg
 
 ### 1. Öppna profilinställningar
-- Från **Inställningar**: Välj **Profil**
+- Från menyn: Klicka på **Inställningar**
+- Välj fliken **Profil** (längst till vänster)
 
-### 2. Grundläggande information
-
-#### Visningsnamn
-- **Vad det är**: Namnet andra ser i samhället
-- **Standard**: Ditt för- och efternamn (från registrering)
-- **Tips**: Kan vara smeknamn eller "Förnamn E." för integritet
-- **Obligatoriskt**: Ja
-
-#### Bio/Presentation
-- **Vad det är**: Kort text om dig (max 500 tecken)
-- **Exempel**: "Gillar odling och cykling. Kan hjälpa till med el-jobb!"
-- **Tips**: Skriv vad du kan/vill bidra med i samhället
-- **Frivilligt**: Ja
-
-#### Erfarenhetsnivå
-Hur erfaren är du med beredskap?
-- **Nybörjare**: Precis börjat
-- **Någorlunda**: Har grundläggande kunskaper
-- **Erfaren**: Kan mycket, kan hjälpa andra
-- **Expert**: Professionell/långvarig erfarenhet
-
-**Används för**: AI-coachens anpassade råd
-
-### 3. Plats och kontakt
-
-#### Postnummer
-- **Varför**: Hitta samhällen nära dig
-- **Vad som sparas**: Endast postnummer (ej exakt adress!)
-- **Synlighet**: Endast du och samhällsadmins (för avståndsberäkning)
-- **Obligatoriskt**: Rekommenderas starkt
-
-#### Stad/Ort
-- **Auto-fylls**: Baserat på postnummer
-- **Kan ändras**: Om du vill vara mer/mindre specifik
-
-#### Kontaktinfo (framtida)
-- Email (redan registrerad)
-- Telefon (frivilligt, för nödsituationer)
-
-### 4. Profilbild
+### 2. Profilbild
 
 #### Ladda upp bild
-1. Klicka på profilbilden/avatar
-2. Välj "Ladda upp bild"
-3. Välj fil (max 5 MB)
-4. Beskär/justera
-5. Klicka "Spara"
+1. Klicka på kameraknappen på profilbilden
+2. Välj **Ladda upp**
+3. Välj fil från din dator (max 2 MB)
+4. Bilden laddas upp direkt
 
-**Accepterade format**: JPG, PNG, WebP
-**Storlek**: Minst 200x200px för bästa kvalitet
+**Accepterade format**: JPG, PNG, GIF
+**Maxstorlek**: 2 MB
 
 #### Ta bort bild
-1. Klicka på profilbilden
-2. Välj "Ta bort bild"
-3. Bekräfta
-4. Standard-avatar används
+1. Klicka på **Ta bort**-knappen
+2. Standard-avatar används istället
 
-**Tips**: En riktig bild skapar förtroende i samhället!
+**Tips**: En riktig profilbild skapar förtroende i samhället!
 
-### 5. Synlighetsinställningar
+### 3. Grundläggande information
 
-#### Vem kan se min profil?
-- **Alla**: Publikt synlig (även utanför BeReady)
-- **Endast medlemmar**: Alla inloggade
-- **Endast mina samhällen**: Personer i samma samhälle
-- **Privat**: Endast jag
+#### Visningsnamn *(obligatoriskt)*
+- **Vad det är**: Namnet som andra användare ser
+- **Standard**: Din e-postadress utan @domain
+- **Tips**: Kan vara smeknamn, användarnamn eller ditt riktiga namn
+- **Exempel**: "Anna", "user123", "Anna S"
 
-**Rekommendation**: "Endast mina samhällen" för balans mellan tillit och integritet
+#### Förnamn och Efternamn *(valfritt)*
+- Fylls i om du vill
+- Används inte publikt för närvarande
+- Kan användas i framtiden för verifiering
 
-#### Vad är synligt i min profil?
-Bocka av/från:
-- ☑ Visningsnamn (kan ej dölja)
-- ☑ Profilbild
-- ☑ Bio/Presentation
-- ☑ Stad/Ort
-- ☐ Erfarenhetsnivå
-- ☐ Antal samhällen
-- ☐ Beredskapspoäng (om publik)
+### 4. Kontaktinformation
 
-### 6. Avancerade inställningar
+#### E-post
+- **Låst**: Kan inte ändras här
+- Visar din registrerade e-postadress
+- För att ändra e-post: Kontakta support
 
-#### Språk
-- **Svenska** (standard)
-- Engelska (framtida)
-- Fler språk planerade
+#### Telefon *(valfritt)*
+- Ditt mobilnummer
+- Format: +46 70 123 45 67
+- Används för eventuella nödkontakter
 
-#### Tidszon
-- Auto-detekterad från din enhet
-- Kan ändras manuellt
+### 5. Platsinformation
 
-#### Display-preferenser
-- Kompakt/Bekväm vy
-- Färgtema (ljus/mörk/auto)
+#### Adress *(valfritt)*
+- Din gatuadress
+- Används för att hitta lokala samhällen
+- **Integritet**: Synlig endast för dig
+
+#### Postnummer *(rekommenderas starkt)*
+- 5 siffror (t.ex. 123 45)
+- **Viktigt**: Används för att hitta samhällen nära dig!
+- När du anger postnummer fylls **Län** i automatiskt
+
+#### Stad *(valfritt)*
+- Din stad eller ort
+- Exempel: Stockholm, Göteborg, Malmö
+
+#### Län *(auto-fylls)*
+- Fylls i automatiskt baserat på ditt postnummer
+- Kan inte ändras manuellt
+- Exempel: "Stockholms län"
+
+### 6. Hushållsinformation
+
+#### Antal personer i hushållet
+- Ange hur många som bor i ditt hem (minst 1)
+- **Används för**: Beräkna resursbehov i beredskapsfunktioner
+- **Standard**: 1
+
+#### Husdjur
+- Bocka i om du har husdjur
+- Om ja: Ange typ av husdjur (t.ex. "hund", "katt", "kanin")
+- **Används för**: Beredskapstips för djuräga re
+
+#### Husdjur
+- Bocka i om du har husdjur
+- Om ja: Ange typ av husdjur (t.ex. "hund", "katt", "kanin")
+- **Används för**: Beredskapstips för djurägare
+
+### 7. Spara ändringar
+
+När du är klar:
+1. Scrolla ner till botten
+2. Klicka på den stora gröna knappen **Spara all profilinformation**
+3. Vänta på bekräftelsen "Profil sparad!"
+
+**OBS**: Alla ändringar sparas tillsammans när du klickar på Spara-knappen!
 
 ## Tips
 
-**💡 Fyll i din bio**
-Beskriv dina färdigheter! "Snickare, kan hjälpa med byggjobb" → Fler hjälpförfrågningar till dig!
-
-**💡 Uppdatera erfarenhetsnivå**
-När du lär dig mer, höj nivån. AI-coachens råd anpassas efter detta.
+**💡 Fyll i postnummer**
+Postnummer är superviktigt för att hitta lokala samhällen nära dig. Utan postnummer kan du inte enkelt upptäcka dina grannar i beredskapsnätverket!
 
 **💡 Använd riktig profilbild**
 Samhällen bygger på tillit. En bild av dig själv skapar mer förtroende än en avatar.
 
+**💡 Kontaktuppgifter för nödsituationer**
+Telefonnummer är valfritt, men kan vara värdefullt om samhället behöver nå dig snabbt under en kris.
+
 ## Vanliga frågor
 
-**Q: Kan jag använda pseudonym?**
-A: Ja, visningsnamn kan vara vad du vill. Men äkta namn skapar mer tillit i samhället.
+**Q: Kan jag använda pseudonym som visningsnamn?**
+A: Ja, visningsnamn kan vara vad du vill. Men äkta namn eller tydliga användarnamn skapar mer tillit i samhället.
 
 **Q: Måste jag ha profilbild?**
-A: Nej, men starkt rekommenderat för förtroende.
+A: Nej, men starkt rekommenderat för förtroende och igenkänning i samhället.
 
-**Q: Ser alla mitt postnummer?**
-A: Nej! Endast du och samhällsadmins (för att beräkna avstånd i samhällssökning).
+**Q: Ser alla mitt postnummer och adress?**
+A: Nej! Din adress och postnummer är privat. De används endast för att hjälpa dig hitta lokala samhällen.
 
-**Q: Kan jag dölja mitt namn helt?**
-A: Nej, visningsnamn krävs. Men det kan vara "Anonym123" om du vill (inte rekommenderat).
+**Q: Vad händer om jag inte fyller i postnummer?**
+A: Du kan fortfarande använda BeReady, men det blir svårare att hitta samhällen nära dig. Postnummer rekommenderas starkt!
 
-**Q: Hur tar jag bort min profil helt?**
-A: Gå till **Inställningar** → **Konto** → **Radera konto**. Detta tar bort ALLT permanent.
+**Q: Kan jag ändra min e-postadress här?**
+A: Nej, e-post kan inte ändras i profilinställningar för närvarande. Kontakta support om du behöver ändra e-post.
+
+**Q: Varför behöver jag ange antal personer i hushållet?**
+A: Denna information hjälper beredskapsfunktionerna att ge bättre råd om resursbehov (mat, vatten, utrustning) för just din familjesituation.
 
 ## Relaterade sidor
-- [Settings - Account](/help/settings/account.md) - Konto och inloggning
-- [Settings - Privacy](/help/settings/privacy.md) - Integritet och GDPR
-- [Local - Home](/help/local/home.md) - Din profil i samhället
+- [Inställningar - Byt lösenord](/help/settings/security.md) - Ändra ditt lösenord
+- [Inställningar - Notifieringar](/help/settings/notifications.md) - Hantera aviseringar
+- [Inställningar - Integritet](/help/settings/privacy.md) - Integritet och synlighet
+- [Lokalt - Upptäck samhällen](/help/local/discover.md) - Hitta samhällen nära dig
+

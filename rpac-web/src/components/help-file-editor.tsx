@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { X, Save, Eye, EyeOff, Code, FileText, FolderOpen, GitBranch, GitCommit, 
          Bold, Italic, Link, List, ListOrdered, Heading1, Heading2, Heading3,
-         Quote, CodeSquare, Table, Image as ImageIcon, Undo, Redo, Sparkles, Info } from 'lucide-react';
+         Quote, CodeSquare, Table, Image as ImageIcon, Undo, Redo, Sparkles, Info, Map, Plus, Trash2, Edit, Check, ExternalLink } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { SecureOpenAIService } from '@/lib/openai-worker-service';
@@ -24,6 +24,7 @@ interface HelpFileEditorProps {
 }
 
 export default function HelpFileEditor({ filePath, initialContent, onClose, onSave, pageContext }: HelpFileEditorProps) {
+  const [activeTab, setActiveTab] = useState<'editor' | 'mappings'>('editor');
   const [content, setContent] = useState(initialContent);
   const [showPreview, setShowPreview] = useState(true);
   const [fileName, setFileName] = useState(filePath.split('/').pop() || 'help.md');
@@ -51,6 +52,11 @@ export default function HelpFileEditor({ filePath, initialContent, onClose, onSa
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState<'sv' | 'en'>('sv');
 
+  // Route mappings state
+  const [routeMappings, setRouteMappings] = useState<Array<{route: string; params: string; helpFile: string}>>([]);
+  const [editingMapping, setEditingMapping] = useState<number | null>(null);
+  const [newMapping, setNewMapping] = useState({route: '', params: '', helpFile: ''});
+
   // Dragging and resizing state
   const [position, setPosition] = useState({ x: window.innerWidth * 0.025, y: window.innerHeight * 0.025 });
   const [size, setSize] = useState({ width: window.innerWidth * 0.95, height: window.innerHeight * 0.95 });
@@ -62,8 +68,93 @@ export default function HelpFileEditor({ filePath, initialContent, onClose, onSa
 
   useEffect(() => {
     setMounted(true);
+    loadRouteMappings();
     return () => setMounted(false);
   }, []);
+
+  // Load route mappings from API/help loader
+  const loadRouteMappings = async () => {
+    try {
+      const response = await fetch('/api/help-mappings');
+      if (response.ok) {
+        const data = await response.json();
+        setRouteMappings(data.mappings || []);
+      }
+    } catch (error) {
+      console.error('Failed to load route mappings:', error);
+      // Load default mappings from krister-help-loader.ts logic
+      setRouteMappings(getDefaultMappings());
+    }
+  };
+
+  // Get default mappings based on current implementation
+  const getDefaultMappings = () => {
+    return [
+      { route: '/', params: '', helpFile: 'dashboard.md' },
+      { route: '/dashboard', params: '', helpFile: 'dashboard.md' },
+      { route: '/individual', params: 'section=resources', helpFile: 'individual/resources.md' },
+      { route: '/individual', params: 'section=cultivation', helpFile: 'individual/cultivation.md' },
+      { route: '/individual', params: 'section=knowledge', helpFile: 'individual/knowledge.md' },
+      { route: '/individual', params: 'section=coach', helpFile: 'individual/coach.md' },
+      { route: '/local', params: 'tab=home', helpFile: 'local/home.md' },
+      { route: '/local', params: 'tab=activity', helpFile: 'local/activity.md' },
+      { route: '/local', params: 'tab=resources&resourceTab=shared', helpFile: 'local/resources-shared.md' },
+      { route: '/local', params: 'tab=resources&resourceTab=owned', helpFile: 'local/resources-owned.md' },
+      { route: '/local', params: 'tab=resources&resourceTab=help', helpFile: 'local/resources-help.md' },
+      { route: '/local', params: 'tab=messages', helpFile: 'local/messages-community.md' },
+      { route: '/local', params: 'tab=admin', helpFile: 'local/admin.md' },
+      { route: '/local/discover', params: '', helpFile: 'local/discover.md' },
+      { route: '/local/messages/direct', params: '', helpFile: 'local/messages-direct.md' },
+      { route: '/regional', params: '', helpFile: 'regional/overview.md' },
+      { route: '/settings', params: 'tab=profile', helpFile: 'settings/profile.md' },
+      { route: '/settings', params: 'tab=security', helpFile: 'settings/security.md' },
+      { route: '/settings', params: 'tab=notifications', helpFile: 'settings/notifications.md' },
+      { route: '/settings', params: 'tab=privacy', helpFile: 'settings/privacy.md' },
+      { route: '/settings', params: 'tab=preferences', helpFile: 'settings/preferences.md' },
+      { route: '/super-admin', params: '', helpFile: 'admin/super-admin.md' },
+      { route: '/auth/login', params: '', helpFile: 'auth/login.md' },
+      { route: '/auth/register', params: '', helpFile: 'auth/register.md' },
+    ];
+  };
+
+  // Save route mappings
+  const saveRouteMappings = async () => {
+    try {
+      const response = await fetch('/api/help-mappings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mappings: routeMappings })
+      });
+      if (response.ok) {
+        alert('Route mappings sparade!');
+      } else {
+        alert('Fel vid sparande av mappings');
+      }
+    } catch (error) {
+      console.error('Failed to save route mappings:', error);
+      alert('Fel vid sparande av mappings');
+    }
+  };
+
+  // Add new mapping
+  const addMapping = () => {
+    if (newMapping.route && newMapping.helpFile) {
+      setRouteMappings([...routeMappings, { ...newMapping }]);
+      setNewMapping({route: '', params: '', helpFile: ''});
+    }
+  };
+
+  // Delete mapping
+  const deleteMapping = (index: number) => {
+    setRouteMappings(routeMappings.filter((_, i) => i !== index));
+  };
+
+  // Update mapping
+  const updateMapping = (index: number, field: 'route' | 'params' | 'helpFile', value: string) => {
+    const updated = [...routeMappings];
+    updated[index] = { ...updated[index], [field]: value };
+    setRouteMappings(updated);
+  };
 
   // Handle dragging
   useEffect(() => {
@@ -608,32 +699,36 @@ Försök igen eller ändra din instruktion.`
           <div className="flex items-center gap-3">
             <FileText className="text-[#3D4A2B]" size={24} />
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Redigera hjälpfil</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Hjälpfilsredigerare</h2>
               <p className="text-sm text-gray-600">{fileName}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowContextBrowser(!showContextBrowser)}
-              className="px-3 py-2 text-sm bg-[#3D4A2B] text-white hover:bg-[#2A331E] rounded-lg flex items-center gap-2"
-            >
-              <Info size={16} />
-              UI-Textvariabler
-            </button>
-            <button
-              onClick={() => setShowAIPrompt(!showAIPrompt)}
-              className="px-3 py-2 text-sm bg-[#5C6B47] text-white hover:bg-[#4A5239] rounded-lg flex items-center gap-2"
-            >
-              <Sparkles size={16} />
-              AI Omskrivning
-            </button>
-            <button
-              onClick={() => setShowPreview(!showPreview)}
-              className="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center gap-2"
-            >
-              {showPreview ? <EyeOff size={16} /> : <Eye size={16} />}
-              {showPreview ? 'Dölj förhandsgranskning' : 'Visa förhandsgranskning'}
-            </button>
+            {activeTab === 'editor' && (
+              <>
+                <button
+                  onClick={() => setShowContextBrowser(!showContextBrowser)}
+                  className="px-3 py-2 text-sm bg-[#3D4A2B] text-white hover:bg-[#2A331E] rounded-lg flex items-center gap-2"
+                >
+                  <Info size={16} />
+                  UI-Textvariabler
+                </button>
+                <button
+                  onClick={() => setShowAIPrompt(!showAIPrompt)}
+                  className="px-3 py-2 text-sm bg-[#5C6B47] text-white hover:bg-[#4A5239] rounded-lg flex items-center gap-2"
+                >
+                  <Sparkles size={16} />
+                  AI Omskrivning
+                </button>
+                <button
+                  onClick={() => setShowPreview(!showPreview)}
+                  className="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center gap-2"
+                >
+                  {showPreview ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showPreview ? 'Dölj förhandsgranskning' : 'Visa förhandsgranskning'}
+                </button>
+              </>
+            )}
             <button
               onClick={onClose}
               className="p-2 hover:bg-gray-100 rounded-lg"
@@ -641,6 +736,32 @@ Försök igen eller ändra din instruktion.`
               <X size={20} />
             </button>
           </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex border-b border-gray-200 bg-gray-50">
+          <button
+            onClick={() => setActiveTab('editor')}
+            className={`px-6 py-3 font-medium text-sm flex items-center gap-2 border-b-2 transition-colors ${
+              activeTab === 'editor'
+                ? 'border-[#3D4A2B] text-[#3D4A2B] bg-white'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <FileText size={16} />
+            Redigera innehåll
+          </button>
+          <button
+            onClick={() => setActiveTab('mappings')}
+            className={`px-6 py-3 font-medium text-sm flex items-center gap-2 border-b-2 transition-colors ${
+              activeTab === 'mappings'
+                ? 'border-[#3D4A2B] text-[#3D4A2B] bg-white'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <Map size={16} />
+            Rutt-mappningar
+          </button>
         </div>
 
         {/* Toolbar */}
@@ -671,6 +792,219 @@ Försök igen eller ändra din instruktion.`
 
         {/* Editor/Preview Area */}
         <div className="flex-1 flex overflow-hidden">
+          {/* Route Mappings Tab Content */}
+          {activeTab === 'mappings' ? (
+            <div className="flex-1 overflow-auto p-6">
+              <div className="max-w-7xl mx-auto space-y-6">
+                {/* Header */}
+                <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-2">Hantera rutt-mappningar</h2>
+                  <p className="text-sm text-gray-600">
+                    Konfigurerar vilka hjälpfiler som visas för olika sidor i applikationen.
+                  </p>
+                </div>
+
+                {/* Add New Mapping Form */}
+                <div className="bg-gradient-to-br from-[#F5F7F3] to-white rounded-lg border border-[#5C6B47]/20 p-6 shadow-sm">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <Plus size={20} className="text-[#3D4A2B]" />
+                    Lägg till ny mappning
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Rutt (route)
+                      </label>
+                      <input
+                        type="text"
+                        value={newMapping.route}
+                        onChange={(e) => setNewMapping({ ...newMapping, route: e.target.value })}
+                        placeholder="/dashboard"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3D4A2B] focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Parametrar (valfritt)
+                      </label>
+                      <input
+                        type="text"
+                        value={newMapping.params}
+                        onChange={(e) => setNewMapping({ ...newMapping, params: e.target.value })}
+                        placeholder="?tab=home"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3D4A2B] focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Hjälpfil
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={newMapping.helpFile}
+                          onChange={(e) => setNewMapping({ ...newMapping, helpFile: e.target.value })}
+                          placeholder="dashboard.md"
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3D4A2B] focus:border-transparent"
+                        />
+                        <button
+                          onClick={addMapping}
+                          disabled={!newMapping.route || !newMapping.helpFile}
+                          className="px-4 py-2 bg-[#3D4A2B] text-white rounded-lg hover:bg-[#2D3A1F] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                        >
+                          <Plus size={16} />
+                          Lägg till
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mappings Table */}
+                <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                  <div className="px-6 py-4 bg-gradient-to-r from-[#3D4A2B]/5 to-[#5C6B47]/5 border-b border-gray-200 flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Aktiva mappningar ({routeMappings.length})
+                    </h3>
+                    <button
+                      onClick={saveRouteMappings}
+                      className="px-4 py-2 bg-[#3D4A2B] text-white rounded-lg hover:bg-[#2D3A1F] transition-colors flex items-center gap-2"
+                    >
+                      <Save size={16} />
+                      Spara ändringar
+                    </button>
+                  </div>
+                  
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-gray-200 bg-gray-50">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Rutt
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Parametrar
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Hjälpfil
+                          </th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Åtgärder
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {routeMappings.length === 0 ? (
+                          <tr>
+                            <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                              Inga mappningar ännu. Lägg till din första mappning ovan.
+                            </td>
+                          </tr>
+                        ) : (
+                          routeMappings.map((mapping, index) => (
+                            <tr key={index} className="hover:bg-gray-50 transition-colors">
+                              {editingMapping === index ? (
+                                // Edit mode
+                                <>
+                                  <td className="px-6 py-4">
+                                    <input
+                                      type="text"
+                                      value={mapping.route}
+                                      onChange={(e) => updateMapping(index, { route: e.target.value })}
+                                      className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-[#3D4A2B] focus:border-transparent"
+                                    />
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <input
+                                      type="text"
+                                      value={mapping.params}
+                                      onChange={(e) => updateMapping(index, { params: e.target.value })}
+                                      className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-[#3D4A2B] focus:border-transparent"
+                                    />
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <input
+                                      type="text"
+                                      value={mapping.helpFile}
+                                      onChange={(e) => updateMapping(index, { helpFile: e.target.value })}
+                                      className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-[#3D4A2B] focus:border-transparent"
+                                    />
+                                  </td>
+                                  <td className="px-6 py-4 text-right">
+                                    <button
+                                      onClick={() => setEditingMapping(null)}
+                                      className="inline-flex items-center gap-1 px-3 py-1 text-sm text-[#3D4A2B] hover:bg-[#3D4A2B]/10 rounded transition-colors"
+                                    >
+                                      <Check size={14} />
+                                      Klar
+                                    </button>
+                                  </td>
+                                </>
+                              ) : (
+                                // View mode
+                                <>
+                                  <td className="px-6 py-4 text-sm font-medium">
+                                    <a
+                                      href={`${mapping.route}${mapping.params}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1 text-[#3D4A2B] hover:underline"
+                                    >
+                                      {mapping.route}
+                                      <ExternalLink size={12} className="opacity-60" />
+                                    </a>
+                                  </td>
+                                  <td className="px-6 py-4 text-sm text-gray-600">
+                                    {mapping.params || <span className="text-gray-400 italic">–</span>}
+                                  </td>
+                                  <td className="px-6 py-4 text-sm text-gray-600">
+                                    {mapping.helpFile}
+                                  </td>
+                                  <td className="px-6 py-4 text-right space-x-2">
+                                    <button
+                                      onClick={() => setEditingMapping(index)}
+                                      className="inline-flex items-center gap-1 px-3 py-1 text-sm text-[#3D4A2B] hover:bg-[#3D4A2B]/10 rounded transition-colors"
+                                    >
+                                      <Edit size={14} />
+                                      Redigera
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        if (confirm(`Ta bort mappning för "${mapping.route}"?`)) {
+                                          deleteMapping(index);
+                                        }
+                                      }}
+                                      className="inline-flex items-center gap-1 px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded transition-colors"
+                                    >
+                                      <Trash2 size={14} />
+                                      Ta bort
+                                    </button>
+                                  </td>
+                                </>
+                              )}
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Info Box */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-900 mb-2">ℹ️ Om rutt-mappningar</h4>
+                  <ul className="text-sm text-blue-800 space-y-1 ml-4 list-disc">
+                    <li><strong>Rutt:</strong> URL-mönster (t.ex. <code>/dashboard</code>, <code>/settings</code>)</li>
+                    <li><strong>Parametrar:</strong> URL-parametrar för specifika vyer (t.ex. <code>?tab=home</code>)</li>
+                    <li><strong>Hjälpfil:</strong> Sökväg till markdown-fil i <code>/public/help/</code> (utan <code>.md</code>)</li>
+                    <li>Ändringar sparas när du klickar på "Spara ändringar"</li>
+                    <li>KRISter-hjälpsystemet läser dessa mappningar för att visa rätt hjälp</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
           {/* AI Writing Assistant Sidebar */}
           {showAIPrompt && (
             <div className="w-96 border-r border-gray-200 flex flex-col bg-gradient-to-b from-[#F5F7F3] to-[#FAFBF9]">
@@ -1079,6 +1413,8 @@ Försök igen eller ändra din instruktion.`
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{renderPreviewContent(content)}</ReactMarkdown>
               </div>
             </div>
+          )}
+            </>
           )}
         </div>
 

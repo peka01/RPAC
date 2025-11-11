@@ -1,0 +1,107 @@
+[
+  {
+    "route": "/dashboard",
+    "params": "",
+    "helpFile": "dashboard"
+  },
+  {
+    "route": "/individual",
+    "params": "?section=overview",
+    "helpFile": "individual/overview"
+  },
+  {
+    "route": "/individual",
+    "params": "?section=resources",
+    "helpFile": "individual/resources"
+  },
+  {
+    "route": "/individual",
+    "params": "?section=contacts",
+    "helpFile": "individual/contacts"
+  },
+  {
+    "route": "/individual",
+    "params": "?section=plan",
+    "helpFile": "individual/plan"
+  },
+  {
+    "route": "/local",
+    "params": "?tab=home",
+    "helpFile": "local/home"
+  },
+  {
+    "route": "/local",
+    "params": "?tab=forum",
+    "helpFile": "local/forum"
+  },
+  {
+    "route": "/local",
+    "params": "?tab=resources",
+    "helpFile": "local/resources"
+  },
+  {
+    "route": "/local",
+    "params": "?tab=map",
+    "helpFile": "local/map"
+  },
+  {
+    "route": "/local",
+    "params": "?tab=find",
+    "helpFile": "local/find"
+  },
+  {
+    "route": "/local",
+    "params": "?tab=members",
+    "helpFile": "local/members"
+  },
+  {
+    "route": "/local",
+    "params": "?tab=garden",
+    "helpFile": "local/garden"
+  },
+  {
+    "route": "/regional",
+    "params": "",
+    "helpFile": "regional/overview"
+  },
+  {
+    "route": "/settings",
+    "params": "?tab=profile",
+    "helpFile": "settings/profile"
+  },
+  {
+    "route": "/settings",
+    "params": "?tab=security",
+    "helpFile": "settings/security"
+  },
+  {
+    "route": "/settings",
+    "params": "?tab=notifications",
+    "helpFile": "settings/notifications"
+  },
+  {
+    "route": "/settings",
+    "params": "?tab=privacy",
+    "helpFile": "settings/privacy"
+  },
+  {
+    "route": "/settings",
+    "params": "?tab=preferences",
+    "helpFile": "settings/preferences"
+  },
+  {
+    "route": "/admin",
+    "params": "",
+    "helpFile": "admin/overview"
+  },
+  {
+    "route": "/login",
+    "params": "",
+    "helpFile": "auth/login"
+  },
+  {
+    "route": "/register",
+    "params": "",
+    "helpFile": "auth/register"
+  }
+]

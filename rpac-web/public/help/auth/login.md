@@ -138,6 +138,6 @@ A: Ja! Krypterad kommunikation, GDPR-compliance, säkra servrar (Supabase).
 A: Ja, **Inställningar** → **Konto** → **Radera konto**. Detta tar bort ALLT permanent.
 
 ## Relaterade sidor
-- [Settings - Account](/help/settings/account.md) - Hantera konto
+- [Byt lösenord](/help/settings/security.md) - Ändra lösenord
 - [Settings - Privacy](/help/settings/privacy.md) - GDPR och integritet
 - [Dashboard](/help/dashboard.md) - Efter inloggning

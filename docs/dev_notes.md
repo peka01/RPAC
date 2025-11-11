@@ -1,12 +1,132 @@
-### 2025-11-11 - KRISTER ACTION BUTTONS: `G�r det �t mig` 
+### 2025-11-11 - ROUTE MAPPINGS EDITOR: Visual configuration for KRISter help system
+
+**Objective**: Provide visual interface for managing route→help file mappings without editing TypeScript code.
+
+**Problem**: Route mappings were hardcoded in `krister-help-loader.ts` `getHelpFileForRoute()` method. Required editing TypeScript to add/modify mappings.
+
+**Solution**: Added "Rutt-mappningar" tab to help-file-editor with full CRUD capabilities.
+
+**Features Implemented**:
+1. **View Mappings**: Table displaying all route→help file mappings
+2. **Add Mapping**: Form with route, params, helpFile inputs + validation
+3. **Edit Mapping**: Inline editing with save confirmation
+4. **Delete Mapping**: Delete with confirmation prompt
+5. **Save to Storage**: Persistent storage in `config/help-mappings.json`
+6. **Default Mappings**: 21 default mappings matching current implementation
+
+**Files Created**:
+- `api/help-mappings/route.ts` - GET/POST endpoint for loading/saving mappings
+- `config/help-mappings.json` - Persistent storage for route mappings (21 entries)
+
+**Files Modified**:
+- `help-file-editor.tsx`:
+  - Added `activeTab` state ('editor' | 'mappings')
+  - Added `routeMappings`, `editingMapping`, `newMapping` state
+  - Added tab navigation UI (Redigera innehåll | Rutt-mappningar)
+  - Added mappings table with inline editing
+  - Added add/edit/delete/save functions with API integration
+  - Context-specific tools: AI/Preview/Variables only show on editor tab
+
+**Data Structure**:
+```typescript
+interface RouteMapping {
+  route: string;      // URL pattern (e.g., "/dashboard", "/settings")
+  params: string;     // URL parameters (e.g., "?tab=home")
+  helpFile: string;   // Path to .md file without extension (e.g., "dashboard")
+}
+```
+
+**Default Mappings Include**:
+- Dashboard, Individual (4 sections), Local (7 tabs/pages), Regional
+- Settings (5 tabs: profile, security, notifications, privacy, preferences)
+- Admin, Auth (login, register)
+
+**API Endpoints**:
+- `GET /api/help-mappings` - Load mappings from config file
+- `POST /api/help-mappings` - Save mappings with validation
+
+**Usage**:
+1. Open help editor (KRISter → "Redigera hjälpfil")
+2. Click "Rutt-mappningar" tab
+3. View existing mappings in table
+4. Add new mapping: Fill form → Click "Lägg till"
+5. Edit mapping: Click "Redigera" → Modify inline → Click "Klar"
+6. Delete mapping: Click "Ta bort" → Confirm
+7. Save changes: Click "Spara ändringar" (top right)
+
+**Benefits**:
+- No code editing required for adding/modifying help mappings
+- Visual overview of all route configurations
+- Validation prevents invalid mappings
+- Persistent storage survives deployments
+- Reduces errors from manual TypeScript editing
+
+**Future Enhancements**:
+- Validate help file exists before saving
+- Auto-detect all .md files in /help/ directory
+- Suggest route patterns based on existing routes
+- Regex tester for route patterns
+- Export/import for backup/deployment
+- Bulk migration from krister-help-loader.ts
+
+**Result**: Help system configuration is now user-friendly and maintainable without developer intervention! 🎉
+
+---
+### 2025-11-11 - FIX: Settings tabs now update URL for KRISter help context
+
+**Issue**: When clicking settings tabs (Integritet, Notifieringar, etc.), KRISter couldn't display help because URL didn't have `tab` parameter.
+
+**Root Cause**: Settings page used local state (`activeTab`) without updating URL.
+
+**Fix**:
+- Added `useRouter` and `useSearchParams` to settings page
+- Tab clicks now update URL: `/settings?tab=privacy`, `/settings?tab=notifications`, etc.
+- Added useEffect to sync `activeTab` with URL parameter
+- KRISter help loader can now detect active tab and load correct help file
+
+**Files Modified**:
+- `settings/page.tsx` - Added URL parameter sync
+- `settings/account.md`  **RENAMED** to `settings/security.md` (matches tab ID)
+- `settings/preferences.md` - **NEW** help file created
+
+**Result**: All settings tabs now show correct contextual help in KRISter! 
+
+---
+### 2025-11-11 - CRITICAL: HELP FILES MUST MATCH ACTUAL COMPONENTS 
+
+**Issue Discovered**: Help files for settings contained major inaccuracies:
+- Described features that don't exist in actual components
+- Missing features that DO exist in components
+- Incorrect field names, validation rules, and workflows
+
+**Root Cause**: Help was written aspirationally (planned features) but never updated to match minimal implementation.
+
+**Files Fixed**:
+- `settings/profile.md` - Removed bio, experience level, visibility settings (don't exist)
+- `settings/notifications.md` - Simplified to 4 actual toggles (was describing 10+ non-existent controls)
+- `settings/privacy.md` - Removed activity log, contact visibility controls (don't exist)
+- `settings/account.md` - Completely rewritten as password-change guide (account tab doesn't exist)
+
+**Convention Added to `docs/help_conventions.md`**:
+- **Pre-Writing**: Must verify component match before writing
+- **Research**: Must read actual component code, create field inventory
+- **Review**: CRITICAL component accuracy verification checklist
+- **New Process**: Component-to-Help Audit Process (mandatory)
+
+**Key Principle**: Help documentation must describe EXACTLY what users see, not what was planned or what might exist someday.
+
+**Impact**: Users were confused when help described features they couldn't find. This damages trust and usability.
+
+---
+### 2025-11-11 - KRISTER ACTION BUTTONS: `G�r det �t mig` 
 
 **Objective**: Add automatic action buttons to KRISter AI responses for one-click navigation.
 
 **Implementation**:
-- Pattern detection for Swedish navigation instructions (G� till, Navigera till, �ppna)
+- Pattern detection for Swedish navigation instructions (G� till, Navigera till, �ppna)
 - Maps Swedish UI terms to routes (Mitt hem/individual, Lokalt/local, etc.)
 - Enhanced Message interface with actions array
-- Added `G�r det �t mig` buttons with olive-green styling
+- Added `G�r det �t mig` buttons with olive-green styling
 - Updated AI prompt to format instructions with bold text
 - Implemented in both desktop and mobile components
 
@@ -6675,3 +6795,5 @@ This cleanup represents a major milestone in project maintenance and sets the st
 
 **Uppdaterad:** 2025-10-09  
 **Nästa review:** Vid varje större feature-lansering
+
+

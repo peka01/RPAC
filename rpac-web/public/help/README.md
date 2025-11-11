@@ -29,7 +29,7 @@
 
 ### ✅ Settings (2 files)
 - `settings/profile.md` - Profile settings, privacy controls
-- `settings/account.md` - Account, subscription, deletion
+- `settings/security.md` - Password change and security
 
 ### ✅ Auth (1 file)
 - `auth/login.md` - Login, registration, password reset
@@ -69,7 +69,7 @@
 | `/local` | `tab=admin` | `local/admin.md` |
 | `/regional` | - | `regional/overview.md` |
 | `/settings` | `tab=profile` | `settings/profile.md` |
-| `/settings` | `tab=account` | `settings/account.md` |
+| `/settings` | `tab=security` | `settings/security.md` |
 | `/auth/login` | - | `auth/login.md` |
 
 ## File Structure Template

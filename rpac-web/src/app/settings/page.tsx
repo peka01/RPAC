@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   User, 
   Mail, 
@@ -29,7 +30,10 @@ import { t } from '@/lib/locales';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState('profile');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const tabFromUrl = searchParams?.get('tab') || 'profile';
+  const [activeTab, setActiveTab] = useState(tabFromUrl);
   const [showPassword, setShowPassword] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -41,6 +45,12 @@ export default function SettingsPage() {
   // User profile hook
   const { profile } = useUserProfile(user);
 
+
+  // Sync activeTab with URL parameter
+  useEffect(() => {
+    const tabFromUrl = searchParams?.get('tab') || 'profile';
+    setActiveTab(tabFromUrl);
+  }, [searchParams]);
 
   // Load user on component mount
   useEffect(() => {
@@ -276,7 +286,10 @@ export default function SettingsPage() {
                   return (
                     <button
                       key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
+                      onClick={() => {
+                        setActiveTab(tab.id);
+                        router.push(`/settings?tab=${tab.id}`);
+                      }}
                       className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
                         activeTab === tab.id
                           ? 'text-white shadow-lg'

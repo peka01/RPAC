@@ -214,9 +214,11 @@ export class KRISterHelpLoader {
       'local/admin': 'community_admin',
       'regional/overview': 'regional',
       'settings/profile': 'settings_profile',
+      'settings/security': 'settings',
       'settings/account': 'settings',
       'settings/privacy': 'settings',
       'settings/notifications': 'settings',
+      'settings/preferences': 'settings',
       'auth/login': 'dashboard'
     };
     
