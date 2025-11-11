@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   User, 
@@ -29,7 +29,7 @@ import { supabase } from '@/lib/supabase';
 import { t } from '@/lib/locales';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
-export default function SettingsPage() {
+function SettingsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabFromUrl = searchParams?.get('tab') || 'profile';
@@ -739,5 +739,13 @@ export default function SettingsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><ShieldProgressSpinner size="lg" message="Laddar inställningar..." /></div>}>
+      <SettingsPageContent />
+    </Suspense>
   );
 }
