@@ -1,8 +1,8 @@
 [🏠](/help/dashboard.md) > Översikt
 
-# {{dashboard.title}}
+# Översiktssidan
 
-Din huvudsida visar snabblänkar och viktig information.
+Översiktssidan visar snabblänkar och viktig information.
 
 På översiktssidan får du:
 - Snabb överblick av din beredskap
