@@ -1,3 +1,29 @@
+### 2025-11-11 - FIX: Removed phantom help files from whitelist (production 404s)
+
+**Issue**: Production site (beready.se) returning 404 errors when loading help files.
+
+**Root Cause**: VALID_HELP_FILES whitelist contained 5 files that don't actually exist:
+- `local/forum` (should be `local/messages-community`)
+- `local/map` (should be `local/discover`)
+- `local/find` (should be `local/discover`)
+- `local/members` (should be `local/admin`)
+- `local/garden` (should be `local/activity`)
+
+These phantom entries would pass security checks but fail when GitHub API tried to fetch non-existent files, resulting in 404 errors.
+
+**Fix**:
+- Removed all 5 phantom entries from VALID_HELP_FILES array
+- Whitelist now contains only 28 files that actually exist (down from 33)
+- Route mappings already pointed to correct files, no changes needed there
+
+**Files Modified**:
+- `rpac-web/src/app/api/help/[...path]/route.ts` - Fixed whitelist, added comments
+
+**Testing**: Build completed successfully. Ready for deployment.
+
+**Next Step**: Deploy to production with `npm run pages:build; npm run deploy`
+
+---
 ### 2025-11-11 - DOCS: Created comprehensive GitHub help integration architecture documentation
 
 **Issue**: Critical architecture decision about GitHub-based help loading was not documented as a system-level principle, causing repeated circular debugging when issues arose.
@@ -6839,6 +6865,7 @@ This cleanup represents a major milestone in project maintenance and sets the st
 
 **Uppdaterad:** 2025-10-09  
 **Nästa review:** Vid varje större feature-lansering
+
 
 
 
