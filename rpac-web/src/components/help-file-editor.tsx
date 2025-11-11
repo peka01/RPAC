@@ -910,7 +910,7 @@ Försök igen eller ändra din instruktion.`
                                     <input
                                       type="text"
                                       value={mapping.route}
-                                      onChange={(e) => updateMapping(index, { route: e.target.value })}
+                                      onChange={(e) => updateMapping(index, 'route', e.target.value)}
                                       className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-[#3D4A2B] focus:border-transparent"
                                     />
                                   </td>
@@ -918,7 +918,7 @@ Försök igen eller ändra din instruktion.`
                                     <input
                                       type="text"
                                       value={mapping.params}
-                                      onChange={(e) => updateMapping(index, { params: e.target.value })}
+                                      onChange={(e) => updateMapping(index, 'params', e.target.value)}
                                       className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-[#3D4A2B] focus:border-transparent"
                                     />
                                   </td>
@@ -926,7 +926,7 @@ Försök igen eller ändra din instruktion.`
                                     <input
                                       type="text"
                                       value={mapping.helpFile}
-                                      onChange={(e) => updateMapping(index, { helpFile: e.target.value })}
+                                      onChange={(e) => updateMapping(index, 'helpFile', e.target.value)}
                                       className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-[#3D4A2B] focus:border-transparent"
                                     />
                                   </td>

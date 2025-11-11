@@ -109,7 +109,7 @@ interface DailyTip {
   timeframe?: string;
 }
 
-export function KRISterAssistantMobile({ user, userProfile, currentPage, currentAction }: KRISterAssistantProps) {
+export function KRISterAssistantMobile({ user, userProfile, currentPage, currentAction }: KRISterAssistantMobileProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
