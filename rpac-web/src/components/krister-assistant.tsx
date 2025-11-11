@@ -12,7 +12,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import {
   Bot,
   X,
@@ -28,7 +28,8 @@ import {
   MessageSquare,
   HelpCircle,
   RotateCcw,
-  Edit3
+  Edit3,
+  ArrowRight
 } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { SecureOpenAIService } from '@/lib/openai-worker-service';
@@ -88,6 +89,11 @@ interface Message {
   type: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: Date;
+  actions?: Array<{
+    label: string;
+    route: string;
+    icon?: string;
+  }>;
 }
 
 interface DailyTip {
@@ -105,6 +111,48 @@ export function KRISterAssistant({ user, userProfile, currentPage, currentAction
   // Get current route from Next.js hooks for reactivity
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const router = useRouter();
+  
+  // Function to detect actionable instructions in AI responses
+  const detectActions = (content: string): Array<{ label: string; route: string; icon?: string }> => {
+    console.log('🔍 detectActions called with content:', content.substring(0, 100));
+    const actions: Array<{ label: string; route: string; icon?: string }> = [];
+    
+    // Pattern 1: "Gå till X" or "Navigera till X"
+    const gotoPatterns = [
+      /(?:gå till|navigera till|öppna)\s+\*\*([^*]+)\*\*/gi,
+      /(?:gå till|navigera till|öppna)\s+([A-ZÅÄÖ][a-zåäö]+(?:\s+[a-zåäö]+)?)/g
+    ];
+    
+    gotoPatterns.forEach(pattern => {
+      let match;
+      while ((match = pattern.exec(content)) !== null) {
+        console.log('🎯 Pattern matched:', match[0], '→', match[1]);
+        const target = match[1].trim();
+        let route = '';
+        
+        // Map Swedish UI terms to routes
+        if (/mitt\s*hem|individuell/i.test(target)) route = '/individual';
+        else if (/lokalt|samhälle/i.test(target)) route = '/local';
+        else if (/regional/i.test(target)) route = '/regional';
+        else if (/inställningar/i.test(target)) route = '/settings';
+        else if (/odling/i.test(target)) route = '/individual?section=cultivation';
+        else if (/resurser/i.test(target)) route = '/individual?section=resources';
+        else if (/kunskap/i.test(target)) route = '/individual?section=knowledge';
+        else if (/ai-coach|coach/i.test(target)) route = '/individual?section=coach';
+        else if (/hitta\s*samhällen|upptäck/i.test(target)) route = '/local/discover';
+        else if (/meddelanden/i.test(target)) route = '/local?tab=messages';
+        
+        if (route && !actions.find(a => a.route === route)) {
+          console.log('✅ Adding action:', { label: 'Gör det åt mig', route });
+          actions.push({ label: 'Gör det åt mig', route });
+        }
+      }
+    });
+    
+    console.log('📋 Final actions array:', actions);
+    return actions;
+  };
   
   // Ensure we have a valid profile
   userProfile = userProfile || {
@@ -1123,6 +1171,34 @@ Exempel: ["Fråga 1?", "Hur gör jag X?", "Fråga 3?"]`;
                   </div>
                 )}
                 <div className="text-sm whitespace-pre-wrap">{message.content}</div>
+                
+                {/* Action Buttons */}
+                {message.type === 'assistant' && (() => {
+                  const actions = message.actions || detectActions(message.content);
+                  console.log('🔍 Detected actions for message:', actions);
+                  if (actions.length === 0) return null;
+                  
+                  return (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {actions.map((action, idx) => (
+                        <button
+                          key={idx}
+                          onClick={(e) => {
+                            console.log('🚀 Action button clicked:', action);
+                            e.preventDefault();
+                            e.stopPropagation();
+                            router.push(action.route);
+                          }}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#3D4A2B] hover:bg-[#2A331E] text-white text-xs font-semibold rounded-lg transition-all duration-200 hover:shadow-md active:scale-95"
+                        >
+                          {action.label}
+                          <ArrowRight size={12} />
+                        </button>
+                      ))}
+                    </div>
+                  );
+                })()}
+                
                 <div
                   className={`text-xs mt-1 ${
                     message.type === 'user' ? 'text-white/70' : 'text-gray-500'

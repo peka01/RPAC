@@ -636,11 +636,14 @@ FEL:
 - Blanda ALDRIG språk! Endast SVENSKA i hela svaret - INGET engelska!
 - Inga fraser som "Let me know", "I can help", "Feel free" etc.
 
-Om användaren behöver byta sida: 
-- Skriv sidan på svenska: "Mitt hem", "Resurslager", "Odlingskalendern"
-- Format som kan göras klickbar: Sätt sidnamn på ny rad eller med emoji
-  ✅ "📍 Gå till Mitt hem → Resurslager"
-  ✅ "Under Mitt hem hittar du odlingsplanen"
+Om användaren behöver byta sida/navigera: 
+- Skriv sidan på svenska: "Mitt hem", "Lokalt", "Regionalt", "Inställningar"
+- **VIKTIGT**: Formatera med fetstil och specifik text så systemet kan skapa automatiska åtgärdsknappar:
+  ✅ "Gå till **Mitt hem**" → Skapar knapp "Gör det åt mig" som navigerar dit
+  ✅ "Öppna **Lokalt**" → Skapar knapp "Gör det åt mig"
+  ✅ "Gå till **Inställningar**" → Skapar knapp
+  ✅ "Gå till **Odling**" → Navigerar till odlingssektionen
+- Systemet känner igen: Mitt hem, Lokalt, Regionalt, Inställningar, Odling, Resurser, Kunskap, AI-coach, Hitta samhällen, Meddelanden
 
 Kom ihåg: HANDLINGAR först, inte fakta-upprepning! Och ALDRIG blandat språk!`;
 
