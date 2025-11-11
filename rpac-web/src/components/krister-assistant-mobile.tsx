@@ -31,7 +31,8 @@ import {
   HelpCircle,
   ChevronDown,
   MoreVertical,
-  RotateCcw
+  RotateCcw,
+  ArrowRight
 } from 'lucide-react';
 import { t } from '@/lib/locales';
 import { SecureOpenAIService } from '@/lib/openai-worker-service';
