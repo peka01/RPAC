@@ -1,19 +1,18 @@
 [🏠](/help/dashboard.md) > [Mitt hem](/help/individual/resources.md) > Odling
 
-# Odling
+# {{individual.cultivation_planning}}
 
 Planera och hantera din odling för självförsörjning.
 
 Odlingsfunktionen hjälper dig att:
 - Planera vad du ska odla varje månad
-- Få AI-genererade rekommendationer (GPT-4)
-- Beräkna näringsvärde och självförsörjningsgrad
+- Beräkna näringsvärde och självförsörjningsgrad för ditt hushåll
 - Spara och återanvända odlingsplaner
 
 ## Steg-för-steg
 
 ### 1. Öppna odlingsplaneraren
-- Från **Mitt hem**: Välj **Min odling**
+- Från **{{navigation.individual}}**: Välj **{{individual.cultivation_planning}}**
 - Klicka "Skapa ny plan" för att börja
 
 ### 2. Skapa en odlingsplan (5 steg)
