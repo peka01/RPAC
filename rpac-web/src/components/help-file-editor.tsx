@@ -132,22 +132,34 @@ export default function HelpFileEditor({ filePath, initialContent, onClose, onSa
   const saveKRISterPrompt = async () => {
     setPromptSaveStatus('saving');
     try {
+      const token = process.env.NEXT_PUBLIC_ADMIN_HELP_EDIT_TOKEN || 
+                    localStorage.getItem('admin_token');
+      
       const response = await fetch('/api/krister-prompt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: kristerPrompt })
+        body: JSON.stringify({ 
+          prompt: kristerPrompt,
+          token 
+        })
       });
       
       if (response.ok) {
+        const data = await response.json();
         setKristerPromptOriginal(kristerPrompt);
         setPromptSaveStatus('saved');
-        setTimeout(() => setPromptSaveStatus('idle'), 2000);
+        console.log('[KRISter Prompt] Saved successfully. Commit:', data.commit);
+        setTimeout(() => setPromptSaveStatus('idle'), 3000);
       } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('[KRISter Prompt] Save failed:', response.status, errorData);
         setPromptSaveStatus('error');
+        setTimeout(() => setPromptSaveStatus('idle'), 3000);
       }
     } catch (error) {
       console.error('Failed to save KRISter prompt:', error);
       setPromptSaveStatus('error');
+      setTimeout(() => setPromptSaveStatus('idle'), 3000);
     }
   };
 
@@ -182,6 +194,8 @@ export default function HelpFileEditor({ filePath, initialContent, onClose, onSa
           setLearnedFilesCount(0);
         }, 3000);
       } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Learn API error:', response.status, errorData);
         setLearnStatus('error');
         setTimeout(() => setLearnStatus('idle'), 3000);
       }

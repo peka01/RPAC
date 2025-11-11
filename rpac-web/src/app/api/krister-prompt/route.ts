@@ -1,41 +1,60 @@
 /**
  * KRISter System Prompt API
  * 
- * GET: Returns the current KRISter system prompt
- * POST: Updates the KRISter system prompt (admin only)
+ * GET: Returns the current KRISter system prompt from GitHub
+ * POST: Updates the KRISter system prompt and commits to GitHub
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'edge';
 
-// In a real implementation, this would be stored in a database or file
-// For now, we'll use environment variables or return the default prompt
+const GITHUB_OWNER = process.env.GITHUB_OWNER || 'peka01';
+const GITHUB_REPO = process.env.GITHUB_REPO || 'RPAC';
+const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const PROMPT_FILE_PATH = 'rpac-web/public/krister-system-prompt.txt';
 
 export async function GET(request: NextRequest) {
   try {
-    // In production, load from database or environment variable
-    // For now, return the default prompt from openai-worker-service.ts
+    // Load prompt from GitHub
+    const url = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${PROMPT_FILE_PATH}`;
+    console.log('[KRISter Prompt] Loading from:', url);
     
+    const response = await fetch(url);
+    
+    if (response.ok) {
+      const prompt = await response.text();
+      return NextResponse.json({
+        success: true,
+        prompt,
+        source: 'github'
+      });
+    } else {
+      console.error('[KRISter Prompt] Failed to load from GitHub:', response.status);
+      // Fallback to default
+      const defaultPrompt = getDefaultKRISterPrompt();
+      return NextResponse.json({
+        success: true,
+        prompt: defaultPrompt,
+        source: 'default'
+      });
+    }
+  } catch (error) {
+    console.error('Error loading KRISter prompt:', error);
+    // Fallback to default
     const defaultPrompt = getDefaultKRISterPrompt();
-    
     return NextResponse.json({
       success: true,
       prompt: defaultPrompt,
       source: 'default'
     });
-  } catch (error) {
-    console.error('Error loading KRISter prompt:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to load prompt' },
-      { status: 500 }
-    );
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const { prompt } = await request.json();
+    const { prompt, token } = await request.json();
     
     if (!prompt || typeof prompt !== 'string') {
       return NextResponse.json(
@@ -44,25 +63,81 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: In production, implement:
-    // 1. Authentication check (admin only)
-    // 2. Save to database or secure storage
-    // 3. Version control / history
-    
-    // For now, just return success
-    // The prompt would need to be stored in Supabase or environment variable
-    
-    console.log('KRISter prompt update requested (not yet implemented in production)');
-    
+    // Validate admin token
+    const adminToken = token || process.env.ADMIN_HELP_EDIT_TOKEN;
+    if (!adminToken || adminToken !== process.env.ADMIN_HELP_EDIT_TOKEN) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    if (!GITHUB_TOKEN) {
+      return NextResponse.json(
+        { success: false, error: 'GitHub token not configured' },
+        { status: 500 }
+      );
+    }
+
+    // Get current file SHA (required for update)
+    const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${PROMPT_FILE_PATH}`;
+    const getResponse = await fetch(`${apiUrl}?ref=${GITHUB_BRANCH}`, {
+      headers: {
+        'Authorization': `Bearer ${GITHUB_TOKEN}`,
+        'Accept': 'application/vnd.github.v3+json',
+      },
+    });
+
+    let sha = '';
+    if (getResponse.ok) {
+      const data = await getResponse.json();
+      sha = data.sha;
+    }
+
+    // Commit the updated prompt to GitHub
+    const commitMessage = `Update KRISter system prompt`;
+    const content = Buffer.from(prompt).toString('base64');
+
+    const updateResponse = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${GITHUB_TOKEN}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message: commitMessage,
+        content,
+        branch: GITHUB_BRANCH,
+        ...(sha && { sha }) // Include SHA if file exists
+      }),
+    });
+
+    if (!updateResponse.ok) {
+      const errorData = await updateResponse.json().catch(() => ({}));
+      console.error('[KRISter Prompt] GitHub update failed:', errorData);
+      return NextResponse.json(
+        { success: false, error: 'Failed to save prompt to GitHub', details: errorData },
+        { status: updateResponse.status }
+      );
+    }
+
+    const result = await updateResponse.json();
+    console.log('[KRISter Prompt] ✓ Saved to GitHub:', result.commit?.sha);
+
     return NextResponse.json({
       success: true,
-      message: 'Prompt would be saved in production (not yet implemented)',
-      warning: 'Changes are only local for now. To persist changes, update openai-worker-service.ts manually.'
+      message: 'KRISter system prompt updated successfully',
+      commit: result.commit?.sha
     });
   } catch (error) {
     console.error('Error saving KRISter prompt:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to save prompt' },
+      { 
+        success: false, 
+        error: 'Failed to save prompt',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

@@ -17,14 +17,24 @@ interface HelpFile {
 
 export async function POST(request: NextRequest) {
   try {
-    const { action, includeAll } = await request.json();
+    console.log('[Learn API] Request received');
+    const body = await request.json().catch((err) => {
+      console.error('[Learn API] Failed to parse JSON:', err);
+      return {};
+    });
+    console.log('[Learn API] Request body:', body);
+    
+    const { action, includeAll } = body;
 
     if (action !== 'scan_and_update') {
+      console.error('[Learn API] Invalid action:', action);
       return NextResponse.json(
         { success: false, error: 'Invalid action' },
         { status: 400 }
       );
     }
+    
+    console.log('[Learn API] Starting help file scan...');
 
     // Define help file structure
     const helpFiles = [
@@ -74,6 +84,7 @@ export async function POST(request: NextRequest) {
     for (const file of helpFiles) {
       try {
         const url = `${baseUrl}/${file.path}`;
+        console.log(`[Learn API] Fetching: ${url}`);
         const response = await fetch(url);
         
         if (response.ok) {
@@ -83,20 +94,27 @@ export async function POST(request: NextRequest) {
             content,
             category: file.category
           });
+          console.log(`[Learn API] ✓ Fetched ${file.path} (${content.length} bytes)`);
         } else {
-          errors.push(`Failed to fetch ${file.path}: ${response.status}`);
+          const errorMsg = `Failed to fetch ${file.path}: ${response.status}`;
+          console.error(`[Learn API] ${errorMsg}`);
+          errors.push(errorMsg);
         }
       } catch (error) {
-        errors.push(`Error fetching ${file.path}: ${error}`);
+        const errorMsg = `Error fetching ${file.path}: ${error}`;
+        console.error(`[Learn API] ${errorMsg}`);
+        errors.push(errorMsg);
       }
     }
 
     // Process the fetched files to extract key information
+    console.log(`[Learn API] Processing ${fetchedFiles.length} files...`);
     const knowledgeBase = processHelpFiles(fetchedFiles);
 
     // TODO: In production, store this in Supabase or update the prompt
     // For now, we'll return the processed knowledge
     
+    console.log(`[Learn API] ✓ Success! Processed ${fetchedFiles.length} files`);
     return NextResponse.json({
       success: true,
       filesProcessed: fetchedFiles.length,
@@ -107,8 +125,13 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error in learn endpoint:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { success: false, error: 'Failed to process help documentation' },
+      { 
+        success: false, 
+        error: 'Failed to process help documentation',
+        details: errorMessage
+      },
       { status: 500 }
     );
   }
@@ -124,6 +147,7 @@ function processHelpFiles(files: HelpFile[]): any {
     local: {},
     regional: {},
     settings: {},
+    auth: {},
     procedures: [],
     faqs: []
   };
@@ -148,6 +172,11 @@ function processHelpFiles(files: HelpFile[]): any {
         source: file.path,
         category: file.category
       })));
+    }
+
+    // Ensure category exists
+    if (!knowledge[file.category]) {
+      knowledge[file.category] = {};
     }
 
     // Store by category
