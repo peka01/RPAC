@@ -32,32 +32,32 @@
   {
     "route": "/local",
     "params": "?tab=forum",
-    "helpFile": "local/forum"
+    "helpFile": "local/messages-community"
   },
   {
     "route": "/local",
     "params": "?tab=resources",
-    "helpFile": "local/resources"
+    "helpFile": "local/resources-shared"
   },
   {
     "route": "/local",
     "params": "?tab=map",
-    "helpFile": "local/map"
+    "helpFile": "local/discover"
   },
   {
     "route": "/local",
     "params": "?tab=find",
-    "helpFile": "local/find"
+    "helpFile": "local/discover"
   },
   {
     "route": "/local",
     "params": "?tab=members",
-    "helpFile": "local/members"
+    "helpFile": "local/admin"
   },
   {
     "route": "/local",
     "params": "?tab=garden",
-    "helpFile": "local/garden"
+    "helpFile": "local/activity"
   },
   {
     "route": "/regional",
