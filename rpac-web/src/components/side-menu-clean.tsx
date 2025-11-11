@@ -158,8 +158,23 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
       if (!isResizing) return;
       
       const newWidth = e.clientX;
-      // Constrain width between 200px and 400px
-      if (newWidth >= 200 && newWidth <= 400) {
+      const COLLAPSE_THRESHOLD = 160; // Width below which we auto-collapse to icon view
+      const MIN_EXPANDED_WIDTH = 200; // Minimum width for expanded view
+      const MAX_WIDTH = 400; // Maximum width
+      
+      // If dragging below threshold, auto-collapse to icon view
+      if (newWidth < COLLAPSE_THRESHOLD) {
+        if (!isCollapsed) {
+          setIsCollapsed(true);
+        }
+      } 
+      // If dragging above threshold and currently collapsed, expand
+      else if (newWidth >= COLLAPSE_THRESHOLD && isCollapsed) {
+        setIsCollapsed(false);
+        setSidebarWidth(Math.max(newWidth, MIN_EXPANDED_WIDTH));
+      }
+      // Normal resize when expanded
+      else if (!isCollapsed && newWidth >= MIN_EXPANDED_WIDTH && newWidth <= MAX_WIDTH) {
         setSidebarWidth(newWidth);
       }
     };
@@ -167,7 +182,9 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
     const handleMouseUp = () => {
       if (isResizing) {
         setIsResizing(false);
-        localStorage.setItem('sidebar-width', sidebarWidth.toString());
+        if (!isCollapsed) {
+          localStorage.setItem('sidebar-width', sidebarWidth.toString());
+        }
       }
     };
 
@@ -182,9 +199,9 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
       document.body.style.cursor = '';
-      document.body.style.userSelect = '';
+      document.body.style.userSelect = ''
     };
-  }, [isResizing, sidebarWidth]);
+  }, [isResizing, sidebarWidth, isCollapsed, setIsCollapsed]);
 
   const handleFlyoutClick = (sectionName: string, event: React.MouseEvent) => {
     if (isCollapsed) {
@@ -493,15 +510,16 @@ export function SideMenuClean({ user, isOnline, isCrisisMode, communityPulse }: 
         </button>
       </div>
 
-      {/* Resize Handle - Only visible when not collapsed */}
-      {!isCollapsed && (
-        <div
-          className="absolute top-0 right-0 w-1 h-full cursor-ew-resize hover:w-1.5 hover:bg-[#3D4A2B]/20 transition-all group"
-          onMouseDown={handleMouseDown}
-        >
-          <div className="absolute top-1/2 right-0 -translate-y-1/2 w-1 h-12 bg-[#3D4A2B]/30 rounded-l-full opacity-0 group-hover:opacity-100 transition-opacity" />
-        </div>
-      )}
+      {/* Resize Handle - Always visible for dragging */}
+      <div
+        className={`absolute top-0 right-0 w-1 h-full cursor-ew-resize hover:w-1.5 transition-all group ${
+          isCollapsed ? 'hover:bg-[#3D4A2B]/10' : 'hover:bg-[#3D4A2B]/20'
+        }`}
+        onMouseDown={handleMouseDown}
+        title={isCollapsed ? 'Drag right to expand' : 'Drag to resize (drag left to collapse)'}
+      >
+        <div className="absolute top-1/2 right-0 -translate-y-1/2 w-1 h-12 bg-[#3D4A2B]/30 rounded-l-full opacity-0 group-hover:opacity-100 transition-opacity" />
+      </div>
     </div>
   );
 }
