@@ -85,63 +85,47 @@ export async function GET(
     const branch = process.env.GITHUB_BRANCH || 'main';
     const repoHelpRoot = process.env.GITHUB_HELP_DIR || 'rpac-web/public/help';
     
-    // Use GitHub API instead of raw.githubusercontent.com for better cache control
-    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${repoHelpRoot}/${filePath}.md?ref=${branch}`;
     const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${repoHelpRoot}/${filePath}.md`;
-
-    const ghToken = process.env.GITHUB_TOKEN;
-
-    const ghHeaders: Record<string, string> = {
-      'Accept': 'application/vnd.github.raw+json', // Get raw content directly from API
-      // Cache-busting headers to get fresh content from GitHub
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-    };
-    if (ghToken) {
-      ghHeaders['Authorization'] = `Bearer ${ghToken}`;
-    }
 
     let content: string | null = null;
 
-    // ALWAYS fetch from GitHub - this is the source of truth
-    console.log('[HelpAPI] Fetching from GitHub for:', filePath);
-    if (!content) {
-      try {
-        console.log('[HelpAPI] Attempting GitHub API fetch:', apiUrl);
-        const ghResp = await fetch(apiUrl, { 
-          headers: ghHeaders,
-          cache: 'no-store'
+    // ALWAYS fetch from GitHub raw URL - this is the source of truth
+    // Using raw.githubusercontent.com directly (no auth needed, works in edge runtime)
+    console.log('[HelpAPI] Fetching from GitHub raw URL for:', filePath);
+    console.log('[HelpAPI] Full URL:', rawUrl);
+    
+    try {
+      // Simple fetch with cache busting
+      const cacheBustUrl = `${rawUrl}?t=${Date.now()}`;
+      console.log('[HelpAPI] Fetching with cache bust:', cacheBustUrl);
+      
+      const response = await fetch(cacheBustUrl, {
+        method: 'GET',
+        headers: {
+          'User-Agent': 'BeReady-Help-System',
+        },
+      });
+      
+      console.log('[HelpAPI] Response status:', response.status);
+      console.log('[HelpAPI] Response headers:', JSON.stringify(Object.fromEntries(response.headers.entries())));
+      
+      if (response.ok) {
+        content = await response.text();
+        console.log('[HelpAPI] Successfully fetched from GitHub, length:', content?.length || 0);
+      } else {
+        const errorText = await response.text();
+        console.error('[HelpAPI] GitHub fetch failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText.substring(0, 200)
         });
-        if (ghResp.ok) {
-          content = await ghResp.text();
-          console.log('[HelpAPI] GitHub API fetch successful, length:', content.length);
-        } else {
-          console.log('[HelpAPI] GitHub API fetch failed:', ghResp.status, ghResp.statusText);
-        }
-      } catch (apiError) {
-        console.error('[HelpAPI] GitHub API error:', apiError);
-        // Silently fall back to raw URL
       }
-    }
-
-    // Fallback to raw URL if API fails
-    if (!content) {
-      try {
-        const cacheBustUrl = `${rawUrl}?t=${Date.now()}`;
-        console.log('[HelpAPI] Attempting GitHub raw fetch:', cacheBustUrl);
-        const ghResp = await fetch(cacheBustUrl, { 
-          headers: ghHeaders,
-          cache: 'no-store'
-        });
-        if (ghResp.ok) {
-          content = await ghResp.text();
-          console.log('[HelpAPI] GitHub raw fetch successful, length:', content.length);
-        } else {
-          console.log('[HelpAPI] GitHub raw fetch failed:', ghResp.status, ghResp.statusText);
-        }
-      } catch (rawError) {
-        console.error('[HelpAPI] GitHub raw error:', rawError);
-      }
+    } catch (error) {
+      console.error('[HelpAPI] GitHub fetch exception:', {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
     }
 
     if (!content) {
