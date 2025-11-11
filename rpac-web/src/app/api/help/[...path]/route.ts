@@ -94,13 +94,25 @@ export async function GET(
     if (isDev) {
       // Try local files first in development
       try {
-        const url = new URL(request.url);
-        const localUrl = `${url.origin}/help/${filePath}.md?t=${Date.now()}`;
-        const localResp = await fetch(localUrl, { cache: 'no-store' });
+        // In edge runtime, construct the base URL from the request
+        const requestUrl = new URL(request.url);
+        const baseUrl = `${requestUrl.protocol}//${requestUrl.host}`;
+        const localUrl = `${baseUrl}/help/${filePath}.md?t=${Date.now()}`;
+        console.log('[HelpAPI] Attempting local fetch:', localUrl);
+        const localResp = await fetch(localUrl, { 
+          cache: 'no-store',
+          headers: {
+            'Accept': 'text/markdown, text/plain, */*'
+          }
+        });
         if (localResp.ok) {
           content = await localResp.text();
+          console.log('[HelpAPI] Local fetch successful, length:', content.length);
+        } else {
+          console.log('[HelpAPI] Local fetch failed:', localResp.status, localResp.statusText);
         }
       } catch (localError) {
+        console.error('[HelpAPI] Local fetch error:', localError);
         // Fall through to GitHub
       }
     }
@@ -156,9 +168,16 @@ export async function GET(
     });
     
   } catch (error) {
-    console.error('Error loading help file:', error);
+    console.error('[HelpAPI] Error loading help file:', error);
+    console.error('[HelpAPI] Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
